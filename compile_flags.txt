@@ -1,0 +1,6 @@
+-std=c11
+-Isrc
+-Wall
+-Wextra
+-Wpedantic
+-Wshadow

@@ -34,9 +34,12 @@
             tree-sitter
             nodejs_22
 
-            # Compiling the generated parser (and the scanner, if one is added)
+            # Compiling the generated parser and the scanner
             clang
             gnumake
+
+            # clangd language server for editing src/scanner.c
+            clang-tools
 
             # Reference implementation and sample documents to test against
             texinfo
