@@ -27,7 +27,9 @@ sources, which is what `texi2any` itself uses.
 - [x] Format-raw blocks, body as text for injections: `@tex`, `@latex`, `@html`,
   `@xml`, `@docbook`. `@` still introduces commands inside them; not parsed yet
 - [x] `@displaymath` body (as raw text)
-- [ ] `@verb{xTEXTx}` with an arbitrary delimiter character
+- [ ] Parse commands inside `@displaymath`, as texi2any does (e.g. `@r{...}`
+  in the Texinfo manual)
+- [x] `@verb{xTEXTx}` with an arbitrary delimiter character
 - [ ] Report a stray `@end` with no open block as an error (currently text)
 
 ## Commands and arguments
@@ -36,7 +38,6 @@ sources, which is what `texi2any` itself uses.
   such as `@footnote` and `@caption` (found by the texi2any comparison)
 - [ ] Paragraphs inside `@footnote`, `@caption` and `@shortcaption`; their text
   is flat for now
-
 - [ ] Split brace arguments on commas for multi-argument commands: `@xref`,
   `@ref`, `@pxref`, `@inforef`, `@link`, `@uref`, `@url`, `@email`, `@image`,
   `@abbr`, `@acronym`, `@anchor`, `@namedanchor`, `@inlinefmt`,
@@ -72,7 +73,6 @@ sources, which is what `texi2any` itself uses.
   (make, texinfo; found with `compare-texi2any.py --structure`)
 - [x] `@item` inside a conditional block inside a list, e.g. `@ifclear X`
   wrapping an `@item` in a `@table` (sed, gawk)
-
 - [ ] Menu entries: `* Node::  Description`, `* Name: Node.  Description`,
   menu comments (also in `@direntry`)
 - [ ] Decide on nested sections (chapter containing sections) vs flat headings
@@ -91,10 +91,10 @@ sources, which is what `texi2any` itself uses.
 ## Project
 
 - [x] `script/compare-texi2any.py`: compare trees with texi2any's
-
 - [ ] CI: generate, check `src/` is up to date, test, fuzz, parse examples,
   compare with texi2any
 - [ ] README: supported features, editor setup, development with Nix
 - [x] `CLAUDE.md` with project conventions
+- [ ] Expand `@linemacro` calls in the texi2any comparison
 - [ ] More example manuals (e.g. Emacs Lisp reference)
 - [ ] Release automation (npm, crates.io, PyPI)

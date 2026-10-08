@@ -218,6 +218,16 @@
           }
         ]
       },
+      "body": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "raw_text",
+            "named": true
+          }
+        ]
+      },
       "name": {
         "multiple": false,
         "required": true,

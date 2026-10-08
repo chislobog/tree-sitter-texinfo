@@ -74,6 +74,9 @@ export default grammar({
     $.raw_text,
     $.block_end,
     $._eof,
+    $._verb_open,
+    $._verb_text,
+    $._verb_close,
     $._error_sentinel,
   ],
 
@@ -178,14 +181,25 @@ export default grammar({
       $.brace_group,
     ),
 
-    inline_command: $ => prec.right(seq(
-      field('name', $.command_name),
-      optional(seq(
-        token.immediate('{'),
-        optional(field('arguments', $.brace_arguments)),
-        '}',
+    inline_command: $ => choice(
+      prec.right(seq(
+        field('name', $.command_name),
+        optional(seq(
+          token.immediate('{'),
+          optional(field('arguments', $.brace_arguments)),
+          '}',
+        )),
       )),
-    )),
+      // `@verb{xTEXTx}`: the scanner reads the delimiter `x` and the raw text.
+      seq(
+        field('name', alias('@verb', $.command_name)),
+        token.immediate('{'),
+        $._verb_open,
+        optional(field('body', alias($._verb_text, $.raw_text))),
+        $._verb_close,
+        '}',
+      ),
+    ),
 
     // Like texi2any, blocks and line commands are recognised at the start of a
     // line inside any brace command, as `@footnote` and `@caption` need.

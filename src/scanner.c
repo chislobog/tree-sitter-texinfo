@@ -3,7 +3,7 @@
  *
  * Keeps a stack of open blocks so that `@end NAME` only closes the block that
  * is actually open, and scans the bodies of raw blocks (`@verbatim`,
- * `@ignore`, `@macro`, `@tex`, ...) as plain text.
+ * `@ignore`, `@macro`, `@tex`, ...) and of `@verb{xTEXTx}` as plain text.
  *
  * Block names live here rather than in grammar.js: the scanner has to
  * recognise them to know what to push.
@@ -23,6 +23,9 @@ enum TokenType {
   RAW_TEXT,
   BLOCK_END,
   END_OF_FILE,
+  VERB_OPEN,
+  VERB_TEXT,
+  VERB_CLOSE,
   ERROR_SENTINEL,
 };
 
@@ -143,10 +146,15 @@ static const Block BLOCKS[] = {
 // Deepest nesting tracked inside a single raw block body.
 #define MAX_RAW_DEPTH 64
 
+// Serialized state: the `@verb` delimiter, then the block stack.
+#define MAX_DEPTH (TREE_SITTER_SERIALIZATION_BUFFER_SIZE - sizeof(int32_t))
+
 typedef struct {
   // Indices into BLOCKS, innermost last.
-  uint8_t stack[TREE_SITTER_SERIALIZATION_BUFFER_SIZE];
+  uint8_t stack[MAX_DEPTH];
   unsigned depth;
+  // Delimiter of the `@verb` being scanned, from its opening to its closing.
+  int32_t verb_delimiter;
 } Scanner;
 
 static inline void advance(TSLexer *lexer) { lexer->advance(lexer, false); }
@@ -233,7 +241,7 @@ static bool scan_block_start(Scanner *scanner, TSLexer *lexer,
       break;
   }
   if (!valid_symbols[token]) return false;
-  if (scanner->depth >= TREE_SITTER_SERIALIZATION_BUFFER_SIZE) return false;
+  if (scanner->depth >= MAX_DEPTH) return false;
 
   scanner->stack[scanner->depth++] = (uint8_t)index;
   lexer->mark_end(lexer);
@@ -326,6 +334,50 @@ static bool scan_raw(Scanner *scanner, TSLexer *lexer) {
   return true;
 }
 
+/**
+ * Scans `@verb{xTEXTx}` after its `{`: the delimiter `x`, the text up to the
+ * first `x}`, and the closing `x`. The text may contain `@`, braces and
+ * newlines.
+ */
+static bool scan_verb(Scanner *scanner, TSLexer *lexer,
+                      const bool *valid_symbols) {
+  if (valid_symbols[VERB_OPEN]) {
+    if (lexer->eof(lexer)) return false;
+    scanner->verb_delimiter = lexer->lookahead;
+    advance(lexer);
+    lexer->mark_end(lexer);
+    lexer->result_symbol = VERB_OPEN;
+    return true;
+  }
+
+  bool has_text = false;
+  while (!lexer->eof(lexer)) {
+    if (lexer->lookahead == scanner->verb_delimiter) {
+      lexer->mark_end(lexer);
+      advance(lexer);
+      if (lexer->lookahead == '}') {
+        if (has_text) {
+          lexer->result_symbol = VERB_TEXT;
+          return true;
+        }
+        lexer->mark_end(lexer);
+        scanner->verb_delimiter = 0;
+        lexer->result_symbol = VERB_CLOSE;
+        return true;
+      }
+    } else {
+      advance(lexer);
+    }
+    has_text = true;
+  }
+
+  // Unclosed at end of file; the missing delimiter is a parse error.
+  if (!has_text || !valid_symbols[VERB_TEXT]) return false;
+  lexer->mark_end(lexer);
+  lexer->result_symbol = VERB_TEXT;
+  return true;
+}
+
 void *tree_sitter_texinfo_external_scanner_create(void) {
   Scanner *scanner = calloc(1, sizeof(Scanner));
   return scanner;
@@ -338,16 +390,21 @@ void tree_sitter_texinfo_external_scanner_destroy(void *payload) {
 unsigned tree_sitter_texinfo_external_scanner_serialize(void *payload,
                                                         char *buffer) {
   Scanner *scanner = payload;
-  memcpy(buffer, scanner->stack, scanner->depth);
-  return scanner->depth;
+  memcpy(buffer, &scanner->verb_delimiter, sizeof(int32_t));
+  memcpy(buffer + sizeof(int32_t), scanner->stack, scanner->depth);
+  return sizeof(int32_t) + scanner->depth;
 }
 
 void tree_sitter_texinfo_external_scanner_deserialize(void *payload,
                                                       const char *buffer,
                                                       unsigned length) {
   Scanner *scanner = payload;
-  scanner->depth = length;
-  if (length > 0) memcpy(scanner->stack, buffer, length);
+  scanner->verb_delimiter = 0;
+  scanner->depth = 0;
+  if (length < sizeof(int32_t)) return;
+  memcpy(&scanner->verb_delimiter, buffer, sizeof(int32_t));
+  scanner->depth = length - sizeof(int32_t);
+  memcpy(scanner->stack, buffer + sizeof(int32_t), scanner->depth);
 }
 
 bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
@@ -357,6 +414,11 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
   // During error recovery every symbol is valid; let the internal lexer
   // handle it rather than pushing or popping blocks speculatively.
   if (valid_symbols[ERROR_SENTINEL]) return false;
+
+  if (valid_symbols[VERB_OPEN] || valid_symbols[VERB_TEXT] ||
+      valid_symbols[VERB_CLOSE]) {
+    return scan_verb(scanner, lexer, valid_symbols);
+  }
 
   if (valid_symbols[RAW_TEXT]) return scan_raw(scanner, lexer);
 
