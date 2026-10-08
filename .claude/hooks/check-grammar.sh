@@ -30,8 +30,12 @@ fi
 
 if ! output=$(run tree-sitter test 2>&1); then
   # Passing tests and section headers are noise; keep failures and the diff.
+  # The diff marks expected lines green and actual lines red; label them
+  # before stripping the colours.
   printf 'tree-sitter test failed:\n%s\n' "$output" |
-    sed 's/\x1b\[[0-9;]*m//g' | grep -v -e '✓' -e '^  [a-z_-]*:$' >&2
+    sed -e 's/^\x1b\[32m/[expected] /' -e 's/^\x1b\[31m/[actual]   /' \
+        -e 's/\x1b\[[0-9;]*m//g' |
+    grep -v -e '✓' -e '^  [a-z_-]*:$' -e '^correct / expected / unexpected$' >&2
   exit 2
 fi
 
