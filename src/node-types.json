@@ -20,6 +20,10 @@
           {
             "type": "block_end",
             "named": true
+          },
+          {
+            "type": "missing_end",
+            "named": true
           }
         ]
       },
@@ -435,6 +439,10 @@
           {
             "type": "block_end",
             "named": true
+          },
+          {
+            "type": "missing_end",
+            "named": true
           }
         ]
       },
@@ -587,6 +595,10 @@
         "types": [
           {
             "type": "block_end",
+            "named": true
+          },
+          {
+            "type": "missing_end",
             "named": true
           }
         ]
@@ -790,6 +802,10 @@
   },
   {
     "type": "missing_brace",
+    "named": true
+  },
+  {
+    "type": "missing_end",
     "named": true
   },
   {

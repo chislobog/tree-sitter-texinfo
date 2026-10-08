@@ -138,3 +138,28 @@ not parsed
     (command_name)
     (comment)
     (ignored)))
+
+================================================================================
+Less common line commands
+================================================================================
+
+@clickstyle @result
+@xrefname Name
+@fnindex f
+
+---
+
+(source_file
+  (line_command
+    (command_name)
+    (line_argument
+      (inline_command
+        (command_name))))
+  (line_command
+    (command_name)
+    (line_argument
+      (text)))
+  (line_command
+    (command_name)
+    (line_argument
+      (text))))

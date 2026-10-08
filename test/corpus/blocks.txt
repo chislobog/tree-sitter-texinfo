@@ -110,7 +110,6 @@ Indented blocks
 
 ================================================================================
 Mismatched end
-:error
 ================================================================================
 
 @example
@@ -119,7 +118,15 @@ x
 
 ---
 
-(source_file)
+(source_file
+  (block
+    (command_name)
+    (paragraph
+      (text)
+      (inline_command
+        (command_name))
+      (text))
+    (missing_end)))
 
 ================================================================================
 Block command in the middle of a line is inline
@@ -149,3 +156,66 @@ End without an open block is text
     (inline_command
       (command_name))
     (text)))
+
+================================================================================
+Commands inside displaymath
+================================================================================
+
+@displaymath
+f(x) = \frac{a}{b} @code{x}
+@end displaymath
+
+---
+
+(source_file
+  (block
+    (command_name)
+    (paragraph
+      (text)
+      (brace_group
+        (text))
+      (brace_group
+        (text))
+      (inline_command
+        (command_name)
+        (brace_arguments
+          (text))))
+    (block_end)))
+
+================================================================================
+Unclosed block at end of file
+================================================================================
+
+@example
+code
+
+---
+
+(source_file
+  (block
+    (command_name)
+    (paragraph
+      (text))
+    (missing_end)))
+
+================================================================================
+Nested unclosed blocks at end of file
+================================================================================
+
+@quotation
+@itemize
+@item x
+
+---
+
+(source_file
+  (block
+    (command_name)
+    (list
+      (command_name)
+      (item
+        (command_name)
+        (line_argument
+          (text)))
+      (missing_end))
+    (missing_end)))

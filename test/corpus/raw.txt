@@ -130,7 +130,6 @@ Raw block inside a normal block
 
 ================================================================================
 Unclosed raw block
-:error
 ================================================================================
 
 @verbatim
@@ -138,7 +137,11 @@ never closed
 
 ---
 
-(source_file)
+(source_file
+  (raw_block
+    (command_name)
+    (raw_text)
+    (missing_end)))
 
 ================================================================================
 Comment directly after a block name

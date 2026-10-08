@@ -26,9 +26,8 @@ sources, which is what `texi2any` itself uses.
   counted), `@macro`, `@rmacro`, `@linemacro`
 - [x] Format-raw blocks, body as text for injections: `@tex`, `@latex`, `@html`,
   `@xml`, `@docbook`. `@` still introduces commands inside them; not parsed yet
-- [x] `@displaymath` body (as raw text)
-- [ ] Parse commands inside `@displaymath`, as texi2any does (e.g. `@r{...}`
-  in the Texinfo manual)
+- [x] Parse commands inside `@displaymath`, as texi2any does (it is a normal
+  block now, not raw)
 - [x] `@verb{xTEXTx}` with an arbitrary delimiter character
 - [ ] Report a stray `@end` with no open block as an error (currently text)
 
@@ -59,10 +58,10 @@ sources, which is what `texi2any` itself uses.
 - [ ] `@tab` as a cell separator in multitable rows
 - [ ] `@headings`, `@everyheading` and friends with `@|` separators
 - [ ] `@alias NEW = EXISTING`, `@definfoenclose`
-- [ ] Missing line commands: `defline`, `deftypeline`, `xrefname`, `maketitle`,
-  `bsixpaper`, `clickstyle`, `fonttextsize`, `microtype`,
-  `{even,odd,every}{heading,footing}marks`, `verbatiminclude`, `subentry`,
-  user-defined index commands
+- [x] Missing line commands from texi2any's table: `defline`, `deftypeline`,
+  `xrefname`, `clickstyle`, the two-letter index commands, ...
+- [ ] User-defined index commands (`@defindex op` makes `@opindex`), which
+  are only known at run time
 - [x] Missing blocks: `@documentinfo`, `@publication`
 - [x] Fix typo: `codequoteundirective` should be `codequoteundirected`
 - [ ] No-brace commands: `@refill`, `@thischapter`, `@thisfile`, ...
@@ -79,6 +78,8 @@ sources, which is what `texi2any` itself uses.
 - [ ] Name the command field `name` in headings too (it is `command`), and
   give `@bye` a `name` field, so every command node is queried the same way
 - [x] Line commands and headings at end of file without a newline
+- [x] Blocks still open at the end of the file end with a zero-width
+  `missing_end` node instead of turning into an error
 - [x] Unclosed brace commands end where texi2any ends them (a blank line for
   built-in commands other than `@footnote`, `@caption`, `@shortcaption` and
   `@math`; the enclosing block's `@end`; the end of the file), marked by a
@@ -102,12 +103,13 @@ sources, which is what `texi2any` itself uses.
 - [x] `script/compare-texi2any.py`: compare trees with texi2any's
 - [x] Run the comparison on the inputs of texi2any's own parser tests
   (`texinfo-tests/`): 1,446 of 1,755 match exactly
-- [ ] Triage the test inputs that differ (205 of 1,755 left). Done: unclosed
+- [ ] Triage the test inputs that differ (177 of 1,755 left). Done: unclosed
   blocks and inline conditionals in the script, comment placement, comments
-  on the `@bye` line, `@html@c` (comment right after a block name), unclosed
-  brace commands. Left: a block opened and closed on one line, `@math` and
-  `@displaymath` contents, `@clickstyle` and other missing line commands,
-  comments on a conditional's line, then the rest
+  on the `@bye` line, `@html@c`, unclosed brace commands and blocks,
+  `@displaymath`, missing line commands, `-` in command names. Left: a block
+  opened and closed on one line (`@end` in the middle of a line), a block
+  right after `@footnote{`, then the rest; much of what remains is invalid
+  input that texi2any discards (unknown commands, misplaced `@tab`)
 - [ ] CI: generate, check `src/` is up to date, test, fuzz, parse examples,
   compare with texi2any
 - [ ] README: supported features, editor setup, development with Nix

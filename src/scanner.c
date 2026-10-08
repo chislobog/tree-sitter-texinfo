@@ -32,6 +32,8 @@ enum TokenType {
   // the end of the file, and before the `@end` of the innermost open block.
   BRACE_CLOSE_AT_PARAGRAPH_END,
   BRACE_CLOSE_AT_BLOCK_END,
+  // Zero-width end of a block still open at the end of the file.
+  MISSING_END,
   ERROR_SENTINEL,
 };
 
@@ -78,6 +80,8 @@ static const Block BLOCKS[] = {
     {"documentinfo", KIND_BLOCK},
     {"publication", KIND_BLOCK},
     {"nodedescriptionblock", KIND_BLOCK},
+    // Math: texi2any parses commands inside, so not raw.
+    {"displaymath", KIND_BLOCK},
     // Menus
     {"menu", KIND_BLOCK},
     {"detailmenu", KIND_BLOCK},
@@ -138,7 +142,6 @@ static const Block BLOCKS[] = {
     {"html", KIND_RAW},
     {"xml", KIND_RAW},
     {"docbook", KIND_RAW},
-    {"displaymath", KIND_RAW},
     {"macro", KIND_MACRO},
     {"rmacro", KIND_MACRO},
     {"linemacro", KIND_MACRO},
@@ -466,6 +469,12 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
   }
 
   if (valid_symbols[RAW_TEXT]) return scan_raw(scanner, lexer);
+
+  if (valid_symbols[MISSING_END] && lexer->eof(lexer) && scanner->depth > 0) {
+    scanner->depth--;
+    lexer->result_symbol = MISSING_END;
+    return true;
+  }
 
   if (valid_symbols[BRACE_CLOSE_AT_PARAGRAPH_END] ||
       valid_symbols[BRACE_CLOSE_AT_BLOCK_END]) {

@@ -45,12 +45,20 @@ const LINE_COMMANDS = [
   'deffnx', 'defvrx', 'deftypefnx', 'deftypevrx', 'deftpx', 'defopx', 'deftypeopx', 'defcvx',
   'deftypecvx', 'defunx', 'defmacx', 'defspecx', 'defvarx', 'defoptx', 'deftypefunx',
   'deftypevarx', 'defmethodx', 'deftypemethodx', 'defivarx', 'deftypeivarx',
+  // Lines of @defblock
+  'defline', 'deftypeline',
+  // Less common: two-letter index names, page layout, cross-reference names
+  'cpindex', 'fnindex', 'kyindex', 'pgindex', 'tpindex', 'vrindex', 'bsixpaper',
+  'clickstyle', 'fonttextsize', 'microtype', 'maketitle', 'verbatiminclude',
+  'xrefname', 'evenfootingmarks', 'evenheadingmarks', 'everyfootingmarks',
+  'everyheadingmarks', 'oddfootingmarks', 'oddheadingmarks',
 ];
 
 // Built-in brace commands whose argument ends at a blank line, as in texi2any:
-// all of them except @verb and the "context" commands @footnote, @caption,
-// @shortcaption and @math. Any other command with braces, including calls to
-// user-defined macros, may contain blank lines.
+// all of them except @verb, the "context" commands @footnote, @caption,
+// @shortcaption and @math, and the inline conditionals (@inlinefmt, ...),
+// whose skipped arguments may contain blank lines. Any other command with
+// braces, including calls to user-defined macros, may contain blank lines.
 const BRACE_COMMANDS = [
   'AA', 'AE', 'DH', 'H', 'L', 'LaTeX', 'O', 'OE', 'TH', 'TeX', 'U', 'aa', 'abbr',
   'acronym', 'ae', 'ampchar', 'anchor', 'arrow', 'asis', 'atchar', 'b',
@@ -60,8 +68,7 @@ const BRACE_COMMANDS = [
   'exclamdown', 'expansion', 'file', 'geq', 'guillemetleft', 'guillemetright',
   'guillemotleft', 'guillemotright', 'guilsinglleft', 'guilsinglright',
   'hashchar', 'headitemfont', 'hyphenation', 'i', 'image', 'indicateurl',
-  'inforef', 'inlinefmt', 'inlinefmtifelse', 'inlineifclear', 'inlineifset',
-  'inlineraw', 'kbd', 'key', 'l', 'lbracechar', 'leq', 'link', 'minus',
+  'inforef', 'kbd', 'key', 'l', 'lbracechar', 'leq', 'link', 'minus',
   'namedanchor', 'o', 'oe', 'ogonek', 'option', 'ordf', 'ordm', 'point', 'pounds',
   'print', 'pxref', 'questiondown', 'quotedblbase', 'quotedblleft',
   'quotedblright', 'quoteleft', 'quoteright', 'quotesinglbase', 'r',
@@ -103,6 +110,7 @@ export default grammar({
     $._verb_close,
     $._brace_close_at_paragraph_end,
     $._brace_close_at_block_end,
+    $._missing_end,
     $._error_sentinel,
   ],
 
@@ -160,7 +168,7 @@ export default grammar({
       $._newline,
       // Items, for conditionals that wrap some of a list's items.
       repeat(choice($._content, $.item)),
-      field('end', $.block_end),
+      field('end', $._block_end),
     ),
 
     list: $ => seq(
@@ -169,7 +177,7 @@ export default grammar({
       $._newline,
       repeat($._content),
       repeat($.item),
-      field('end', $.block_end),
+      field('end', $._block_end),
     ),
 
     // `@verbatim`, `@ignore`, `@macro`, `@tex`, `@html`, ...: the body is
@@ -179,8 +187,12 @@ export default grammar({
       optional(field('argument', $.line_argument)),
       $._newline,
       optional(field('body', $.raw_text)),
-      field('end', $.block_end),
+      field('end', $._block_end),
     ),
+
+    // A block still open at the end of the file ends with a zero-width
+    // `missing_end`, so it keeps its structure.
+    _block_end: $ => choice($.block_end, alias($._missing_end, $.missing_end)),
 
     item: $ => prec.right(seq(
       field('name', command($, ['item', 'headitem'])),
@@ -279,7 +291,8 @@ export default grammar({
 
     brace_group: $ => seq('{', repeat(choice($._inline, $._newline)), '}'),
 
-    command_name: _ => /@[a-zA-Z][a-zA-Z0-9]*/,
+    // As in texi2any, names may contain `-` (e.g. user-defined macros).
+    command_name: _ => /@[a-zA-Z][a-zA-Z0-9-]*/,
 
     // `@@`, `@{`, `@}`, accents like `@'`, spacing like `@*`, `@ ` and `@` at end of line.
     symbol_command: _ => /@[^a-zA-Z]/,

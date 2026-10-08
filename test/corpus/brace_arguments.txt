@@ -248,3 +248,21 @@ second}
       (brace_arguments
         (text)
         (text)))))
+
+================================================================================
+Inline conditional containing a blank line
+================================================================================
+
+@inlinefmt{html, a
+
+b}
+
+---
+
+(source_file
+  (paragraph
+    (inline_command
+      (command_name)
+      (brace_arguments
+        (text)
+        (text)))))

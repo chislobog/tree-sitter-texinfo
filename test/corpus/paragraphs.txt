@@ -142,3 +142,20 @@ Last words.
 (source_file
   (paragraph
     (text)))
+
+================================================================================
+Command name with a hyphen
+================================================================================
+
+Call @files-char{a} here.
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (inline_command
+      (command_name)
+      (brace_arguments
+        (text)))
+    (text)))
