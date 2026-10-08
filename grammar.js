@@ -186,7 +186,15 @@ export default grammar({
       )),
     )),
 
-    brace_arguments: $ => repeat1(choice($._inline, $._newline)),
+    // Like texi2any, blocks and line commands are recognised at the start of a
+    // line inside any brace command, as `@footnote` and `@caption` need.
+    brace_arguments: $ => repeat1(choice(
+      $._inline,
+      $._newline,
+      // A line command ends with its own newline, so line-level items can
+      // follow each other directly.
+      seq($._newline, repeat1(choice($.block, $.list, $.raw_block, $.line_command))),
+    )),
 
     brace_group: $ => seq('{', repeat(choice($._inline, $._newline)), '}'),
 

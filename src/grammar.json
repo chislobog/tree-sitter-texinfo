@@ -1284,6 +1284,39 @@
           {
             "type": "SYMBOL",
             "name": "_newline"
+          },
+          {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "_newline"
+              },
+              {
+                "type": "REPEAT1",
+                "content": {
+                  "type": "CHOICE",
+                  "members": [
+                    {
+                      "type": "SYMBOL",
+                      "name": "block"
+                    },
+                    {
+                      "type": "SYMBOL",
+                      "name": "list"
+                    },
+                    {
+                      "type": "SYMBOL",
+                      "name": "raw_block"
+                    },
+                    {
+                      "type": "SYMBOL",
+                      "name": "line_command"
+                    }
+                  ]
+                }
+              }
+            ]
           }
         ]
       }

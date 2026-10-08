@@ -32,8 +32,10 @@ sources, which is what `texi2any` itself uses.
 
 ## Commands and arguments
 
-- [ ] Block content in `@footnote`, `@caption` and `@shortcaption`: paragraphs,
-  blocks and line commands (found by the texi2any comparison in sed and gawk)
+- [x] Blocks and line commands at the start of a line inside brace commands
+  such as `@footnote` and `@caption` (found by the texi2any comparison)
+- [ ] Paragraphs inside `@footnote`, `@caption` and `@shortcaption`; their text
+  is flat for now
 
 - [ ] Split brace arguments on commas for multi-argument commands: `@xref`,
   `@ref`, `@pxref`, `@inforef`, `@link`, `@uref`, `@url`, `@email`, `@image`,
@@ -65,6 +67,11 @@ sources, which is what `texi2any` itself uses.
 - [ ] No-brace commands: `@refill`, `@thischapter`, `@thisfile`, ...
 
 ## Structure
+
+- [ ] `@itemx` after index entries or comments that follow an `@item`
+  (make, texinfo; found with `compare-texi2any.py --structure`)
+- [ ] `@item` inside a conditional block inside a list, e.g. `@ifclear X`
+  wrapping an `@item` in a `@table` (sed, gawk)
 
 - [ ] Menu entries: `* Node::  Description`, `* Name: Node.  Description`,
   menu comments (also in `@direntry`)

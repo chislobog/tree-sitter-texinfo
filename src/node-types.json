@@ -94,11 +94,27 @@
       "required": false,
       "types": [
         {
+          "type": "block",
+          "named": true
+        },
+        {
           "type": "brace_group",
           "named": true
         },
         {
           "type": "inline_command",
+          "named": true
+        },
+        {
+          "type": "line_command",
+          "named": true
+        },
+        {
+          "type": "list",
+          "named": true
+        },
+        {
+          "type": "raw_block",
           "named": true
         },
         {

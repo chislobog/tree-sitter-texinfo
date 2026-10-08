@@ -1,0 +1,102 @@
+================================================================================
+Block inside a footnote
+================================================================================
+
+Text@footnote{See
+@example
+x
+@end example
+} more.
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (inline_command
+      (command_name)
+      (brace_arguments
+        (text)
+        (block
+          (command_name)
+          (paragraph
+            (text))
+          (block_end))))
+    (text)))
+
+================================================================================
+Line commands and conditionals inside a footnote
+================================================================================
+
+A@footnote{
+@cindex entry
+@ifclear PRINT
+Note.
+@end ifclear
+}
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (inline_command
+      (command_name)
+      (brace_arguments
+        (line_command
+          (command_name)
+          (line_argument
+            (text)))
+        (block
+          (command_name)
+          (line_argument
+            (text))
+          (paragraph
+            (text))
+          (block_end))))))
+
+================================================================================
+Line command inside a caption
+================================================================================
+
+@float Figure
+@caption{Table
+@cindex t
+}
+@end float
+
+---
+
+(source_file
+  (block
+    (command_name)
+    (line_argument
+      (text))
+    (paragraph
+      (inline_command
+        (command_name)
+        (brace_arguments
+          (text)
+          (line_command
+            (command_name)
+            (line_argument
+              (text))))))
+    (block_end)))
+
+================================================================================
+Block command in the middle of a brace argument is inline
+================================================================================
+
+@footnote{see @example here}
+
+---
+
+(source_file
+  (paragraph
+    (inline_command
+      (command_name)
+      (brace_arguments
+        (text)
+        (inline_command
+          (command_name))
+        (text)))))
