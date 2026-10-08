@@ -1,0 +1,112 @@
+================================================================================
+Header
+================================================================================
+\input texinfo   @c -*-texinfo-*-
+@setfilename sample.info
+@settitle Sample Manual
+
+---
+
+(source_file
+  (input_line
+    (comment))
+  (line_command
+    (command_name)
+    (line_argument
+      (text)))
+  (line_command
+    (command_name)
+    (line_argument
+      (text))))
+
+================================================================================
+Nodes and headings
+================================================================================
+
+@node Top
+@top Sample
+
+@node Overview
+@chapter Overview of @code{sample}
+
+@section Details
+@subsection More
+@subsubsection Most
+@unnumbered Index
+@appendixsec Extra
+
+---
+
+(source_file
+  (line_command
+    (command_name)
+    (line_argument
+      (text)))
+  (top_heading
+    (command_name)
+    (line_argument
+      (text)))
+  (line_command
+    (command_name)
+    (line_argument
+      (text)))
+  (chapter_heading
+    (command_name)
+    (line_argument
+      (text)
+      (inline_command
+        (command_name)
+        (brace_arguments
+          (text)))))
+  (section_heading
+    (command_name)
+    (line_argument
+      (text)))
+  (subsection_heading
+    (command_name)
+    (line_argument
+      (text)))
+  (subsubsection_heading
+    (command_name)
+    (line_argument
+      (text)))
+  (chapter_heading
+    (command_name)
+    (line_argument
+      (text)))
+  (section_heading
+    (command_name)
+    (line_argument
+      (text))))
+
+================================================================================
+Line commands without arguments
+================================================================================
+
+@contents
+@noindent
+Text.
+
+---
+
+(source_file
+  (line_command
+    (command_name))
+  (line_command
+    (command_name))
+  (paragraph
+    (text)))
+
+================================================================================
+Everything after bye is ignored
+================================================================================
+
+@bye
+@chapter not a heading
+
+---
+
+(source_file
+  (bye
+    (command_name)
+    (ignored)))

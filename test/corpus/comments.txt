@@ -1,0 +1,47 @@
+================================================================================
+Comment lines
+================================================================================
+
+@c a comment
+@comment another one
+@c
+
+---
+
+(source_file
+  (comment)
+  (comment)
+  (comment))
+
+================================================================================
+Trailing comment
+================================================================================
+
+Some text @c and a comment
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (comment)))
+
+================================================================================
+Commands starting with c are not comments
+================================================================================
+
+@clear flag
+@code{x}
+
+---
+
+(source_file
+  (line_command
+    (command_name)
+    (line_argument
+      (text)))
+  (paragraph
+    (inline_command
+      (command_name)
+      (brace_arguments
+        (text)))))

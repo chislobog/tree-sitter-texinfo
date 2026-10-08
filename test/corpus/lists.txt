@@ -1,0 +1,162 @@
+================================================================================
+Itemize
+================================================================================
+
+@itemize @bullet
+@item
+First.
+
+@item Second
+continues.
+@end itemize
+
+---
+
+(source_file
+  (list
+    (command_name)
+    (line_argument
+      (inline_command
+        (command_name)))
+    (item
+      (command_name)
+      (paragraph
+        (text)))
+    (item
+      (command_name)
+      (line_argument
+        (text))
+      (paragraph
+        (text)))
+    (block_end)))
+
+================================================================================
+Table with itemx
+================================================================================
+
+@table @code
+@item foo
+@itemx bar
+Description.
+@end table
+
+---
+
+(source_file
+  (list
+    (command_name)
+    (line_argument
+      (inline_command
+        (command_name)))
+    (item
+      (command_name)
+      (line_argument
+        (text))
+      (itemx
+        (command_name)
+        (line_argument
+          (text)))
+      (paragraph
+        (text)))
+    (block_end)))
+
+================================================================================
+Content before the first item
+================================================================================
+
+@table @asis
+@cindex entry
+@anchor{here}
+@item One
+@end table
+
+---
+
+(source_file
+  (list
+    (command_name)
+    (line_argument
+      (inline_command
+        (command_name)))
+    (line_command
+      (command_name)
+      (line_argument
+        (text)))
+    (paragraph
+      (inline_command
+        (command_name)
+        (brace_arguments
+          (text))))
+    (item
+      (command_name)
+      (line_argument
+        (text)))
+    (block_end)))
+
+================================================================================
+Nested lists
+================================================================================
+
+@enumerate
+@item Outer
+@itemize
+@item Inner
+@end itemize
+@item Next
+@end enumerate
+
+---
+
+(source_file
+  (list
+    (command_name)
+    (item
+      (command_name)
+      (line_argument
+        (text))
+      (list
+        (command_name)
+        (item
+          (command_name)
+          (line_argument
+            (text)))
+        (block_end)))
+    (item
+      (command_name)
+      (line_argument
+        (text)))
+    (block_end)))
+
+================================================================================
+Multitable
+================================================================================
+
+@multitable @columnfractions .5 .5
+@headitem A @tab B
+@item 1 @tab 2
+@end multitable
+
+---
+
+(source_file
+  (list
+    (command_name)
+    (line_argument
+      (inline_command
+        (command_name))
+      (text))
+    (item
+      (command_name)
+      (line_argument
+        (text)
+        (inline_command
+          (command_name))
+        (text)))
+    (item
+      (command_name)
+      (line_argument
+        (text)
+        (inline_command
+          (command_name))
+        (text)))
+    (block_end)))

@@ -1,0 +1,144 @@
+================================================================================
+Paragraphs are separated by blank lines
+================================================================================
+
+First paragraph
+spans two lines.
+
+Second paragraph.
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (text))
+  (paragraph
+    (text)))
+
+================================================================================
+Inline commands
+================================================================================
+
+Use @code{ls} or @emph{not} @dots{} @TeX{} @bullet here.
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (inline_command
+      (command_name)
+      (brace_arguments
+        (text)))
+    (text)
+    (inline_command
+      (command_name)
+      (brace_arguments
+        (text)))
+    (inline_command
+      (command_name))
+    (inline_command
+      (command_name))
+    (inline_command
+      (command_name))
+    (text)))
+
+================================================================================
+Cross-reference arguments
+================================================================================
+
+See @xref{Node, , Title, manual}.
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (inline_command
+      (command_name)
+      (brace_arguments
+        (text)))
+    (text)))
+
+================================================================================
+Nested inline commands
+================================================================================
+
+@strong{very @emph{important}}
+
+---
+
+(source_file
+  (paragraph
+    (inline_command
+      (command_name)
+      (brace_arguments
+        (text)
+        (inline_command
+          (command_name)
+          (brace_arguments
+            (text)))))))
+
+================================================================================
+Arguments spanning lines
+================================================================================
+
+A @footnote{first line
+second line} b.
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (inline_command
+      (command_name)
+      (brace_arguments
+        (text)
+        (text)))
+    (text)))
+
+================================================================================
+Symbol commands
+================================================================================
+
+@@ @{ @} @* @. @'e
+
+---
+
+(source_file
+  (paragraph
+    (symbol_command)
+    (symbol_command)
+    (symbol_command)
+    (symbol_command)
+    (symbol_command)
+    (symbol_command)
+    (text)))
+
+================================================================================
+Brace groups
+================================================================================
+
+A {group} here.
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (brace_group
+      (text))
+    (text)))
+
+================================================================================
+Paragraph at end of file without newline
+================================================================================
+
+Last words.
+---
+
+(source_file
+  (paragraph
+    (text)))

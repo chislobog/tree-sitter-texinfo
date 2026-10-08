@@ -1,0 +1,87 @@
+================================================================================
+Example block
+================================================================================
+
+@example
+foo @{bar@}
+@end example
+
+---
+
+(source_file
+  (block
+    (command_name)
+    (paragraph
+      (text)
+      (symbol_command)
+      (text)
+      (symbol_command))
+    (block_end)))
+
+================================================================================
+Block with an argument
+================================================================================
+
+@float Figure, fig:one
+Caption text.
+@end float
+
+---
+
+(source_file
+  (block
+    (command_name)
+    (line_argument
+      (text))
+    (paragraph
+      (text))
+    (block_end)))
+
+================================================================================
+Nested blocks
+================================================================================
+
+@ifnottex
+@node Top
+@top Manual
+
+@quotation
+Quoted.
+@end quotation
+@end ifnottex
+
+---
+
+(source_file
+  (block
+    (command_name)
+    (line_command
+      (command_name)
+      (line_argument
+        (text)))
+    (top_heading
+      (command_name)
+      (line_argument
+        (text)))
+    (block
+      (command_name)
+      (paragraph
+        (text))
+      (block_end))
+    (block_end)))
+
+================================================================================
+Block end at end of file without newline
+================================================================================
+
+@example
+x
+@end example
+---
+
+(source_file
+  (block
+    (command_name)
+    (paragraph
+      (text))
+    (block_end)))
