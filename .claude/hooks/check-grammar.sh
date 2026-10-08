@@ -33,11 +33,14 @@ if ! output=$(run tree-sitter test 2>&1); then
   # The diff colours expected lines green and actual lines red, one colour
   # code per run of lines; label every line before stripping the colours.
   printf 'tree-sitter test failed:\n%s\n' "$output" |
+    # The reset code can end a line or start the next one.
     awk '
-      /^\x1b\[32m/ { label = "[expected] " }
-      /^\x1b\[31m/ { label = "[actual]   " }
-      { line = $0; gsub(/\x1b\[[0-9;]*m/, "", line); print label line }
-      /\x1b\[0m$/ { label = "" }
+      { line = $0 }
+      sub(/^\x1b\[0m/, "", line) { label = "" }
+      line ~ /^\x1b\[32m/ { label = "[expected] " }
+      line ~ /^\x1b\[31m/ { label = "[actual]   " }
+      { reset = line ~ /\x1b\[0m$/; gsub(/\x1b\[[0-9;]*m/, "", line); print label line }
+      reset { label = "" }
     ' |
     grep -v -e '✓' -e '^  [a-z_-]*:$' -e '^correct / expected / unexpected$' >&2
   exit 2
