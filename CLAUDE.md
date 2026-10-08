@@ -49,8 +49,11 @@ only blocks, items and line commands.
 
 - Commit messages follow Conventional Commits (`feat:`, `fix:`, `test:`,
   `build:`, `docs:`, `chore:`).
-- Write the corpus test first. Fill expected trees with
-  `tree-sitter test --update`, then read every generated tree before keeping it.
+- Test first: for new behaviour, write the corpus test with its expected tree
+  by hand, based on what texi2any does, and see it fail before changing the
+  grammar. Use `tree-sitter test --update` only to regenerate existing tests
+  after a deliberate change to the tree's shape, and read every regenerated
+  tree before keeping it.
 - A corpus test's input starts right after the header line, so a blank line
   there is part of the input.
 - Mark tests that must produce a parse error with `:error` under the title.
