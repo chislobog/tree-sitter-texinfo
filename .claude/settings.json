@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/check-grammar.sh",
+            "timeout": 300,
+            "statusMessage": "Regenerating parser and running tests"
+          }
+        ]
+      }
+    ]
+  }
+}
