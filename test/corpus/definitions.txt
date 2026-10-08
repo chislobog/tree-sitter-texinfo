@@ -169,3 +169,40 @@ Text.
           (paragraph
             (text))
           end: (block_end))))))
+
+================================================================================
+Definition line continued with @ at the end of a line
+================================================================================
+
+@deffn Command foo a @
+b
+@end deffn
+
+---
+
+(source_file
+  (definition_block
+    (definition_line
+      name: (command_name)
+      category: (text)
+      entity: (text)
+      arguments: (definition_arguments
+        (text)
+        (line_continuation)
+        (text)))
+    end: (block_end)))
+
+================================================================================
+At sign at the end of a paragraph line is still a symbol command
+================================================================================
+
+A @
+b
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (symbol_command)
+    (text)))

@@ -280,7 +280,11 @@ export default grammar({
 
     _word_text: _ => /[^@{}\s]+/,
 
-    definition_arguments: $ => prec.right(repeat1($._inline)),
+    definition_arguments: $ => prec.right(repeat1(choice($._inline, $.line_continuation))),
+
+    // `@` at the end of a definition line continues it. Elsewhere `@` at the
+    // end of a line is a symbol command (a space).
+    line_continuation: _ => token(prec(1, /@\r?\n/)),
 
     list: $ => seq(
       field('name', alias($._list_start, $.command_name)),

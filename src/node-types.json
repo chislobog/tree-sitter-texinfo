@@ -272,6 +272,10 @@
           "named": true
         },
         {
+          "type": "line_continuation",
+          "named": true
+        },
+        {
           "type": "symbol_command",
           "named": true
         },
@@ -1324,6 +1328,10 @@
   },
   {
     "type": "ignored",
+    "named": true
+  },
+  {
+    "type": "line_continuation",
     "named": true
   },
   {

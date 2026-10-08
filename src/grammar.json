@@ -2779,8 +2779,28 @@
       "content": {
         "type": "REPEAT1",
         "content": {
-          "type": "SYMBOL",
-          "name": "_inline"
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "_inline"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "line_continuation"
+            }
+          ]
+        }
+      }
+    },
+    "line_continuation": {
+      "type": "TOKEN",
+      "content": {
+        "type": "PREC",
+        "value": 1,
+        "content": {
+          "type": "PATTERN",
+          "value": "@\\r?\\n"
         }
       }
     },
