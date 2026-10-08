@@ -1,0 +1,141 @@
+================================================================================
+Verbatim body is plain text
+================================================================================
+
+@verbatim
+@code{x} { unbalanced
+  @end example
+@end verbatim
+
+---
+
+(source_file
+  (raw_block
+    (command_name)
+    (raw_text)
+    (block_end)))
+
+================================================================================
+Nested ignore blocks are counted
+================================================================================
+
+@ignore
+outer
+@ignore
+inner
+@end ignore
+still ignored
+@end ignore
+Text.
+
+---
+
+(source_file
+  (raw_block
+    (command_name)
+    (raw_text)
+    (block_end))
+  (paragraph
+    (text)))
+
+================================================================================
+Macro definition with nested macro
+================================================================================
+
+@macro foo {a, b}
+@macro inner
+x
+@end macro
+\a\ and \b\
+@end macro
+
+---
+
+(source_file
+  (raw_block
+    (command_name)
+    (line_argument
+      (text)
+      (brace_group
+        (text)))
+    (raw_text)
+    (block_end)))
+
+================================================================================
+Other raw blocks do not count nested macros
+================================================================================
+
+@verbatim
+@macro x
+@end verbatim
+
+---
+
+(source_file
+  (raw_block
+    (command_name)
+    (raw_text)
+    (block_end)))
+
+================================================================================
+Empty raw block
+================================================================================
+
+@ignore
+@end ignore
+
+---
+
+(source_file
+  (raw_block
+    (command_name)
+    (block_end)))
+
+================================================================================
+TeX block
+================================================================================
+
+@tex
+$$ \chi^2 = \sum_{i=1}^N $$
+@end tex
+
+---
+
+(source_file
+  (raw_block
+    (command_name)
+    (raw_text)
+    (block_end)))
+
+================================================================================
+Raw block inside a normal block
+================================================================================
+
+@ifhtml
+@html
+<b>bold</b>
+@end html
+@end ifhtml
+
+---
+
+(source_file
+  (block
+    (command_name)
+    (raw_block
+      (command_name)
+      (raw_text)
+      (block_end))
+    (block_end)))
+
+================================================================================
+Unclosed raw block
+:error
+================================================================================
+
+@verbatim
+never closed
+
+---
+
+(source_file)

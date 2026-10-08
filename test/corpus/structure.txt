@@ -110,3 +110,16 @@ Everything after bye is ignored
   (bye
     (command_name)
     (ignored)))
+
+================================================================================
+Line command at end of file without newline
+================================================================================
+
+@node Top
+---
+
+(source_file
+  (line_command
+    (command_name)
+    (line_argument
+      (text))))

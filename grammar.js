@@ -37,7 +37,7 @@ const LINE_COMMANDS = [
   'page', 'need', 'sp', 'vskip', 'center', 'exdent', 'noindent', 'indent', 'finalout',
   'smallbook', 'afourpaper', 'afivepaper', 'afourlatex', 'afourwide', 'pagesizes',
   'paragraphindent', 'firstparagraphindent', 'exampleindent', 'footnotestyle',
-  'frenchspacing', 'allowcodebreaks', 'kbdinputstyle', 'codequoteundirective',
+  'frenchspacing', 'allowcodebreaks', 'kbdinputstyle', 'codequoteundirected',
   'codequotebacktick', 'deftypefnnewline', 'urefbreakstyle', 'xrefautomaticsectiontitle',
   'setcontentsaftertitlepage', 'setshortcontentsaftertitlepage', 'novalidate',
   'raisesections', 'lowersections',
@@ -46,29 +46,6 @@ const LINE_COMMANDS = [
   'deftypecvx', 'defunx', 'defmacx', 'defspecx', 'defvarx', 'defoptx', 'deftypefunx',
   'deftypevarx', 'defmethodx', 'deftypemethodx', 'defivarx', 'deftypeivarx',
 ];
-
-// Blocks whose body is ordinary Texinfo. Raw blocks (`@verbatim`, `@ignore`,
-// `@tex`, `@macro`, ...) need an external scanner and are not handled yet.
-const BLOCKS = [
-  // Display
-  'example', 'smallexample', 'lisp', 'smalllisp', 'display', 'smalldisplay', 'format',
-  'smallformat', 'quotation', 'smallquotation', 'indentedblock', 'smallindentedblock',
-  'cartouche', 'flushleft', 'flushright', 'raggedright', 'group', 'float',
-  // Document parts
-  'titlepage', 'copying', 'documentdescription', 'direntry', 'menu', 'detailmenu',
-  'nodedescriptionblock',
-  // Conditionals
-  'ifinfo', 'ifnotinfo', 'ifhtml', 'ifnothtml', 'iftex', 'ifnottex', 'ifplaintext',
-  'ifnotplaintext', 'ifdocbook', 'ifnotdocbook', 'ifxml', 'ifnotxml', 'iflatex',
-  'ifnotlatex', 'ifset', 'ifclear', 'ifcommanddefined', 'ifcommandnotdefined',
-  // Definitions
-  'deffn', 'defvr', 'deftypefn', 'deftypevr', 'deftp', 'defop', 'deftypeop', 'defcv',
-  'deftypecv', 'defun', 'defmac', 'defspec', 'defvar', 'defopt', 'deftypefun',
-  'deftypevar', 'defmethod', 'deftypemethod', 'defivar', 'deftypeivar', 'defblock',
-];
-
-// Blocks whose body is a sequence of `@item`s.
-const LISTS = ['itemize', 'enumerate', 'table', 'ftable', 'vtable', 'multitable'];
 
 /**
  * A command keyword exposed as a `command_name` node.
@@ -85,6 +62,20 @@ export default grammar({
   name: 'texinfo',
 
   extras: $ => [/[ \t]/, $.comment],
+
+  // Block openers are recognised by the scanner, which keeps a stack of open
+  // blocks so that `@end NAME` must match. The block names live in
+  // src/scanner.c. Openers are only valid at the start of a line because
+  // every line-level rule ends in `_line_end`.
+  externals: $ => [
+    $._block_start,
+    $._list_start,
+    $._raw_block_start,
+    $.raw_text,
+    $.block_end,
+    $._eof,
+    $._error_sentinel,
+  ],
 
   rules: {
     source_file: $ => seq(
@@ -109,6 +100,7 @@ export default grammar({
       ...Object.keys(HEADINGS).map((name) => $[name]),
       $.block,
       $.list,
+      $.raw_block,
     ),
 
     ...Object.fromEntries(Object.entries(HEADINGS).map(([name, commands]) => [
@@ -116,22 +108,20 @@ export default grammar({
       $ => seq(
         field('command', command($, commands)),
         optional(field('title', $.line_argument)),
-        $._newline,
+        $._line_end,
       ),
     ])),
 
     line_command: $ => seq(
       field('name', command($, LINE_COMMANDS)),
       optional(field('argument', $.line_argument)),
-      $._newline,
+      $._line_end,
     ),
 
     line_argument: $ => repeat1($._inline),
 
-    // The `@end` name isn't checked against the opening command yet; that
-    // needs the external scanner.
     block: $ => seq(
-      field('name', command($, BLOCKS)),
+      field('name', alias($._block_start, $.command_name)),
       optional(field('argument', $.line_argument)),
       $._newline,
       repeat($._content),
@@ -139,7 +129,7 @@ export default grammar({
     ),
 
     list: $ => seq(
-      field('name', command($, LISTS)),
+      field('name', alias($._list_start, $.command_name)),
       optional(field('argument', $.line_argument)),
       $._newline,
       repeat($._content),
@@ -147,13 +137,20 @@ export default grammar({
       field('end', $.block_end),
     ),
 
-    // Includes the trailing newline, which is optional at end of file.
-    block_end: _ => token(seq('@end', /[ \t]+/, /[a-zA-Z]+/, /[ \t]*(\r?\n)?/)),
+    // `@verbatim`, `@ignore`, `@macro`, `@tex`, `@html`, ...: the body is
+    // plain text.
+    raw_block: $ => seq(
+      field('name', alias($._raw_block_start, $.command_name)),
+      optional(field('argument', $.line_argument)),
+      $._newline,
+      optional(field('body', $.raw_text)),
+      field('end', $.block_end),
+    ),
 
     item: $ => prec.right(seq(
       field('name', command($, ['item', 'headitem'])),
       optional(field('argument', $.line_argument)),
-      $._newline,
+      $._line_end,
       repeat($.itemx),
       repeat($._content),
     )),
@@ -161,15 +158,15 @@ export default grammar({
     itemx: $ => seq(
       field('name', command($, ['itemx'])),
       optional(field('argument', $.line_argument)),
-      $._newline,
+      $._line_end,
     ),
 
-    // The final newline is optional so that a paragraph can end the file.
-    paragraph: $ => prec.right(seq(
+    paragraph: $ => seq(
       $._line,
-      repeat(seq($._newline, $._line)),
-      optional($._newline),
-    )),
+      // A newline followed by more inline content continues the paragraph.
+      repeat(prec(1, seq($._newline, $._line))),
+      $._line_end,
+    ),
 
     _line: $ => prec.right(repeat1($._inline)),
 
@@ -201,5 +198,8 @@ export default grammar({
     text: _ => /[^@{}\s]([^@{}\r\n]*[^@{}\s])?/,
 
     _newline: _ => /\r?\n/,
+
+    // A newline, or the end of a file that doesn't end in one.
+    _line_end: $ => choice($._newline, $._eof),
   },
 });

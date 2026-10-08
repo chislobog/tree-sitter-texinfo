@@ -63,6 +63,10 @@
           "named": true
         },
         {
+          "type": "raw_block",
+          "named": true
+        },
+        {
           "type": "section_heading",
           "named": true
         },
@@ -269,6 +273,10 @@
           "named": true
         },
         {
+          "type": "raw_block",
+          "named": true
+        },
+        {
           "type": "section_heading",
           "named": true
         },
@@ -434,6 +442,10 @@
           "named": true
         },
         {
+          "type": "raw_block",
+          "named": true
+        },
+        {
           "type": "section_heading",
           "named": true
         },
@@ -506,6 +518,52 @@
     }
   },
   {
+    "type": "raw_block",
+    "named": true,
+    "fields": {
+      "argument": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "line_argument",
+            "named": true
+          }
+        ]
+      },
+      "body": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "raw_text",
+            "named": true
+          }
+        ]
+      },
+      "end": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "block_end",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "command_name",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
     "type": "section_heading",
     "named": true,
     "fields": {
@@ -570,6 +628,10 @@
         },
         {
           "type": "part_heading",
+          "named": true
+        },
+        {
+          "type": "raw_block",
           "named": true
         },
         {
@@ -684,6 +746,10 @@
   },
   {
     "type": "ignored",
+    "named": true
+  },
+  {
+    "type": "raw_text",
     "named": true
   },
   {

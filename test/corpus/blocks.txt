@@ -85,3 +85,67 @@ x
     (paragraph
       (text))
     (block_end)))
+
+================================================================================
+Indented blocks
+================================================================================
+
+@quotation
+  @example
+  x
+  @end example
+@end quotation
+
+---
+
+(source_file
+  (block
+    (command_name)
+    (block
+      (command_name)
+      (paragraph
+        (text))
+      (block_end))
+    (block_end)))
+
+================================================================================
+Mismatched end
+:error
+================================================================================
+
+@example
+x
+@end display
+
+---
+
+(source_file)
+
+================================================================================
+Block command in the middle of a line is inline
+================================================================================
+
+Text @example here.
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (inline_command
+      (command_name))
+    (text)))
+
+================================================================================
+End without an open block is text
+================================================================================
+
+@end example
+
+---
+
+(source_file
+  (paragraph
+    (inline_command
+      (command_name))
+    (text)))
