@@ -224,10 +224,18 @@ class OurWalker:
             end = node.child_by_field_name("end")
             name = text(name_node)[1:]
 
-            expanded = self.conditional(name, first_word(argument))
+            flag = re.match(r"[\w-]*", first_word(argument)).group()
+            expanded = self.conditional(name, flag)
             if expanded is not None:
                 if expanded:
-                    self.children(node, name_node, argument, end)
+                    # texi2any drops comments on the conditional's own lines
+                    # together with the conditional.
+                    marker_rows = {node.start_point.row, end.start_point.row}
+                    on_marker_lines = [
+                        child for child in node.children
+                        if child.type == "comment" and child.start_point.row in marker_rows
+                    ]
+                    self.children(node, name_node, argument, end, *on_marker_lines)
                 return
 
             if name in MACRO_BLOCKS:
@@ -412,8 +420,8 @@ def texi2any_tokens(dump: str, structural_names: set[str]) -> list[Token]:
             for child in children[:-1] if closed else children:
                 walk(child)
             if closed:
-                end_name = dump_text(children[-1]).split()
-                tokens.append(Token("-" + (end_name[0] if end_name else ""), structural=True))
+                end_name = re.match(r"\s*([\w-]*)", dump_text(children[-1])).group(1)
+                tokens.append(Token("-" + end_name, structural=True))
                 # Comments on the `@end` line.
                 for child in children[-1].children:
                     walk(child)
