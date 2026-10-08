@@ -1,0 +1,22 @@
+\input texinfo
+@c <- keyword.directive
+@node Overview, Next, Top, Top
+@c <- keyword
+@c    ^ markup.link.label
+@c                ^ markup.link
+@chapter Getting @code{started}
+@c <- keyword
+@c        ^ markup.heading.1
+@c                 ^ function
+@section Details
+@c        ^ markup.heading.2
+@c a comment
+@c <- comment
+See @xref{Top, , Title} and @emph{this} @@.
+@c   ^ function
+@c        ^ markup.link.label
+@c                                      ^ string.escape
+@cindex entry
+@c <- keyword
+@bye
+@c <- keyword

@@ -1,0 +1,33 @@
+@example
+code here
+@end example
+@c <- keyword
+@ifset FLAG
+@c <- keyword.conditional
+@end ifset
+@c <- keyword.conditional
+@verbatim
+raw @code{x}
+@c <- markup.raw.block
+@end verbatim
+@itemize @bullet
+@c <- keyword
+@item First
+@c <- markup.list
+@end itemize
+@menu
+* Overview::    What it is.
+@c ^ markup.link.label
+* Start: Overview.   Read first.
+@c ^ markup.link
+@c       ^ markup.link.label
+@end menu
+@deftypefn {Library Function} int foo (int @var{n})
+@c <- keyword
+@c          ^ attribute
+@c                             ^ type
+@c                                 ^ function
+@c                                     ^ variable.parameter
+@end deftypefn
+@defvar fill-column
+@end defvar
