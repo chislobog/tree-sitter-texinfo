@@ -164,6 +164,7 @@ export default grammar({
     $._brace_close_at_paragraph_end,
     $._brace_close_at_block_end,
     $._missing_end,
+    $._menu_start,
     ...DEFINITION_LAYOUTS.map((_, i) => $[`_definition_start_${i}`]),
     $._error_sentinel,
   ],
@@ -198,6 +199,7 @@ export default grammar({
       ...Object.keys(HEADINGS).map((name) => $[name]),
       $.block,
       $.definition_block,
+      $.menu,
       $.list,
       $.raw_block,
     ),
@@ -238,6 +240,79 @@ export default grammar({
       // Items, for conditionals that wrap some of a list's items.
       repeat(choice($._content, $.item)),
       field('end', $._block_end),
+    ),
+
+    // `@menu`, `@detailmenu` and `@direntry`: menu entries, and other content
+    // as menu comments.
+    menu: $ => seq(
+      field('name', alias($._menu_start, $.command_name)),
+      optional(field('argument', $.line_argument)),
+      $._newline,
+      repeat(choice($._content, $.menu_entry)),
+      field('end', $._block_end),
+    ),
+
+    // `* Node::  Description` or `* Label: Node.  Description`. As in texi2any,
+    // a `.` only ends the node when whitespace follows it.
+    menu_entry: $ => seq(
+      $._menu_star,
+      choice(
+        seq(
+          field('node', alias($._menu_name, $.menu_node)),
+          '::',
+          $._menu_entry_end,
+        ),
+        // An entry still being typed: no separator yet.
+        seq(optional(field('label', alias($._menu_name, $.menu_label))), $._line_end),
+        // Without a separator, the node runs to the end of the line.
+        seq(
+          field('label', alias($._menu_name, $.menu_label)),
+          ':',
+          choice(
+            $._line_end,
+            seq(
+              field('node', $.menu_node),
+              choice($._line_end, seq(choice('.', ','), $._menu_entry_end)),
+            ),
+          ),
+        ),
+      ),
+    ),
+
+    // The description ends with its own line end, like a paragraph, so the
+    // next line decides whether it continues.
+    _menu_entry_end: $ => choice($._line_end, field('description', $.menu_description)),
+
+    // `*` and whitespace at the start of a line in a menu; it takes precedence
+    // over text there, which would otherwise match the whole line.
+    _menu_star: _ => token(prec(2, /\*[ \t]+/)),
+
+    _menu_name: $ => repeat1(choice(
+      alias($._menu_name_text, $.text),
+      $.inline_command,
+      $.symbol_command,
+      $.brace_group,
+    )),
+
+    _menu_name_text: _ => /[^@{}:\s]([^@{}:\r\n]*[^@{}:\s])?/,
+
+    menu_node: $ => repeat1(choice(
+      alias($._menu_node_text, $.text),
+      $.inline_command,
+      $.symbol_command,
+      $.brace_group,
+    )),
+
+    // Stops before `,` and before a `.` that is followed by whitespace; may
+    // contain spaces, but doesn't start or end with one.
+    _menu_node_text: _ => /([^@{}.,\s]|\.+[^@{}.,\s])(([^@{}.,\r\n]|\.+[^@{}.,\s])*([^@{}.,\s]|\.+[^@{}.,\s]))?/,
+
+    // The rest of the line, and following lines up to a blank line or the
+    // next entry.
+    menu_description: $ => seq(
+      $._line,
+      repeat(prec(1, seq($._newline, $._line))),
+      $._line_end,
     ),
 
     // `@deffn` and friends: the definition line, then the body.

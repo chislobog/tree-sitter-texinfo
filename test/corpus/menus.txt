@@ -1,0 +1,193 @@
+================================================================================
+Menu entries naming nodes
+================================================================================
+
+@menu
+* Overview::    What it is.
+* Invoking::
+@end menu
+
+---
+
+(source_file
+  (menu
+    name: (command_name)
+    (menu_entry
+      node: (menu_node
+        (text))
+      description: (menu_description
+        (text)))
+    (menu_entry
+      node: (menu_node
+        (text)))
+    end: (block_end)))
+
+================================================================================
+Menu entries with a label
+================================================================================
+
+@menu
+* Getting started: Overview.   Read this first.
+* Options: (make)Options, with a comma.
+@end menu
+
+---
+
+(source_file
+  (menu
+    name: (command_name)
+    (menu_entry
+      label: (menu_label
+        (text))
+      node: (menu_node
+        (text))
+      description: (menu_description
+        (text)))
+    (menu_entry
+      label: (menu_label
+        (text))
+      node: (menu_node
+        (text))
+      description: (menu_description
+        (text)))
+    end: (block_end)))
+
+================================================================================
+Dots inside a menu node name
+================================================================================
+
+@menu
+* Version 2.0: v2.0.  Changes.
+@end menu
+
+---
+
+(source_file
+  (menu
+    name: (command_name)
+    (menu_entry
+      label: (menu_label
+        (text))
+      node: (menu_node
+        (text))
+      description: (menu_description
+        (text)))
+    end: (block_end)))
+
+================================================================================
+Menu comments, descriptions over several lines and a detailmenu
+================================================================================
+
+@menu
+* First::   Line one
+            continued.
+
+Menu comment.
+
+* Second::
+@detailmenu
+* Sub::
+@end detailmenu
+@end menu
+
+---
+
+(source_file
+  (menu
+    name: (command_name)
+    (menu_entry
+      node: (menu_node
+        (text))
+      description: (menu_description
+        (text)
+        (text)))
+    (paragraph
+      (text))
+    (menu_entry
+      node: (menu_node
+        (text)))
+    (menu
+      name: (command_name)
+      (menu_entry
+        node: (menu_node
+          (text)))
+      end: (block_end))
+    end: (block_end)))
+
+================================================================================
+Commands in a menu entry
+================================================================================
+
+@menu
+* @code{make} options::
+@end menu
+
+---
+
+(source_file
+  (menu
+    name: (command_name)
+    (menu_entry
+      node: (menu_node
+        (inline_command
+          name: (command_name)
+          arguments: (brace_arguments
+            (text)))
+        (text)))
+    end: (block_end)))
+
+================================================================================
+A star line outside a menu is text
+================================================================================
+
+* not an entry
+
+---
+
+(source_file
+  (paragraph
+    (text)))
+
+================================================================================
+Unfinished menu entry
+================================================================================
+
+@menu
+* half-typed
+* 
+* Done::
+@end menu
+
+---
+
+(source_file
+  (menu
+    name: (command_name)
+    (menu_entry
+      label: (menu_label
+        (text)))
+    (menu_entry)
+    (menu_entry
+      node: (menu_node
+        (text)))
+    end: (block_end)))
+
+================================================================================
+Spaces in a menu node name
+================================================================================
+
+@direntry
+* sample: (sample)Invoking sample.
+@end direntry
+
+---
+
+(source_file
+  (menu
+    name: (command_name)
+    (menu_entry
+      label: (menu_label
+        (text))
+      node: (menu_node
+        (text)))
+    end: (block_end)))

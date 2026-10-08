@@ -98,6 +98,10 @@
           "named": true
         },
         {
+          "type": "menu",
+          "named": true
+        },
+        {
           "type": "node_line",
           "named": true
         },
@@ -331,6 +335,10 @@
         },
         {
           "type": "list",
+          "named": true
+        },
+        {
+          "type": "menu",
           "named": true
         },
         {
@@ -751,6 +759,10 @@
           "named": true
         },
         {
+          "type": "menu",
+          "named": true
+        },
+        {
           "type": "node_line",
           "named": true
         },
@@ -936,6 +948,10 @@
           "named": true
         },
         {
+          "type": "menu",
+          "named": true
+        },
+        {
           "type": "node_line",
           "named": true
         },
@@ -965,6 +981,233 @@
         },
         {
           "type": "top_heading",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "menu",
+    "named": true,
+    "fields": {
+      "argument": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "line_argument",
+            "named": true
+          }
+        ]
+      },
+      "end": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "block_end",
+            "named": true
+          },
+          {
+            "type": "missing_end",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "command_name",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "block",
+          "named": true
+        },
+        {
+          "type": "chapter_heading",
+          "named": true
+        },
+        {
+          "type": "definition_block",
+          "named": true
+        },
+        {
+          "type": "definition_line",
+          "named": true
+        },
+        {
+          "type": "line_command",
+          "named": true
+        },
+        {
+          "type": "list",
+          "named": true
+        },
+        {
+          "type": "menu",
+          "named": true
+        },
+        {
+          "type": "menu_entry",
+          "named": true
+        },
+        {
+          "type": "node_line",
+          "named": true
+        },
+        {
+          "type": "paragraph",
+          "named": true
+        },
+        {
+          "type": "part_heading",
+          "named": true
+        },
+        {
+          "type": "raw_block",
+          "named": true
+        },
+        {
+          "type": "section_heading",
+          "named": true
+        },
+        {
+          "type": "subsection_heading",
+          "named": true
+        },
+        {
+          "type": "subsubsection_heading",
+          "named": true
+        },
+        {
+          "type": "top_heading",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "menu_description",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "brace_group",
+          "named": true
+        },
+        {
+          "type": "inline_command",
+          "named": true
+        },
+        {
+          "type": "symbol_command",
+          "named": true
+        },
+        {
+          "type": "text",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "menu_entry",
+    "named": true,
+    "fields": {
+      "description": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "menu_description",
+            "named": true
+          }
+        ]
+      },
+      "label": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "menu_label",
+            "named": true
+          }
+        ]
+      },
+      "node": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "menu_node",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "menu_label",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "brace_group",
+          "named": true
+        },
+        {
+          "type": "inline_command",
+          "named": true
+        },
+        {
+          "type": "symbol_command",
+          "named": true
+        },
+        {
+          "type": "text",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "menu_node",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "brace_group",
+          "named": true
+        },
+        {
+          "type": "inline_command",
+          "named": true
+        },
+        {
+          "type": "symbol_command",
+          "named": true
+        },
+        {
+          "type": "text",
           "named": true
         }
       ]
@@ -1197,6 +1440,10 @@
           "named": true
         },
         {
+          "type": "menu",
+          "named": true
+        },
+        {
           "type": "node_line",
           "named": true
         },
@@ -1311,6 +1558,18 @@
   },
   {
     "type": ",",
+    "named": false
+  },
+  {
+    "type": ".",
+    "named": false
+  },
+  {
+    "type": ":",
+    "named": false
+  },
+  {
+    "type": "::",
     "named": false
   },
   {

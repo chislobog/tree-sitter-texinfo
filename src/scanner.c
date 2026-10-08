@@ -34,6 +34,7 @@ enum TokenType {
   BRACE_CLOSE_AT_BLOCK_END,
   // Zero-width end of a block still open at the end of the file.
   MISSING_END,
+  MENU_START,
   // Openers of definition blocks, one per layout of the definition line, in
   // the order of DEFINITION_LAYOUTS in grammar.js.
   DEFINITION_START,
@@ -50,6 +51,8 @@ typedef enum {
   KIND_MACRO,
   // `@deffn` and friends; the opener token depends on the layout.
   KIND_DEFINITION,
+  // `@menu`, `@detailmenu`, `@direntry`: may contain menu entries.
+  KIND_MENU,
 } BlockKind;
 
 typedef struct {
@@ -90,9 +93,9 @@ static const Block BLOCKS[] = {
     // Math: texi2any parses commands inside, so not raw.
     {"displaymath", KIND_BLOCK},
     // Menus
-    {"menu", KIND_BLOCK},
-    {"detailmenu", KIND_BLOCK},
-    {"direntry", KIND_BLOCK},
+    {"menu", KIND_MENU},
+    {"detailmenu", KIND_MENU},
+    {"direntry", KIND_MENU},
     // Conditionals
     {"ifinfo", KIND_BLOCK},
     {"ifnotinfo", KIND_BLOCK},
@@ -257,6 +260,9 @@ static bool scan_block_start(Scanner *scanner, TSLexer *lexer,
       break;
     case KIND_DEFINITION:
       token = DEFINITION_START + BLOCKS[index].layout;
+      break;
+    case KIND_MENU:
+      token = MENU_START;
       break;
     default:
       token = RAW_BLOCK_START;

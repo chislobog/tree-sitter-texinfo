@@ -232,7 +232,7 @@ class OurWalker:
                 self.emit("-" + text(end).split()[-1], end, True)
             return
 
-        if kind in ("block", "list", "raw_block"):
+        if kind in ("block", "menu", "list", "raw_block"):
             name_node = node.child_by_field_name("name")
             argument = node.child_by_field_name("argument")
             end = node.child_by_field_name("end")

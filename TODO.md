@@ -90,8 +90,11 @@ of a line.
   (make, texinfo; found with `compare-texi2any.py --structure`)
 - [x] `@item` inside a conditional block inside a list, e.g. `@ifclear X`
   wrapping an `@item` in a `@table` (sed, gawk)
-- [ ] Menu entries: `* Node::  Description`, `* Name: Node.  Description`,
-  menu comments (also in `@direntry`)
+- [x] Menu entries in `@menu`, `@detailmenu` and `@direntry`: `menu_entry` with
+  `label`, `node` and `description` fields; other text is a menu comment.
+  An entry still being typed (`* Name` with no separator) has only a label
+- [ ] A bare `*` at the end of a line in a menu starts an entry in texi2any;
+  here it is text until a space follows
 - [ ] Decide on nested sections (chapter containing sections) vs flat headings
 - [ ] Name the command field `name` in headings too (it is `command`), and
   give `@bye` a `name` field, so every command node is queried the same way
