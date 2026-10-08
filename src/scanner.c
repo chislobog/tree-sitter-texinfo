@@ -204,11 +204,6 @@ static int find_block(const char *name) {
   return -1;
 }
 
-static inline bool is_macro(const char *name) {
-  return strcmp(name, "macro") == 0 || strcmp(name, "rmacro") == 0 ||
-         strcmp(name, "linemacro") == 0;
-}
-
 /**
  * After `@end`, reads the separating blanks and the block name. Returns false
  * if there is no name.
@@ -217,6 +212,14 @@ static bool read_end_name(TSLexer *lexer, char *name) {
   if (!is_blank(lexer->lookahead)) return false;
   skip_blanks(lexer);
   return read_name(lexer, name);
+}
+
+/** Pops the innermost block, whose `@end NAME` has just been read. */
+static bool pop_block(Scanner *scanner, TSLexer *lexer) {
+  scanner->depth--;
+  lexer->mark_end(lexer);
+  lexer->result_symbol = BLOCK_END;
+  return true;
 }
 
 /**
@@ -261,11 +264,7 @@ static bool scan_block_end(Scanner *scanner, TSLexer *lexer, const char *name) {
   if (strcmp(end_name, BLOCKS[scanner->stack[scanner->depth - 1]].name) != 0) {
     return false;
   }
-
-  scanner->depth--;
-  lexer->mark_end(lexer);
-  lexer->result_symbol = BLOCK_END;
-  return true;
+  return pop_block(scanner, lexer);
 }
 
 /**
@@ -303,21 +302,20 @@ static bool scan_raw(Scanner *scanner, TSLexer *lexer) {
               lexer->result_symbol = RAW_TEXT;
               return true;
             } else {
-              scanner->depth--;
-              lexer->mark_end(lexer);
-              lexer->result_symbol = BLOCK_END;
-              return true;
+              return pop_block(scanner, lexer);
             }
           }
         } else if (nested_depth < MAX_RAW_DEPTH &&
                    (is_blank(lexer->lookahead) || lexer->lookahead == '\n' ||
                     lexer->lookahead == '\r' || lexer->lookahead == '@')) {
           // `texi2any` requires a separator after a nested opener.
-          if (block->kind == KIND_MACRO && is_macro(name)) {
+          if (block->kind == KIND_MACRO) {
             int index = find_block(name);
-            nested[nested_depth++] = BLOCKS[index].name;
-          } else if (block->kind == KIND_RAW &&
-                     strcmp(name, block->name) == 0) {
+            if (index >= 0 && BLOCKS[index].kind == KIND_MACRO) {
+              nested[nested_depth++] = BLOCKS[index].name;
+            }
+          } else if (strcmp(name, block->name) == 0) {
+            // KIND_RAW, the only other kind with a raw body.
             nested[nested_depth++] = block->name;
           }
         }
@@ -379,8 +377,7 @@ static bool scan_verb(Scanner *scanner, TSLexer *lexer,
 }
 
 void *tree_sitter_texinfo_external_scanner_create(void) {
-  Scanner *scanner = calloc(1, sizeof(Scanner));
-  return scanner;
+  return calloc(1, sizeof(Scanner));
 }
 
 void tree_sitter_texinfo_external_scanner_destroy(void *payload) {

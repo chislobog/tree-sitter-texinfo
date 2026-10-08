@@ -30,11 +30,15 @@ Usage: script/compare-texi2any.py [--structure] [--hunks N] FILE...
 
 import argparse
 import ctypes
+import dataclasses
 import difflib
+import itertools
+import os
 import shutil
 import subprocess
 import sys
 import tempfile
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -68,10 +72,13 @@ class Token:
 
 
 def load_language() -> Language:
-    subprocess.run(
-        ["tree-sitter", "build", "-o", str(LIBRARY)],
-        cwd=ROOT, check=True, capture_output=True,
-    )
+    sources = [*ROOT.glob("src/*.c"), *ROOT.glob("src/tree_sitter/*.h")]
+    newest = max(source.stat().st_mtime for source in sources)
+    if not LIBRARY.exists() or LIBRARY.stat().st_mtime < newest:
+        subprocess.run(
+            ["tree-sitter", "build", "-o", str(LIBRARY)],
+            cwd=ROOT, check=True, capture_output=True,
+        )
     library = ctypes.cdll.LoadLibrary(str(LIBRARY))
     library.tree_sitter_texinfo.restype = ctypes.c_void_p
     # py-tree-sitter takes the language pointer wrapped in a PyCapsule.
@@ -84,10 +91,18 @@ def load_language() -> Language:
 # Our tree ---------------------------------------------------------------
 
 
+def text(node) -> str:
+    return node.text.decode("utf-8", "replace")
+
+
+def first_word(node) -> str:
+    words = text(node).split() if node is not None else []
+    return words[0] if words else ""
+
+
 class OurWalker:
-    def __init__(self, parser: Parser, source: bytes):
+    def __init__(self, parser: Parser):
         self.parser = parser
-        self.source = source
         self.tokens: list[Token] = []
         self.flags: set[str] = {"txicommandconditionals"}
         # Commands in each `@set` value, emitted again at each `@value`.
@@ -96,17 +111,9 @@ class OurWalker:
         # While expanding a macro, tokens get the line of the outermost call.
         self.call_line: int | None = None
         self.in_definition_line = False
+        # Macro expansion depth; errors only count in the file itself.
         self.depth = 0
         self.errors = 0
-
-    def text(self, node) -> str:
-        return self.source[node.start_byte:node.end_byte].decode("utf-8", "replace")
-
-    def first_word(self, node) -> str:
-        if node is None:
-            return ""
-        words = self.text(node).split()
-        return words[0] if words else ""
 
     def line(self, node) -> int:
         return self.call_line or node.start_point.row + 1
@@ -116,7 +123,7 @@ class OurWalker:
 
     def define_macro(self, kind: str, node):
         argument = node.child_by_field_name("argument")
-        header = self.text(argument).strip() if argument else ""
+        header = text(argument).strip() if argument else ""
         name, _, parameters = header.partition("{")
         name = name.strip()
         if kind == "linemacro":
@@ -125,36 +132,33 @@ class OurWalker:
         body = node.child_by_field_name("body")
         self.macros[name] = Macro(
             [p.strip() for p in parameters.rstrip("}").split(",") if p.strip()],
-            self.text(body).removesuffix("\n") if body else "",
+            text(body).removesuffix("\n") if body else "",
         )
 
     def expand_macro(self, macro: Macro, node):
+        if self.depth >= MAX_EXPANSION_DEPTH:
+            return
         arguments = node.child_by_field_name("arguments")
-        text = self.text(arguments) if arguments else ""
-        if len(macro.parameters) > 1:
-            values = [v.strip() for v in text.split(",", len(macro.parameters) - 1)]
-        else:
-            values = [text.strip()]
+        call = text(arguments) if arguments else ""
+        values = [v.strip() for v in call.split(",", max(len(macro.parameters) - 1, 0))]
         body = macro.body
         for parameter, value in zip(macro.parameters, values):
             body = body.replace("\\" + parameter + "\\", value)
         body = body.replace("\\\\", "\\")
-        if self.depth >= MAX_EXPANSION_DEPTH:
-            return
 
-        source, call_line = self.source, self.call_line
+        call_line = self.call_line
         self.call_line = self.line(node)
-        self.source = body.encode()
         self.depth += 1
-        root = self.parser.parse(self.source).root_node
-        self.walk(root, count_errors=False)
+        self.walk(self.parser.parse(body.encode()).root_node)
         self.depth -= 1
-        self.source, self.call_line = source, call_line
+        self.call_line = call_line
 
-    def children(self, node, skip=()):
+    def children(self, node, *skip):
+        """Walks the children of `node`, except the `skip` nodes."""
+        skipped = {n.id for n in skip if n is not None}
         for child in node.children:
-            if child.id not in skip:
-                self.walk(child, count_errors=self.depth == 0)
+            if child.id not in skipped:
+                self.walk(child)
 
     def conditional(self, name: str, argument: str) -> bool | None:
         """Whether texi2any expands a conditional, or None if not one."""
@@ -173,26 +177,26 @@ class OurWalker:
         return None
 
     def walk_definition_line(self, argument):
+        previous = self.in_definition_line
         self.in_definition_line = True
-        self.walk(argument, count_errors=self.depth == 0)
-        self.in_definition_line = False
+        self.walk(argument)
+        self.in_definition_line = previous
 
-    def walk(self, node, count_errors=True):
+    def walk(self, node):
         kind = node.type
-        if count_errors and (node.is_error or node.is_missing):
+        if self.depth == 0 and (node.is_error or node.is_missing):
             self.errors += 1
 
         if kind in ("block", "list", "raw_block"):
             name_node = node.child_by_field_name("name")
             argument = node.child_by_field_name("argument")
             end = node.child_by_field_name("end")
-            name = self.text(name_node)[1:]
+            name = text(name_node)[1:]
 
-            expanded = self.conditional(name, self.first_word(argument))
+            expanded = self.conditional(name, first_word(argument))
             if expanded is not None:
                 if expanded:
-                    skip = {name_node.id, end.id} | ({argument.id} if argument else set())
-                    self.children(node, skip)
+                    self.children(node, name_node, argument, end)
                 return
 
             if name in MACRO_BLOCKS:
@@ -200,44 +204,48 @@ class OurWalker:
             self.emit("+" + name, node, True)
             if argument is not None and name.startswith("def"):
                 self.walk_definition_line(argument)
-                self.children(node, {name_node.id, end.id, argument.id})
+                self.children(node, name_node, argument, end)
             else:
-                self.children(node, {name_node.id, end.id})
+                self.children(node, name_node, end)
             if end.end_byte > end.start_byte:
-                self.emit("-" + self.text(end).split()[-1], end, True)
+                self.emit("-" + text(end).split()[-1], end, True)
             return
 
         if kind in ("line_command", "item", "itemx", "bye") or kind in HEADINGS:
-            name_node = node.child_by_field_name("name") or node.child_by_field_name("command")
-            if name_node is None:
-                name_node = node.children[0]
-            name = self.text(name_node)
+            # Headings name the field `command`; `@bye` has no field.
+            name_node = (node.child_by_field_name("name")
+                         or node.child_by_field_name("command")
+                         or node.children[0])
+            name = text(name_node)
             argument = node.child_by_field_name("argument")
-            if name in ("@set", "@clear"):
-                word = self.first_word(argument)
-                (self.flags.add if name == "@set" else self.flags.discard)(word)
             self.emit(name, node, True)
             if name == "@set":
+                word = first_word(argument)
+                self.flags.add(word)
                 start = len(self.tokens)
-                self.children(node, {name_node.id})
+                self.children(node, name_node)
                 self.values[word] = self.tokens[start:]
                 del self.tokens[start:]
+            elif name == "@clear":
+                self.flags.discard(first_word(argument))
+                self.children(node, name_node)
             elif name.startswith("@def") and argument is not None:
                 self.walk_definition_line(argument)
             elif kind != "bye":
-                self.children(node, {name_node.id})
+                self.children(node, name_node)
             return
 
         if kind == "inline_command":
             name_node = node.child_by_field_name("name")
-            name = self.text(name_node)
+            name = text(name_node)
             if name == "@value":
                 arguments = node.child_by_field_name("arguments")
-                value = self.text(arguments).strip() if arguments else ""
-                if value not in self.values:
+                value = text(arguments).strip() if arguments else ""
+                if value in self.values:
+                    self.tokens.extend(dataclasses.replace(t, line=self.line(node))
+                                       for t in self.values[value])
+                else:
                     self.emit(name, node, False)
-                self.tokens.extend(Token(t.name, self.line(node), t.structural)
-                                   for t in self.values.get(value, []))
                 return
             if name[1:] in self.macros:
                 macro = self.macros[name[1:]]
@@ -245,16 +253,16 @@ class OurWalker:
                     self.expand_macro(macro, node)
                 return
             self.emit(name, node, False)
-            self.children(node, {name_node.id})
+            self.children(node, name_node)
             return
 
         if kind == "symbol_command":
-            if not (self.in_definition_line and self.text(node) == "@\n"):
-                self.emit(self.text(node), node, False)
+            if not (self.in_definition_line and text(node) == "@\n"):
+                self.emit(text(node), node, False)
             return
 
         if kind == "comment":
-            self.emit(self.text(node).split()[0], node, True)
+            self.emit(text(node).split()[0], node, True)
             return
 
         if kind == "input_line":
@@ -264,9 +272,8 @@ class OurWalker:
 
 
 def our_tokens(parser: Parser, path: Path) -> tuple[list[Token], int]:
-    source = path.read_bytes()
-    walker = OurWalker(parser, source)
-    walker.walk(parser.parse(source).root_node)
+    walker = OurWalker(parser)
+    walker.walk(parser.parse(path.read_bytes()).root_node)
     return walker.tokens, walker.errors
 
 
@@ -309,14 +316,10 @@ def read_dump(text: str) -> DumpNode:
 def command_name(label: str) -> str | None:
     if not label.startswith("@"):
         return None
-    if label == "@\n":
-        return label
     rest = label[1:]
     if rest[:1].isalpha():
-        end = 1
-        while end < len(rest) and rest[end].isalnum():
-            end += 1
-        return "@" + rest[:end]
+        return "@" + "".join(itertools.takewhile(str.isalnum, rest))
+    # A single non-letter, including the newline of `@` at the end of a line.
     return "@" + rest[:1]
 
 
@@ -330,15 +333,19 @@ def dump_text(node: DumpNode) -> str:
     return ""
 
 
-def texi2any_tokens(path: Path, structural_names: set[str]) -> list[Token]:
+def run_texi2any(path: Path) -> str:
+    """Returns texi2any's tree for `path`, as a debug dump."""
     with tempfile.TemporaryDirectory() as directory:
-        copy = Path(directory) / path.name
-        shutil.copyfile(path, copy)
+        shutil.copyfile(path, Path(directory) / path.name)
         result = subprocess.run(
             ["texi2any", "--force", "-c", "TEXINFO_OUTPUT_FORMAT=debugtree",
-             "-o", "-", copy.name],
+             "-o", "-", path.name],
             cwd=directory, capture_output=True,
         )
+    return result.stdout.decode("utf-8", "replace")
+
+
+def texi2any_tokens(dump: str, structural_names: set[str]) -> list[Token]:
     tokens: list[Token] = []
 
     def walk(node: DumpNode):
@@ -358,7 +365,7 @@ def texi2any_tokens(path: Path, structural_names: set[str]) -> list[Token]:
         for child in children:
             walk(child)
 
-    walk(read_dump(result.stdout.decode("utf-8", "replace")))
+    walk(read_dump(dump))
     return tokens
 
 
@@ -394,18 +401,22 @@ def main() -> int:
 
     parser = Parser(load_language())
     total_ours = total_matched = 0
-    for path in options.files:
-        ours, errors = our_tokens(parser, path)
-        structural_names = {t.name for t in ours if t.structural}
-        theirs = texi2any_tokens(path, structural_names)
-        if options.structure:
-            ours = [t for t in ours if t.structural]
-            theirs = [t for t in theirs if t.structural]
-        ratio = report(path, ours, theirs, options.hunks)
-        if errors:
-            print(f"  {errors} parse errors")
-        total_ours += len(ours)
-        total_matched += round(ratio * len(ours))
+    # texi2any is the slow part: run it for all files in parallel, and report
+    # in file order.
+    with ThreadPoolExecutor(max_workers=os.cpu_count()) as pool:
+        dumps = [pool.submit(run_texi2any, path) for path in options.files]
+        for path, dump in zip(options.files, dumps):
+            ours, errors = our_tokens(parser, path)
+            structural_names = {t.name for t in ours if t.structural}
+            theirs = texi2any_tokens(dump.result(), structural_names)
+            if options.structure:
+                ours = [t for t in ours if t.structural]
+                theirs = [t for t in theirs if t.structural]
+            ratio = report(path, ours, theirs, options.hunks)
+            if errors:
+                print(f"  {errors} parse errors")
+            total_ours += len(ours)
+            total_matched += round(ratio * len(ours))
     if len(options.files) > 1 and total_ours:
         print(f"\nOverall: {total_matched / total_ours:.2%} of {total_ours} commands match")
     return 0
