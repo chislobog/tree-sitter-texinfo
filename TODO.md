@@ -68,6 +68,16 @@ sources, which is what `texi2any` itself uses.
 
 ## Structure
 
+Deliberate divergences from texi2any, which tolerates these with warnings:
+block commands only start a line (texi2any also accepts `text @html` and
+`@tex in tex @end tex` on one line), and `@end` only ends a block at the start
+of a line.
+
+- [ ] An unclosed brace in a line command's argument (`@chapter A @code{x`)
+  should close at the end of that line, as in texi2any; now it runs on to the
+  next blank line
+- [x] A block right after `@footnote{` (`@footnote{@quotation`)
+
 - [x] `@itemx` after index entries or comments that follow an `@item`
   (make, texinfo; found with `compare-texi2any.py --structure`)
 - [x] `@item` inside a conditional block inside a list, e.g. `@ifclear X`
@@ -103,13 +113,12 @@ sources, which is what `texi2any` itself uses.
 - [x] `script/compare-texi2any.py`: compare trees with texi2any's
 - [x] Run the comparison on the inputs of texi2any's own parser tests
   (`texinfo-tests/`): 1,446 of 1,755 match exactly
-- [ ] Triage the test inputs that differ (177 of 1,755 left). Done: unclosed
-  blocks and inline conditionals in the script, comment placement, comments
-  on the `@bye` line, `@html@c`, unclosed brace commands and blocks,
-  `@displaymath`, missing line commands, `-` in command names. Left: a block
-  opened and closed on one line (`@end` in the middle of a line), a block
-  right after `@footnote{`, then the rest; much of what remains is invalid
-  input that texi2any discards (unknown commands, misplaced `@tab`)
+- [x] Triage the test inputs that differ: 1,579 of 1,755 now match exactly.
+  The remaining 176 are the macro and value suites (the script's simple
+  macro expansion), invalid input that texi2any discards (unknown commands,
+  misplaced `@tab` and `@headitem`, stray `@end`), `@click` (texi2any
+  substitutes the `@clickstyle` symbol), and the divergences below
+- [ ] Mirror `@clickstyle`/`@click` and `@linemacro` calls in the comparison
 - [ ] CI: generate, check `src/` is up to date, test, fuzz, parse examples,
   compare with texi2any
 - [ ] README: supported features, editor setup, development with Nix

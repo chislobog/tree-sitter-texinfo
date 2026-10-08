@@ -2202,6 +2202,52 @@
       }
     },
     "_long_arguments": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SEQ",
+          "members": [
+            {
+              "type": "REPEAT1",
+              "content": {
+                "type": "CHOICE",
+                "members": [
+                  {
+                    "type": "SYMBOL",
+                    "name": "block"
+                  },
+                  {
+                    "type": "SYMBOL",
+                    "name": "list"
+                  },
+                  {
+                    "type": "SYMBOL",
+                    "name": "raw_block"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "CHOICE",
+              "members": [
+                {
+                  "type": "SYMBOL",
+                  "name": "_long_lines"
+                },
+                {
+                  "type": "BLANK"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_long_lines"
+        }
+      ]
+    },
+    "_long_lines": {
       "type": "REPEAT1",
       "content": {
         "type": "CHOICE",

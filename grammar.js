@@ -283,7 +283,13 @@ export default grammar({
 
     // For brace commands other than BRACE_COMMANDS, which may contain blank
     // lines.
-    _long_arguments: $ => repeat1(choice(
+    _long_arguments: $ => choice(
+      // A block may also start right after the `{`.
+      seq(repeat1(choice($.block, $.list, $.raw_block)), optional($._long_lines)),
+      $._long_lines,
+    ),
+
+    _long_lines: $ => repeat1(choice(
       $._inline,
       $._newline,
       seq($._newline, repeat1(choice($.block, $.list, $.raw_block, $.line_command))),

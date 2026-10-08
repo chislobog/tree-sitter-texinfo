@@ -266,3 +266,26 @@ b}
       (brace_arguments
         (text)
         (text)))))
+
+================================================================================
+Block right after the opening brace of a footnote
+================================================================================
+
+A@footnote{@quotation
+Q.
+@end quotation
+}
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (inline_command
+      (command_name)
+      (brace_arguments
+        (block
+          (command_name)
+          (paragraph
+            (text))
+          (block_end))))))
