@@ -1,0 +1,34 @@
+result
+result-*
+.direnv/
+node_modules/
+build/
+*.so
+*.dylib
+*.wasm
+
+# Rust
+target/
+Cargo.lock
+
+# Node
+package-lock.json
+prebuilds/
+
+# Python
+__pycache__/
+*.egg-info/
+dist/
+
+# Swift
+.build/
+Package.resolved
+
+# C
+*.o
+*.a
+*.pc
+*.dll
+*.exp
+*.lib
+*.obj
