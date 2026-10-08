@@ -1,0 +1,171 @@
+================================================================================
+Definition with category, name and arguments
+================================================================================
+
+@deffn Command forward-word count
+Move forward.
+@end deffn
+
+---
+
+(source_file
+  (definition_block
+    (definition_line
+      name: (command_name)
+      category: (text)
+      entity: (text)
+      arguments: (definition_arguments
+        (text)))
+    (paragraph
+      (text))
+    end: (block_end)))
+
+================================================================================
+Bracketed category, type and arguments with commands
+================================================================================
+
+@deftypefn {Library Function} int foobar (int @var{foo}, float @var{bar})
+@end deftypefn
+
+---
+
+(source_file
+  (definition_block
+    (definition_line
+      name: (command_name)
+      category: (brace_group
+        (text))
+      type: (text)
+      entity: (text)
+      arguments: (definition_arguments
+        (text)
+        (inline_command
+          name: (command_name)
+          arguments: (brace_arguments
+            (text)))
+        (text)
+        (inline_command
+          name: (command_name)
+          arguments: (brace_arguments
+            (text)))
+        (text)))
+    end: (block_end)))
+
+================================================================================
+Definition with only a name
+================================================================================
+
+@defvar fill-column
+@end defvar
+
+---
+
+(source_file
+  (definition_block
+    (definition_line
+      name: (command_name)
+      entity: (text))
+    end: (block_end)))
+
+================================================================================
+Class and type in a method definition
+================================================================================
+
+@deftypemethod Window int resize (int @var{w})
+@end deftypemethod
+
+---
+
+(source_file
+  (definition_block
+    (definition_line
+      name: (command_name)
+      class: (text)
+      type: (text)
+      entity: (text)
+      arguments: (definition_arguments
+        (text)
+        (inline_command
+          name: (command_name)
+          arguments: (brace_arguments
+            (text)))
+        (text)))
+    end: (block_end)))
+
+================================================================================
+Continuation lines with x commands
+================================================================================
+
+@defun forward-word count
+@defunx backward-word count
+Move.
+@end defun
+
+---
+
+(source_file
+  (definition_block
+    (definition_line
+      name: (command_name)
+      entity: (text)
+      arguments: (definition_arguments
+        (text)))
+    (definition_line
+      name: (command_name)
+      entity: (text)
+      arguments: (definition_arguments
+        (text)))
+    (paragraph
+      (text))
+    end: (block_end)))
+
+================================================================================
+Definition lines in a defblock
+================================================================================
+
+@defblock
+@defline Function foo bar
+Text.
+@end defblock
+
+---
+
+(source_file
+  (block
+    name: (command_name)
+    (definition_line
+      name: (command_name)
+      category: (text)
+      entity: (text)
+      arguments: (definition_arguments
+        (text)))
+    (paragraph
+      (text))
+    end: (block_end)))
+
+================================================================================
+Definition inside a footnote
+================================================================================
+
+A@footnote{
+@deffn Command foo
+Text.
+@end deffn
+}
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (definition_block
+          (definition_line
+            name: (command_name)
+            category: (text)
+            entity: (text))
+          (paragraph
+            (text))
+          end: (block_end))))))

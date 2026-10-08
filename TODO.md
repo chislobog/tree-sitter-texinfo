@@ -54,9 +54,13 @@ sources, which is what `texi2any` itself uses.
   `@documentencoding`, ...) as a single text node. texi2any keeps `@set`
   values as raw text and parses them where `@value` uses them
 - [ ] `@set NAME VALUE` split into name and value
-- [ ] Definition lines: `@deffn`, `@deftypefn`, ... and their `x` variants split
-  into category, name and arguments (braces group words). `@` at the end of
-  a definition line continues it and should not be a `symbol_command`
+- [x] Definition lines: `@deffn`, `@deftypefn`, ..., their `x` variants and
+  `@defline`/`@deftypeline` split into `category`, `class`, `type`, `entity`
+  and `arguments` fields (braces group words)
+- [ ] `@` at the end of a definition line continues it and should not be a
+  `symbol_command`
+- [ ] A definition word glued to a command (`foo@var{x}`) counts as two
+  words
 - [ ] Index entries with `@subentry`, `@seeentry`, `@seealso`, `@sortas`
 - [ ] `@multitable` prototype argument and `@columnfractions`
 - [ ] `@tab` as a cell separator in multitable rows

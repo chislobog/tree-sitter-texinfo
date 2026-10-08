@@ -61,7 +61,7 @@ HEADINGS = (
 )
 MACRO_BLOCKS = ("macro", "rmacro", "linemacro")
 # Block names, from the scanner's table.
-BLOCK_NAMES = set(re.findall(r'\{"(\w+)", KIND_\w+\}',
+BLOCK_NAMES = set(re.findall(r'\{"(\w+)", KIND_\w+(?:, \d+)?\}',
                              (ROOT / "src" / "scanner.c").read_text()))
 MAX_EXPANSION_DEPTH = 20
 INLINE_CONDITIONALS = (
@@ -207,16 +207,30 @@ class OurWalker:
             elif index in expanded:
                 self.walk(child)
 
-    def walk_definition_line(self, argument):
+    def walk_definition_line(self, node, *skip):
+        """Walks the children of a definition line (or of its argument),
+        except the `skip` nodes."""
         previous = self.in_definition_line
         self.in_definition_line = True
-        self.walk(argument)
+        self.children(node, *skip)
         self.in_definition_line = previous
 
     def walk(self, node):
         kind = node.type
         if self.depth == 0 and (node.is_error or node.is_missing):
             self.errors += 1
+
+        if kind == "definition_block":
+            line = node.children[0]
+            name_node = line.child_by_field_name("name")
+            end = node.child_by_field_name("end")
+            name = text(name_node)[1:]
+            self.emit("+" + name, node, True)
+            self.walk_definition_line(line, name_node)
+            self.children(node, line, end)
+            if end.end_byte > end.start_byte:
+                self.emit("-" + text(end).split()[-1], end, True)
+            return
 
         if kind in ("block", "list", "raw_block"):
             name_node = node.child_by_field_name("name")
@@ -248,6 +262,12 @@ class OurWalker:
                 self.children(node, name_node, end)
             if end.end_byte > end.start_byte:
                 self.emit("-" + text(end).split()[-1], end, True)
+            return
+
+        if kind == "definition_line":
+            name_node = node.child_by_field_name("name")
+            self.emit(text(name_node), node, True)
+            self.walk_definition_line(node, name_node)
             return
 
         if kind in ("line_command", "node_line", "item", "itemx", "bye") or kind in HEADINGS:

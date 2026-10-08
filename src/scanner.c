@@ -34,7 +34,10 @@ enum TokenType {
   BRACE_CLOSE_AT_BLOCK_END,
   // Zero-width end of a block still open at the end of the file.
   MISSING_END,
-  ERROR_SENTINEL,
+  // Openers of definition blocks, one per layout of the definition line, in
+  // the order of DEFINITION_LAYOUTS in grammar.js.
+  DEFINITION_START,
+  ERROR_SENTINEL = DEFINITION_START + 8,
 };
 
 typedef enum {
@@ -45,11 +48,15 @@ typedef enum {
   KIND_RAW,
   // Body is plain text. Nested macro definitions of any kind are counted.
   KIND_MACRO,
+  // `@deffn` and friends; the opener token depends on the layout.
+  KIND_DEFINITION,
 } BlockKind;
 
 typedef struct {
   const char *name;
   BlockKind kind;
+  // For KIND_DEFINITION: the index of the definition line's layout.
+  uint8_t layout;
 } Block;
 
 // Classes follow `tta/data/command_data.txt` in the Texinfo sources.
@@ -105,28 +112,28 @@ static const Block BLOCKS[] = {
     {"ifclear", KIND_BLOCK},
     {"ifcommanddefined", KIND_BLOCK},
     {"ifcommandnotdefined", KIND_BLOCK},
-    // Definitions
+    // Definitions; the layout numbers index DEFINITION_LAYOUTS in grammar.js
     {"defblock", KIND_BLOCK},
-    {"deffn", KIND_BLOCK},
-    {"defvr", KIND_BLOCK},
-    {"deftypefn", KIND_BLOCK},
-    {"deftypevr", KIND_BLOCK},
-    {"deftp", KIND_BLOCK},
-    {"defop", KIND_BLOCK},
-    {"deftypeop", KIND_BLOCK},
-    {"defcv", KIND_BLOCK},
-    {"deftypecv", KIND_BLOCK},
-    {"defun", KIND_BLOCK},
-    {"defmac", KIND_BLOCK},
-    {"defspec", KIND_BLOCK},
-    {"defvar", KIND_BLOCK},
-    {"defopt", KIND_BLOCK},
-    {"deftypefun", KIND_BLOCK},
-    {"deftypevar", KIND_BLOCK},
-    {"defmethod", KIND_BLOCK},
-    {"deftypemethod", KIND_BLOCK},
-    {"defivar", KIND_BLOCK},
-    {"deftypeivar", KIND_BLOCK},
+    {"deffn", KIND_DEFINITION, 0},
+    {"defvr", KIND_DEFINITION, 0},
+    {"deftypefn", KIND_DEFINITION, 1},
+    {"deftypevr", KIND_DEFINITION, 1},
+    {"deftp", KIND_DEFINITION, 0},
+    {"defop", KIND_DEFINITION, 2},
+    {"deftypeop", KIND_DEFINITION, 3},
+    {"defcv", KIND_DEFINITION, 2},
+    {"deftypecv", KIND_DEFINITION, 3},
+    {"defun", KIND_DEFINITION, 4},
+    {"defmac", KIND_DEFINITION, 4},
+    {"defspec", KIND_DEFINITION, 4},
+    {"defvar", KIND_DEFINITION, 4},
+    {"defopt", KIND_DEFINITION, 4},
+    {"deftypefun", KIND_DEFINITION, 5},
+    {"deftypevar", KIND_DEFINITION, 5},
+    {"defmethod", KIND_DEFINITION, 6},
+    {"deftypemethod", KIND_DEFINITION, 7},
+    {"defivar", KIND_DEFINITION, 6},
+    {"deftypeivar", KIND_DEFINITION, 7},
     // Lists
     {"itemize", KIND_LIST},
     {"enumerate", KIND_LIST},
@@ -247,6 +254,9 @@ static bool scan_block_start(Scanner *scanner, TSLexer *lexer,
       break;
     case KIND_LIST:
       token = LIST_START;
+      break;
+    case KIND_DEFINITION:
+      token = DEFINITION_START + BLOCKS[index].layout;
       break;
     default:
       token = RAW_BLOCK_START;

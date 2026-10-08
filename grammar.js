@@ -41,12 +41,6 @@ const LINE_COMMANDS = [
   'codequotebacktick', 'deftypefnnewline', 'urefbreakstyle', 'xrefautomaticsectiontitle',
   'setcontentsaftertitlepage', 'setshortcontentsaftertitlepage', 'novalidate',
   'raisesections', 'lowersections',
-  // Continuation lines of definition blocks
-  'deffnx', 'defvrx', 'deftypefnx', 'deftypevrx', 'deftpx', 'defopx', 'deftypeopx', 'defcvx',
-  'deftypecvx', 'defunx', 'defmacx', 'defspecx', 'defvarx', 'defoptx', 'deftypefunx',
-  'deftypevarx', 'defmethodx', 'deftypemethodx', 'defivarx', 'deftypeivarx',
-  // Lines of @defblock
-  'defline', 'deftypeline',
   // Less common: two-letter index names, page layout, cross-reference names
   'cpindex', 'fnindex', 'kyindex', 'pgindex', 'tpindex', 'vrindex', 'bsixpaper',
   'clickstyle', 'fonttextsize', 'microtype', 'maketitle', 'verbatiminclude',
@@ -108,6 +102,35 @@ const commaArguments = (names, argument, lastArgument, separator) => {
   return seq(optional(argumentAt(0)), ...rest);
 };
 
+// The layouts of definition lines: the words before the arguments, as fields,
+// and the line commands with that layout. The block commands for each layout
+// (`@deffn`, ...) are in src/scanner.c, which numbers them in this order.
+const DEFINITION_LAYOUTS = [
+  { fields: ['category', 'entity'], lines: ['deffnx', 'defvrx', 'deftpx', 'defline'] },
+  { fields: ['category', 'type', 'entity'], lines: ['deftypefnx', 'deftypevrx', 'deftypeline'] },
+  { fields: ['category', 'class', 'entity'], lines: ['defopx', 'defcvx'] },
+  { fields: ['category', 'class', 'type', 'entity'], lines: ['deftypeopx', 'deftypecvx'] },
+  { fields: ['entity'], lines: ['defunx', 'defmacx', 'defspecx', 'defvarx', 'defoptx'] },
+  { fields: ['type', 'entity'], lines: ['deftypefunx', 'deftypevarx'] },
+  { fields: ['class', 'entity'], lines: ['defmethodx', 'defivarx'] },
+  { fields: ['class', 'type', 'entity'], lines: ['deftypemethodx', 'deftypeivarx'] },
+];
+
+/**
+ * The words of a definition line, each in its field, then its arguments.
+ * Trailing words may be missing.
+ *
+ * @param {GrammarSymbols<string>} $
+ * @param {string[]} fields
+ */
+const definitionFields = ($, fields) => {
+  let rest = optional(field('arguments', $.definition_arguments));
+  for (const name of [...fields].reverse()) {
+    rest = optional(seq(field(name, $._definition_word), rest));
+  }
+  return rest;
+};
+
 /**
  * A command keyword exposed as a `command_name` node.
  *
@@ -141,6 +164,7 @@ export default grammar({
     $._brace_close_at_paragraph_end,
     $._brace_close_at_block_end,
     $._missing_end,
+    ...DEFINITION_LAYOUTS.map((_, i) => $[`_definition_start_${i}`]),
     $._error_sentinel,
   ],
 
@@ -169,9 +193,11 @@ export default grammar({
       $._newline,
       $.paragraph,
       $.node_line,
+      alias($._definition_continuation, $.definition_line),
       $.line_command,
       ...Object.keys(HEADINGS).map((name) => $[name]),
       $.block,
+      $.definition_block,
       $.list,
       $.raw_block,
     ),
@@ -213,6 +239,48 @@ export default grammar({
       repeat(choice($._content, $.item)),
       field('end', $._block_end),
     ),
+
+    // `@deffn` and friends: the definition line, then the body.
+    definition_block: $ => seq(
+      alias($._definition_opener, $.definition_line),
+      repeat($._content),
+      field('end', $._block_end),
+    ),
+
+    _definition_opener: $ => choice(...DEFINITION_LAYOUTS.map(({ fields }, i) => seq(
+      field('name', alias($[`_definition_start_${i}`], $.command_name)),
+      definitionFields($, fields),
+      $._line_end,
+    ))),
+
+    // `@deffnx` and friends, and `@defline` in `@defblock`.
+    _definition_continuation: $ => choice(...DEFINITION_LAYOUTS.map(({ fields, lines }) => seq(
+      field('name', command($, lines)),
+      definitionFields($, fields),
+      $._line_end,
+    ))),
+
+    // Blocks and line commands recognised at the start of a line inside
+    // braces.
+    _line_block: $ => choice($.block, $.definition_block, $.list, $.raw_block),
+
+    _line_item: $ => choice(
+      $._line_block,
+      $.line_command,
+      alias($._definition_continuation, $.definition_line),
+    ),
+
+    // A word of a definition line: braces group several words into one.
+    _definition_word: $ => choice(
+      alias($._word_text, $.text),
+      $.brace_group,
+      $.inline_command,
+      $.symbol_command,
+    ),
+
+    _word_text: _ => /[^@{}\s]+/,
+
+    definition_arguments: $ => prec.right(repeat1($._inline)),
 
     list: $ => seq(
       field('name', alias($._list_start, $.command_name)),
@@ -325,14 +393,14 @@ export default grammar({
     ),
 
     _brace_first_line: $ => prec.right(choice(
-      seq(repeat1(choice($.block, $.list, $.raw_block)), repeat($._inline)),
+      seq(repeat1($._line_block), repeat($._inline)),
       repeat1($._inline),
     )),
 
     // A line command ends with its own newline, so line-level items can follow
     // each other directly.
     _brace_line: $ => prec.right(choice(
-      seq(repeat1(choice($.block, $.list, $.raw_block, $.line_command)), repeat($._inline)),
+      seq(repeat1($._line_item), repeat($._inline)),
       repeat1($._inline),
     )),
 
@@ -371,14 +439,14 @@ export default grammar({
     // lines.
     _long_arguments: $ => choice(
       // A block may also start right after the `{`.
-      seq(repeat1(choice($.block, $.list, $.raw_block)), optional($._long_lines)),
+      seq(repeat1($._line_block), optional($._long_lines)),
       $._long_lines,
     ),
 
     _long_lines: $ => repeat1(choice(
       $._inline,
       $._newline,
-      seq($._newline, repeat1(choice($.block, $.list, $.raw_block, $.line_command))),
+      seq($._newline, repeat1($._line_item)),
     )),
 
     brace_group: $ => seq('{', repeat(choice($._inline, $._newline)), '}'),

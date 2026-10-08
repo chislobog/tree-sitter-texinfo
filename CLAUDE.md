@@ -31,7 +31,8 @@ well with incomplete input, which is normal while editing.
   commands whose arguments split at commas into named fields
   (`ARGUMENT_COMMANDS`) are listed here.
 - `src/scanner.c`: external scanner. Holds the table of block names and kinds
-  (block, list, raw, macro), the stack of open blocks that makes `@end NAME`
+  (block, list, raw, macro, definition with its layout, whose numbers index
+  `DEFINITION_LAYOUTS` in `grammar.js`), the stack of open blocks that makes `@end NAME`
   match, raw block bodies, `@verb` bodies (its delimiter is saved state), the
   zero-width `missing_brace` and `missing_end` tokens that close unclosed
   brace commands and blocks, and the end-of-file token. Add new blocks here.
