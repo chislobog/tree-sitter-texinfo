@@ -16,6 +16,9 @@ texi2any does things a tree-sitter grammar cannot, so this side mirrors them:
 - Calls to user-defined macros are expanded like texi2any does: arguments
   are substituted into the body, which is parsed with this grammar.
   `@linemacro` calls are skipped.
+- Inline conditionals are evaluated the same way: only the arguments
+  texi2any expands (`@inlinefmtifelse`'s else, `@inlineifset`'s text when
+  the flag is set, ...) contribute commands.
 - `@value` of a variable that is never set stays a command, as in texi2any
   (typically one set in an `@include`d file).
 - `txicommandconditionals` is set, as texi2any predefines it.
@@ -34,6 +37,7 @@ import dataclasses
 import difflib
 import itertools
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -53,7 +57,13 @@ HEADINGS = (
     "subsection_heading", "subsubsection_heading",
 )
 MACRO_BLOCKS = ("macro", "rmacro", "linemacro")
+# Block names, from the scanner's table.
+BLOCK_NAMES = set(re.findall(r'\{"(\w+)", KIND_\w+\}',
+                             (ROOT / "src" / "scanner.c").read_text()))
 MAX_EXPANSION_DEPTH = 20
+INLINE_CONDITIONALS = (
+    "@inlinefmt", "@inlineraw", "@inlinefmtifelse", "@inlineifset", "@inlineifclear",
+)
 
 
 @dataclass
@@ -176,6 +186,24 @@ class OurWalker:
             return False
         return None
 
+    def walk_expanded_arguments(self, name: str, arguments):
+        """Walks only the arguments of an inline conditional that texi2any
+        expands. Arguments are separated by top-level commas in text."""
+        flag = first_word(arguments).rstrip(",")
+        expanded = {
+            "@inlinefmt": set(),
+            "@inlineraw": set(),
+            "@inlinefmtifelse": {2},
+            "@inlineifset": {1} if flag in self.flags else set(),
+            "@inlineifclear": set() if flag in self.flags else {1},
+        }[name]
+        index = 0
+        for child in arguments.children:
+            if child.type == "text":
+                index += text(child).count(",")
+            elif index in expanded:
+                self.walk(child)
+
     def walk_definition_line(self, argument):
         previous = self.in_definition_line
         self.in_definition_line = True
@@ -253,7 +281,11 @@ class OurWalker:
                     self.expand_macro(macro, node)
                 return
             self.emit(name, node, False)
-            self.children(node, name_node)
+            arguments = node.child_by_field_name("arguments")
+            if name in INLINE_CONDITIONALS and arguments is not None:
+                self.walk_expanded_arguments(name, arguments)
+            else:
+                self.children(node, name_node)
             return
 
         if kind == "symbol_command":
@@ -355,11 +387,14 @@ def texi2any_tokens(dump: str, structural_names: set[str]) -> list[Token]:
                 walk(child)
             return
         children = node.children
-        if children and command_name(children[-1].label) == "@end":
+        closed = bool(children) and command_name(children[-1].label) == "@end"
+        if closed or name[1:] in BLOCK_NAMES:
+            # An unclosed block has no `@end` child.
             tokens.append(Token("+" + name[1:], structural=True))
-            for child in children[:-1]:
+            for child in children[:-1] if closed else children:
                 walk(child)
-            tokens.append(Token("-" + dump_text(children[-1]), structural=True))
+            if closed:
+                tokens.append(Token("-" + dump_text(children[-1]), structural=True))
             return
         tokens.append(Token(name, structural=name in structural_names))
         for child in children:
