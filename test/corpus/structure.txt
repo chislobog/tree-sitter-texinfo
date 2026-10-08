@@ -123,3 +123,18 @@ Line command at end of file without newline
     (command_name)
     (line_argument
       (text))))
+
+================================================================================
+Comment on the bye line
+================================================================================
+
+@bye @c the end
+not parsed
+
+---
+
+(source_file
+  (bye
+    (command_name)
+    (comment)
+    (ignored)))

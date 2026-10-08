@@ -139,3 +139,21 @@ never closed
 ---
 
 (source_file)
+
+================================================================================
+Comment directly after a block name
+================================================================================
+
+@html@c comment
+<b>x</b>
+@end html@c after
+
+---
+
+(source_file
+  (raw_block
+    (command_name)
+    (comment)
+    (raw_text)
+    (block_end))
+  (comment))

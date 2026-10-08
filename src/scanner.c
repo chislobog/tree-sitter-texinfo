@@ -4,6 +4,8 @@
  * Keeps a stack of open blocks so that `@end NAME` only closes the block that
  * is actually open, and scans the bodies of raw blocks (`@verbatim`,
  * `@ignore`, `@macro`, `@tex`, ...) and of `@verb{xTEXTx}` as plain text.
+ * Also closes unclosed brace commands where texi2any does, so that an
+ * unclosed brace doesn't swallow the rest of the document.
  *
  * Block names live here rather than in grammar.js: the scanner has to
  * recognise them to know what to push.
@@ -26,6 +28,10 @@ enum TokenType {
   VERB_OPEN,
   VERB_TEXT,
   VERB_CLOSE,
+  // Zero-width closes for an unclosed brace command: before a blank line or
+  // the end of the file, and before the `@end` of the innermost open block.
+  BRACE_CLOSE_AT_PARAGRAPH_END,
+  BRACE_CLOSE_AT_BLOCK_END,
   ERROR_SENTINEL,
 };
 
@@ -376,6 +382,48 @@ static bool scan_verb(Scanner *scanner, TSLexer *lexer,
   return true;
 }
 
+/**
+ * Closes an unclosed brace command before the end of the current line if
+ * texi2any would close it there: the next line is blank (ordinary brace
+ * commands only) or the `@end` of the innermost open block, or the file ends.
+ * The lexer is at the line end, after any blanks.
+ */
+static bool scan_missing_brace(Scanner *scanner, TSLexer *lexer,
+                               const bool *valid_symbols) {
+  bool paragraph_end = valid_symbols[BRACE_CLOSE_AT_PARAGRAPH_END];
+  bool block_end = valid_symbols[BRACE_CLOSE_AT_BLOCK_END];
+
+  lexer->mark_end(lexer);
+  if (!lexer->eof(lexer)) {
+    if (lexer->lookahead == '\r') advance(lexer);
+    if (lexer->lookahead != '\n') return false;
+    advance(lexer);
+    skip_blanks(lexer);
+  }
+
+  if (lexer->eof(lexer)) {
+    lexer->result_symbol =
+        paragraph_end ? BRACE_CLOSE_AT_PARAGRAPH_END : BRACE_CLOSE_AT_BLOCK_END;
+    return true;
+  }
+  if (lexer->lookahead == '\n' || lexer->lookahead == '\r') {
+    lexer->result_symbol = BRACE_CLOSE_AT_PARAGRAPH_END;
+    return paragraph_end;
+  }
+
+  char name[MAX_NAME + 1];
+  char end_name[MAX_NAME + 1];
+  if (!block_end || scanner->depth == 0 || lexer->lookahead != '@') return false;
+  advance(lexer);
+  if (!read_name(lexer, name) || strcmp(name, "end") != 0 ||
+      !read_end_name(lexer, end_name) ||
+      strcmp(end_name, BLOCKS[scanner->stack[scanner->depth - 1]].name) != 0) {
+    return false;
+  }
+  lexer->result_symbol = BRACE_CLOSE_AT_BLOCK_END;
+  return true;
+}
+
 void *tree_sitter_texinfo_external_scanner_create(void) {
   return calloc(1, sizeof(Scanner));
 }
@@ -419,6 +467,15 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
 
   if (valid_symbols[RAW_TEXT]) return scan_raw(scanner, lexer);
 
+  if (valid_symbols[BRACE_CLOSE_AT_PARAGRAPH_END] ||
+      valid_symbols[BRACE_CLOSE_AT_BLOCK_END]) {
+    while (is_blank(lexer->lookahead)) skip(lexer);
+    if (lexer->eof(lexer) || lexer->lookahead == '\n' ||
+        lexer->lookahead == '\r') {
+      return scan_missing_brace(scanner, lexer, valid_symbols);
+    }
+  }
+
   // Leading blanks are left out of the token. The grammar only allows block
   // openers and `@end` at the start of a line; checking the column here
   // instead would break incremental parsing, since tree-sitter doesn't know
@@ -440,12 +497,7 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
     return true;
   }
 
-  // A block name must be a whole word, followed by a blank, `{` (multitable
-  // prototypes), a line end or the end of the file.
-  int32_t next = lexer->lookahead;
-  if (!(is_blank(next) || next == '{' || next == '\n' || next == '\r' ||
-        lexer->eof(lexer))) {
-    return false;
-  }
+  // read_name stops at the first character that can't be part of a name, so
+  // `@html@c` opens a raw block, as in texi2any.
   return scan_block_start(scanner, lexer, valid_symbols, name);
 }

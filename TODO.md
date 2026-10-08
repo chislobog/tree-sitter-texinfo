@@ -79,6 +79,13 @@ sources, which is what `texi2any` itself uses.
 - [ ] Name the command field `name` in headings too (it is `command`), and
   give `@bye` a `name` field, so every command node is queried the same way
 - [x] Line commands and headings at end of file without a newline
+- [x] Unclosed brace commands end where texi2any ends them (a blank line for
+  built-in commands other than `@footnote`, `@caption`, `@shortcaption` and
+  `@math`; the enclosing block's `@end`; the end of the file), marked by a
+  zero-width `missing_brace` node, so they don't break the rest of the file
+- [ ] A brace argument crossing a conditional's boundary (e.g. `@footnote{`
+  inside `@ifnottex`, closed after its `@end`) can't be represented and stays
+  a one-character error
 - [ ] TeX lines before `\input texinfo` (e.g. gawk's Italian manual)
 
 ## Queries
@@ -95,10 +102,12 @@ sources, which is what `texi2any` itself uses.
 - [x] `script/compare-texi2any.py`: compare trees with texi2any's
 - [x] Run the comparison on the inputs of texi2any's own parser tests
   (`texinfo-tests/`): 1,446 of 1,755 match exactly
-- [ ] Triage the 309 test inputs that differ. Seen so far: raw blocks with
-  text after the opening or before `@end` on the same line; unclosed commands
-  at end of file losing the command (matters for editing); comments on a
-  conditional's line; `@clickstyle` arguments
+- [ ] Triage the test inputs that differ (205 of 1,755 left). Done: unclosed
+  blocks and inline conditionals in the script, comment placement, comments
+  on the `@bye` line, `@html@c` (comment right after a block name), unclosed
+  brace commands. Left: a block opened and closed on one line, `@math` and
+  `@displaymath` contents, `@clickstyle` and other missing line commands,
+  comments on a conditional's line, then the rest
 - [ ] CI: generate, check `src/` is up to date, test, fuzz, parse examples,
   compare with texi2any
 - [ ] README: supported features, editor setup, development with Nix

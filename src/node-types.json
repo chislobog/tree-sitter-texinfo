@@ -238,6 +238,16 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "missing_brace",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -776,6 +786,10 @@
   },
   {
     "type": "ignored",
+    "named": true
+  },
+  {
+    "type": "missing_brace",
     "named": true
   },
   {
