@@ -24,9 +24,20 @@
               tar -xf "$src" -C "$dir" --strip-components=2 --wildcards '*/doc/*.texi'
             done
           '';
+
+        # The inputs of texi2any's own parser tests, one file per test case
+        texinfoTests = pkgs.runCommand "texinfo-tests"
+          { nativeBuildInputs = [ pkgs.perl ]; }
+          ''
+            mkdir tests
+            tar -xf ${pkgs.texinfo.src} -C tests --strip-components=4 --wildcards \
+              '*/tta/perl/t/*.t' '*/tta/perl/t/input_files/*'
+            perl ${./script/extract-texi2any-tests.pl} tests "$out"
+          '';
       in
       {
         packages.examples = examples;
+        packages.texinfo-tests = texinfoTests;
 
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
@@ -50,6 +61,7 @@
 
           shellHook = ''
             ln -sfn ${examples} examples
+            ln -sfn ${texinfoTests} texinfo-tests
             echo "tree-sitter $(tree-sitter --version | cut -d' ' -f2) | node $(node --version)"
           '';
         };

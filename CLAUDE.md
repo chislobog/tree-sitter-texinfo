@@ -4,6 +4,11 @@ A tree-sitter grammar for GNU Texinfo. The reference for correct behaviour is
 `texi2any` (Texinfo 7.3), whose command classes come from
 `tta/data/command_data.txt` in the Texinfo sources. `TODO.md` tracks coverage.
 
+The grammar is for structural editing and syntax highlighting, not for
+producing documents. So the tree shows the source as written: conditionals,
+macros and `@value` stay unexpanded, unlike in texi2any. It must also cope
+well with incomplete input, which is normal while editing.
+
 ## Environment
 
 - The Nix dev shell (`flake.nix`) provides tree-sitter, Node, clang/clangd,
@@ -14,6 +19,10 @@ A tree-sitter grammar for GNU Texinfo. The reference for correct behaviour is
   `sed -i ''`.
 - `examples/` is a symlink, created by the dev shell, to real manuals pinned by
   `flake.lock` (texinfo, make, sed, gawk). It is not committed.
+- `texinfo-tests/` is a symlink to the inputs of texi2any's own parser tests,
+  one file per test case (about 1,750), extracted by
+  `script/extract-texi2any-tests.pl`. Many are deliberately invalid, so parse
+  errors there are expected; it is not committed either.
 
 ## Layout
 
@@ -40,11 +49,20 @@ tree-sitter parse --quiet --stat 'examples/**/*.texi'
 find -L examples -name '*.texi' | sort | xargs python3 script/compare-texi2any.py
 ```
 
+To compare with texi2any on its own test inputs (about a minute):
+
+```sh
+find -L texinfo-tests -name '*.texi' | sort | xargs python3 script/compare-texi2any.py
+```
+
 Known noise in the comparison: `gawk-5.4.1/it/gawk.texi` and
 `texinfo-7.3/texinfo-tex-test.texi` (texi2any fails on them),
 `html_default_commands_args.texi` (a fragment for `@include`), and the Italian
 `pm-gawk.texi` (uses a macro before defining it). The script doesn't expand
-`@linemacro` calls, so their expansions show up as differences. Use
+`@linemacro` calls, so their expansions show up as differences. In
+`texinfo-tests/`, the macro and value suites (`50value`, `58alias`, `60macro`,
+`65linemacro`, `70value_and_macro`) and `57invalid_nestings` differ mostly
+because of the script's simple macro expansion and different error recovery. Use
 `--structure` to compare only blocks, items and line commands.
 
 ## Conventions

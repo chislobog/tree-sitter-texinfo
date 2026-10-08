@@ -93,6 +93,12 @@ sources, which is what `texi2any` itself uses.
 ## Project
 
 - [x] `script/compare-texi2any.py`: compare trees with texi2any's
+- [x] Run the comparison on the inputs of texi2any's own parser tests
+  (`texinfo-tests/`): 1,446 of 1,755 match exactly
+- [ ] Triage the 309 test inputs that differ. Seen so far: raw blocks with
+  text after the opening or before `@end` on the same line; unclosed commands
+  at end of file losing the command (matters for editing); comments on a
+  conditional's line; `@clickstyle` arguments
 - [ ] CI: generate, check `src/` is up to date, test, fuzz, parse examples,
   compare with texi2any
 - [ ] README: supported features, editor setup, development with Nix
