@@ -1,0 +1,85 @@
+# TODO
+
+Coverage of the [Texinfo manual](https://www.gnu.org/software/texinfo/manual/texinfo/texinfo.html)
+(version 7.3). Command classes follow `tta/data/command_data.txt` in the Texinfo
+sources, which is what `texi2any` itself uses.
+
+## Done
+
+- [x] `\input texinfo` first line
+- [x] Comments: `@c`, `@comment`, including at end of line
+- [x] Line commands with the rest of the line as argument
+- [x] Sectioning and heading commands, all levels (flat, not nested)
+- [x] Paragraphs separated by blank lines
+- [x] Brace commands, nested, with arguments spanning lines
+- [x] Symbol commands: `@@`, `@{`, `@}`, `@*`, `@.`, `@ `, accents like `@'`
+- [x] Bare brace groups
+- [x] Blocks with optional line argument, nested
+- [x] Lists: `@itemize`, `@enumerate`, `@table`, `@ftable`, `@vtable`, `@multitable`
+  with `@item`, `@itemx`, `@headitem`
+- [x] `@bye` and ignored trailing content
+
+## External scanner
+
+- [x] Match `@end NAME` against the open block
+- [x] Raw blocks, body as plain text: `@verbatim`, `@ignore` (nested `@ignore`
+  counted), `@macro`, `@rmacro`, `@linemacro`
+- [x] Format-raw blocks, body as text for injections: `@tex`, `@latex`, `@html`,
+  `@xml`, `@docbook`. `@` still introduces commands inside them; not parsed yet
+- [x] `@displaymath` body (as raw text)
+- [ ] `@verb{xTEXTx}` with an arbitrary delimiter character
+- [ ] Report a stray `@end` with no open block as an error (currently text)
+
+## Commands and arguments
+
+- [ ] Split brace arguments on commas for multi-argument commands: `@xref`,
+  `@ref`, `@pxref`, `@inforef`, `@link`, `@uref`, `@url`, `@email`, `@image`,
+  `@abbr`, `@acronym`, `@anchor`, `@namedanchor`, `@inlinefmt`,
+  `@inlinefmtifelse`, `@inlineraw`, `@inlineifset`, `@inlineifclear`, `@U`
+- [ ] `@node` arguments split on commas (name, next, previous, up)
+- [ ] Accent commands without braces: `@'e`, `@"u`, and letter accents with
+  a space: `@u o`, `@v c`
+- [ ] `@value{name}` as its own node
+- [ ] `@math{...}` body for TeX injection
+- [ ] Plain-text line arguments (`@set`, `@clear`, `@include`, `@setfilename`,
+  `@documentencoding`, ...) as a single text node
+- [ ] `@set NAME VALUE` split into name and value
+- [ ] Definition lines: `@deffn`, `@deftypefn`, ... and their `x` variants split
+  into category, name and arguments (braces group words)
+- [ ] Index entries with `@subentry`, `@seeentry`, `@seealso`, `@sortas`
+- [ ] `@multitable` prototype argument and `@columnfractions`
+- [ ] `@tab` as a cell separator in multitable rows
+- [ ] `@headings`, `@everyheading` and friends with `@|` separators
+- [ ] `@alias NEW = EXISTING`, `@definfoenclose`
+- [ ] Missing line commands: `defline`, `deftypeline`, `xrefname`, `maketitle`,
+  `bsixpaper`, `clickstyle`, `fonttextsize`, `microtype`,
+  `{even,odd,every}{heading,footing}marks`, `verbatiminclude`, `subentry`,
+  user-defined index commands
+- [x] Missing blocks: `@documentinfo`, `@publication`
+- [x] Fix typo: `codequoteundirective` should be `codequoteundirected`
+- [ ] No-brace commands: `@refill`, `@thischapter`, `@thisfile`, ...
+
+## Structure
+
+- [ ] Menu entries: `* Node::  Description`, `* Name: Node.  Description`,
+  menu comments (also in `@direntry`)
+- [ ] Decide on nested sections (chapter containing sections) vs flat headings
+- [x] Line commands and headings at end of file without a newline
+- [ ] TeX lines before `\input texinfo` (e.g. gawk's Italian manual)
+
+## Queries
+
+- [ ] `queries/highlights.scm`
+- [ ] `queries/injections.scm`: TeX/LaTeX, HTML, XML, DocBook blocks and `@math`
+- [ ] `queries/folds.scm`
+- [ ] `queries/tags.scm`: nodes and anchors as definitions, cross-references as
+  references
+- [ ] Register queries in `tree-sitter.json`
+
+## Project
+
+- [ ] CI: generate, check `src/` is up to date, test, fuzz, parse examples
+- [ ] README: supported features, editor setup, development with Nix
+- [ ] `CLAUDE.md` with project conventions
+- [ ] More example manuals (e.g. Emacs Lisp reference)
+- [ ] Release automation (npm, crates.io, PyPI)
