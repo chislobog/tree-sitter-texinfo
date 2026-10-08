@@ -32,6 +32,9 @@ sources, which is what `texi2any` itself uses.
 
 ## Commands and arguments
 
+- [ ] Block content in `@footnote`, `@caption` and `@shortcaption`: paragraphs,
+  blocks and line commands (found by the texi2any comparison in sed and gawk)
+
 - [ ] Split brace arguments on commas for multi-argument commands: `@xref`,
   `@ref`, `@pxref`, `@inforef`, `@link`, `@uref`, `@url`, `@email`, `@image`,
   `@abbr`, `@acronym`, `@anchor`, `@namedanchor`, `@inlinefmt`,
@@ -42,10 +45,12 @@ sources, which is what `texi2any` itself uses.
 - [ ] `@value{name}` as its own node
 - [ ] `@math{...}` body for TeX injection
 - [ ] Plain-text line arguments (`@set`, `@clear`, `@include`, `@setfilename`,
-  `@documentencoding`, ...) as a single text node
+  `@documentencoding`, ...) as a single text node. texi2any keeps `@set`
+  values as raw text and parses them where `@value` uses them
 - [ ] `@set NAME VALUE` split into name and value
 - [ ] Definition lines: `@deffn`, `@deftypefn`, ... and their `x` variants split
-  into category, name and arguments (braces group words)
+  into category, name and arguments (braces group words). `@` at the end of
+  a definition line continues it and should not be a `symbol_command`
 - [ ] Index entries with `@subentry`, `@seeentry`, `@seealso`, `@sortas`
 - [ ] `@multitable` prototype argument and `@columnfractions`
 - [ ] `@tab` as a cell separator in multitable rows
@@ -78,8 +83,11 @@ sources, which is what `texi2any` itself uses.
 
 ## Project
 
-- [ ] CI: generate, check `src/` is up to date, test, fuzz, parse examples
+- [x] `script/compare-texi2any.py`: compare trees with texi2any's
+
+- [ ] CI: generate, check `src/` is up to date, test, fuzz, parse examples,
+  compare with texi2any
 - [ ] README: supported features, editor setup, development with Nix
-- [ ] `CLAUDE.md` with project conventions
+- [x] `CLAUDE.md` with project conventions
 - [ ] More example manuals (e.g. Emacs Lisp reference)
 - [ ] Release automation (npm, crates.io, PyPI)
