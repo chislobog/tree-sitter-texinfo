@@ -76,6 +76,8 @@ sources, which is what `texi2any` itself uses.
 - [ ] Menu entries: `* Node::  Description`, `* Name: Node.  Description`,
   menu comments (also in `@direntry`)
 - [ ] Decide on nested sections (chapter containing sections) vs flat headings
+- [ ] Name the command field `name` in headings too (it is `command`), and
+  give `@bye` a `name` field, so every command node is queried the same way
 - [x] Line commands and headings at end of file without a newline
 - [ ] TeX lines before `\input texinfo` (e.g. gawk's Italian manual)
 
@@ -96,5 +98,8 @@ sources, which is what `texi2any` itself uses.
 - [ ] README: supported features, editor setup, development with Nix
 - [x] `CLAUDE.md` with project conventions
 - [ ] Expand `@linemacro` calls in the texi2any comparison
+- [ ] In `--structure` mode, classify texi2any's commands from one shared list
+  of line commands, headings and blocks, not from the commands our parser
+  produced; a line command we don't know is currently hidden there
 - [ ] More example manuals (e.g. Emacs Lisp reference)
 - [ ] Release automation (npm, crates.io, PyPI)
