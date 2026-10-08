@@ -38,17 +38,17 @@ Nodes and headings
 ---
 
 (source_file
-  (line_command
+  (node_line
     (command_name)
-    (line_argument
+    (argument
       (text)))
   (top_heading
     (command_name)
     (line_argument
       (text)))
-  (line_command
+  (node_line
     (command_name)
-    (line_argument
+    (argument
       (text)))
   (chapter_heading
     (command_name)
@@ -115,7 +115,7 @@ Everything after bye is ignored
 Line command at end of file without newline
 ================================================================================
 
-@node Top
+@settitle Top
 ---
 
 (source_file

@@ -55,9 +55,9 @@ Quoted.
 (source_file
   (block
     (command_name)
-    (line_command
+    (node_line
       (command_name)
-      (line_argument
+      (argument
         (text)))
     (top_heading
       (command_name)

@@ -387,9 +387,10 @@ static bool scan_verb(Scanner *scanner, TSLexer *lexer,
 
 /**
  * Closes an unclosed brace command before the end of the current line if
- * texi2any would close it there: the next line is blank (ordinary brace
- * commands only) or the `@end` of the innermost open block, or the file ends.
- * The lexer is at the line end, after any blanks.
+ * texi2any would close it there: the next line is blank or opens a block
+ * other than a conditional (ordinary brace commands only), or it is the `@end`
+ * of the innermost open block, or the file ends. The lexer is at the line
+ * end, after any blanks.
  */
 static bool scan_missing_brace(Scanner *scanner, TSLexer *lexer,
                                const bool *valid_symbols) {
@@ -415,15 +416,25 @@ static bool scan_missing_brace(Scanner *scanner, TSLexer *lexer,
   }
 
   char name[MAX_NAME + 1];
-  char end_name[MAX_NAME + 1];
-  if (!block_end || scanner->depth == 0 || lexer->lookahead != '@') return false;
+  if (lexer->lookahead != '@') return false;
   advance(lexer);
-  if (!read_name(lexer, name) || strcmp(name, "end") != 0 ||
-      !read_end_name(lexer, end_name) ||
-      strcmp(end_name, BLOCKS[scanner->stack[scanner->depth - 1]].name) != 0) {
+  if (!read_name(lexer, name)) return false;
+
+  if (strcmp(name, "end") == 0) {
+    char end_name[MAX_NAME + 1];
+    if (!block_end || scanner->depth == 0 || !read_end_name(lexer, end_name) ||
+        strcmp(end_name, BLOCKS[scanner->stack[scanner->depth - 1]].name) != 0) {
+      return false;
+    }
+    lexer->result_symbol = BRACE_CLOSE_AT_BLOCK_END;
+    return true;
+  }
+
+  // texi2any evaluates conditionals before parsing, so they close nothing.
+  if (!paragraph_end || find_block(name) < 0 || strncmp(name, "if", 2) == 0) {
     return false;
   }
-  lexer->result_symbol = BRACE_CLOSE_AT_BLOCK_END;
+  lexer->result_symbol = BRACE_CLOSE_AT_PARAGRAPH_END;
   return true;
 }
 

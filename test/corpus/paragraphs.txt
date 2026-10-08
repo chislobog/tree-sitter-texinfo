@@ -57,7 +57,11 @@ See @xref{Node, , Title, manual}.
     (text)
     (inline_command
       (command_name)
-      (brace_arguments
+      (argument
+        (text))
+      (argument
+        (text))
+      (argument
         (text)))
     (text)))
 

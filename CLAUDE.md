@@ -26,9 +26,10 @@ well with incomplete input, which is normal while editing.
 
 ## Layout
 
-- `grammar.js`: the grammar. Line commands, heading levels and the built-in
-  brace commands (`BRACE_COMMANDS`, from texi2any's command table) are listed
-  here.
+- `grammar.js`: the grammar. Line commands, heading levels, the built-in
+  brace commands (`BRACE_COMMANDS`, from texi2any's command table) and the
+  commands whose arguments split at commas into named fields
+  (`ARGUMENT_COMMANDS`) are listed here.
 - `src/scanner.c`: external scanner. Holds the table of block names and kinds
   (block, list, raw, macro), the stack of open blocks that makes `@end NAME`
   match, raw block bodies, `@verb` bodies (its delimiter is saved state), the
@@ -84,6 +85,9 @@ because of the script's simple macro expansion and different error recovery. Use
   when text before it on the same line changes. Keep line-start rules in the
   grammar (every line-level rule ends in `_line_end`).
 - Update `TODO.md` in the same commit as the work it tracks.
+- Watch `tree-sitter generate` time (normally under 10 seconds). Nested
+  optional sequences, as in `commaArguments`, multiply parser states quickly;
+  a change there once made generation run for over 13 minutes.
 - Favour error recovery that keeps the rest of the document intact: a
   mistake being typed should only affect its own paragraph or block, as in
   texi2any. tree-sitter's own recovery often doesn't manage that, so close

@@ -250,7 +250,7 @@ class OurWalker:
                 self.emit("-" + text(end).split()[-1], end, True)
             return
 
-        if kind in ("line_command", "item", "itemx", "bye") or kind in HEADINGS:
+        if kind in ("line_command", "node_line", "item", "itemx", "bye") or kind in HEADINGS:
             # Headings name the field `command`; `@bye` has no field.
             name_node = (node.child_by_field_name("name")
                          or node.child_by_field_name("command")

@@ -37,11 +37,15 @@ sources, which is what `texi2any` itself uses.
   such as `@footnote` and `@caption` (found by the texi2any comparison)
 - [ ] Paragraphs inside `@footnote`, `@caption` and `@shortcaption`; their text
   is flat for now
-- [ ] Split brace arguments on commas for multi-argument commands: `@xref`,
-  `@ref`, `@pxref`, `@inforef`, `@link`, `@uref`, `@url`, `@email`, `@image`,
-  `@abbr`, `@acronym`, `@anchor`, `@namedanchor`, `@inlinefmt`,
-  `@inlinefmtifelse`, `@inlineraw`, `@inlineifset`, `@inlineifclear`, `@U`
-- [ ] `@node` arguments split on commas (name, next, previous, up)
+- [x] Split brace arguments on commas into fields named by position for
+  `@xref`, `@pxref`, `@ref`, `@inforef`, `@link`, `@uref`, `@url`, `@email`,
+  `@image`, `@abbr`, `@acronym`, `@namedanchor`
+- [x] `@node` arguments in fields (`node_line`: node, next, previous, up)
+- [ ] Split the inline conditionals' arguments (`@inlineraw`'s second argument
+  is raw text)
+- [ ] `@float` arguments (type, label)
+- [x] A block at the start of a line closes an ordinary brace command, as in
+  texi2any (conditionals don't)
 - [ ] Accent commands without braces: `@'e`, `@"u`, and letter accents with
   a space: `@u o`, `@v c`
 - [ ] `@value{name}` as its own node

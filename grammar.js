@@ -22,7 +22,7 @@ const HEADINGS = {
 // Commands whose argument is the rest of the line.
 const LINE_COMMANDS = [
   // Structure and cross-referencing
-  'node', 'printindex', 'include', 'insertcopying', 'contents', 'shortcontents',
+  'printindex', 'include', 'insertcopying', 'contents', 'shortcontents',
   'summarycontents', 'listoffloats', 'nodedescription',
   // Indices
   'cindex', 'findex', 'kindex', 'pindex', 'tindex', 'vindex', 'defindex', 'defcodeindex',
@@ -60,23 +60,53 @@ const LINE_COMMANDS = [
 // whose skipped arguments may contain blank lines. Any other command with
 // braces, including calls to user-defined macros, may contain blank lines.
 const BRACE_COMMANDS = [
-  'AA', 'AE', 'DH', 'H', 'L', 'LaTeX', 'O', 'OE', 'TH', 'TeX', 'U', 'aa', 'abbr',
-  'acronym', 'ae', 'ampchar', 'anchor', 'arrow', 'asis', 'atchar', 'b',
+  'AA', 'AE', 'DH', 'H', 'L', 'LaTeX', 'O', 'OE', 'TH', 'TeX', 'U', 'aa',   'ae', 'ampchar', 'anchor', 'arrow', 'asis', 'atchar', 'b',
   'backslashchar', 'bullet', 'cite', 'click', 'clicksequence', 'code', 'comma',
   'command', 'copyright', 'dfn', 'dh', 'dmn', 'dotaccent', 'dotless', 'dots',
-  'email', 'emph', 'enddots', 'env', 'equiv', 'error', 'errormsg', 'euro',
+  'emph', 'enddots', 'env', 'equiv', 'error', 'errormsg', 'euro',
   'exclamdown', 'expansion', 'file', 'geq', 'guillemetleft', 'guillemetright',
   'guillemotleft', 'guillemotright', 'guilsinglleft', 'guilsinglright',
-  'hashchar', 'headitemfont', 'hyphenation', 'i', 'image', 'indicateurl',
-  'inforef', 'kbd', 'key', 'l', 'lbracechar', 'leq', 'link', 'minus',
-  'namedanchor', 'o', 'oe', 'ogonek', 'option', 'ordf', 'ordm', 'point', 'pounds',
-  'print', 'pxref', 'questiondown', 'quotedblbase', 'quotedblleft',
+  'hashchar', 'headitemfont', 'hyphenation', 'i', 'indicateurl',
+  'kbd', 'key', 'l', 'lbracechar', 'leq', 'minus',
+  'o', 'oe', 'ogonek', 'option', 'ordf', 'ordm', 'point', 'pounds',
+  'print', 'questiondown', 'quotedblbase', 'quotedblleft',
   'quotedblright', 'quoteleft', 'quoteright', 'quotesinglbase', 'r',
-  'rbracechar', 'ref', 'registeredsymbol', 'result', 'ringaccent', 'samp',
+  'rbracechar', 'registeredsymbol', 'result', 'ringaccent', 'samp',
   'sansserif', 'sc', 'seealso', 'seeentry', 'slanted', 'sortas', 'ss', 'strong',
   'sub', 'sup', 't', 'textdegree', 'th', 'tie', 'tieaccent', 'titlefont', 'today',
-  'u', 'ubaraccent', 'udotaccent', 'uref', 'url', 'v', 'value', 'var', 'w', 'xref',
-];
+  'u', 'ubaraccent', 'udotaccent', 'v', 'value', 'var', 'w', ];
+
+// Brace commands whose argument splits at commas, with the field name of each
+// argument by position. As in texi2any, the last argument takes any further
+// commas. These also end at a blank line, like BRACE_COMMANDS.
+const ARGUMENT_COMMANDS = {
+  'node label title file manual': ['xref', 'pxref', 'ref'],
+  'node label file': ['inforef', 'link'],
+  'url text replacement': ['uref', 'url'],
+  'address text': ['email'],
+  'file width height alt extension': ['image'],
+  'abbreviation meaning': ['abbr', 'acronym'],
+  'anchor label': ['namedanchor'],
+};
+
+/**
+ * Arguments separated by commas, each in the field named by its position;
+ * empty arguments are left out. The last argument may contain commas.
+ *
+ * @param {string[]} names
+ * @param {RuleOrLiteral} argument
+ * @param {RuleOrLiteral} lastArgument
+ * @param {RuleOrLiteral} separator
+ */
+const commaArguments = (names, argument, lastArgument, separator) => {
+  const argumentAt = (i) => field(names[i], i === names.length - 1 ? lastArgument : argument);
+  /** @type {RuleOrLiteral[]} */
+  let rest = [];
+  for (let i = names.length - 1; i >= 1; i--) {
+    rest = [optional(seq(separator, optional(argumentAt(i)), ...rest))];
+  }
+  return seq(optional(argumentAt(0)), ...rest);
+};
 
 /**
  * A command keyword exposed as a `command_name` node.
@@ -138,6 +168,7 @@ export default grammar({
     _content: $ => choice(
       $._newline,
       $.paragraph,
+      $.node_line,
       $.line_command,
       ...Object.keys(HEADINGS).map((name) => $[name]),
       $.block,
@@ -161,6 +192,18 @@ export default grammar({
     ),
 
     line_argument: $ => repeat1($._inline),
+
+    // `@node NAME, NEXT, PREVIOUS, UP`.
+    node_line: $ => seq(
+      field('name', alias('@node', $.command_name)),
+      optional(commaArguments(
+        ['node', 'next', 'previous', 'up'],
+        alias($._argument_line, $.argument),
+        alias($._line, $.argument),
+        ',',
+      )),
+      $._line_end,
+    ),
 
     block: $ => seq(
       field('name', alias($._block_start, $.command_name)),
@@ -245,6 +288,18 @@ export default grammar({
           choice('}', alias($._brace_close_at_block_end, $.missing_brace)),
         )),
       )),
+      ...Object.entries(ARGUMENT_COMMANDS).map(([names, commands]) => prec.right(seq(
+        field('name', command($, commands)),
+        optional(seq(
+          token.immediate('{'),
+          commaArguments(names.split(' '), $.argument, alias($._last_argument, $.argument), ','),
+          choice(
+            '}',
+            alias($._brace_close_at_paragraph_end, $.missing_brace),
+            alias($._brace_close_at_block_end, $.missing_brace),
+          ),
+        )),
+      ))),
       // `@verb{xTEXTx}`: the scanner reads the delimiter `x` and the raw text.
       seq(
         field('name', alias('@verb', $.command_name)),
@@ -280,6 +335,37 @@ export default grammar({
       seq(repeat1(choice($.block, $.list, $.raw_block, $.line_command)), repeat($._inline)),
       repeat1($._inline),
     )),
+
+    // One argument of an ARGUMENT_COMMANDS command: lines without commas,
+    // separated by single newlines.
+    // An argument that is only a line break is kept, empty, as in texi2any.
+    argument: $ => choice(
+      seq(
+        optional($._newline),
+        $._argument_line,
+        repeat(seq($._newline, $._argument_line)),
+        optional($._newline),
+      ),
+      $._newline,
+    ),
+
+    // The last argument, which may contain commas.
+    _last_argument: $ => seq(
+      optional($._newline),
+      $._line,
+      repeat(seq($._newline, $._line)),
+      optional($._newline),
+    ),
+
+    _argument_line: $ => prec.right(repeat1(choice(
+      alias($._argument_text, $.text),
+      $.inline_command,
+      $.symbol_command,
+      $.brace_group,
+    ))),
+
+    // Text in an argument other than the last, where a comma separates.
+    _argument_text: _ => /[^@{},\s]([^@{},\r\n]*[^@{},\s])?/,
 
     // For brace commands other than BRACE_COMMANDS, which may contain blank
     // lines.

@@ -1,0 +1,192 @@
+================================================================================
+Cross-reference arguments by position
+================================================================================
+
+See @xref{Top, , Title, info, Manual}.
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (inline_command
+      name: (command_name)
+      node: (argument
+        (text))
+      title: (argument
+        (text))
+      file: (argument
+        (text))
+      manual: (argument
+        (text)))
+    (text)))
+
+================================================================================
+The last argument keeps extra commas
+================================================================================
+
+@email{a@@b.org, Name, Extra}
+
+---
+
+(source_file
+  (paragraph
+    (inline_command
+      name: (command_name)
+      address: (argument
+        (text)
+        (symbol_command)
+        (text))
+      text: (argument
+        (text)))))
+
+================================================================================
+Commas inside nested braces do not split
+================================================================================
+
+@pxref{a @code{b, c}, d}
+
+---
+
+(source_file
+  (paragraph
+    (inline_command
+      name: (command_name)
+      node: (argument
+        (text)
+        (inline_command
+          name: (command_name)
+          arguments: (brace_arguments
+            (text))))
+      label: (argument
+        (text)))))
+
+================================================================================
+Single-argument commands keep commas as text
+================================================================================
+
+@code{a, b}
+
+---
+
+(source_file
+  (paragraph
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (text)))))
+
+================================================================================
+Argument spanning lines
+================================================================================
+
+@ref{Node
+Name, Label}
+
+---
+
+(source_file
+  (paragraph
+    (inline_command
+      name: (command_name)
+      node: (argument
+        (text)
+        (text))
+      label: (argument
+        (text)))))
+
+================================================================================
+Image arguments
+================================================================================
+
+@image{photo,,,A photo}
+
+---
+
+(source_file
+  (paragraph
+    (inline_command
+      name: (command_name)
+      file: (argument
+        (text))
+      alt: (argument
+        (text)))))
+
+================================================================================
+Unclosed cross-reference ends at a blank line
+================================================================================
+
+@xref{Top, Some
+
+Next.
+
+---
+
+(source_file
+  (paragraph
+    (inline_command
+      name: (command_name)
+      node: (argument
+        (text))
+      label: (argument
+        (text))
+      (missing_brace)))
+  (paragraph
+    (text)))
+
+================================================================================
+Node line
+================================================================================
+
+@node Top, Next, , (dir)
+
+---
+
+(source_file
+  (node_line
+    name: (command_name)
+    node: (argument
+      (text))
+    next: (argument
+      (text))
+    up: (argument
+      (text))))
+
+================================================================================
+Node line with only a name
+================================================================================
+
+@node Overview
+
+---
+
+(source_file
+  (node_line
+    name: (command_name)
+    node: (argument
+      (text))))
+
+================================================================================
+Empty argument at a line break
+================================================================================
+
+see @ref{Features,
+,Features of GNU @code{make}}, which
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (inline_command
+      name: (command_name)
+      node: (argument
+        (text))
+      label: (argument)
+      title: (argument
+        (text)
+        (inline_command
+          name: (command_name)
+          arguments: (brace_arguments
+            (text)))))
+    (text)))

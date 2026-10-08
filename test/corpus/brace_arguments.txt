@@ -289,3 +289,53 @@ Q.
           (paragraph
             (text))
           (block_end))))))
+
+================================================================================
+A block at the start of a line closes a built-in brace command
+================================================================================
+
+@xref{first,
+@quotation
+q
+@end quotation
+
+---
+
+(source_file
+  (paragraph
+    (inline_command
+      name: (command_name)
+      node: (argument
+        (text))
+      (missing_brace)))
+  (block
+    name: (command_name)
+    (paragraph
+      (text))
+    end: (block_end)))
+
+================================================================================
+A conditional does not close a built-in brace command
+================================================================================
+
+@code{a
+@ifset x
+b
+@end ifset
+}
+
+---
+
+(source_file
+  (paragraph
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (text)
+        (block
+          name: (command_name)
+          argument: (line_argument
+            (text))
+          (paragraph
+            (text))
+          end: (block_end))))))
