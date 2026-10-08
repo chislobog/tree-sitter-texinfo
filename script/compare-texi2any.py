@@ -28,6 +28,9 @@ texi2any does things a tree-sitter grammar cannot, so this side mirrors them:
   it is not a command.
 - texi2any runs on a lone copy of each file, so `@include` is not followed.
 
+On our side, a command name inside an ERROR node still counts as a command:
+error recovery keeps it, and that is what an editor highlights.
+
 Usage: script/compare-texi2any.py [--structure] [--hunks N] FILE...
 """
 
@@ -300,6 +303,12 @@ class OurWalker:
         if kind == "input_line":
             return
 
+        # Only reached inside an ERROR node, where tree-sitter still
+        # recognised the command (e.g. `@code{` unclosed at the end of a file).
+        if kind == "command_name":
+            self.emit(text(node), node, False)
+            return
+
         self.children(node)
 
 
@@ -342,7 +351,16 @@ def read_dump(text: str) -> DumpNode:
             stack.pop()
         stack[-1][1].children.append(node)
         stack.append((depth, node))
+    _move_end_comments(root)
     return root
+
+
+def _move_end_comments(node: DumpNode):
+    """texi2any prints a comment at the end of a line (`/comment_at_end/`)
+    before the rest of the line; moves it after, where it is in the source."""
+    node.children.sort(key=lambda child: child.label.startswith("/comment_at_end/"))
+    for child in node.children:
+        _move_end_comments(child)
 
 
 def command_name(label: str) -> str | None:
@@ -394,7 +412,11 @@ def texi2any_tokens(dump: str, structural_names: set[str]) -> list[Token]:
             for child in children[:-1] if closed else children:
                 walk(child)
             if closed:
-                tokens.append(Token("-" + dump_text(children[-1]), structural=True))
+                end_name = dump_text(children[-1]).split()
+                tokens.append(Token("-" + (end_name[0] if end_name else ""), structural=True))
+                # Comments on the `@end` line.
+                for child in children[-1].children:
+                    walk(child)
             return
         tokens.append(Token(name, structural=name in structural_names))
         for child in children:
