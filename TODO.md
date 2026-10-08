@@ -68,9 +68,9 @@ sources, which is what `texi2any` itself uses.
 
 ## Structure
 
-- [ ] `@itemx` after index entries or comments that follow an `@item`
+- [x] `@itemx` after index entries or comments that follow an `@item`
   (make, texinfo; found with `compare-texi2any.py --structure`)
-- [ ] `@item` inside a conditional block inside a list, e.g. `@ifclear X`
+- [x] `@item` inside a conditional block inside a list, e.g. `@ifclear X`
   wrapping an `@item` in a `@table` (sed, gawk)
 
 - [ ] Menu entries: `* Node::  Description`, `* Name: Node.  Description`,

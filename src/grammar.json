@@ -911,8 +911,17 @@
         {
           "type": "REPEAT",
           "content": {
-            "type": "SYMBOL",
-            "name": "_content"
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "_content"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "item"
+              }
+            ]
           }
         },
         {
@@ -1098,15 +1107,17 @@
           {
             "type": "REPEAT",
             "content": {
-              "type": "SYMBOL",
-              "name": "itemx"
-            }
-          },
-          {
-            "type": "REPEAT",
-            "content": {
-              "type": "SYMBOL",
-              "name": "_content"
+              "type": "CHOICE",
+              "members": [
+                {
+                  "type": "SYMBOL",
+                  "name": "itemx"
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "_content"
+                }
+              ]
             }
           }
         ]

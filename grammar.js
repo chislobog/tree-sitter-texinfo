@@ -124,7 +124,8 @@ export default grammar({
       field('name', alias($._block_start, $.command_name)),
       optional(field('argument', $.line_argument)),
       $._newline,
-      repeat($._content),
+      // Items, for conditionals that wrap some of a list's items.
+      repeat(choice($._content, $.item)),
       field('end', $.block_end),
     ),
 
@@ -151,8 +152,8 @@ export default grammar({
       field('name', command($, ['item', 'headitem'])),
       optional(field('argument', $.line_argument)),
       $._line_end,
-      repeat($.itemx),
-      repeat($._content),
+      // texi2any allows index entries and comments before an `@itemx`.
+      repeat(choice($.itemx, $._content)),
     )),
 
     itemx: $ => seq(

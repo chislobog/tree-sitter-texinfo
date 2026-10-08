@@ -160,3 +160,80 @@ Multitable
           (command_name))
         (text)))
     (block_end)))
+
+================================================================================
+Itemx after index entries and comments
+================================================================================
+
+@table @code
+@item foo
+@cindex foo
+@c note
+@itemx bar
+Description.
+@end table
+
+---
+
+(source_file
+  (list
+    (command_name)
+    (line_argument
+      (inline_command
+        (command_name)))
+    (item
+      (command_name)
+      (line_argument
+        (text))
+      (line_command
+        (command_name)
+        (line_argument
+          (text)))
+      (comment)
+      (itemx
+        (command_name)
+        (line_argument
+          (text)))
+      (paragraph
+        (text)))
+    (block_end)))
+
+================================================================================
+Item inside a conditional
+================================================================================
+
+@table @asis
+@item one
+First.
+@ifclear PERL
+@item two
+Second.
+@end ifclear
+@end table
+
+---
+
+(source_file
+  (list
+    (command_name)
+    (line_argument
+      (inline_command
+        (command_name)))
+    (item
+      (command_name)
+      (line_argument
+        (text))
+      (paragraph
+        (text))
+      (block
+        (command_name)
+        (line_argument
+          (text))
+        (item
+          (command_name)
+          (line_argument
+            (text))
+          (paragraph
+            (text)))
+        (block_end)))
+    (block_end)))

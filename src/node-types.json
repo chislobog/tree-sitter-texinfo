@@ -47,6 +47,10 @@
           "named": true
         },
         {
+          "type": "item",
+          "named": true
+        },
+        {
           "type": "line_command",
           "named": true
         },
