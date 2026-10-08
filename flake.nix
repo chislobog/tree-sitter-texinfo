@@ -43,6 +43,9 @@
 
             # Reference implementation and sample documents to test against
             texinfo
+
+            # script/compare-texi2any.py
+            (python3.withPackages (ps: [ ps.tree-sitter ]))
           ];
 
           shellHook = ''
