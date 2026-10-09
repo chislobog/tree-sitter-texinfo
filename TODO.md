@@ -61,6 +61,11 @@ sources, which is what `texi2any` itself uses.
   a space: `@u o`, `@v c`; the character is the command's `argument`
 - [x] `@value{name}`: an inline command whose name is highlighted as a
   variable, like `@set`'s
+- [x] `@alias` has `alias` and `target` fields; `@macro`, `@rmacro` and
+  `@linemacro` are `macro_definition` nodes, whose bodies the injection
+  query highlights as Texinfo
+- [x] Tags for macros, aliases and `@set` variables, and `@value` as a
+  reference
 - [x] `@math{...}` body for TeX injection
 - [x] Plain-text line arguments (`@include`, `@setfilename`, ...): texi2any
   parses commands in them too, so they stay a `line_argument`; file names

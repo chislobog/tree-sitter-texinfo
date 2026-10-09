@@ -11,4 +11,5 @@
   (item)
   (menu)
   (raw_block)
+  (macro_definition)
 ] @fold

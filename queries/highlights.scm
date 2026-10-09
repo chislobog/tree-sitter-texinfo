@@ -147,6 +147,12 @@
 (raw_block
   name: (command_name) @keyword)
 
+(macro_definition
+  name: (command_name) @keyword
+  argument: (line_argument
+    .
+    (text) @function))
+
 ((block_end) @keyword
   (#not-match? @keyword "^@end[ \t]+if"))
 

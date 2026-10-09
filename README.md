@@ -20,8 +20,11 @@ manuals and 99% of the test inputs.
 - Paragraphs, comments, line commands, brace commands and symbol commands.
 - Blocks, matched by name (`@example` … `@end example`), nested to any depth,
   including conditionals.
-- Raw blocks (`@verbatim`, `@ignore`, `@macro`, `@tex`, `@html`, …) and
-  `@verb{xTEXTx}`, whose bodies are plain text.
+- Raw blocks (`@verbatim`, `@ignore`, `@tex`, `@html`, …) and
+  `@verb{xTEXTx}`, whose bodies are plain text, and `macro_definition`s
+  (`@macro`, `@rmacro`, `@linemacro`), whose bodies are kept raw too and
+  highlighted as Texinfo by injection.
+- `@set` with `variable` and `value`, `@alias` with `alias` and `target`.
 - Lists and tables with `@item`, `@itemx`, `@headitem`.
 - Menus: `menu_entry` with `label`, `node` and `description` fields.
 - Definitions: `@deffn` and friends, with `category`, `class`, `type`,
@@ -69,11 +72,14 @@ is not done yet.
   lists, commands and inline markup, using the common `@markup.*`,
   `@keyword` and `@function` capture names.
 - `queries/injections.scm`: LaTeX in `@tex`, `@latex`, `@math` and
-  `@displaymath`, HTML in `@html`, XML in `@xml` and `@docbook`, and the
-  language its format names in `@inlineraw{html, ...}`.
-- `queries/folds.scm`: sections, blocks, lists, items and menus.
-- `queries/tags.scm`: nodes, anchors and documented functions and variables
-  as definitions; cross-references and menu entries as references.
+  `@displaymath`, HTML in `@html`, XML in `@xml` and `@docbook`, the
+  language its format names in `@inlineraw{html, ...}`, and Texinfo in the
+  bodies of `@macro` definitions.
+- `queries/folds.scm`: sections, blocks, lists, items, menus and macro
+  definitions.
+- `queries/tags.scm`: nodes, anchors, float labels, documented functions and
+  variables, macros, aliases and `@set` variables as definitions;
+  cross-references, menu entries and `@value` as references.
 
 ## Using it in an editor
 

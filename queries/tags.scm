@@ -28,3 +28,20 @@
 ((definition_line
   entity: (_) @name) @definition.function
   (#not-match? @definition.function "^@def(type)?(vr|var|opt|cv|ivar)x?[ \t]"))
+
+; Macros, aliases and variables, and uses of a variable
+(macro_definition
+  argument: (line_argument
+    .
+    (text) @name)) @definition.macro
+
+(line_command
+  alias: (text) @name) @definition.macro
+
+((line_command
+  variable: (text) @name) @definition.constant
+  (#match? @definition.constant "^@set[ \t]"))
+
+((inline_command
+  arguments: (brace_arguments) @name) @reference.constant
+  (#match? @reference.constant "^@value[{]"))

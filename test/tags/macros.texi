@@ -1,0 +1,21 @@
+@c Macro names can't be asserted here: the line after a definition is in its
+@c raw body.
+
+@macro safety {notes}
+Safety: \notes\
+@end macro
+
+@linemacro defbuiltin {name, args}
+@defline {Builtin} \name\ \args\
+@end linemacro
+
+@alias expr = math
+@c     ^ definition.macro
+
+@set VERSION 7.3
+@c   ^ definition.constant
+
+@clear OTHER
+
+Version @value{VERSION}.
+@c              ^ reference.constant

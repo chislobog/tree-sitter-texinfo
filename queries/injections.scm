@@ -18,6 +18,11 @@
   (#any-of? @_name "@xml" "@docbook")
   (#set! injection.language "xml"))
 
+; Macro bodies are Texinfo; `\param\` placeholders stay text.
+(macro_definition
+  body: (raw_text) @injection.content
+  (#set! injection.language "texinfo"))
+
 ; `@inlineraw{FORMAT, TEXT}`: the format names the language, `tex` aside.
 ((inline_command
   name: (command_name) @_name
