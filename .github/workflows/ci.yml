@@ -33,9 +33,10 @@ jobs:
       - name: Tests
         run: nix develop --command tree-sitter test
 
-      # Node and field names must exist in the grammar; also checks formatting.
-      - name: Check the queries
-        run: nix develop --command bash -c "tree-sitter build && ts_query_ls check -f queries/"
+      # ESLint, clang-format, ruff, shellcheck, nixfmt, and ts_query_ls, which
+      # checks that the queries' node and field names exist in the grammar.
+      - name: Lint
+        run: nix develop --command script/lint.sh
 
       - name: Incremental parsing
         run: nix develop --command tree-sitter fuzz --iterations 100

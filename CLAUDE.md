@@ -58,16 +58,18 @@ also run:
 
 ```sh
 cc -std=c11 -Wall -Wextra -Wpedantic -Wshadow -Werror -Isrc -c src/scanner.c -o /tmp/scanner.o
-tree-sitter build && ts_query_ls check -f queries/   # queries match the grammar
+script/lint.sh                           # linters, formatters, query check
 tree-sitter fuzz --iterations 100        # incremental parsing after edits
 tree-sitter parse --quiet --stat 'examples/**/*.texi'
 find -L examples -name '*.texi' | sort | xargs python3 script/compare-texi2any.py
 ```
 
 Git hooks in `.githooks/` (enabled by the dev shell through
-`core.hooksPath`): `commit-msg` checks the Conventional Commits format, and
-`pre-push` checks that `src/` matches `grammar.js` and runs `tree-sitter
-test`.
+`core.hooksPath`): `commit-msg` checks the Conventional Commits format,
+`pre-commit` runs `script/lint.sh` (ESLint, clang-format, ruff, shellcheck,
+nixfmt, ts_query_ls; a few seconds), and `pre-push` checks that `src/`
+matches `grammar.js` and runs `tree-sitter test`. `script/lint.sh --fix`
+applies the formatters and automatic fixes.
 
 CI also fuzzes the scanner with libFuzzer and sanitizers
 (`tree-sitter/fuzz-action`), seeded by `script/corpus-inputs.py`; this hangs
