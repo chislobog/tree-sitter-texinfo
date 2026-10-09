@@ -1,5 +1,6 @@
 @example
 code here
+@c <- markup.raw.block
 @end example
 @c <- keyword
 @ifset FLAG
@@ -30,4 +31,5 @@ raw @code{x}
 @c                                     ^ variable.parameter
 @end deftypefn
 @defvar fill-column
+@c      ^ variable
 @end defvar

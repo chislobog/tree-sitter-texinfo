@@ -113,12 +113,10 @@ of a line.
 ## Queries
 
 - [x] `queries/highlights.scm`, with tests in `test/highlight/`
-- [ ] Highlights: paragraphs in `@example` get no `@markup.raw.block`, and
-  markup inside a heading title is hidden by the heading capture; `@defvar` entities get `@function` not `@variable`;
-  `@emph` arguments get `@function` not `@markup.italic` (overlapping
-  patterns: the one that finishes matching first wins)
+- [x] Highlight gaps from overlapping patterns: `@example` contents, markup
+  in heading titles, `@defvar` entities, `@emph`/`@var` arguments
 - [x] `queries/injections.scm`: TeX/LaTeX, HTML, XML, DocBook raw blocks
-- [ ] Inject LaTeX into `@math` and `@displaymath`
+- [x] Inject LaTeX into `@math` and `@displaymath`
 - [x] `queries/folds.scm`
 - [ ] `queries/tags.scm`: nodes and anchors as definitions, cross-references as
   references

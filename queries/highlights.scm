@@ -1,5 +1,8 @@
 ; When patterns overlap, the one that finishes matching first takes
 ; precedence, so avoid overlapping a specific pattern with a generic one.
+; Capture nodes used in predicates with a real highlight, not a private
+; `@_name`: the highlighter drops the rest of a match after a capture that
+; isn't a highlight.
 
 (comment) @comment
 
@@ -61,13 +64,16 @@
 
 ; Definitions
 
+; Two exclusive patterns, as each node can only be highlighted by one match.
 ((definition_line
-  name: (command_name) @_name
-  entity: (_) @variable)
-  (#match? @_name "^@def(type)?(vr|var|opt|cv|ivar)x?$"))
+  name: (command_name) @keyword
+  entity: (_)? @variable)
+  (#match? @keyword "^@def(type)?(vr|var|opt|cv|ivar)x?$"))
 
-(definition_line
-  entity: (_) @function)
+((definition_line
+  name: (command_name) @keyword
+  entity: (_)? @function)
+  (#not-match? @keyword "^@def(type)?(vr|var|opt|cv|ivar)x?$"))
 
 (definition_line
   [
@@ -92,23 +98,26 @@
   (#match? @keyword.conditional "^@end[ \t]+if"))
 
 ((block
-  name: (command_name) @_name
+  name: (command_name) @keyword
   (paragraph) @markup.raw.block)
-  (#any-of? @_name
+  (#any-of? @keyword
     "@example" "@smallexample" "@lisp" "@smalllisp" "@display" "@smalldisplay"
     "@format" "@smallformat"))
 
 ((block
-  name: (command_name) @_name
+  name: (command_name) @keyword
   (paragraph) @markup.quote)
-  (#any-of? @_name "@quotation" "@smallquotation"))
+  (#any-of? @keyword "@quotation" "@smallquotation"))
 
 (raw_block
   body: (raw_text) @markup.raw.block)
 
+; Not the blocks matched above: the highlighter drops a match whose node
+; another match has already highlighted, with all its other captures.
 ((block
   name: (command_name) @keyword)
-  (#not-match? @keyword "^@if"))
+  (#not-match? @keyword
+    "^@(if.*|example|smallexample|lisp|smalllisp|display|smalldisplay|format|smallformat|quotation|smallquotation)$"))
 
 (list
   name: (command_name) @keyword)
@@ -119,8 +128,6 @@
 (raw_block
   name: (command_name) @keyword)
 
-(definition_line
-  name: (command_name) @keyword)
 
 ((block_end) @keyword
   (#not-match? @keyword "^@end[ \t]+if"))
@@ -147,9 +154,9 @@
 ; Inline markup
 
 ((inline_command
-  name: (command_name) @_name
+  name: (command_name) @function
   arguments: (brace_arguments) @markup.raw)
-  (#any-of? @_name
+  (#any-of? @function
     "@code" "@samp" "@kbd" "@key" "@file" "@command" "@option" "@env" "@t"
     "@indicateurl"))
 
@@ -157,19 +164,19 @@
   body: (raw_text) @markup.raw)
 
 ((inline_command
-  name: (command_name) @_name
+  name: (command_name) @function
   arguments: (brace_arguments) @markup.italic)
-  (#any-of? @_name "@emph" "@i" "@dfn" "@cite" "@slanted"))
+  (#any-of? @function "@emph" "@i" "@dfn" "@cite" "@slanted"))
 
 ((inline_command
-  name: (command_name) @_name
+  name: (command_name) @function
   arguments: (brace_arguments) @markup.strong)
-  (#any-of? @_name "@strong" "@b"))
+  (#any-of? @function "@strong" "@b"))
 
 ((inline_command
-  name: (command_name) @_name
+  name: (command_name) @function
   arguments: (brace_arguments) @variable.parameter)
-  (#eq? @_name "@var"))
+  (#eq? @function "@var"))
 
 ; Everything else
 

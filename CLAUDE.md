@@ -40,6 +40,8 @@ well with incomplete input, which is normal while editing.
   committed; always commit it together with the `grammar.js` change.
 - `test/corpus/*.txt`: corpus tests.
 - `script/compare-texi2any.py`: compares our trees with texi2any's.
+- `queries/`: highlights, injections and folds; highlight tests are in
+  `test/highlight/` (run by `tree-sitter test`).
 
 ## Checks
 
@@ -86,6 +88,13 @@ because of the script's simple macro expansion and different error recovery. Use
   when text before it on the same line changes. Keep line-start rules in the
   grammar (every line-level rule ends in `_line_end`).
 - Update `TODO.md` in the same commit as the work it tracks.
+- In `highlights.scm`, each node is highlighted by only one match: the one
+  that finishes matching first, not the first in the file, and the
+  highlighter then drops every other match that captures that node,
+  together with all its other captures. It also drops the rest of a match
+  after a private capture like `@_name`. So keep patterns from overlapping
+  (use predicates to make them exclusive) and capture predicate nodes with
+  a real highlight.
 - Watch `tree-sitter generate` time (normally about 15 seconds). Nested
   optional sequences, as in `commaArguments`, multiply parser states quickly;
   a change there once made generation run for over 13 minutes.

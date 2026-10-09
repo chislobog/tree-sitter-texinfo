@@ -19,6 +19,22 @@
   (#any-of? @_name "@xml" "@docbook")
   (#set! injection.language "xml"))
 
+; Math. The contents are made of text and command nodes, so include them.
+
+((inline_command
+  name: (command_name) @_name
+  arguments: (brace_arguments) @injection.content)
+  (#eq? @_name "@math")
+  (#set! injection.language "latex")
+  (#set! injection.include-children))
+
+((block
+  name: (command_name) @_name
+  (paragraph) @injection.content)
+  (#eq? @_name "@displaymath")
+  (#set! injection.language "latex")
+  (#set! injection.include-children))
+
 ; Comments
 
 ((comment) @injection.content

@@ -20,3 +20,8 @@ See @xref{Top, , Title} and @emph{this} @@.
 @c <- keyword
 @bye
 @c <- keyword
+@chapter About @code{grep}
+@c                    ^ markup.raw
+Text @emph{important} and @var{file}.
+@c         ^ markup.italic
+@c                             ^ variable.parameter
