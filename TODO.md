@@ -29,7 +29,8 @@ sources, which is what `texi2any` itself uses.
 - [x] Parse commands inside `@displaymath`, as texi2any does (it is a normal
   block now, not raw)
 - [x] `@verb{xTEXTx}` with an arbitrary delimiter character
-- [ ] Report a stray `@end` with no open block as an error (currently text)
+- [x] A stray `@end` that ends no open block is an `unmatched_end` node, to
+  the end of its line, which editors should report
 
 ## Commands and arguments
 

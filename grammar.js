@@ -172,6 +172,7 @@ export default grammar({
     $._subentry_name,
     $._accent_argument,
     $._float_start,
+    $.unmatched_end,
     $._error_sentinel,
   ],
 
@@ -232,6 +233,8 @@ export default grammar({
 
     _content: $ => choice(
       $._newline,
+      // An `@end` that ends no open block, which texi2any reports and ignores.
+      seq($.unmatched_end, $._line_end),
       $.paragraph,
       $.node_line,
       alias($._definition_continuation, $.definition_line),

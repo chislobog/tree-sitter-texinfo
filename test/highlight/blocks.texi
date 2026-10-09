@@ -50,3 +50,6 @@ Caf@'e and @u o.
 @float Figure, fig:one
 @c             ^ markup.link.label
 @end float
+
+@end example
+@c <- keyword

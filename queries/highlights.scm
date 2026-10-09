@@ -150,6 +150,8 @@
 ((block_end) @keyword
   (#not-match? @keyword "^@end[ \t]+if"))
 
+(unmatched_end) @keyword
+
 ; Lists
 (item
   name: (command_name) @markup.list)

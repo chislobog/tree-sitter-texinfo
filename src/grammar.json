@@ -1765,6 +1765,19 @@
           "name": "_newline"
         },
         {
+          "type": "SEQ",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "unmatched_end"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "_line_end"
+            }
+          ]
+        },
+        {
           "type": "SYMBOL",
           "name": "paragraph"
         },
@@ -7510,6 +7523,10 @@
     {
       "type": "SYMBOL",
       "name": "_float_start"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "unmatched_end"
     },
     {
       "type": "SYMBOL",

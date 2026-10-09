@@ -77,7 +77,7 @@ jobs:
           nix develop --command bash -c "
             set -o pipefail
             find -L texinfo-tests -name '*.texi' | sort |
-              xargs python3 script/compare-texi2any.py --hunks 0 --fail-under 98.6 |
+              xargs python3 script/compare-texi2any.py --hunks 0 --fail-under 98.8 |
               tail -1"
 
   # libFuzzer with address and undefined-behaviour sanitizers, looking for

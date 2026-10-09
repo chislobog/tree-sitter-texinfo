@@ -123,11 +123,34 @@ x
   (block
     (command_name)
     (paragraph
-      (text)
-      (inline_command
-        (command_name))
       (text))
+    (unmatched_end)
     (missing_end)))
+
+================================================================================
+Unmatched end
+================================================================================
+
+Para.
+@end example
+More.
+
+@quotation
+@end
+@end quotation
+
+---
+
+(source_file
+  (paragraph
+    (text))
+  (unmatched_end)
+  (paragraph
+    (text))
+  (block
+    name: (command_name)
+    (unmatched_end)
+    end: (block_end)))
 
 ================================================================================
 Block command in the middle of a line is inline
@@ -140,20 +163,6 @@ Text @example here.
 (source_file
   (paragraph
     (text)
-    (inline_command
-      (command_name))
-    (text)))
-
-================================================================================
-End without an open block is text
-================================================================================
-
-@end example
-
----
-
-(source_file
-  (paragraph
     (inline_command
       (command_name))
     (text)))

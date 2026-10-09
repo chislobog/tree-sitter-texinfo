@@ -156,6 +156,10 @@
         {
           "type": "top",
           "named": true
+        },
+        {
+          "type": "unmatched_end",
+          "named": true
         }
       ]
     }
@@ -344,6 +348,10 @@
         {
           "type": "subsubsection",
           "named": true
+        },
+        {
+          "type": "unmatched_end",
+          "named": true
         }
       ]
     }
@@ -471,6 +479,10 @@
         },
         {
           "type": "raw_block",
+          "named": true
+        },
+        {
+          "type": "unmatched_end",
           "named": true
         }
       ]
@@ -913,6 +925,10 @@
         {
           "type": "tab",
           "named": true
+        },
+        {
+          "type": "unmatched_end",
+          "named": true
         }
       ]
     }
@@ -1112,6 +1128,10 @@
         {
           "type": "raw_block",
           "named": true
+        },
+        {
+          "type": "unmatched_end",
+          "named": true
         }
       ]
     }
@@ -1201,6 +1221,10 @@
         },
         {
           "type": "raw_block",
+          "named": true
+        },
+        {
+          "type": "unmatched_end",
           "named": true
         }
       ]
@@ -1490,6 +1514,10 @@
         {
           "type": "subsubsection",
           "named": true
+        },
+        {
+          "type": "unmatched_end",
+          "named": true
         }
       ]
     }
@@ -1651,6 +1679,10 @@
         {
           "type": "subsubsection",
           "named": true
+        },
+        {
+          "type": "unmatched_end",
+          "named": true
         }
       ]
     }
@@ -1760,6 +1792,10 @@
         },
         {
           "type": "top",
+          "named": true
+        },
+        {
+          "type": "unmatched_end",
           "named": true
         }
       ]
@@ -1873,6 +1909,10 @@
         {
           "type": "subsubsection",
           "named": true
+        },
+        {
+          "type": "unmatched_end",
+          "named": true
         }
       ]
     }
@@ -1971,6 +2011,10 @@
         {
           "type": "raw_block",
           "named": true
+        },
+        {
+          "type": "unmatched_end",
+          "named": true
         }
       ]
     }
@@ -2058,6 +2102,10 @@
         },
         {
           "type": "raw_block",
+          "named": true
+        },
+        {
+          "type": "unmatched_end",
           "named": true
         }
       ]
@@ -2147,6 +2195,10 @@
         {
           "type": "subsubsection",
           "named": true
+        },
+        {
+          "type": "unmatched_end",
+          "named": true
         }
       ]
     }
@@ -2224,6 +2276,10 @@
   },
   {
     "type": "text",
+    "named": true
+  },
+  {
+    "type": "unmatched_end",
     "named": true
   },
   {

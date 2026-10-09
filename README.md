@@ -7,7 +7,7 @@ and structural editing.
 The reference for correct behaviour is `texi2any` from Texinfo 7.3. The
 grammar is checked against it on 14 real manuals (texinfo, make, sed, gawk)
 and on the 1,755 inputs of `texi2any`'s own parser tests: the commands found
-agree on over 99.9% of the manuals and 98.6% of the test inputs.
+agree on over 99.9% of the manuals and 98.8% of the test inputs.
 
 ## What is parsed
 
@@ -49,8 +49,9 @@ Errors are kept local, so a half-typed command doesn't break the rest of the
 document. An unclosed brace command ends where `texi2any` ends it (a blank
 line, the `@end` of the enclosing block, or the end of the file), marked by a
 zero-width `missing_brace` node; a block still open at the end of the file
-ends with a zero-width `missing_end` node. Editors that report tree-sitter
-errors should also report these two nodes.
+ends with a zero-width `missing_end` node. An `@end` that ends no open block
+is an `unmatched_end` node, which `texi2any` reports and ignores. Editors that
+report tree-sitter errors should also report these three nodes.
 
 A section inside a conditional ends at the conditional's `@end`, so when only
 the heading is conditional (as for the Top node, often inside `@ifnottex`), the

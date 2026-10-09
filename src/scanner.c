@@ -54,6 +54,8 @@ enum TokenType {
   // The one-character argument of an accent command without braces.
   ACCENT_ARGUMENT,
   FLOAT_START,
+  // `@end` that doesn't end the innermost open block, to the end of its line.
+  UNMATCHED_END,
   ERROR_SENTINEL,
 };
 
@@ -614,18 +616,27 @@ static bool scan_block_start(Scanner *scanner, TSLexer *lexer,
 }
 
 /**
- * Scans `@end NAME` for the innermost open block. The `@` has already been
- * consumed and `name` holds the word after it.
+ * Scans `@end NAME`: the end of the innermost open block, or, at the start of
+ * a line where it ends no block, an unmatched end up to the end of the line,
+ * which texi2any reports and ignores. The `@end` has already been consumed.
  */
-static bool scan_block_end(Scanner *scanner, TSLexer *lexer, const char *name) {
-  if (strcmp(name, "end") != 0 || scanner->depth == 0) return false;
-
+static bool scan_end(Scanner *scanner, TSLexer *lexer,
+                     const bool *valid_symbols) {
   char end_name[MAX_NAME + 1];
-  if (!read_end_name(lexer, end_name)) return false;
-  if (strcmp(end_name, innermost_block(scanner)) != 0) {
-    return false;
+  bool has_name = read_end_name(lexer, end_name);
+  bool matches = has_name && scanner->depth > 0 &&
+                 strcmp(end_name, innermost_block(scanner)) == 0;
+  if (matches) {
+    return valid_symbols[BLOCK_END] && pop_block(scanner, lexer);
   }
-  return pop_block(scanner, lexer);
+  if (!valid_symbols[UNMATCHED_END]) return false;
+  while (!lexer->eof(lexer) && lexer->lookahead != '\n' &&
+         lexer->lookahead != '\r') {
+    advance(lexer);
+  }
+  lexer->mark_end(lexer);
+  lexer->result_symbol = UNMATCHED_END;
+  return true;
 }
 
 /**
@@ -892,9 +903,7 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
   char name[MAX_NAME + 1];
   if (!read_name(lexer, name)) return false;
 
-  if (valid_symbols[BLOCK_END] && scan_block_end(scanner, lexer, name)) {
-    return true;
-  }
+  if (strcmp(name, "end") == 0) return scan_end(scanner, lexer, valid_symbols);
 
   if (strcmp(name, "node") == 0) {
     return scan_node_before_section(lexer, valid_symbols);
