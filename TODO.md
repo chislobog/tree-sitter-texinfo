@@ -137,6 +137,42 @@ of a line.
 - [x] TeX lines before `\input texinfo` (e.g. gawk's Italian manual): text,
   as in texi2any, which only recognises `\input` on the first line
 
+## Differences from texi2any
+
+From comparing with texi2any on its own test inputs (137 of 1,755 differ;
+the manuals match fully).
+
+Gaps, where we give a parse error and texi2any recovers:
+
+- [ ] A block command on the last line without a newline (`@iftex` at the end
+  of the file) is an `ERROR`; it should be a block ending in `missing_end`
+- [ ] An unclosed brace in a `@multitable` prototype (`@multitable { a`)
+  should close at the end of the line
+- [ ] Badly braced definition lines (`@deffn {cat name`) and a definition line
+  ending in `@` at the end of the file
+- [ ] `@c` right after a `@ ` symbol command on some line commands
+  (`08misc_commands/comment_space_command_on_line`)
+- [ ] Files not in UTF-8 (`@documentencoding ISO-8859-1`, Shift-JIS): the
+  editor has to convert them, as tree-sitter reads UTF-8
+
+Deliberate, so the tree shows the source as it is written and edited:
+
+- Macros, `@value`, `@alias`, `@linemacro` and conditionals aren't expanded or
+  evaluated. Most of the remaining differences (the `50value`, `58alias`,
+  `60macro` and `65linemacro` suites) come from the comparison script only
+  approximating texi2any's expansion
+- `@click` stays `@click`; texi2any outputs the command `@clickstyle` chose
+- Block commands and `@end` only count at the start of a line; texi2any also
+  accepts them in the middle of one, with a warning (`@group x @end group`,
+  `@table` on an `@item` line, `@deffn` in a menu description)
+- Content texi2any reports and drops is kept as written: `@tab` cells beyond
+  the multitable's columns, `@tab` before the first `@item`, `@headitem` or
+  `@itemx` in `@itemize`, `@item` outside a list, a recursive
+  `@insertcopying`. Only an `@end` that ends no block is marked
+  (`unmatched_end`)
+- Commands inside a malformed `@end` line (`@end @code{quotation}`) are part
+  of the `unmatched_end` node, not parsed
+
 ## Queries
 
 - [x] `queries/highlights.scm`, with tests in `test/highlight/`
