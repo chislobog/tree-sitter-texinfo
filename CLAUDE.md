@@ -47,7 +47,10 @@ well with incomplete input, which is normal while editing.
   test`). `ts_query_ls format queries/` formats them; `ts_query_ls check`
   validates them against the grammar (built with `tree-sitter build`). Tags
   queries only allow tag captures, so their predicates test the
-  text of the whole captured command.
+  text of the whole captured command. An assertion in a highlight or tags test is only
+  checked where `@c` is a comment: not after `@bye` or inside a raw block,
+  where it is silently skipped. Check the assertion count `tree-sitter test`
+  reports.
 
 ## Checks
 

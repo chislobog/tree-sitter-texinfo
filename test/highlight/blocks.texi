@@ -9,7 +9,6 @@ code here
 @c <- keyword.conditional
 @verbatim
 raw @code{x}
-@c <- markup.raw.block
 @end verbatim
 @itemize @bullet
 @c <- keyword
@@ -38,3 +37,8 @@ raw @code{x}
 @item one @tab two
 @c        ^ markup.list
 @end multitable
+
+Text @code{grep}, @emph{this} and @var{file}.
+@c         ^ markup.raw
+@c                      ^ markup.italic
+@c                                     ^ variable.parameter

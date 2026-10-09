@@ -197,9 +197,13 @@
   arguments: (brace_arguments) @variable.parameter)
   (#eq? @function "@var"))
 
-; Everything else
-(inline_command
+; Everything else. Excludes the commands above: this pattern finishes
+; matching first, so it would claim their names and drop their matches.
+((inline_command
   name: (command_name) @function)
+  (#not-any-of? @function
+    "@code" "@samp" "@kbd" "@key" "@file" "@command" "@option" "@env" "@t" "@indicateurl" "@emph"
+    "@i" "@dfn" "@cite" "@slanted" "@strong" "@b" "@var"))
 
 ; Commands that error recovery left without their usual parent. A generic
 ; (command_name) pattern would win over the specific ones above, since a

@@ -18,8 +18,6 @@ See @xref{Top, , Title} and @emph{this} @@.
 @c                                      ^ string.escape
 @cindex entry
 @c <- keyword
-@bye
-@c <- keyword
 @chapter About @code{grep}
 @c                    ^ markup.raw
 Text @emph{important} and @var{file}.
@@ -32,3 +30,4 @@ Text @emph{important} and @var{file}.
 @c <- keyword
 @c   ^ variable
 @c           ^ string
+
