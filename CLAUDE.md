@@ -44,7 +44,9 @@ well with incomplete input, which is normal while editing.
 - `script/compare-texi2any.py`: compares our trees with texi2any's.
 - `queries/`: highlights, injections, folds and tags; highlight and tags
   tests are in `test/highlight/` and `test/tags/` (run by `tree-sitter
-  test`). Tags queries only allow tag captures, so their predicates test the
+  test`). `ts_query_ls format queries/` formats them; `ts_query_ls check`
+  validates them against the grammar (built with `tree-sitter build`). Tags
+  queries only allow tag captures, so their predicates test the
   text of the whole captured command.
 
 ## Checks
@@ -56,6 +58,7 @@ also run:
 
 ```sh
 cc -std=c11 -Wall -Wextra -Wpedantic -Wshadow -Werror -Isrc -c src/scanner.c -o /tmp/scanner.o
+tree-sitter build && ts_query_ls check -f queries/   # queries match the grammar
 tree-sitter fuzz --iterations 100        # incremental parsing after edits
 tree-sitter parse --quiet --stat 'examples/**/*.texi'
 find -L examples -name '*.texi' | sort | xargs python3 script/compare-texi2any.py

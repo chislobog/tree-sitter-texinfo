@@ -1,6 +1,5 @@
 ; Raw blocks for other languages. Texinfo commands inside them are not
 ; parsed (see TODO.md).
-
 ((raw_block
   name: (command_name) @_name
   body: (raw_text) @injection.content)
@@ -20,7 +19,6 @@
   (#set! injection.language "xml"))
 
 ; Math. The contents are made of text and command nodes, so include them.
-
 ((inline_command
   name: (command_name) @_name
   arguments: (brace_arguments) @injection.content)
@@ -36,6 +34,5 @@
   (#set! injection.include-children))
 
 ; Comments
-
 ((comment) @injection.content
   (#set! injection.language "comment"))

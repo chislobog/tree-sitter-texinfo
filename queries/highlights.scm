@@ -3,13 +3,11 @@
 ; Capture nodes used in predicates with a real highlight, not a private
 ; `@_name`: the highlighter drops the rest of a match after a capture that
 ; isn't a highlight.
-
 (comment) @comment
 
 (input_line) @keyword.directive
 
 ; Headings
-
 (part_heading
   name: (command_name) @keyword
   title: (line_argument) @markup.heading.1)
@@ -55,7 +53,6 @@
   (#eq? @keyword "@subsubheading"))
 
 ; Nodes, cross-references and menus
-
 (node_line
   name: (command_name) @keyword
   node: (argument) @markup.link.label)
@@ -83,7 +80,6 @@
   label: (menu_label) @markup.link)
 
 ; Definitions
-
 ; Two exclusive patterns, as each node can only be highlighted by one match.
 ((definition_line
   name: (command_name) @keyword
@@ -109,7 +105,6 @@
 (line_continuation) @punctuation.special
 
 ; Blocks
-
 ((block
   name: (command_name) @keyword.conditional)
   (#match? @keyword.conditional "^@if"))
@@ -121,8 +116,8 @@
   name: (command_name) @keyword
   (paragraph) @markup.raw.block)
   (#any-of? @keyword
-    "@example" "@smallexample" "@lisp" "@smalllisp" "@display" "@smalldisplay"
-    "@format" "@smallformat"))
+    "@example" "@smallexample" "@lisp" "@smalllisp" "@display" "@smalldisplay" "@format"
+    "@smallformat"))
 
 ((block
   name: (command_name) @keyword
@@ -148,12 +143,10 @@
 (raw_block
   name: (command_name) @keyword)
 
-
 ((block_end) @keyword
   (#not-match? @keyword "^@end[ \t]+if"))
 
 ; Lists
-
 (item
   name: (command_name) @markup.list)
 
@@ -161,7 +154,6 @@
   name: (command_name) @markup.list)
 
 ; Line commands
-
 (line_command
   name: (command_name) @keyword)
 
@@ -172,13 +164,11 @@
   (ignored) @comment)
 
 ; Inline markup
-
 ((inline_command
   name: (command_name) @function
   arguments: (brace_arguments) @markup.raw)
   (#any-of? @function
-    "@code" "@samp" "@kbd" "@key" "@file" "@command" "@option" "@env" "@t"
-    "@indicateurl"))
+    "@code" "@samp" "@kbd" "@key" "@file" "@command" "@option" "@env" "@t" "@indicateurl"))
 
 (inline_command
   body: (raw_text) @markup.raw)
@@ -199,7 +189,6 @@
   (#eq? @function "@var"))
 
 ; Everything else
-
 (inline_command
   name: (command_name) @function)
 

@@ -52,6 +52,9 @@
             # clangd language server for editing src/scanner.c
             clang-tools
 
+            # Checks and formats the queries against the grammar
+            ts_query_ls
+
             # Reference implementation and sample documents to test against
             texinfo
 
