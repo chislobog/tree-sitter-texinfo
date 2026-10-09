@@ -449,19 +449,39 @@ def dump_text(node: DumpNode) -> str:
     return ""
 
 
-def run_texi2any(path: Path) -> str:
-    """Returns texi2any's tree for `path`, as a debug dump."""
+def run_texi2any(path: Path) -> tuple[str, set[tuple[int, str]]]:
+    """Returns texi2any's tree for `path`, as a debug dump, and the commands
+    it doesn't know, as (line, name) pairs."""
     with tempfile.TemporaryDirectory() as directory:
         shutil.copyfile(path, Path(directory) / path.name)
         result = subprocess.run(
-            ["texi2any", "--force", "-c", "TEXINFO_OUTPUT_FORMAT=debugtree", "-o", "-", path.name],
+            [
+                "texi2any",
+                "--force",
+                # The default limit of 100 errors stops texi2any before it
+                # prints anything, as in a chapter file whose references go to
+                # other chapters.
+                "--error-limit=1000000",
+                "-c",
+                "TEXINFO_OUTPUT_FORMAT=debugtree",
+                "-o",
+                "-",
+                path.name,
+            ],
             cwd=directory,
             capture_output=True,
             # texi2any exits with an error on invalid input, but still
             # prints its tree, which is what is compared.
             check=False,
         )
-    return result.stdout.decode("utf-8", "replace")
+    stderr = result.stderr.decode("utf-8", "replace")
+    unknown = {(int(line), name) for line, name in UNKNOWN_COMMAND.findall(stderr)}
+    return result.stdout.decode("utf-8", "replace"), unknown
+
+
+# texi2any's warning for a command it doesn't know, such as a TeX primitive or
+# an index command defined in another file of the manual.
+UNKNOWN_COMMAND = re.compile(r":(\d+): unknown command `([^']+)'")
 
 
 def texi2any_tokens(dump: str, structural_names: set[str]) -> list[Token]:
@@ -545,8 +565,12 @@ def main() -> int:
         dumps = [pool.submit(run_texi2any, path) for path in options.files]
         for path, dump in zip(options.files, dumps, strict=True):
             ours, errors = our_tokens(parser, path)
+            output, unknown = dump.result()
+            # texi2any drops the commands it doesn't know, so they can't be
+            # compared.
+            ours = [t for t in ours if (t.line, t.name[1:]) not in unknown]
             structural_names = {t.name for t in ours if t.structural}
-            theirs = texi2any_tokens(dump.result(), structural_names)
+            theirs = texi2any_tokens(output, structural_names)
             if options.structure:
                 ours = [t for t in ours if t.structural]
                 theirs = [t for t in theirs if t.structural]
