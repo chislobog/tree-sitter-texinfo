@@ -486,378 +486,399 @@
           "type": "FIELD",
           "name": "name",
           "content": {
-            "type": "ALIAS",
-            "content": {
-              "type": "CHOICE",
-              "members": [
-                {
-                  "type": "STRING",
-                  "value": "@printindex"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@include"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@insertcopying"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@contents"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@shortcontents"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@summarycontents"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@listoffloats"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@nodedescription"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@cindex"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@findex"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@kindex"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@pindex"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@tindex"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@vindex"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@defindex"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@defcodeindex"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@synindex"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@syncodeindex"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@setfilename"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@settitle"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@title"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@subtitle"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@author"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@shorttitlepage"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@dircategory"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@documentencoding"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@documentlanguage"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@setchapternewpage"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@headings"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@evenheading"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@oddheading"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@everyheading"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@evenfooting"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@oddfooting"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@everyfooting"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@set"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@clear"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@alias"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@definfoenclose"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@unmacro"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@page"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@need"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@sp"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@vskip"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@center"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@exdent"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@noindent"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@indent"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@finalout"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@smallbook"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@afourpaper"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@afivepaper"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@afourlatex"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@afourwide"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@pagesizes"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@paragraphindent"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@firstparagraphindent"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@exampleindent"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@footnotestyle"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@frenchspacing"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@allowcodebreaks"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@kbdinputstyle"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@codequoteundirected"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@codequotebacktick"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@deftypefnnewline"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@urefbreakstyle"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@xrefautomaticsectiontitle"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@setcontentsaftertitlepage"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@setshortcontentsaftertitlepage"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@novalidate"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@raisesections"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@lowersections"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@cpindex"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@fnindex"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@kyindex"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@pgindex"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@tpindex"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@vrindex"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@bsixpaper"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@clickstyle"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@fonttextsize"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@microtype"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@maketitle"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@verbatiminclude"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@xrefname"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@evenfootingmarks"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@evenheadingmarks"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@everyfootingmarks"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@everyheadingmarks"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@oddfootingmarks"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@oddheadingmarks"
-                }
-              ]
-            },
-            "named": true,
-            "value": "command_name"
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "ALIAS",
+                "content": {
+                  "type": "CHOICE",
+                  "members": [
+                    {
+                      "type": "STRING",
+                      "value": "@printindex"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@include"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@insertcopying"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@contents"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@shortcontents"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@summarycontents"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@listoffloats"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@nodedescription"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@cindex"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@findex"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@kindex"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@pindex"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@tindex"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@vindex"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@defindex"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@defcodeindex"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@synindex"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@syncodeindex"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@setfilename"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@settitle"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@title"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@subtitle"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@author"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@shorttitlepage"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@dircategory"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@documentencoding"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@documentlanguage"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@setchapternewpage"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@headings"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@evenheading"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@oddheading"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@everyheading"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@evenfooting"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@oddfooting"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@everyfooting"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@set"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@clear"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@alias"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@definfoenclose"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@unmacro"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@page"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@need"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@sp"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@vskip"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@center"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@exdent"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@noindent"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@indent"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@finalout"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@smallbook"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@afourpaper"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@afivepaper"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@afourlatex"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@afourwide"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@pagesizes"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@paragraphindent"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@firstparagraphindent"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@exampleindent"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@footnotestyle"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@frenchspacing"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@allowcodebreaks"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@kbdinputstyle"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@codequoteundirected"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@codequotebacktick"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@deftypefnnewline"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@urefbreakstyle"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@xrefautomaticsectiontitle"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@setcontentsaftertitlepage"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@setshortcontentsaftertitlepage"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@novalidate"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@raisesections"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@lowersections"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@cpindex"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@fnindex"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@kyindex"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@pgindex"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@tpindex"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@vrindex"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@bsixpaper"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@clickstyle"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@fonttextsize"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@microtype"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@maketitle"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@verbatiminclude"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@xrefname"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@evenfootingmarks"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@evenheadingmarks"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@everyfootingmarks"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@everyheadingmarks"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@oddfootingmarks"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@oddheadingmarks"
+                    }
+                  ]
+                },
+                "named": true,
+                "value": "command_name"
+              },
+              {
+                "type": "ALIAS",
+                "content": {
+                  "type": "TOKEN",
+                  "content": {
+                    "type": "PREC",
+                    "value": 1,
+                    "content": {
+                      "type": "PATTERN",
+                      "value": "@[a-zA-Z]+index"
+                    }
+                  }
+                },
+                "named": true,
+                "value": "command_name"
+              }
+            ]
           }
         },
         {

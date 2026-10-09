@@ -214,7 +214,14 @@ export default grammar({
     ])),
 
     line_command: $ => seq(
-      field('name', command($, LINE_COMMANDS)),
+      field('name', choice(
+        command($, LINE_COMMANDS),
+        // Index commands, including user-defined ones (`@defindex op` makes
+        // `@opindex`), which texi2any treats as index entries at the start
+        // of a line. Takes precedence over an inline command there; in the
+        // middle of a line only inline commands are valid.
+        alias(token(prec(1, /@[a-zA-Z]+index/)), $.command_name),
+      )),
       optional(field('argument', $.line_argument)),
       $._line_end,
     ),

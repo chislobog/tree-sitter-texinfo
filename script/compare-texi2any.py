@@ -148,11 +148,9 @@ class OurWalker:
             text(body).removesuffix("\n") if body else "",
         )
 
-    def expand_macro(self, macro: Macro, node):
+    def expand_macro(self, macro: Macro, node, call: str):
         if self.depth >= MAX_EXPANSION_DEPTH:
             return
-        arguments = node.child_by_field_name("arguments")
-        call = text(arguments) if arguments else ""
         values = [v.strip() for v in call.split(",", max(len(macro.parameters) - 1, 0))]
         body = macro.body
         for parameter, value in zip(macro.parameters, values):
@@ -277,6 +275,15 @@ class OurWalker:
                          or node.children[0])
             name = text(name_node)
             argument = node.child_by_field_name("argument")
+            # A macro whose name ends in `index` parses as a line command.
+            if name[1:] in self.macros:
+                macro = self.macros[name[1:]]
+                if macro is not None:
+                    call = text(argument).strip() if argument else ""
+                    if call.startswith("{") and call.endswith("}"):
+                        call = call[1:-1]
+                    self.expand_macro(macro, node, call)
+                return
             self.emit(name, node, True)
             if name == "@set":
                 word = first_word(argument)
@@ -309,7 +316,8 @@ class OurWalker:
             if name[1:] in self.macros:
                 macro = self.macros[name[1:]]
                 if macro is not None:
-                    self.expand_macro(macro, node)
+                    arguments = node.child_by_field_name("arguments")
+                    self.expand_macro(macro, node, text(arguments) if arguments else "")
                 return
             self.emit(name, node, False)
             arguments = node.child_by_field_name("arguments")

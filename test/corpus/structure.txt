@@ -163,3 +163,28 @@ Less common line commands
     (command_name)
     (line_argument
       (text))))
+
+================================================================================
+User-defined index commands are line commands
+================================================================================
+
+@defindex op
+@opindex --verbose
+Text with @opindex inline.
+
+---
+
+(source_file
+  (line_command
+    (command_name)
+    (line_argument
+      (text)))
+  (line_command
+    (command_name)
+    (line_argument
+      (text)))
+  (paragraph
+    (text)
+    (inline_command
+      (command_name))
+    (text)))

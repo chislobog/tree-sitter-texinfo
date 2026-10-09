@@ -68,8 +68,8 @@ sources, which is what `texi2any` itself uses.
 - [ ] `@alias NEW = EXISTING`, `@definfoenclose`
 - [x] Missing line commands from texi2any's table: `defline`, `deftypeline`,
   `xrefname`, `clickstyle`, the two-letter index commands, ...
-- [ ] User-defined index commands (`@defindex op` makes `@opindex`), which
-  are only known at run time
+- [x] User-defined index commands (`@defindex op` makes `@opindex`): any
+  `@...index` at the start of a line is an index line command
 - [x] Missing blocks: `@documentinfo`, `@publication`
 - [x] Fix typo: `codequoteundirective` should be `codequoteundirected`
 - [ ] No-brace commands: `@refill`, `@thischapter`, `@thisfile`, ...
