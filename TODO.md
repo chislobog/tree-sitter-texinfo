@@ -80,15 +80,18 @@ sources, which is what `texi2any` itself uses.
 - [ ] `@multitable` prototype argument and `@columnfractions`
 - [x] Multitable rows: each `@item`/`@headitem` holds its first cell and a
   `tab` node per further cell, including rows inside conditionals
-- [ ] `@headings`, `@everyheading` and friends with `@|` separators
-- [ ] `@alias NEW = EXISTING`, `@definfoenclose`
+- [x] `@headings`, `@everyheading` and friends with `@|` separators: a line
+  argument with `@|` symbol commands, as texi2any has it
+- [x] `@alias NEW = EXISTING`, `@definfoenclose`: plain line arguments, as in
+  texi2any
 - [x] Missing line commands from texi2any's table: `defline`, `deftypeline`,
   `xrefname`, `clickstyle`, the two-letter index commands, ...
 - [x] User-defined index commands (`@defindex op` makes `@opindex`): any
   `@...index` at the start of a line is an index line command
 - [x] Missing blocks: `@documentinfo`, `@publication`
 - [x] Fix typo: `codequoteundirective` should be `codequoteundirected`
-- [ ] No-brace commands: `@refill`, `@thischapter`, `@thisfile`, ...
+- [x] No-brace commands: `@refill`, `@thischapter`, `@thisfile`, ... parse as
+  inline commands without arguments, as in texi2any
 
 ## Structure
 
