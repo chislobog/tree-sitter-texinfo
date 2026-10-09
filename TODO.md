@@ -139,7 +139,7 @@ of a line.
 
 ## Differences from texi2any
 
-From comparing with texi2any on its own test inputs (123 of 1,755 differ;
+From comparing with texi2any on its own test inputs (121 of 1,755 differ;
 the manuals match fully).
 
 Gaps, where we give a parse error and texi2any recovers:
@@ -150,8 +150,8 @@ Gaps, where we give a parse error and texi2any recovers:
   prototype (`@multitable { a`), closes at the end of the line
 - [x] Badly braced definition lines (`@deffn {cat name`) close their braces
   at the end of the line; a lone `@` at the end of the file is a symbol
-- [ ] `@c` right after a `@ ` symbol command on some line commands
-  (`08misc_commands/comment_space_command_on_line`)
+- [x] Comments after `@bye` and `@definfoenclose`: the tree was right; the
+  comparison script skipped them
 - [ ] Files not in UTF-8 (`@documentencoding ISO-8859-1`, Shift-JIS): the
   editor has to convert them, as tree-sitter reads UTF-8
 

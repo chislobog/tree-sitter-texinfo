@@ -325,9 +325,10 @@ class OurWalker:
                 variable = node.child_by_field_name("variable")
                 self.flags.discard(first_word(variable))
                 self.children(node, name_node, variable)  # comments
-            elif name.startswith("@def") and argument is not None:
-                self.walk_definition_line(argument)
-            elif kind != "bye":
+            elif name.startswith("@def"):
+                self.walk_definition_line(node, name_node)
+            else:
+                # Includes a comment on the line, also after `@bye`.
                 self.children(node, name_node)
             return
 
