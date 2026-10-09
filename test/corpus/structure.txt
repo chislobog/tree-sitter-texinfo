@@ -237,3 +237,51 @@ Heading commands that don't start a section
     name: (command_name)
     title: (line_argument
       (text))))
+
+================================================================================
+Variables set and cleared
+================================================================================
+
+@set VERSION 7.3 @code{x
+@set FLAG
+@clear FLAG
+
+---
+
+(source_file
+  (line_command
+    name: (command_name)
+    variable: (text)
+    value: (raw_text))
+  (line_command
+    name: (command_name)
+    variable: (text))
+  (line_command
+    name: (command_name)
+    variable: (text)))
+
+================================================================================
+Comments end an @set value
+================================================================================
+
+@set a one @c note
+@set b two@comment note
+@set c @cfoo bar
+
+---
+
+(source_file
+  (line_command
+    name: (command_name)
+    variable: (text)
+    value: (raw_text)
+    (comment))
+  (line_command
+    name: (command_name)
+    variable: (text)
+    value: (raw_text)
+    (comment))
+  (line_command
+    name: (command_name)
+    variable: (text)
+    value: (raw_text)))

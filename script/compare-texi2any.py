@@ -169,11 +169,15 @@ class OurWalker:
         for parameter, value in zip(macro.parameters, values, strict=False):
             body = body.replace("\\" + parameter + "\\", value)
         body = body.replace("\\\\", "\\")
+        self.walk_source(body, node)
 
+    def walk_source(self, source: str, node):
+        """Parses and walks text that texi2any parses where it is used (a
+        macro expansion or an `@set` value), as if it were at `node`."""
         call_line = self.call_line
         self.call_line = self.line(node)
         self.depth += 1
-        self.walk(self.parser.parse(body.encode()).root_node)
+        self.walk(self.parser.parse(source.encode()).root_node)
         self.depth -= 1
         self.call_line = call_line
 
@@ -297,15 +301,22 @@ class OurWalker:
                 return
             self.emit(name, node, True)
             if name == "@set":
-                word = first_word(argument)
+                # The value is raw text; its commands are emitted at each
+                # `@value`, where texi2any parses it.
+                variable = node.child_by_field_name("variable")
+                value = node.child_by_field_name("value")
+                word = first_word(variable)
                 self.flags.add(word)
                 start = len(self.tokens)
-                self.children(node, name_node)
+                if value is not None:
+                    self.walk_source(text(value), node)
                 self.values[word] = self.tokens[start:]
                 del self.tokens[start:]
+                self.children(node, name_node, variable, value)  # comments
             elif name == "@clear":
-                self.flags.discard(first_word(argument))
-                self.children(node, name_node)
+                variable = node.child_by_field_name("variable")
+                self.flags.discard(first_word(variable))
+                self.children(node, name_node, variable)  # comments
             elif name.startswith("@def") and argument is not None:
                 self.walk_definition_line(argument)
             elif kind != "bye":

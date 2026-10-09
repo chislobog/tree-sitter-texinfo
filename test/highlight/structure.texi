@@ -27,3 +27,8 @@ Text @emph{important} and @var{file}.
 @c                             ^ variable.parameter
 @heading Not a section
 @c       ^ markup.heading.2
+
+@set VERSION 7.3
+@c <- keyword
+@c   ^ variable
+@c           ^ string

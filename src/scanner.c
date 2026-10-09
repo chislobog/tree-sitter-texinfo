@@ -251,7 +251,7 @@ static const char *const LINE_COMMANDS[] = {
     "headings", "evenheading", "oddheading", "everyheading", "evenfooting",
     "oddfooting", "everyfooting",
     // Variables and macros
-    "set", "clear", "alias", "definfoenclose", "unmacro",
+    "alias", "definfoenclose", "unmacro",
     // Layout
     "page", "need", "sp", "vskip", "center", "exdent", "noindent", "indent",
     "finalout", "smallbook", "afourpaper", "afivepaper", "afourlatex",

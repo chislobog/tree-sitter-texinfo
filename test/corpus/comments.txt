@@ -38,8 +38,7 @@ Commands starting with c are not comments
 (source_file
   (line_command
     (command_name)
-    (line_argument
-      (text)))
+    (text))
   (paragraph
     (inline_command
       (command_name)

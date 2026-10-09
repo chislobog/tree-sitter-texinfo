@@ -157,6 +157,12 @@
 (line_command
   name: (command_name) @keyword)
 
+(line_command
+  variable: (text) @variable)
+
+(line_command
+  value: (raw_text) @string)
+
 (bye
   name: (command_name) @keyword)
 

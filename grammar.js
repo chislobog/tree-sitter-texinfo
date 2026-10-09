@@ -239,12 +239,24 @@ export default grammar({
       $._line_end,
     ),
 
-    line_command: $ => seq(
-      // The scanner recognises line commands by name (LINE_COMMANDS in
-      // src/scanner.c), including user-defined index commands.
-      field('name', alias($._line_command_name, $.command_name)),
-      optional(field('argument', $.line_argument)),
-      $._line_end,
+    line_command: $ => choice(
+      seq(
+        // The scanner recognises line commands by name (LINE_COMMANDS in
+        // src/scanner.c), including user-defined index commands.
+        field('name', alias($._line_command_name, $.command_name)),
+        optional(field('argument', $.line_argument)),
+        $._line_end,
+      ),
+      // `@set NAME VALUE` and `@clear NAME`. As in texi2any, the value is raw
+      // text; commands in it are only parsed where `@value{NAME}` uses it.
+      seq(
+        field('name', command($, ['set', 'clear'])),
+        optional(seq(
+          field('variable', alias($._word_text, $.text)),
+          optional(field('value', alias($._set_value, $.raw_text))),
+        )),
+        $._line_end,
+      ),
     ),
 
     line_argument: $ => repeat1($._inline),
@@ -376,6 +388,11 @@ export default grammar({
     ),
 
     _word_text: _ => /[^@{}\s]+/,
+
+    // Raw text up to the end of the line or a comment, as in texi2any. A
+    // comment lexes as the longer match at `@c note`, and `@cfoo` as the
+    // longer value piece.
+    _set_value: _ => repeat1(choice(/[^@\r\n]+/, /@[a-zA-Z][a-zA-Z0-9-]*/, /@[^a-zA-Z\r\n]/)),
 
     definition_arguments: $ => prec.right(repeat1(choice($._inline, $.line_continuation))),
 

@@ -2159,40 +2159,123 @@
       ]
     },
     "line_command": {
-      "type": "SEQ",
+      "type": "CHOICE",
       "members": [
         {
-          "type": "FIELD",
-          "name": "name",
-          "content": {
-            "type": "ALIAS",
-            "content": {
-              "type": "SYMBOL",
-              "name": "_line_command_name"
-            },
-            "named": true,
-            "value": "command_name"
-          }
-        },
-        {
-          "type": "CHOICE",
+          "type": "SEQ",
           "members": [
             {
               "type": "FIELD",
-              "name": "argument",
+              "name": "name",
               "content": {
-                "type": "SYMBOL",
-                "name": "line_argument"
+                "type": "ALIAS",
+                "content": {
+                  "type": "SYMBOL",
+                  "name": "_line_command_name"
+                },
+                "named": true,
+                "value": "command_name"
               }
             },
             {
-              "type": "BLANK"
+              "type": "CHOICE",
+              "members": [
+                {
+                  "type": "FIELD",
+                  "name": "argument",
+                  "content": {
+                    "type": "SYMBOL",
+                    "name": "line_argument"
+                  }
+                },
+                {
+                  "type": "BLANK"
+                }
+              ]
+            },
+            {
+              "type": "SYMBOL",
+              "name": "_line_end"
             }
           ]
         },
         {
-          "type": "SYMBOL",
-          "name": "_line_end"
+          "type": "SEQ",
+          "members": [
+            {
+              "type": "FIELD",
+              "name": "name",
+              "content": {
+                "type": "ALIAS",
+                "content": {
+                  "type": "CHOICE",
+                  "members": [
+                    {
+                      "type": "STRING",
+                      "value": "@set"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@clear"
+                    }
+                  ]
+                },
+                "named": true,
+                "value": "command_name"
+              }
+            },
+            {
+              "type": "CHOICE",
+              "members": [
+                {
+                  "type": "SEQ",
+                  "members": [
+                    {
+                      "type": "FIELD",
+                      "name": "variable",
+                      "content": {
+                        "type": "ALIAS",
+                        "content": {
+                          "type": "SYMBOL",
+                          "name": "_word_text"
+                        },
+                        "named": true,
+                        "value": "text"
+                      }
+                    },
+                    {
+                      "type": "CHOICE",
+                      "members": [
+                        {
+                          "type": "FIELD",
+                          "name": "value",
+                          "content": {
+                            "type": "ALIAS",
+                            "content": {
+                              "type": "SYMBOL",
+                              "name": "_set_value"
+                            },
+                            "named": true,
+                            "value": "raw_text"
+                          }
+                        },
+                        {
+                          "type": "BLANK"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "BLANK"
+                }
+              ]
+            },
+            {
+              "type": "SYMBOL",
+              "name": "_line_end"
+            }
+          ]
         }
       ]
     },
@@ -4428,6 +4511,26 @@
     "_word_text": {
       "type": "PATTERN",
       "value": "[^@{}\\s]+"
+    },
+    "_set_value": {
+      "type": "REPEAT1",
+      "content": {
+        "type": "CHOICE",
+        "members": [
+          {
+            "type": "PATTERN",
+            "value": "[^@\\r\\n]+"
+          },
+          {
+            "type": "PATTERN",
+            "value": "@[a-zA-Z][a-zA-Z0-9-]*"
+          },
+          {
+            "type": "PATTERN",
+            "value": "@[^a-zA-Z\\r\\n]"
+          }
+        ]
+      }
     },
     "definition_arguments": {
       "type": "PREC_RIGHT",
