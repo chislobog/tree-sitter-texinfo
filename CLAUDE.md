@@ -2,7 +2,10 @@
 
 A tree-sitter grammar for GNU Texinfo. The reference for correct behaviour is
 `texi2any` (Texinfo 7.3), whose command classes come from
-`tta/data/command_data.txt` in the Texinfo sources. `TODO.md` tracks coverage.
+`tta/data/command_data.txt` in the Texinfo sources. Where texi2any's error
+recovery accepts what the Texinfo manual (`examples/texinfo-7.3/texinfo.texi`)
+forbids, such as block commands in the middle of a line, follow the manual.
+`TODO.md` tracks coverage.
 
 The grammar is for structural editing and syntax highlighting, not for
 producing documents. So the tree shows the source as written: conditionals,

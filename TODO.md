@@ -162,9 +162,11 @@ Deliberate, so the tree shows the source as it is written and edited:
   `60macro` and `65linemacro` suites) come from the comparison script only
   approximating texi2any's expansion
 - `@click` stays `@click`; texi2any outputs the command `@clickstyle` chose
-- Block commands and `@end` only count at the start of a line; texi2any also
-  accepts them in the middle of one, with a warning (`@group x @end group`,
-  `@table` on an `@item` line, `@deffn` in a menu description)
+- Block commands and `@end` only count at the start of a line, as the Texinfo
+  manual requires ("at the beginning of a line by itself"). texi2any's error
+  recovery also accepts them in the middle of one, with a warning
+  (`@group x @end group`, `@table` on an `@item` line); no manual among the
+  examples does that
 - Content texi2any reports and drops is kept as written: `@tab` cells beyond
   the multitable's columns, `@tab` before the first `@item`, `@headitem` or
   `@itemx` in `@itemize`, `@item` outside a list, a recursive
