@@ -340,3 +340,31 @@ b
           (paragraph
             (text))
           end: (block_end))))))
+
+================================================================================
+Spaces between a built-in brace command and its brace
+================================================================================
+
+A @code {a} b @xref {N, L}. @mymacro {x}
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (text)))
+    (text)
+    (inline_command
+      name: (command_name)
+      node: (argument
+        (text))
+      label: (argument
+        (text)))
+    (text)
+    (inline_command
+      name: (command_name))
+    (brace_group
+      (text))))

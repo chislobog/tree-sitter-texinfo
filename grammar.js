@@ -460,7 +460,7 @@ export default grammar({
         // in src/scanner.c): their argument ends at a blank line.
         field('name', alias($._brace_command_name, $.command_name)),
         optional(seq(
-          token.immediate('{'),
+          '{',
           optional(field('arguments', $.brace_arguments)),
           choice(
             '}',
@@ -480,7 +480,7 @@ export default grammar({
       ...Object.entries(ARGUMENT_COMMANDS).map(([names, commands]) => prec.right(seq(
         field('name', command($, commands)),
         optional(seq(
-          token.immediate('{'),
+          '{',
           commaArguments(names.split(' '), $.argument, alias($._last_argument, $.argument), ','),
           choice(
             '}',
