@@ -188,3 +188,20 @@ Text with @opindex inline.
     (inline_command
       (command_name))
     (text)))
+
+================================================================================
+Command fields are named consistently
+================================================================================
+
+@chapter Intro
+@bye
+
+---
+
+(source_file
+  (chapter_heading
+    name: (command_name)
+    title: (line_argument
+      (text)))
+  (bye
+    name: (command_name)))

@@ -269,10 +269,7 @@ class OurWalker:
             return
 
         if kind in ("line_command", "node_line", "item", "itemx", "bye") or kind in HEADINGS:
-            # Headings name the field `command`; `@bye` has no field.
-            name_node = (node.child_by_field_name("name")
-                         or node.child_by_field_name("command")
-                         or node.children[0])
+            name_node = node.child_by_field_name("name")
             name = text(name_node)
             argument = node.child_by_field_name("argument")
             # A macro whose name ends in `index` parses as a line command.

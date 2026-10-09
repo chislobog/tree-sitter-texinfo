@@ -11,27 +11,27 @@
 ; Headings
 
 (part_heading
-  command: (command_name) @keyword
+  name: (command_name) @keyword
   title: (line_argument) @markup.heading.1)
 
 (top_heading
-  command: (command_name) @keyword
+  name: (command_name) @keyword
   title: (line_argument) @markup.heading.1)
 
 (chapter_heading
-  command: (command_name) @keyword
+  name: (command_name) @keyword
   title: (line_argument) @markup.heading.1)
 
 (section_heading
-  command: (command_name) @keyword
+  name: (command_name) @keyword
   title: (line_argument) @markup.heading.2)
 
 (subsection_heading
-  command: (command_name) @keyword
+  name: (command_name) @keyword
   title: (line_argument) @markup.heading.3)
 
 (subsubsection_heading
-  command: (command_name) @keyword
+  name: (command_name) @keyword
   title: (line_argument) @markup.heading.4)
 
 ; Nodes, cross-references and menus
@@ -146,7 +146,7 @@
   name: (command_name) @keyword)
 
 (bye
-  (command_name) @keyword)
+  name: (command_name) @keyword)
 
 (bye
   (ignored) @comment)

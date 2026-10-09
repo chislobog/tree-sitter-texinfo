@@ -217,15 +217,22 @@
   {
     "type": "bye",
     "named": true,
-    "fields": {},
+    "fields": {
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "command_name",
+            "named": true
+          }
+        ]
+      }
+    },
     "children": {
-      "multiple": true,
-      "required": true,
+      "multiple": false,
+      "required": false,
       "types": [
-        {
-          "type": "command_name",
-          "named": true
-        },
         {
           "type": "ignored",
           "named": true
@@ -237,7 +244,7 @@
     "type": "chapter_heading",
     "named": true,
     "fields": {
-      "command": {
+      "name": {
         "multiple": false,
         "required": true,
         "types": [
@@ -1300,7 +1307,7 @@
     "type": "part_heading",
     "named": true,
     "fields": {
-      "command": {
+      "name": {
         "multiple": false,
         "required": true,
         "types": [
@@ -1376,7 +1383,7 @@
     "type": "section_heading",
     "named": true,
     "fields": {
-      "command": {
+      "name": {
         "multiple": false,
         "required": true,
         "types": [
@@ -1482,7 +1489,7 @@
     "type": "subsection_heading",
     "named": true,
     "fields": {
-      "command": {
+      "name": {
         "multiple": false,
         "required": true,
         "types": [
@@ -1508,7 +1515,7 @@
     "type": "subsubsection_heading",
     "named": true,
     "fields": {
-      "command": {
+      "name": {
         "multiple": false,
         "required": true,
         "types": [
@@ -1534,7 +1541,7 @@
     "type": "top_heading",
     "named": true,
     "fields": {
-      "command": {
+      "name": {
         "multiple": false,
         "required": true,
         "types": [

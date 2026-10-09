@@ -49,7 +49,7 @@ sources, which is what `texi2any` itself uses.
 - [ ] Accent commands without braces: `@'e`, `@"u`, and letter accents with
   a space: `@u o`, `@v c`
 - [ ] `@value{name}` as its own node
-- [ ] `@math{...}` body for TeX injection
+- [x] `@math{...}` body for TeX injection
 - [ ] Plain-text line arguments (`@set`, `@clear`, `@include`, `@setfilename`,
   `@documentencoding`, ...) as a single text node. texi2any keeps `@set`
   values as raw text and parses them where `@value` uses them
@@ -96,8 +96,8 @@ of a line.
 - [ ] A bare `*` at the end of a line in a menu starts an entry in texi2any;
   here it is text until a space follows
 - [ ] Decide on nested sections (chapter containing sections) vs flat headings
-- [ ] Name the command field `name` in headings too (it is `command`), and
-  give `@bye` a `name` field, so every command node is queried the same way
+- [x] Every command node names its command field `name` (headings used
+  `command`, `@bye` had none)
 - [x] Line commands and headings at end of file without a newline
 - [x] Blocks still open at the end of the file end with a zero-width
   `missing_end` node instead of turning into an error

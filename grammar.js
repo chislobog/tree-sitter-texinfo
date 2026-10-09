@@ -185,7 +185,7 @@ export default grammar({
     // Everything after `@bye` is ignored.
     // The rest of the `@bye` line is still read, so a comment there counts.
     bye: $ => seq(
-      alias('@bye', $.command_name),
+      field('name', alias('@bye', $.command_name)),
       $._line_end,
       optional(alias(/[\s\S]+/, $.ignored)),
     ),
@@ -207,7 +207,7 @@ export default grammar({
     ...Object.fromEntries(Object.entries(HEADINGS).map(([name, commands]) => [
       name,
       $ => seq(
-        field('command', command($, commands)),
+        field('name', command($, commands)),
         optional(field('title', $.line_argument)),
         $._line_end,
       ),

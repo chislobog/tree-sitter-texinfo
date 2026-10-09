@@ -66,13 +66,17 @@
       "type": "SEQ",
       "members": [
         {
-          "type": "ALIAS",
+          "type": "FIELD",
+          "name": "name",
           "content": {
-            "type": "STRING",
-            "value": "@bye"
-          },
-          "named": true,
-          "value": "command_name"
+            "type": "ALIAS",
+            "content": {
+              "type": "STRING",
+              "value": "@bye"
+            },
+            "named": true,
+            "value": "command_name"
+          }
         },
         {
           "type": "SYMBOL",
@@ -176,7 +180,7 @@
       "members": [
         {
           "type": "FIELD",
-          "name": "command",
+          "name": "name",
           "content": {
             "type": "ALIAS",
             "content": {
@@ -214,7 +218,7 @@
       "members": [
         {
           "type": "FIELD",
-          "name": "command",
+          "name": "name",
           "content": {
             "type": "ALIAS",
             "content": {
@@ -252,7 +256,7 @@
       "members": [
         {
           "type": "FIELD",
-          "name": "command",
+          "name": "name",
           "content": {
             "type": "ALIAS",
             "content": {
@@ -315,7 +319,7 @@
       "members": [
         {
           "type": "FIELD",
-          "name": "command",
+          "name": "name",
           "content": {
             "type": "ALIAS",
             "content": {
@@ -374,7 +378,7 @@
       "members": [
         {
           "type": "FIELD",
-          "name": "command",
+          "name": "name",
           "content": {
             "type": "ALIAS",
             "content": {
@@ -429,7 +433,7 @@
       "members": [
         {
           "type": "FIELD",
-          "name": "command",
+          "name": "name",
           "content": {
             "type": "ALIAS",
             "content": {
