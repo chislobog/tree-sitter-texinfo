@@ -55,19 +55,20 @@ Quoted.
 (source_file
   (block
     (command_name)
-    (node_line
-      (command_name)
-      (argument
-        (text)))
-    (top_heading
-      (command_name)
-      (line_argument
-        (text)))
-    (block
-      (command_name)
-      (paragraph
-        (text))
-      (block_end))
+    (top
+      (node_line
+        (command_name)
+        (argument
+          (text)))
+      (top_heading
+        (command_name)
+        (line_argument
+          (text)))
+      (block
+        (command_name)
+        (paragraph
+          (text))
+        (block_end)))
     (block_end)))
 
 ================================================================================

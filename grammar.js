@@ -17,6 +17,36 @@ const HEADINGS = {
   subsubsection_heading: ['subsubsection', 'unnumberedsubsubsec', 'appendixsubsubsec'],
 };
 
+// Sections by level, as in texi2any: each contains the lower levels and ends
+// at a sectioning command of its own or a higher level. src/scanner.c lists
+// the sectioning commands by level too, in the same order, to tell which
+// section a `@node` line starts.
+const SECTIONS = [
+  { name: 'part', heading: 'part_heading', contains: ['chapter', 'section', 'subsection', 'subsubsection'] },
+  { name: 'top', heading: 'top_heading', contains: ['chapter', 'section', 'subsection', 'subsubsection'] },
+  { name: 'chapter', heading: 'chapter_heading', contains: ['section', 'subsection', 'subsubsection'] },
+  { name: 'section', heading: 'section_heading', contains: ['subsection', 'subsubsection'] },
+  { name: 'subsection', heading: 'subsection_heading', contains: ['subsubsection'] },
+  { name: 'subsubsection', heading: 'subsubsection_heading', contains: [] },
+];
+
+/**
+ * A `@node` line, whose command is given as a rule.
+ *
+ * @param {GrammarSymbols<string>} $
+ * @param {RuleOrLiteral} name
+ */
+const nodeLine = ($, name) => seq(
+  field('name', name),
+  optional(commaArguments(
+    ['node', 'next', 'previous', 'up'],
+    alias($._argument_line, $.argument),
+    alias($._line, $.argument),
+    ',',
+  )),
+  $._line_end,
+);
+
 // Headings that don't start a section, from chapter to subsubsection level.
 const HEADING_COMMANDS = ['majorheading', 'chapheading', 'heading', 'subheading', 'subsubheading'];
 
@@ -167,15 +197,51 @@ export default grammar({
     $._missing_end,
     $._menu_start,
     ...DEFINITION_LAYOUTS.map((_, i) => $[`_definition_start_${i}`]),
+    // `@node` followed by the sectioning command of this section.
+    ...SECTIONS.map(({ name }) => $[`_node_before_${name}`]),
     $._error_sentinel,
   ],
 
   rules: {
     source_file: $ => seq(
       optional($.input_line),
-      repeat($._content),
+      repeat(choice($._content, $._section)),
       optional($.bye),
     ),
+
+    _section: $ => choice(...SECTIONS.map(({ name }) => $[name])),
+
+    ...Object.fromEntries(SECTIONS.map(({ name, heading, contains }) => [
+      name,
+      $ => prec.right(seq(
+        // Blank and comment lines, the node's description and `@anchor` lines
+        // (old names of the node) may separate the node from its heading. The
+        // scanner only starts a section with the node if nothing else does.
+        optional(seq(
+          field('node', alias($[`_node_line_before_${name}`], $.node_line)),
+          repeat(choice(
+            $._newline,
+            alias($._node_description, $.line_command),
+            $.block,
+            $.paragraph,
+          )),
+        )),
+        field('heading', $[heading]),
+        repeat(choice($._content, ...contains.map((section) => $[section]))),
+      )),
+    ])),
+
+    // `@nodedescription` after a `@node`; `@nodedescriptionblock` is a block.
+    _node_description: $ => seq(
+      field('name', alias('@nodedescription', $.command_name)),
+      optional(field('argument', $.line_argument)),
+      $._line_end,
+    ),
+
+    ...Object.fromEntries(SECTIONS.map(({ name }) => [
+      `_node_line_before_${name}`,
+      $ => nodeLine($, alias($[`_node_before_${name}`], $.command_name)),
+    ])),
 
     // Listed before `command_name` so that a bare `@c` lexes as a comment.
     comment: _ => /@c(omment)?([ \t][^\r\n]*)?/,
@@ -197,7 +263,6 @@ export default grammar({
       $.node_line,
       alias($._definition_continuation, $.definition_line),
       $.line_command,
-      ...Object.keys(HEADINGS).map((name) => $[name]),
       $.heading,
       $.block,
       $.definition_block,
@@ -236,24 +301,18 @@ export default grammar({
 
     line_argument: $ => repeat1($._inline),
 
-    // `@node NAME, NEXT, PREVIOUS, UP`.
-    node_line: $ => seq(
-      field('name', alias('@node', $.command_name)),
-      optional(commaArguments(
-        ['node', 'next', 'previous', 'up'],
-        alias($._argument_line, $.argument),
-        alias($._line, $.argument),
-        ',',
-      )),
-      $._line_end,
-    ),
+    // `@node NAME, NEXT, PREVIOUS, UP` not followed by a sectioning command;
+    // otherwise it is the `node` of a section.
+    node_line: $ => nodeLine($, alias('@node', $.command_name)),
 
     block: $ => seq(
       field('name', alias($._block_start, $.command_name)),
       optional(field('argument', $.line_argument)),
       $._newline,
       // Items, for conditionals that wrap some of a list's items.
-      repeat(choice($._content, $.item)),
+      // Items, for conditionals that wrap some of a list's items, and
+      // sections, for conditionals that wrap whole sections.
+      repeat(choice($._content, $.item, $._section)),
       field('end', $._block_end),
     ),
 

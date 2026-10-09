@@ -1,0 +1,288 @@
+================================================================================
+Sections nest by level
+================================================================================
+
+@node Top
+@top Manual
+
+Intro.
+
+@node First
+@chapter First
+
+Text.
+
+@node Sub
+@section Sub
+
+More.
+
+@node Second
+@chapter Second
+
+---
+
+(source_file
+  (top
+    node: (node_line
+      name: (command_name)
+      node: (argument
+        (text)))
+    heading: (top_heading
+      name: (command_name)
+      title: (line_argument
+        (text)))
+    (paragraph
+      (text))
+    (chapter
+      node: (node_line
+        name: (command_name)
+        node: (argument
+          (text)))
+      heading: (chapter_heading
+        name: (command_name)
+        title: (line_argument
+          (text)))
+      (paragraph
+        (text))
+      (section
+        node: (node_line
+          name: (command_name)
+          node: (argument
+            (text)))
+        heading: (section_heading
+          name: (command_name)
+          title: (line_argument
+            (text)))
+        (paragraph
+          (text))))
+    (chapter
+      node: (node_line
+        name: (command_name)
+        node: (argument
+          (text)))
+      heading: (chapter_heading
+        name: (command_name)
+        title: (line_argument
+          (text))))))
+
+================================================================================
+A skipped level still nests
+================================================================================
+
+@chapter A
+@subsubsection Deep
+@section B
+
+---
+
+(source_file
+  (chapter
+    heading: (chapter_heading
+      name: (command_name)
+      title: (line_argument
+        (text)))
+    (subsubsection
+      heading: (subsubsection_heading
+        name: (command_name)
+        title: (line_argument
+          (text))))
+    (section
+      heading: (section_heading
+        name: (command_name)
+        title: (line_argument
+          (text))))))
+
+================================================================================
+A section inside a conditional ends at its end
+================================================================================
+
+@chapter A
+@ifclear PRINT
+@section Online only
+Text.
+@end ifclear
+@section B
+
+---
+
+(source_file
+  (chapter
+    heading: (chapter_heading
+      name: (command_name)
+      title: (line_argument
+        (text)))
+    (block
+      name: (command_name)
+      argument: (line_argument
+        (text))
+      (section
+        heading: (section_heading
+          name: (command_name)
+          title: (line_argument
+            (text)))
+        (paragraph
+          (text)))
+      end: (block_end))
+    (section
+      heading: (section_heading
+        name: (command_name)
+        title: (line_argument
+          (text))))))
+
+================================================================================
+A node without a sectioning command
+================================================================================
+
+@node Index
+@unnumbered Index
+@node Lone
+Text.
+
+---
+
+(source_file
+  (chapter
+    node: (node_line
+      name: (command_name)
+      node: (argument
+        (text)))
+    heading: (chapter_heading
+      name: (command_name)
+      title: (line_argument
+        (text)))
+    (node_line
+      name: (command_name)
+      node: (argument
+        (text)))
+    (paragraph
+      (text))))
+
+================================================================================
+A comment between a node and its heading
+================================================================================
+
+@node Top
+@c the top node
+@top Manual
+
+---
+
+(source_file
+  (top
+    node: (node_line
+      name: (command_name)
+      node: (argument
+        (text)))
+    (comment)
+    heading: (top_heading
+      name: (command_name)
+      title: (line_argument
+        (text)))))
+
+================================================================================
+The Top node inside ifnottex
+================================================================================
+
+@ifnottex
+@node Top
+@top Manual
+@end ifnottex
+
+@menu
+* First::
+@end menu
+
+@node First
+@chapter First
+
+---
+
+(source_file
+  (block
+    name: (command_name)
+    (top
+      node: (node_line
+        name: (command_name)
+        node: (argument
+          (text)))
+      heading: (top_heading
+        name: (command_name)
+        title: (line_argument
+          (text))))
+    end: (block_end))
+  (menu
+    name: (command_name)
+    (menu_entry
+      node: (menu_node
+        (text)))
+    end: (block_end))
+  (chapter
+    node: (node_line
+      name: (command_name)
+      node: (argument
+        (text)))
+    heading: (chapter_heading
+      name: (command_name)
+      title: (line_argument
+        (text)))))
+
+================================================================================
+Node descriptions between a node and its heading
+================================================================================
+
+@node Overview
+@nodedescription What it is.
+@nodedescriptionblock
+Longer.
+@end nodedescriptionblock
+@chapter Overview
+
+---
+
+(source_file
+  (chapter
+    node: (node_line
+      name: (command_name)
+      node: (argument
+        (text)))
+    (line_command
+      name: (command_name)
+      argument: (line_argument
+        (text)))
+    (block
+      name: (command_name)
+      (paragraph
+        (text))
+      end: (block_end))
+    heading: (chapter_heading
+      name: (command_name)
+      title: (line_argument
+        (text)))))
+
+================================================================================
+An anchor between a node and its heading
+================================================================================
+
+@node New name
+@anchor{Old name}@c kept for old links
+@section New name
+
+---
+
+(source_file
+  (section
+    node: (node_line
+      name: (command_name)
+      node: (argument
+        (text)))
+    (paragraph
+      (inline_command
+        name: (command_name)
+        arguments: (brace_arguments
+          (text)))
+      (comment))
+    heading: (section_heading
+      name: (command_name)
+      title: (line_argument
+        (text)))))

@@ -38,46 +38,53 @@ Nodes and headings
 ---
 
 (source_file
-  (node_line
-    (command_name)
-    (argument
-      (text)))
-  (top_heading
-    (command_name)
-    (line_argument
-      (text)))
-  (node_line
-    (command_name)
-    (argument
-      (text)))
-  (chapter_heading
-    (command_name)
-    (line_argument
-      (text)
-      (inline_command
+  (top
+    (node_line
+      (command_name)
+      (argument
+        (text)))
+    (top_heading
+      (command_name)
+      (line_argument
+        (text)))
+    (chapter
+      (node_line
         (command_name)
-        (brace_arguments
-          (text)))))
-  (section_heading
-    (command_name)
-    (line_argument
-      (text)))
-  (subsection_heading
-    (command_name)
-    (line_argument
-      (text)))
-  (subsubsection_heading
-    (command_name)
-    (line_argument
-      (text)))
-  (chapter_heading
-    (command_name)
-    (line_argument
-      (text)))
-  (section_heading
-    (command_name)
-    (line_argument
-      (text))))
+        (argument
+          (text)))
+      (chapter_heading
+        (command_name)
+        (line_argument
+          (text)
+          (inline_command
+            (command_name)
+            (brace_arguments
+              (text)))))
+      (section
+        (section_heading
+          (command_name)
+          (line_argument
+            (text)))
+        (subsection
+          (subsection_heading
+            (command_name)
+            (line_argument
+              (text)))
+          (subsubsection
+            (subsubsection_heading
+              (command_name)
+              (line_argument
+                (text)))))))
+    (chapter
+      (chapter_heading
+        (command_name)
+        (line_argument
+          (text)))
+      (section
+        (section_heading
+          (command_name)
+          (line_argument
+            (text)))))))
 
 ================================================================================
 Line commands without arguments
@@ -199,10 +206,11 @@ Command fields are named consistently
 ---
 
 (source_file
-  (chapter_heading
-    name: (command_name)
-    title: (line_argument
-      (text)))
+  (chapter
+    heading: (chapter_heading
+      name: (command_name)
+      title: (line_argument
+        (text))))
   (bye
     name: (command_name)))
 

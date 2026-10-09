@@ -128,10 +128,11 @@ Next @emph{x}.
       (brace_arguments
         (text)))
     (text))
-  (chapter_heading
-    (command_name)
-    (line_argument
-      (text))))
+  (chapter
+    (chapter_heading
+      (command_name)
+      (line_argument
+        (text)))))
 
 ================================================================================
 Footnote containing blank lines

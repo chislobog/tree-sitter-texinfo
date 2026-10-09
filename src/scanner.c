@@ -38,7 +38,10 @@ enum TokenType {
   // Openers of definition blocks, one per layout of the definition line, in
   // the order of DEFINITION_LAYOUTS in grammar.js.
   DEFINITION_START,
-  ERROR_SENTINEL = DEFINITION_START + 8,
+  // `@node` lines followed by a sectioning command, one per level, in the
+  // order of SECTIONS in grammar.js.
+  NODE_BEFORE_SECTION = DEFINITION_START + 8,
+  ERROR_SENTINEL = NODE_BEFORE_SECTION + 6,
 };
 
 typedef enum {
@@ -49,17 +52,16 @@ typedef enum {
   KIND_RAW,
   // Body is plain text. Nested macro definitions of any kind are counted.
   KIND_MACRO,
-  // `@deffn` and friends; the opener token depends on the layout.
-  KIND_DEFINITION,
   // `@menu`, `@detailmenu`, `@direntry`: may contain menu entries.
   KIND_MENU,
+  // `@deffn` and friends: KIND_DEFINITION plus the index of the definition
+  // line's layout in DEFINITION_LAYOUTS in grammar.js. Must be last.
+  KIND_DEFINITION,
 } BlockKind;
 
 typedef struct {
   const char *name;
   BlockKind kind;
-  // For KIND_DEFINITION: the index of the definition line's layout.
-  uint8_t layout;
 } Block;
 
 // Classes follow `tta/data/command_data.txt` in the Texinfo sources.
@@ -117,26 +119,26 @@ static const Block BLOCKS[] = {
     {"ifcommandnotdefined", KIND_BLOCK},
     // Definitions; the layout numbers index DEFINITION_LAYOUTS in grammar.js
     {"defblock", KIND_BLOCK},
-    {"deffn", KIND_DEFINITION, 0},
-    {"defvr", KIND_DEFINITION, 0},
-    {"deftypefn", KIND_DEFINITION, 1},
-    {"deftypevr", KIND_DEFINITION, 1},
-    {"deftp", KIND_DEFINITION, 0},
-    {"defop", KIND_DEFINITION, 2},
-    {"deftypeop", KIND_DEFINITION, 3},
-    {"defcv", KIND_DEFINITION, 2},
-    {"deftypecv", KIND_DEFINITION, 3},
-    {"defun", KIND_DEFINITION, 4},
-    {"defmac", KIND_DEFINITION, 4},
-    {"defspec", KIND_DEFINITION, 4},
-    {"defvar", KIND_DEFINITION, 4},
-    {"defopt", KIND_DEFINITION, 4},
-    {"deftypefun", KIND_DEFINITION, 5},
-    {"deftypevar", KIND_DEFINITION, 5},
-    {"defmethod", KIND_DEFINITION, 6},
-    {"deftypemethod", KIND_DEFINITION, 7},
-    {"defivar", KIND_DEFINITION, 6},
-    {"deftypeivar", KIND_DEFINITION, 7},
+    {"deffn", KIND_DEFINITION},
+    {"defvr", KIND_DEFINITION},
+    {"deftypefn", KIND_DEFINITION + 1},
+    {"deftypevr", KIND_DEFINITION + 1},
+    {"deftp", KIND_DEFINITION},
+    {"defop", KIND_DEFINITION + 2},
+    {"deftypeop", KIND_DEFINITION + 3},
+    {"defcv", KIND_DEFINITION + 2},
+    {"deftypecv", KIND_DEFINITION + 3},
+    {"defun", KIND_DEFINITION + 4},
+    {"defmac", KIND_DEFINITION + 4},
+    {"defspec", KIND_DEFINITION + 4},
+    {"defvar", KIND_DEFINITION + 4},
+    {"defopt", KIND_DEFINITION + 4},
+    {"deftypefun", KIND_DEFINITION + 5},
+    {"deftypevar", KIND_DEFINITION + 5},
+    {"defmethod", KIND_DEFINITION + 6},
+    {"deftypemethod", KIND_DEFINITION + 7},
+    {"defivar", KIND_DEFINITION + 6},
+    {"deftypeivar", KIND_DEFINITION + 7},
     // Lists
     {"itemize", KIND_LIST},
     {"enumerate", KIND_LIST},
@@ -233,6 +235,101 @@ static bool read_end_name(TSLexer *lexer, char *name) {
   return read_name(lexer, name);
 }
 
+// Sectioning commands by level: the index of the section in SECTIONS in
+// grammar.js (part, top, chapter, section, subsection, subsubsection).
+static const struct {
+  const char *name;
+  uint8_t level;
+} SECTIONING[] = {
+    {"part", 0},
+    {"top", 1},
+    {"chapter", 2},
+    {"unnumbered", 2},
+    {"appendix", 2},
+    {"centerchap", 2},
+    {"section", 3},
+    {"unnumberedsec", 3},
+    {"appendixsec", 3},
+    {"appendixsection", 3},
+    {"subsection", 4},
+    {"unnumberedsubsec", 4},
+    {"appendixsubsec", 4},
+    {"subsubsection", 5},
+    {"unnumberedsubsubsec", 5},
+    {"appendixsubsubsec", 5},
+};
+
+#define SECTIONING_COUNT (sizeof(SECTIONING) / sizeof(SECTIONING[0]))
+
+/**
+ * Scans `@node` when the next line, after blank and comment lines, the
+ * node's description (`@nodedescription`, `@nodedescriptionblock`) and
+ * `@anchor` lines, is a sectioning command: emits the node token for that section's level, so the
+ * node line starts the section. The `@node` has already been read; otherwise
+ * it is left to the grammar as a plain node line.
+ */
+static bool scan_node_before_section(TSLexer *lexer, const bool *valid_symbols) {
+  lexer->mark_end(lexer);
+  skip_to_next_line(lexer);
+  for (;;) {
+    skip_blanks(lexer);
+    if (lexer->eof(lexer)) return false;
+    if (lexer->lookahead == '\n' || lexer->lookahead == '\r') {
+      skip_to_next_line(lexer);
+      continue;
+    }
+    if (lexer->lookahead != '@') return false;
+    advance(lexer);
+    char name[MAX_NAME + 1];
+    if (!read_name(lexer, name)) return false;
+
+    if (strcmp(name, "c") == 0 || strcmp(name, "comment") == 0 ||
+        strcmp(name, "nodedescription") == 0) {
+      if (!is_blank(lexer->lookahead) && lexer->lookahead != '\n' &&
+          lexer->lookahead != '\r' && !lexer->eof(lexer)) {
+        return false;
+      }
+      skip_to_next_line(lexer);
+      continue;
+    }
+
+    // `@anchor{Old name}` lines keep old node names working.
+    if (strcmp(name, "anchor") == 0 && lexer->lookahead == '{') {
+      skip_to_next_line(lexer);
+      continue;
+    }
+
+    if (strcmp(name, "nodedescriptionblock") == 0) {
+      // Skip to the line after its `@end`.
+      for (;;) {
+        skip_to_next_line(lexer);
+        if (lexer->eof(lexer)) return false;
+        skip_blanks(lexer);
+        if (lexer->lookahead != '@') continue;
+        advance(lexer);
+        char end_name[MAX_NAME + 1];
+        if (read_name(lexer, name) && strcmp(name, "end") == 0 &&
+            read_end_name(lexer, end_name) &&
+            strcmp(end_name, "nodedescriptionblock") == 0) {
+          break;
+        }
+      }
+      skip_to_next_line(lexer);
+      continue;
+    }
+
+    for (unsigned i = 0; i < SECTIONING_COUNT; i++) {
+      if (strcmp(SECTIONING[i].name, name) == 0) {
+        enum TokenType token = NODE_BEFORE_SECTION + SECTIONING[i].level;
+        if (!valid_symbols[token]) return false;
+        lexer->result_symbol = token;
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
 /** Pops the innermost block, whose `@end NAME` has just been read. */
 static bool pop_block(Scanner *scanner, TSLexer *lexer) {
   scanner->depth--;
@@ -251,22 +348,17 @@ static bool scan_block_start(Scanner *scanner, TSLexer *lexer,
   if (index < 0) return false;
 
   enum TokenType token;
-  switch (BLOCKS[index].kind) {
-    case KIND_BLOCK:
-      token = BLOCK_START;
-      break;
-    case KIND_LIST:
-      token = LIST_START;
-      break;
-    case KIND_DEFINITION:
-      token = DEFINITION_START + BLOCKS[index].layout;
-      break;
-    case KIND_MENU:
-      token = MENU_START;
-      break;
-    default:
-      token = RAW_BLOCK_START;
-      break;
+  BlockKind kind = BLOCKS[index].kind;
+  if (kind >= KIND_DEFINITION) {
+    token = DEFINITION_START + (kind - KIND_DEFINITION);
+  } else if (kind == KIND_BLOCK) {
+    token = BLOCK_START;
+  } else if (kind == KIND_LIST) {
+    token = LIST_START;
+  } else if (kind == KIND_MENU) {
+    token = MENU_START;
+  } else {
+    token = RAW_BLOCK_START;
   }
   if (!valid_symbols[token]) return false;
   if (scanner->depth >= MAX_DEPTH) return false;
@@ -531,6 +623,10 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
 
   if (valid_symbols[BLOCK_END] && scan_block_end(scanner, lexer, name)) {
     return true;
+  }
+
+  if (strcmp(name, "node") == 0) {
+    return scan_node_before_section(lexer, valid_symbols);
   }
 
   // read_name stops at the first character that can't be part of a name, so

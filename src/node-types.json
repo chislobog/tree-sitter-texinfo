@@ -74,7 +74,7 @@
           "named": true
         },
         {
-          "type": "chapter_heading",
+          "type": "chapter",
           "named": true
         },
         {
@@ -114,7 +114,7 @@
           "named": true
         },
         {
-          "type": "part_heading",
+          "type": "part",
           "named": true
         },
         {
@@ -122,19 +122,19 @@
           "named": true
         },
         {
-          "type": "section_heading",
+          "type": "section",
           "named": true
         },
         {
-          "type": "subsection_heading",
+          "type": "subsection",
           "named": true
         },
         {
-          "type": "subsubsection_heading",
+          "type": "subsubsection",
           "named": true
         },
         {
-          "type": "top_heading",
+          "type": "top",
           "named": true
         }
       ]
@@ -245,6 +245,90 @@
     }
   },
   {
+    "type": "chapter",
+    "named": true,
+    "fields": {
+      "heading": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "chapter_heading",
+            "named": true
+          }
+        ]
+      },
+      "node": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "node_line",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "block",
+          "named": true
+        },
+        {
+          "type": "definition_block",
+          "named": true
+        },
+        {
+          "type": "definition_line",
+          "named": true
+        },
+        {
+          "type": "heading",
+          "named": true
+        },
+        {
+          "type": "line_command",
+          "named": true
+        },
+        {
+          "type": "list",
+          "named": true
+        },
+        {
+          "type": "menu",
+          "named": true
+        },
+        {
+          "type": "node_line",
+          "named": true
+        },
+        {
+          "type": "paragraph",
+          "named": true
+        },
+        {
+          "type": "raw_block",
+          "named": true
+        },
+        {
+          "type": "section",
+          "named": true
+        },
+        {
+          "type": "subsection",
+          "named": true
+        },
+        {
+          "type": "subsubsection",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "chapter_heading",
     "named": true,
     "fields": {
@@ -329,10 +413,6 @@
           "named": true
         },
         {
-          "type": "chapter_heading",
-          "named": true
-        },
-        {
           "type": "definition_block",
           "named": true
         },
@@ -365,27 +445,7 @@
           "named": true
         },
         {
-          "type": "part_heading",
-          "named": true
-        },
-        {
           "type": "raw_block",
-          "named": true
-        },
-        {
-          "type": "section_heading",
-          "named": true
-        },
-        {
-          "type": "subsection_heading",
-          "named": true
-        },
-        {
-          "type": "subsubsection_heading",
-          "named": true
-        },
-        {
-          "type": "top_heading",
           "named": true
         }
       ]
@@ -776,10 +836,6 @@
           "named": true
         },
         {
-          "type": "chapter_heading",
-          "named": true
-        },
-        {
           "type": "definition_block",
           "named": true
         },
@@ -816,27 +872,7 @@
           "named": true
         },
         {
-          "type": "part_heading",
-          "named": true
-        },
-        {
           "type": "raw_block",
-          "named": true
-        },
-        {
-          "type": "section_heading",
-          "named": true
-        },
-        {
-          "type": "subsection_heading",
-          "named": true
-        },
-        {
-          "type": "subsubsection_heading",
-          "named": true
-        },
-        {
-          "type": "top_heading",
           "named": true
         }
       ]
@@ -969,10 +1005,6 @@
           "named": true
         },
         {
-          "type": "chapter_heading",
-          "named": true
-        },
-        {
           "type": "definition_block",
           "named": true
         },
@@ -1009,27 +1041,7 @@
           "named": true
         },
         {
-          "type": "part_heading",
-          "named": true
-        },
-        {
           "type": "raw_block",
-          "named": true
-        },
-        {
-          "type": "section_heading",
-          "named": true
-        },
-        {
-          "type": "subsection_heading",
-          "named": true
-        },
-        {
-          "type": "subsubsection_heading",
-          "named": true
-        },
-        {
-          "type": "top_heading",
           "named": true
         }
       ]
@@ -1083,10 +1095,6 @@
           "named": true
         },
         {
-          "type": "chapter_heading",
-          "named": true
-        },
-        {
           "type": "definition_block",
           "named": true
         },
@@ -1123,27 +1131,7 @@
           "named": true
         },
         {
-          "type": "part_heading",
-          "named": true
-        },
-        {
           "type": "raw_block",
-          "named": true
-        },
-        {
-          "type": "section_heading",
-          "named": true
-        },
-        {
-          "type": "subsection_heading",
-          "named": true
-        },
-        {
-          "type": "subsubsection_heading",
-          "named": true
-        },
-        {
-          "type": "top_heading",
           "named": true
         }
       ]
@@ -1350,6 +1338,94 @@
     }
   },
   {
+    "type": "part",
+    "named": true,
+    "fields": {
+      "heading": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "part_heading",
+            "named": true
+          }
+        ]
+      },
+      "node": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "node_line",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "block",
+          "named": true
+        },
+        {
+          "type": "chapter",
+          "named": true
+        },
+        {
+          "type": "definition_block",
+          "named": true
+        },
+        {
+          "type": "definition_line",
+          "named": true
+        },
+        {
+          "type": "heading",
+          "named": true
+        },
+        {
+          "type": "line_command",
+          "named": true
+        },
+        {
+          "type": "list",
+          "named": true
+        },
+        {
+          "type": "menu",
+          "named": true
+        },
+        {
+          "type": "node_line",
+          "named": true
+        },
+        {
+          "type": "paragraph",
+          "named": true
+        },
+        {
+          "type": "raw_block",
+          "named": true
+        },
+        {
+          "type": "section",
+          "named": true
+        },
+        {
+          "type": "subsection",
+          "named": true
+        },
+        {
+          "type": "subsubsection",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "part_heading",
     "named": true,
     "fields": {
@@ -1426,6 +1502,86 @@
     }
   },
   {
+    "type": "section",
+    "named": true,
+    "fields": {
+      "heading": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "section_heading",
+            "named": true
+          }
+        ]
+      },
+      "node": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "node_line",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "block",
+          "named": true
+        },
+        {
+          "type": "definition_block",
+          "named": true
+        },
+        {
+          "type": "definition_line",
+          "named": true
+        },
+        {
+          "type": "heading",
+          "named": true
+        },
+        {
+          "type": "line_command",
+          "named": true
+        },
+        {
+          "type": "list",
+          "named": true
+        },
+        {
+          "type": "menu",
+          "named": true
+        },
+        {
+          "type": "node_line",
+          "named": true
+        },
+        {
+          "type": "paragraph",
+          "named": true
+        },
+        {
+          "type": "raw_block",
+          "named": true
+        },
+        {
+          "type": "subsection",
+          "named": true
+        },
+        {
+          "type": "subsubsection",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "section_heading",
     "named": true,
     "fields": {
@@ -1469,7 +1625,7 @@
           "named": true
         },
         {
-          "type": "chapter_heading",
+          "type": "chapter",
           "named": true
         },
         {
@@ -1509,7 +1665,7 @@
           "named": true
         },
         {
-          "type": "part_heading",
+          "type": "part",
           "named": true
         },
         {
@@ -1517,19 +1673,95 @@
           "named": true
         },
         {
-          "type": "section_heading",
+          "type": "section",
           "named": true
         },
         {
-          "type": "subsection_heading",
+          "type": "subsection",
           "named": true
         },
         {
-          "type": "subsubsection_heading",
+          "type": "subsubsection",
           "named": true
         },
         {
-          "type": "top_heading",
+          "type": "top",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "subsection",
+    "named": true,
+    "fields": {
+      "heading": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "subsection_heading",
+            "named": true
+          }
+        ]
+      },
+      "node": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "node_line",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "block",
+          "named": true
+        },
+        {
+          "type": "definition_block",
+          "named": true
+        },
+        {
+          "type": "definition_line",
+          "named": true
+        },
+        {
+          "type": "heading",
+          "named": true
+        },
+        {
+          "type": "line_command",
+          "named": true
+        },
+        {
+          "type": "list",
+          "named": true
+        },
+        {
+          "type": "menu",
+          "named": true
+        },
+        {
+          "type": "node_line",
+          "named": true
+        },
+        {
+          "type": "paragraph",
+          "named": true
+        },
+        {
+          "type": "raw_block",
+          "named": true
+        },
+        {
+          "type": "subsubsection",
           "named": true
         }
       ]
@@ -1562,6 +1794,78 @@
     }
   },
   {
+    "type": "subsubsection",
+    "named": true,
+    "fields": {
+      "heading": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "subsubsection_heading",
+            "named": true
+          }
+        ]
+      },
+      "node": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "node_line",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "block",
+          "named": true
+        },
+        {
+          "type": "definition_block",
+          "named": true
+        },
+        {
+          "type": "definition_line",
+          "named": true
+        },
+        {
+          "type": "heading",
+          "named": true
+        },
+        {
+          "type": "line_command",
+          "named": true
+        },
+        {
+          "type": "list",
+          "named": true
+        },
+        {
+          "type": "menu",
+          "named": true
+        },
+        {
+          "type": "node_line",
+          "named": true
+        },
+        {
+          "type": "paragraph",
+          "named": true
+        },
+        {
+          "type": "raw_block",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "subsubsection_heading",
     "named": true,
     "fields": {
@@ -1585,6 +1889,94 @@
           }
         ]
       }
+    }
+  },
+  {
+    "type": "top",
+    "named": true,
+    "fields": {
+      "heading": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "top_heading",
+            "named": true
+          }
+        ]
+      },
+      "node": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "node_line",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "block",
+          "named": true
+        },
+        {
+          "type": "chapter",
+          "named": true
+        },
+        {
+          "type": "definition_block",
+          "named": true
+        },
+        {
+          "type": "definition_line",
+          "named": true
+        },
+        {
+          "type": "heading",
+          "named": true
+        },
+        {
+          "type": "line_command",
+          "named": true
+        },
+        {
+          "type": "list",
+          "named": true
+        },
+        {
+          "type": "menu",
+          "named": true
+        },
+        {
+          "type": "node_line",
+          "named": true
+        },
+        {
+          "type": "paragraph",
+          "named": true
+        },
+        {
+          "type": "raw_block",
+          "named": true
+        },
+        {
+          "type": "section",
+          "named": true
+        },
+        {
+          "type": "subsection",
+          "named": true
+        },
+        {
+          "type": "subsubsection",
+          "named": true
+        }
+      ]
     }
   },
   {

@@ -11,8 +11,10 @@ agree on over 99.9% of the manuals and 98.6% of the test inputs.
 
 ## What is parsed
 
-- Document structure: `\input texinfo`, `@node` lines (with `node`, `next`,
-  `previous` and `up` fields), sectioning and heading commands, `@bye`.
+- Document structure: `\input texinfo`, sections nested by level (`top`,
+  `part`, `chapter`, `section`, `subsection`, `subsubsection`), each with its
+  `@node` line (with `node`, `next`, `previous` and `up` fields) and heading;
+  heading-only commands such as `@heading`; `@bye`.
 - Paragraphs, comments, line commands, brace commands and symbol commands.
 - Blocks, matched by name (`@example` … `@end example`), nested to any depth,
   including conditionals.
@@ -50,6 +52,10 @@ zero-width `missing_brace` node; a block still open at the end of the file
 ends with a zero-width `missing_end` node. Editors that report tree-sitter
 errors should also report these two nodes.
 
+A section inside a conditional ends at the conditional's `@end`, so when only
+the heading is conditional (as for the Top node, often inside `@ifnottex`), the
+content after the conditional belongs to the enclosing level.
+
 Block commands only start, and `@end` only ends a block, at the beginning of a
 line; `texi2any` tolerates them elsewhere with a warning. `TODO.md` lists what
 is not done yet.
@@ -61,7 +67,7 @@ is not done yet.
   `@keyword` and `@function` capture names.
 - `queries/injections.scm`: LaTeX in `@tex`, `@latex`, `@math` and
   `@displaymath`, HTML in `@html`, XML in `@xml` and `@docbook`.
-- `queries/folds.scm`: blocks, lists, items and menus.
+- `queries/folds.scm`: sections, blocks, lists, items and menus.
 - `queries/tags.scm`: nodes, anchors and documented functions and variables
   as definitions; cross-references and menu entries as references.
 

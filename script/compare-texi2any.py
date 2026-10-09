@@ -61,7 +61,7 @@ HEADINGS = (
 )
 MACRO_BLOCKS = ("macro", "rmacro", "linemacro")
 # Block names, from the scanner's table.
-BLOCK_NAMES = set(re.findall(r'\{"(\w+)", KIND_\w+(?:, \d+)?\}',
+BLOCK_NAMES = set(re.findall(r'\{"(\w+)", KIND_\w+(?: \+ \d+)?\}',
                              (ROOT / "src" / "scanner.c").read_text()))
 MAX_EXPANSION_DEPTH = 20
 INLINE_CONDITIONALS = (

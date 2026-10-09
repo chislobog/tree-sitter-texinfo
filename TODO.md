@@ -95,7 +95,13 @@ of a line.
   An entry still being typed (`* Name` with no separator) has only a label
 - [ ] A bare `*` at the end of a line in a menu starts an entry in texi2any;
   here it is text until a space follows
-- [ ] Decide on nested sections (chapter containing sections) vs flat headings
+- [x] Sections nest by level (`part`, `top`, `chapter`, `section`,
+  `subsection`, `subsubsection`), each with its `node` line and `heading`.
+  A section inside a conditional ends at its `@end`; the Top node in
+  `@ifnottex` and alternative headings per output format therefore don't
+  contain the content after the conditional
+- [x] `@majorheading`, `@chapheading`, `@heading`, `@subheading` and
+  `@subsubheading` are `heading` nodes, not sections
 - [x] Every command node names its command field `name` (headings used
   `command`, `@bye` had none)
 - [x] Line commands and headings at end of file without a newline
