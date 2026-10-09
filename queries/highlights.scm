@@ -153,6 +153,9 @@
 (itemx
   name: (command_name) @markup.list)
 
+(tab
+  name: (command_name) @markup.list)
+
 ; Line commands
 (line_command
   name: (command_name) @keyword)

@@ -122,6 +122,18 @@ const command = ($, names) => {
   return alias(keywords.length === 1 ? keywords[0] : choice(...keywords), $.command_name);
 };
 
+/**
+ * The content of a multitable cell, which starts right after its `@item` or
+ * `@tab`. Its last paragraph may end in the middle of a line, before the next
+ * `@tab`.
+ *
+ * @param {GrammarSymbols<string>} $
+ */
+const cell = ($) => [
+  repeat($._content),
+  optional(alias($._cell_paragraph, $.paragraph)),
+];
+
 export default grammar({
   name: 'texinfo',
 
@@ -154,6 +166,9 @@ export default grammar({
     // with keywords in the grammar would make the parser several times larger.
     $._line_command_name,
     $._brace_command_name,
+    $._multitable_start,
+    $._tab,
+    $._row_name,
     $._error_sentinel,
   ],
 
@@ -293,10 +308,9 @@ export default grammar({
       field('name', alias($._block_start, $.command_name)),
       optional(field('argument', $.line_argument)),
       $._newline,
-      // Items, for conditionals that wrap some of a list's items.
-      // Items, for conditionals that wrap some of a list's items, and
-      // sections, for conditionals that wrap whole sections.
-      repeat(choice($._content, $.item, $._section)),
+      // Items and multitable rows, for conditionals that wrap some of a
+      // list's items, and sections, for conditionals that wrap whole sections.
+      repeat(choice($._content, $.item, alias($._row, $.item), $._section)),
       field('end', $._block_end),
     ),
 
@@ -424,14 +438,45 @@ export default grammar({
     // end of a line is a symbol command (a space).
     line_continuation: _ => token(prec(1, /@\r?\n/)),
 
-    list: $ => seq(
-      field('name', alias($._list_start, $.command_name)),
-      optional(field('argument', $.line_argument)),
-      $._newline,
-      repeat($._content),
-      repeat($.item),
-      field('end', $._block_end),
+    list: $ => choice(
+      seq(
+        field('name', alias($._list_start, $.command_name)),
+        optional(field('argument', $.line_argument)),
+        $._newline,
+        repeat($._content),
+        repeat($.item),
+        field('end', $._block_end),
+      ),
+      // `@multitable`: each `@item` or `@headitem` is a row, holding its first
+      // cell's content and a `tab` for each further cell, as in texi2any.
+      seq(
+        field('name', alias($._multitable_start, $.command_name)),
+        optional(field('argument', $.line_argument)),
+        $._newline,
+        repeat($._content),
+        repeat(alias($._row, $.item)),
+        field('end', $._block_end),
+      ),
     ),
+
+    _row: $ => prec.right(seq(
+      // The scanner recognises `@item` and `@headitem` as a row where the
+      // innermost open block, other than conditionals, is a multitable.
+      field('name', alias($._row_name, $.command_name)),
+      ...cell($),
+      repeat($.tab),
+    )),
+
+    tab: $ => prec.right(seq(
+      field('name', alias($._tab, $.command_name)),
+      ...cell($),
+    )),
+
+    // A newline after the paragraph's text always belongs to the paragraph.
+    _cell_paragraph: $ => prec.right(seq(
+      $._line,
+      repeat(prec(1, seq($._newline, $._line))),
+    )),
 
     // `@verbatim`, `@ignore`, `@macro`, `@tex`, `@html`, ...: the body is
     // plain text.

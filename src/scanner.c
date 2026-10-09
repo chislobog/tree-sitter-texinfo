@@ -44,6 +44,11 @@ enum TokenType {
   NODE_BEFORE_SECTION = DEFINITION_START + 8,
   LINE_COMMAND_NAME = NODE_BEFORE_SECTION + 6,
   BRACE_COMMAND_NAME,
+  MULTITABLE_START,
+  // `@tab` between the cells of a multitable row.
+  TAB,
+  // `@item` or `@headitem` starting a multitable row.
+  ROW_NAME,
   ERROR_SENTINEL,
 };
 
@@ -51,6 +56,8 @@ typedef enum {
   KIND_BLOCK,
   // Body is a sequence of `@item`s.
   KIND_LIST,
+  // `@multitable`: a list whose items are rows of cells separated by `@tab`.
+  KIND_MULTITABLE,
   // Body is plain text. A nested block of the same name is counted.
   KIND_RAW,
   // Body is plain text. Nested macro definitions of any kind are counted.
@@ -148,7 +155,7 @@ static const Block BLOCKS[] = {
     {"table", KIND_LIST},
     {"ftable", KIND_LIST},
     {"vtable", KIND_LIST},
-    {"multitable", KIND_LIST},
+    {"multitable", KIND_MULTITABLE},
     // Raw
     {"verbatim", KIND_RAW},
     {"ignore", KIND_RAW},
@@ -515,6 +522,20 @@ static bool pop_block(Scanner *scanner, TSLexer *lexer) {
 }
 
 /**
+ * Whether the innermost open block, other than conditionals, which texi2any
+ * evaluates before parsing, is a multitable.
+ */
+static bool in_multitable(const Scanner *scanner) {
+  for (unsigned i = scanner->depth; i > 0; i--) {
+    const Block *block = &BLOCKS[scanner->stack[i - 1]];
+    if (strncmp(block->name, "if", 2) != 0) {
+      return block->kind == KIND_MULTITABLE;
+    }
+  }
+  return false;
+}
+
+/**
  * Scans a block opener such as `@example` at the start of a line. The `@` has
  * already been consumed.
  */
@@ -531,6 +552,8 @@ static bool scan_block_start(Scanner *scanner, TSLexer *lexer,
     token = BLOCK_START;
   } else if (kind == KIND_LIST) {
     token = LIST_START;
+  } else if (kind == KIND_MULTITABLE) {
+    token = MULTITABLE_START;
   } else if (kind == KIND_MENU) {
     token = MENU_START;
   } else {
@@ -812,6 +835,18 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
     return scan_node_before_section(lexer, valid_symbols);
   }
 
+  if (valid_symbols[ROW_NAME] &&
+      (strcmp(name, "item") == 0 || strcmp(name, "headitem") == 0) &&
+      in_multitable(scanner)) {
+    lexer->mark_end(lexer);
+    lexer->result_symbol = ROW_NAME;
+    return true;
+  }
+  if (valid_symbols[TAB] && strcmp(name, "tab") == 0) {
+    lexer->mark_end(lexer);
+    lexer->result_symbol = TAB;
+    return true;
+  }
   if (valid_symbols[LINE_COMMAND_NAME] && is_line_command(name)) {
     lexer->mark_end(lexer);
     lexer->result_symbol = LINE_COMMAND_NAME;

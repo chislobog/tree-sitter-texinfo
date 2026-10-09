@@ -879,6 +879,10 @@
         {
           "type": "raw_block",
           "named": true
+        },
+        {
+          "type": "tab",
+          "named": true
         }
       ]
     }
@@ -1919,6 +1923,68 @@
           }
         ]
       }
+    }
+  },
+  {
+    "type": "tab",
+    "named": true,
+    "fields": {
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "command_name",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "block",
+          "named": true
+        },
+        {
+          "type": "definition_block",
+          "named": true
+        },
+        {
+          "type": "definition_line",
+          "named": true
+        },
+        {
+          "type": "heading",
+          "named": true
+        },
+        {
+          "type": "line_command",
+          "named": true
+        },
+        {
+          "type": "list",
+          "named": true
+        },
+        {
+          "type": "menu",
+          "named": true
+        },
+        {
+          "type": "node_line",
+          "named": true
+        },
+        {
+          "type": "paragraph",
+          "named": true
+        },
+        {
+          "type": "raw_block",
+          "named": true
+        }
+      ]
     }
   },
   {

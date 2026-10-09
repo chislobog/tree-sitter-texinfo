@@ -70,7 +70,8 @@ sources, which is what `texi2any` itself uses.
   words
 - [ ] Index entries with `@subentry`, `@seeentry`, `@seealso`, `@sortas`
 - [ ] `@multitable` prototype argument and `@columnfractions`
-- [ ] `@tab` as a cell separator in multitable rows
+- [x] Multitable rows: each `@item`/`@headitem` holds its first cell and a
+  `tab` node per further cell, including rows inside conditionals
 - [ ] `@headings`, `@everyheading` and friends with `@|` separators
 - [ ] `@alias NEW = EXISTING`, `@definfoenclose`
 - [x] Missing line commands from texi2any's table: `defline`, `deftypeline`,

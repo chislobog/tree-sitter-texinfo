@@ -33,3 +33,8 @@ raw @code{x}
 @defvar fill-column
 @c      ^ variable
 @end defvar
+
+@multitable {a} {b}
+@item one @tab two
+@c        ^ markup.list
+@end multitable

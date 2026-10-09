@@ -147,19 +147,85 @@ Multitable
       (text))
     (item
       (command_name)
-      (line_argument
-        (text)
-        (inline_command
-          (command_name))
-        (text)))
+      (paragraph
+        (text))
+      (tab
+        (command_name)
+        (paragraph
+          (text))))
     (item
       (command_name)
-      (line_argument
-        (text)
-        (inline_command
-          (command_name))
-        (text)))
+      (paragraph
+        (text))
+      (tab
+        (command_name)
+        (paragraph
+          (text))))
     (block_end)))
+
+================================================================================
+Multitable cells over several lines, with blocks and empty cells
+================================================================================
+
+@multitable {xx} {yyyy} {z}
+@item a @tab b
+more b
+@example
+code
+@end example
+@tab
+@item
+c
+@tab @code{d}
+@end multitable
+
+Text with @tab outside a multitable.
+
+---
+
+(source_file
+  (list
+    name: (command_name)
+    argument: (line_argument
+      (brace_group
+        (text))
+      (brace_group
+        (text))
+      (brace_group
+        (text)))
+    (item
+      name: (command_name)
+      (paragraph
+        (text))
+      (tab
+        name: (command_name)
+        (paragraph
+          (text)
+          (text))
+        (block
+          name: (command_name)
+          (paragraph
+            (text))
+          end: (block_end)))
+      (tab
+        name: (command_name)))
+    (item
+      name: (command_name)
+      (paragraph
+        (text))
+      (tab
+        name: (command_name)
+        (paragraph
+          (inline_command
+            name: (command_name)
+            arguments: (brace_arguments
+              (text))))))
+    end: (block_end))
+  (paragraph
+    (text)
+    (inline_command
+      name: (command_name))
+    (text)))
 
 ================================================================================
 Itemx after index entries and comments
@@ -237,3 +303,44 @@ Second.
             (text)))
         (block_end)))
     (block_end)))
+
+================================================================================
+Multitable rows inside conditionals
+================================================================================
+
+@multitable @columnfractions .5 .5
+@iftex
+@headitem A @tab B
+@end iftex
+@item 1 @tab 2
+@end multitable
+
+---
+
+(source_file
+  (list
+    name: (command_name)
+    argument: (line_argument
+      (inline_command
+        name: (command_name))
+      (text))
+    (block
+      name: (command_name)
+      (item
+        name: (command_name)
+        (paragraph
+          (text))
+        (tab
+          name: (command_name)
+          (paragraph
+            (text))))
+      end: (block_end))
+    (item
+      name: (command_name)
+      (paragraph
+        (text))
+      (tab
+        name: (command_name)
+        (paragraph
+          (text))))
+    end: (block_end)))
