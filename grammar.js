@@ -424,7 +424,8 @@ export default grammar({
     // The rest of the line, and following lines up to a blank line or the
     // next entry.
     menu_description: $ => seq(
-      $._line,
+      // As in texi2any, the description may start on the next line.
+      choice($._line, prec(1, seq($._newline, $._line))),
       repeat(prec(1, seq($._newline, $._line))),
       $._line_end,
     ),

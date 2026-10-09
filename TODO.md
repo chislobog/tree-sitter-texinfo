@@ -109,8 +109,8 @@ of a line.
 - [x] Menu entries in `@menu`, `@detailmenu` and `@direntry`: `menu_entry` with
   `label`, `node` and `description` fields; other text is a menu comment.
   An entry still being typed (`* Name` with no separator) has only a label
-- [ ] A bare `*` at the end of a line in a menu starts an entry in texi2any;
-  here it is text until a space follows
+- [x] A menu entry's description may start on the line after the entry, as
+  in texi2any; a bare `*` there is description text, not an entry
 - [x] Sections nest by level (`part`, `top`, `chapter`, `section`,
   `subsection`, `subsubsection`), each with its `node` line and `heading`.
   A section inside a conditional ends at its `@end`; the Top node in

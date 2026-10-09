@@ -191,3 +191,34 @@ Spaces in a menu node name
       node: (menu_node
         (text)))
     end: (block_end)))
+
+================================================================================
+A description starting on the line after its entry
+================================================================================
+
+@menu
+* A::
+  more about A
+*
+* B::
+
+Comment.
+@end menu
+
+---
+
+(source_file
+  (menu
+    name: (command_name)
+    (menu_entry
+      node: (menu_node
+        (text))
+      description: (menu_description
+        (text)
+        (text)))
+    (menu_entry
+      node: (menu_node
+        (text)))
+    (paragraph
+      (text))
+    end: (block_end)))
