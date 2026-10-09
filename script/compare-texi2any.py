@@ -302,7 +302,7 @@ class OurWalker:
                 self.emit("-" + text(end).split()[-1], end, True)
             return
 
-        if kind in ("block", "menu", "list", "raw_block"):
+        if kind in ("block", "menu", "list", "raw_block", "macro_definition"):
             name_node = node.child_by_field_name("name")
             argument = node.child_by_field_name("argument")
             end = node.child_by_field_name("end")
@@ -369,11 +369,12 @@ class OurWalker:
                 self.flags.discard(first_word(variable))
                 self.children(node, name_node, variable)  # comments
             elif name == "@alias":
-                # texi2any only accepts `NEW = EXISTING`, but parses commands
-                # on a bad line too.
-                match = ALIAS.fullmatch(text(argument).strip()) if argument else None
-                if match:
-                    self.aliases["@" + match.group(1)] = "@" + match.group(2)
+                # texi2any only accepts `NEW = EXISTING`, with nothing after,
+                # but parses commands on a bad line too.
+                new = node.child_by_field_name("alias")
+                target = node.child_by_field_name("target")
+                if new is not None and target is not None and argument is None:
+                    self.aliases["@" + text(new)] = "@" + text(target)
                 self.children(node, name_node)
             elif name in ("@defindex", "@defcodeindex", "@definfoenclose"):
                 # Defines `@NAMEindex` or `@NAME`, replacing an alias of it.
@@ -604,9 +605,6 @@ def run_texi2any(path: Path) -> tuple[str, set[tuple[int, str]]]:
     stderr = result.stderr.decode("utf-8", "replace")
     unknown = {(int(line), name) for line, name in UNKNOWN_COMMAND.findall(stderr)}
     return result.stdout.decode("utf-8", "replace"), unknown
-
-
-ALIAS = re.compile(r"([a-zA-Z][a-zA-Z0-9-]*)\s*=\s*([a-zA-Z][a-zA-Z0-9-]*)")
 
 
 # texi2any's warning for a command it doesn't know, such as a TeX primitive or

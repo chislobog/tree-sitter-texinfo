@@ -325,3 +325,29 @@ Index entries with subentries
     name: (command_name)
     (subentry
       name: (command_name))))
+
+================================================================================
+Aliases
+================================================================================
+
+@alias new = code
+@alias infoline=comment
+@alias garbage =cmd extra
+
+---
+
+(source_file
+  (line_command
+    name: (command_name)
+    alias: (text)
+    target: (text))
+  (line_command
+    name: (command_name)
+    alias: (text)
+    target: (text))
+  (line_command
+    name: (command_name)
+    alias: (text)
+    target: (text)
+    argument: (line_argument
+      (text))))

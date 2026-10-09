@@ -36,6 +36,10 @@
           "named": true
         },
         {
+          "type": "macro_definition",
+          "named": true
+        },
+        {
           "type": "raw_block",
           "named": true
         },
@@ -146,6 +150,10 @@
           "named": true
         },
         {
+          "type": "macro_definition",
+          "named": true
+        },
+        {
           "type": "menu",
           "named": true
         },
@@ -222,6 +230,10 @@
         },
         {
           "type": "list",
+          "named": true
+        },
+        {
+          "type": "macro_definition",
           "named": true
         },
         {
@@ -355,6 +367,10 @@
         },
         {
           "type": "list",
+          "named": true
+        },
+        {
+          "type": "macro_definition",
           "named": true
         },
         {
@@ -499,6 +515,10 @@
         },
         {
           "type": "list",
+          "named": true
+        },
+        {
+          "type": "macro_definition",
           "named": true
         },
         {
@@ -969,6 +989,10 @@
           "named": true
         },
         {
+          "type": "macro_definition",
+          "named": true
+        },
+        {
           "type": "menu",
           "named": true
         },
@@ -1052,6 +1076,16 @@
     "type": "line_command",
     "named": true,
     "fields": {
+      "alias": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "text",
+            "named": true
+          }
+        ]
+      },
       "argument": {
         "multiple": false,
         "required": false,
@@ -1068,6 +1102,16 @@
         "types": [
           {
             "type": "command_name",
+            "named": true
+          }
+        ]
+      },
+      "target": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "text",
             "named": true
           }
         ]
@@ -1176,6 +1220,10 @@
           "named": true
         },
         {
+          "type": "macro_definition",
+          "named": true
+        },
+        {
           "type": "menu",
           "named": true
         },
@@ -1196,6 +1244,56 @@
           "named": true
         }
       ]
+    }
+  },
+  {
+    "type": "macro_definition",
+    "named": true,
+    "fields": {
+      "argument": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "line_argument",
+            "named": true
+          }
+        ]
+      },
+      "body": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "raw_text",
+            "named": true
+          }
+        ]
+      },
+      "end": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "block_end",
+            "named": true
+          },
+          {
+            "type": "missing_end",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "command_name",
+            "named": true
+          }
+        ]
+      }
     }
   },
   {
@@ -1263,6 +1361,10 @@
         },
         {
           "type": "list",
+          "named": true
+        },
+        {
+          "type": "macro_definition",
           "named": true
         },
         {
@@ -1550,6 +1652,10 @@
           "named": true
         },
         {
+          "type": "macro_definition",
+          "named": true
+        },
+        {
           "type": "menu",
           "named": true
         },
@@ -1719,6 +1825,10 @@
           "named": true
         },
         {
+          "type": "macro_definition",
+          "named": true
+        },
+        {
           "type": "menu",
           "named": true
         },
@@ -1818,6 +1928,10 @@
         },
         {
           "type": "list",
+          "named": true
+        },
+        {
+          "type": "macro_definition",
           "named": true
         },
         {
@@ -1953,6 +2067,10 @@
           "named": true
         },
         {
+          "type": "macro_definition",
+          "named": true
+        },
+        {
           "type": "menu",
           "named": true
         },
@@ -2059,6 +2177,10 @@
           "named": true
         },
         {
+          "type": "macro_definition",
+          "named": true
+        },
+        {
           "type": "menu",
           "named": true
         },
@@ -2151,6 +2273,10 @@
           "named": true
         },
         {
+          "type": "macro_definition",
+          "named": true
+        },
+        {
           "type": "menu",
           "named": true
         },
@@ -2231,6 +2357,10 @@
           "named": true
         },
         {
+          "type": "macro_definition",
+          "named": true
+        },
+        {
           "type": "menu",
           "named": true
         },
@@ -2305,6 +2435,10 @@
   },
   {
     "type": "::",
+    "named": false
+  },
+  {
+    "type": "=",
     "named": false
   },
   {

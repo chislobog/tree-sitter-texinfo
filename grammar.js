@@ -176,6 +176,7 @@ export default grammar({
     $._inline_raw_text,
     $._context_command_name,
     $._container_item_name,
+    $._macro_start,
     $._error_sentinel,
   ],
 
@@ -248,6 +249,7 @@ export default grammar({
       $.menu,
       $.list,
       $.raw_block,
+      $.macro_definition,
     ),
 
     ...Object.fromEntries(Object.entries(HEADINGS).map(([name, commands]) => [
@@ -284,7 +286,25 @@ export default grammar({
         )),
         $._line_end,
       ),
+      // `@alias NEW = EXISTING`; the spaces are optional. Anything else on the
+      // line, which texi2any reports, is left as an argument.
+      seq(
+        field('name', command($, ['alias'])),
+        optional(seq(
+          field('alias', alias($._alias_name, $.text)),
+          optional(seq(
+            token(prec(1, '=')),
+            optional(field('target', alias($._alias_name, $.text))),
+          )),
+        )),
+        optional(field('argument', $.line_argument)),
+        $._line_end,
+      ),
     ),
+
+    // Takes precedence over the longer text of an argument, which may only
+    // follow the names.
+    _alias_name: _ => token(prec(1, /[^@{}\s=]+/)),
 
     // `@subentry` in an index entry: the rest of the line, which may hold the
     // next level's subentry, as in texi2any.
@@ -467,7 +487,13 @@ export default grammar({
 
     // Blocks and line commands recognised at the start of a line inside
     // braces.
-    _line_block: $ => choice($.block, $.definition_block, $.list, $.raw_block),
+    _line_block: $ => choice(
+      $.block,
+      $.definition_block,
+      $.list,
+      $.raw_block,
+      $.macro_definition,
+    ),
 
     _line_item: $ => choice(
       $._line_block,
@@ -558,6 +584,16 @@ export default grammar({
     // plain text.
     raw_block: $ => seq(
       field('name', alias($._raw_block_start, $.command_name)),
+      optional(field('argument', $.line_argument)),
+      $._line_end,
+      optional(field('body', $.raw_text)),
+      field('end', $._block_end),
+    ),
+
+    // `@macro`, `@rmacro` and `@linemacro`: like a raw block, but the body is
+    // Texinfo with `\param\` placeholders, parsed where the macro is used.
+    macro_definition: $ => seq(
+      field('name', alias($._macro_start, $.command_name)),
       optional(field('argument', $.line_argument)),
       $._line_end,
       optional(field('body', $.raw_text)),

@@ -62,6 +62,8 @@ enum TokenType {
   CONTEXT_COMMAND_NAME,
   // `@item` in `@itemize` or `@enumerate`, whose text is a paragraph.
   CONTAINER_ITEM_NAME,
+  // `@macro`, `@rmacro` and `@linemacro`, whose raw body is Texinfo.
+  MACRO_START,
   ERROR_SENTINEL,
 };
 
@@ -278,7 +280,7 @@ static const char *const LINE_COMMANDS[] = {
     "headings", "evenheading", "oddheading", "everyheading", "evenfooting",
     "oddfooting", "everyfooting",
     // Variables and macros
-    "alias", "definfoenclose", "unmacro",
+    "definfoenclose", "unmacro",
     // Layout
     "page", "need", "sp", "vskip", "center", "exdent", "finalout", "smallbook",
     "afourpaper", "afivepaper", "afourlatex", "afourwide", "pagesizes",
@@ -648,6 +650,8 @@ static bool scan_block_start(Scanner *scanner, TSLexer *lexer,
     token = FLOAT_START;
   } else if (kind == KIND_MENU) {
     token = MENU_START;
+  } else if (kind == KIND_MACRO) {
+    token = MACRO_START;
   } else {
     token = RAW_BLOCK_START;
   }

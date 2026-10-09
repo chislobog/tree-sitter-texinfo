@@ -38,7 +38,8 @@ well with incomplete input, which is normal while editing.
 - `src/scanner.c`: external scanner. Holds the tables of line commands
   (`LINE_COMMANDS`) and built-in brace commands (`BRACE_COMMANDS`, from
   texi2any's command table), and the table of block names and kinds
-  (block, list, raw, macro, menu, definition with its layout, whose numbers
+  (block, list, multitable, float, raw, macro (a `macro_definition`), menu,
+  definition with its layout, whose numbers
   index `DEFINITION_LAYOUTS` in `grammar.js`), the stack of open blocks that makes `@end NAME`
   match, raw block bodies, `@verb` bodies (its delimiter is saved state), the
   zero-width `missing_brace` and `missing_end` tokens that close unclosed
