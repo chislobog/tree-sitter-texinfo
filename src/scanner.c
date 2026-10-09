@@ -58,6 +58,8 @@ enum TokenType {
   UNMATCHED_END,
   // The raw text of `@inlineraw`, up to the matching brace.
   INLINE_RAW_TEXT,
+  // `@footnote`, `@caption`, `@shortcaption`, whose text is paragraphs.
+  CONTEXT_COMMAND_NAME,
   ERROR_SENTINEL,
 };
 
@@ -953,6 +955,13 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
       in_multitable(scanner)) {
     lexer->mark_end(lexer);
     lexer->result_symbol = ROW_NAME;
+    return true;
+  }
+  if (valid_symbols[CONTEXT_COMMAND_NAME] &&
+      (strcmp(name, "footnote") == 0 || strcmp(name, "caption") == 0 ||
+       strcmp(name, "shortcaption") == 0)) {
+    lexer->mark_end(lexer);
+    lexer->result_symbol = CONTEXT_COMMAND_NAME;
     return true;
   }
   if (valid_symbols[SUBENTRY_NAME] && strcmp(name, "subentry") == 0) {

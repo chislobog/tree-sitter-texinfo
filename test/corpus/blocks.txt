@@ -258,7 +258,8 @@ Y
       (inline_command
         name: (command_name)
         arguments: (brace_arguments
-          (text))))
+          (paragraph
+            (text)))))
     end: (block_end))
   (block
     name: (command_name)

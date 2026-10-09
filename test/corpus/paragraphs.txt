@@ -99,8 +99,9 @@ second line} b.
     (inline_command
       (command_name)
       (brace_arguments
-        (text)
-        (text)))
+        (paragraph
+          (text)
+          (text))))
     (text)))
 
 ================================================================================

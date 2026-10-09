@@ -36,8 +36,8 @@ sources, which is what `texi2any` itself uses.
 
 - [x] Blocks and line commands at the start of a line inside brace commands
   such as `@footnote` and `@caption` (found by the texi2any comparison)
-- [ ] Paragraphs inside `@footnote`, `@caption` and `@shortcaption`; their text
-  is flat for now
+- [x] Paragraphs inside `@footnote`, `@caption` and `@shortcaption`, with
+  blocks and line commands
 - [x] Split brace arguments on commas into fields named by position for
   `@xref`, `@pxref`, `@ref`, `@inforef`, `@link`, `@uref`, `@url`, `@email`,
   `@image`, `@abbr`, `@acronym`, `@namedanchor`

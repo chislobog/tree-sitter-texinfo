@@ -174,6 +174,7 @@ export default grammar({
     $._float_start,
     $.unmatched_end,
     $._inline_raw_text,
+    $._context_command_name,
     $._error_sentinel,
   ],
 
@@ -603,6 +604,15 @@ export default grammar({
       )),
     )),
 
+    // Paragraphs, blocks and line commands: what texi2any allows there.
+    _context_body: $ => choice(
+      seq(
+        repeat1(choice($._newline, $.paragraph, $._line_item)),
+        optional(alias($._cell_paragraph, $.paragraph)),
+      ),
+      alias($._cell_paragraph, $.paragraph),
+    ),
+
     // An inline conditional's output format or flag name.
     _condition: $ => alias(repeat1(alias($._argument_text, $.text)), $.argument),
 
@@ -616,6 +626,14 @@ export default grammar({
 
     // Commands whose arguments split at commas into named fields.
     _argument_command: $ => choice(
+      // `@footnote`, `@caption`, `@shortcaption`: like texi2any, the text is
+      // paragraphs and blocks, and its last paragraph may end at the `}`.
+      prec.right(seq(
+        field('name', alias($._context_command_name, $.command_name)),
+        '{',
+        optional(field('arguments', alias($._context_body, $.brace_arguments))),
+        choice('}', alias($._brace_close_at_block_end, $.missing_brace)),
+      )),
       // `@inlinefmt{FORMAT, TEXT}`, `@inlineifset{FLAG, TEXT}`: like a
       // conditional block, the text may hold blank lines and blocks.
       // @inlinefmtifelse keeps a single argument: a third field would cost

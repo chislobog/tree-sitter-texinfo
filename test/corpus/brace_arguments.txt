@@ -16,7 +16,8 @@ x
     (inline_command
       (command_name)
       (brace_arguments
-        (text)
+        (paragraph
+          (text))
         (block
           (command_name)
           (paragraph
@@ -76,7 +77,8 @@ Line command inside a caption
       (inline_command
         (command_name)
         (brace_arguments
-          (text)
+          (paragraph
+            (text))
           (line_command
             (command_name)
             (line_argument
@@ -96,10 +98,11 @@ Block command in the middle of a brace argument is inline
     (inline_command
       (command_name)
       (brace_arguments
-        (text)
-        (inline_command
-          (command_name))
-        (text)))))
+        (paragraph
+          (text)
+          (inline_command
+            (command_name))
+          (text))))))
 
 ================================================================================
 Unclosed brace command ends at a blank line
@@ -150,8 +153,10 @@ Second.}
     (inline_command
       (command_name)
       (brace_arguments
-        (text)
-        (text)))))
+        (paragraph
+          (text))
+        (paragraph
+          (text))))))
 
 ================================================================================
 Math containing a blank line
@@ -188,7 +193,8 @@ Unclosed brace command ends at the end of its block
       (inline_command
         (command_name)
         (brace_arguments
-          (text))
+          (paragraph
+            (text)))
         (missing_brace)))
     (block_end)))
 
@@ -412,3 +418,32 @@ Para.
           (missing_brace))))
     (paragraph
       (text))))
+
+================================================================================
+Paragraphs in a footnote
+================================================================================
+
+Text@footnote{First para
+line two.
+
+Second @emph{para}.} after.
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (paragraph
+          (text)
+          (text))
+        (paragraph
+          (text)
+          (inline_command
+            name: (command_name)
+            arguments: (brace_arguments
+              (text)))
+          (text))))
+    (text)))
