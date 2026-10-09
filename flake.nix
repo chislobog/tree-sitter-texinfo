@@ -62,6 +62,8 @@
           shellHook = ''
             ln -sfn ${examples} examples
             ln -sfn ${texinfoTests} texinfo-tests
+            # Git hooks: Conventional Commits, and tests before pushing.
+            git config core.hooksPath .githooks
             echo "tree-sitter $(tree-sitter --version | cut -d' ' -f2) | node $(node --version)"
           '';
         };

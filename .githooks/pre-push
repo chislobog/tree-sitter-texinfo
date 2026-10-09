@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# Before pushing: the committed parser must match grammar.js, and the tests
+# must pass. The slower checks (fuzzing, the manuals, the texi2any
+# comparisons) run in CI.
+set -uo pipefail
+
+cd "$(git rev-parse --show-toplevel)" || exit 1
+
+# Use the dev shell's tools if this process didn't inherit them.
+run() {
+  if command -v tree-sitter >/dev/null 2>&1; then
+    "$@"
+  else
+    direnv exec . "$@"
+  fi
+}
+
+if ! git diff --quiet HEAD -- grammar.js src/; then
+  echo "pre-push: grammar.js or src/ has uncommitted changes; checking the working tree." >&2
+fi
+
+if ! run tree-sitter generate >/dev/null; then
+  echo "pre-push: tree-sitter generate failed." >&2
+  exit 1
+fi
+if ! git diff --quiet -- src/; then
+  echo "pre-push: src/ is out of date with grammar.js; commit the regenerated files." >&2
+  exit 1
+fi
+
+if ! output=$(run tree-sitter test 2>&1); then
+  printf '%s\n' "$output" | sed 's/\x1b\[[0-9;]*m//g' | grep -v '✓' >&2
+  echo "pre-push: tree-sitter test failed." >&2
+  exit 1
+fi
