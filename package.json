@@ -7,7 +7,6 @@
     "type": "git",
     "url": "git+https://github.com/chislobog/tree-sitter-texinfo.git"
   },
-  "funding": "",
   "license": "MIT",
   "author": {
     "name": "Janko Lisica",

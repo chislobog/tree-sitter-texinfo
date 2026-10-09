@@ -30,8 +30,7 @@
       }
     ],
     "links": {
-      "repository": "https://github.com/chislobog/tree-sitter-texinfo",
-      "funding": ""
+      "repository": "https://github.com/chislobog/tree-sitter-texinfo"
     }
   },
   "bindings": {
