@@ -24,9 +24,8 @@ continues.
         (text)))
     (item
       (command_name)
-      (line_argument
-        (text))
       (paragraph
+        (text)
         (text)))
     (block_end)))
 
@@ -112,18 +111,18 @@ Nested lists
     (command_name)
     (item
       (command_name)
-      (line_argument
+      (paragraph
         (text))
       (list
         (command_name)
         (item
           (command_name)
-          (line_argument
+          (paragraph
             (text)))
         (block_end)))
     (item
       (command_name)
-      (line_argument
+      (paragraph
         (text)))
     (block_end)))
 
@@ -343,4 +342,38 @@ Multitable rows inside conditionals
         name: (command_name)
         (paragraph
           (text))))
+    end: (block_end)))
+
+================================================================================
+An enumerate item's text is a paragraph that may span lines
+================================================================================
+
+@enumerate
+@item @strong{a
+b}
+
+Para.
+@item
+Second.
+@end enumerate
+
+---
+
+(source_file
+  (list
+    name: (command_name)
+    (item
+      name: (command_name)
+      (paragraph
+        (inline_command
+          name: (command_name)
+          arguments: (brace_arguments
+            (text)
+            (text))))
+      (paragraph
+        (text)))
+    (item
+      name: (command_name)
+      (paragraph
+        (text)))
     end: (block_end)))

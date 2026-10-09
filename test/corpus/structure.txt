@@ -99,9 +99,9 @@ Text.
 (source_file
   (line_command
     (command_name))
-  (line_command
-    (command_name))
   (paragraph
+    (inline_command
+      (command_name))
     (text)))
 
 ================================================================================

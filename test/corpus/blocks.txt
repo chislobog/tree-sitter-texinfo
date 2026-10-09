@@ -225,7 +225,7 @@ Nested unclosed blocks at end of file
       (command_name)
       (item
         (command_name)
-        (line_argument
+        (paragraph
           (text)))
       (missing_end))
     (missing_end)))

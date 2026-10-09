@@ -60,6 +60,8 @@ enum TokenType {
   INLINE_RAW_TEXT,
   // `@footnote`, `@caption`, `@shortcaption`, whose text is paragraphs.
   CONTEXT_COMMAND_NAME,
+  // `@item` in `@itemize` or `@enumerate`, whose text is a paragraph.
+  CONTAINER_ITEM_NAME,
   ERROR_SENTINEL,
 };
 
@@ -278,14 +280,14 @@ static const char *const LINE_COMMANDS[] = {
     // Variables and macros
     "alias", "definfoenclose", "unmacro",
     // Layout
-    "page", "need", "sp", "vskip", "center", "exdent", "noindent", "indent",
-    "finalout", "smallbook", "afourpaper", "afivepaper", "afourlatex",
-    "afourwide", "pagesizes", "paragraphindent", "firstparagraphindent",
-    "exampleindent", "footnotestyle", "frenchspacing", "allowcodebreaks",
-    "kbdinputstyle", "codequoteundirected", "codequotebacktick",
-    "deftypefnnewline", "urefbreakstyle", "xrefautomaticsectiontitle",
-    "setcontentsaftertitlepage", "setshortcontentsaftertitlepage", "novalidate",
-    "raisesections", "lowersections",
+    "page", "need", "sp", "vskip", "center", "exdent", "finalout", "smallbook",
+    "afourpaper", "afivepaper", "afourlatex", "afourwide", "pagesizes",
+    "paragraphindent", "firstparagraphindent", "exampleindent", "footnotestyle",
+    "frenchspacing", "allowcodebreaks", "kbdinputstyle", "codequoteundirected",
+    "codequotebacktick", "deftypefnnewline", "urefbreakstyle",
+    "xrefautomaticsectiontitle", "setcontentsaftertitlepage",
+    "setshortcontentsaftertitlepage", "novalidate", "raisesections",
+    "lowersections",
     // Less common: two-letter index names, page layout, cross-reference names
     "cpindex", "fnindex", "kyindex", "pgindex", "tpindex", "vrindex",
     "bsixpaper", "clickstyle", "fonttextsize", "microtype", "maketitle",
@@ -599,17 +601,28 @@ static bool scan_inline_raw(TSLexer *lexer) {
 }
 
 /**
- * Whether the innermost open block, other than conditionals, which texi2any
- * evaluates before parsing, is a multitable.
+ * The innermost open block other than conditionals, which texi2any evaluates
+ * before parsing, or NULL.
  */
-static bool in_multitable(const Scanner *scanner) {
+static const Block *innermost_structure(const Scanner *scanner) {
   for (unsigned i = scanner->depth; i > 0; i--) {
     const Block *block = &BLOCKS[scanner->stack[i - 1]];
-    if (strncmp(block->name, "if", 2) != 0) {
-      return block->kind == KIND_MULTITABLE;
-    }
+    if (strncmp(block->name, "if", 2) != 0) return block;
   }
-  return false;
+  return NULL;
+}
+
+static bool in_multitable(const Scanner *scanner) {
+  const Block *block = innermost_structure(scanner);
+  return block != NULL && block->kind == KIND_MULTITABLE;
+}
+
+// `@itemize` and `@enumerate`, where the text after `@item` is a paragraph,
+// unlike in tables, where it is the item's line argument.
+static bool in_item_container(const Scanner *scanner) {
+  const Block *block = innermost_structure(scanner);
+  return block != NULL && (strcmp(block->name, "itemize") == 0 ||
+                           strcmp(block->name, "enumerate") == 0);
 }
 
 /**
@@ -956,6 +969,12 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
       in_multitable(scanner)) {
     lexer->mark_end(lexer);
     lexer->result_symbol = ROW_NAME;
+    return true;
+  }
+  if (valid_symbols[CONTAINER_ITEM_NAME] && strcmp(name, "item") == 0 &&
+      in_item_container(scanner)) {
+    lexer->mark_end(lexer);
+    lexer->result_symbol = CONTAINER_ITEM_NAME;
     return true;
   }
   if (valid_symbols[CONTEXT_COMMAND_NAME] &&

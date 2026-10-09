@@ -262,3 +262,24 @@ A definition line ending in @ at the end of a file
         (text)
         (symbol_command)))
     end: (missing_end)))
+
+================================================================================
+Text after @noindent is a paragraph
+================================================================================
+
+@noindent You can check @kbd{C-h v
+load-path}.
+
+---
+
+(source_file
+  (paragraph
+    (inline_command
+      name: (command_name))
+    (text)
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (text)
+        (text)))
+    (text)))

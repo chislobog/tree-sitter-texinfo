@@ -175,6 +175,7 @@ export default grammar({
     $.unmatched_end,
     $._inline_raw_text,
     $._context_command_name,
+    $._container_item_name,
     $._error_sentinel,
   ],
 
@@ -360,7 +361,13 @@ export default grammar({
       $._line_end,
       // Items and multitable rows, for conditionals that wrap some of a
       // list's items, and sections, for conditionals that wrap whole sections.
-      repeat(choice($._content, $.item, alias($._row, $.item), $._section)),
+      repeat(choice(
+        $._content,
+        $.item,
+        alias($._container_item, $.item),
+        alias($._row, $.item),
+        $._section,
+      )),
       field('end', $._block_end),
     ),
 
@@ -499,7 +506,7 @@ export default grammar({
         optional(field('argument', $.line_argument)),
         $._line_end,
         repeat($._content),
-        repeat($.item),
+        repeat(choice($.item, alias($._container_item, $.item))),
         field('end', $._block_end),
       ),
       // `@multitable`: each `@item` or `@headitem` is a row, holding its first
@@ -553,6 +560,13 @@ export default grammar({
       $._line_end,
       // texi2any allows index entries and comments before an `@itemx`.
       repeat(choice($.itemx, $._content)),
+    )),
+
+    // `@item` in `@itemize` or `@enumerate`: as in texi2any, the text after it
+    // starts the item's first paragraph, which may continue on the next lines.
+    _container_item: $ => prec.right(seq(
+      field('name', alias($._container_item_name, $.command_name)),
+      repeat($._content),
     )),
 
     itemx: $ => seq(
@@ -764,7 +778,17 @@ export default grammar({
       seq($._newline, repeat1($._line_item)),
     )),
 
-    brace_group: $ => seq('{', repeat(choice($._inline, $._newline)), '}'),
+    // Like a built-in brace command, an unclosed group ends at a blank line or
+    // the end of its block, so it only breaks its own paragraph.
+    brace_group: $ => seq(
+      '{',
+      optional(choice($._last_argument, $._newline)),
+      choice(
+        '}',
+        alias($._brace_close_at_paragraph_end, $.missing_brace),
+        alias($._brace_close_at_block_end, $.missing_brace),
+      ),
+    ),
 
     // As in texi2any, names may contain `-` (e.g. user-defined macros).
     command_name: _ => /@[a-zA-Z][a-zA-Z0-9-]*/,

@@ -483,3 +483,36 @@ Text.
           (missing_brace))))
     (paragraph
       (text))))
+
+================================================================================
+An unclosed brace group ends at a blank line or the end of its block
+================================================================================
+
+A {group
+still
+
+Next para.
+
+@quotation
+B {open
+@end quotation
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (brace_group
+      (text)
+      (text)
+      (missing_brace)))
+  (paragraph
+    (text))
+  (block
+    name: (command_name)
+    (paragraph
+      (text)
+      (brace_group
+        (text)
+        (missing_brace)))
+    end: (block_end)))

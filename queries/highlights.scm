@@ -213,6 +213,11 @@
   arguments: (brace_arguments) @variable.parameter)
   (#eq? @function "@var"))
 
+; Commands without braces that start a paragraph.
+((inline_command
+  name: (command_name) @keyword)
+  (#any-of? @keyword "@noindent" "@indent"))
+
 ; `@value{NAME}` refers to a variable set by `@set NAME`.
 ((inline_command
   name: (command_name) @function
@@ -232,9 +237,9 @@
   name: (command_name) @function)
   (#not-any-of? @function
     "@code" "@samp" "@kbd" "@key" "@file" "@command" "@option" "@env" "@t" "@indicateurl" "@emph"
-    "@i" "@dfn" "@cite" "@slanted" "@strong" "@b" "@var" "@value" "@'" "@\"" "@^" "@`" "@~" "@="
-    "@," "@H" "@dotaccent" "@dotless" "@ogonek" "@ringaccent" "@tieaccent" "@u" "@ubaraccent"
-    "@udotaccent" "@v"))
+    "@i" "@dfn" "@cite" "@slanted" "@strong" "@b" "@var" "@value" "@noindent" "@indent" "@'" "@\""
+    "@^" "@`" "@~" "@=" "@," "@H" "@dotaccent" "@dotless" "@ogonek" "@ringaccent" "@tieaccent" "@u"
+    "@ubaraccent" "@udotaccent" "@v"))
 
 ; Commands that error recovery left without their usual parent. A generic
 ; (command_name) pattern would win over the specific ones above, since a
