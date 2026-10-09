@@ -56,8 +56,9 @@ sources, which is what `texi2any` itself uses.
   a space: `@u o`, `@v c`; the character is the command's `argument`
 - [ ] `@value{name}` as its own node
 - [x] `@math{...}` body for TeX injection
-- [ ] Plain-text line arguments (`@include`, `@setfilename`,
-  `@documentencoding`, ...) as a single text node
+- [x] Plain-text line arguments (`@include`, `@setfilename`, ...): texi2any
+  parses commands in them too, so they stay a `line_argument`; file names
+  are highlighted as paths
 - [x] `@set NAME VALUE` and `@clear NAME` split into `variable` and `value`
   fields. As in texi2any, the value is raw text up to a comment; its
   commands are parsed where `@value` uses it

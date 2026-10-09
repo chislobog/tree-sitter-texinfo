@@ -162,9 +162,16 @@
 (tab
   name: (command_name) @markup.list)
 
-; Line commands
-(line_command
+; Line commands. The generic pattern excludes the commands with their own
+; pattern, which it would otherwise beat to the name.
+((line_command
   name: (command_name) @keyword)
+  (#not-any-of? @keyword "@include" "@verbatiminclude" "@setfilename"))
+
+((line_command
+  name: (command_name) @keyword
+  argument: (line_argument) @string.special.path)
+  (#any-of? @keyword "@include" "@verbatiminclude" "@setfilename"))
 
 (subentry
   name: (command_name) @keyword)

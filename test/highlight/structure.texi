@@ -34,3 +34,7 @@ Text @emph{important} and @var{file}.
 @cindex Fruit @subentry apple
 @c              ^ keyword
 
+
+@include version.texi
+@c <- keyword
+@c         ^ string.special.path
