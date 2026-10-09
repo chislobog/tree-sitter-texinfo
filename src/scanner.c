@@ -64,6 +64,8 @@ enum TokenType {
   CONTAINER_ITEM_NAME,
   // `@macro`, `@rmacro` and `@linemacro`, whose raw body is Texinfo.
   MACRO_START,
+  // `@math`, in whose argument nothing ends at a blank line.
+  MATH_NAME,
   ERROR_SENTINEL,
 };
 
@@ -619,6 +621,16 @@ static bool in_multitable(const Scanner *scanner) {
   return block != NULL && block->kind == KIND_MULTITABLE;
 }
 
+// Preformatted blocks, where a blank line doesn't end a brace command.
+static bool in_preformatted(const Scanner *scanner) {
+  static const char *const PREFORMATTED[] = {
+      "example", "smallexample", "lisp",   "smalllisp",
+      "display", "smalldisplay", "format", "smallformat"};
+  const Block *block = innermost_structure(scanner);
+  return block != NULL &&
+         in_table(PREFORMATTED, TABLE_COUNT(PREFORMATTED), block->name);
+}
+
 // `@itemize` and `@enumerate`, where the text after `@item` is a paragraph,
 // unlike in tables, where it is the item's line argument.
 static bool in_item_container(const Scanner *scanner) {
@@ -824,7 +836,7 @@ static bool scan_missing_brace(Scanner *scanner, TSLexer *lexer,
   }
   if (lexer->lookahead == '\n' || lexer->lookahead == '\r') {
     lexer->result_symbol = BRACE_CLOSE_AT_PARAGRAPH_END;
-    return paragraph_end;
+    return paragraph_end && !in_preformatted(scanner);
   }
 
   char name[MAX_NAME + 1];
@@ -842,8 +854,12 @@ static bool scan_missing_brace(Scanner *scanner, TSLexer *lexer,
     return true;
   }
 
-  // texi2any evaluates conditionals before parsing, so they close nothing.
-  if (!paragraph_end || find_block(name) < 0 || strncmp(name, "if", 2) == 0) {
+  // texi2any evaluates conditionals before parsing, so they close nothing,
+  // and keeps raw blocks other than `@verbatim` inside the command.
+  static const char *const KEPT_INSIDE[] = {"ignore", "tex", "html",
+                                            "latex",  "xml", "docbook"};
+  if (!paragraph_end || find_block(name) < 0 || strncmp(name, "if", 2) == 0 ||
+      in_table(KEPT_INSIDE, TABLE_COUNT(KEPT_INSIDE), name)) {
     return false;
   }
   lexer->result_symbol = BRACE_CLOSE_AT_PARAGRAPH_END;
@@ -973,6 +989,11 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
       in_multitable(scanner)) {
     lexer->mark_end(lexer);
     lexer->result_symbol = ROW_NAME;
+    return true;
+  }
+  if (valid_symbols[MATH_NAME] && strcmp(name, "math") == 0) {
+    lexer->mark_end(lexer);
+    lexer->result_symbol = MATH_NAME;
     return true;
   }
   if (valid_symbols[CONTAINER_ITEM_NAME] && strcmp(name, "item") == 0 &&

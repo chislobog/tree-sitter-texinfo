@@ -516,3 +516,130 @@ B {open
         (text)
         (missing_brace)))
     end: (block_end)))
+
+================================================================================
+Blank lines inside braces and commands in @math
+================================================================================
+
+@math{a{bb
+
+c}d}
+
+@math{a
+
+{b
+
+} c
+}
+
+@math{a @code{in code
+
+after line} b}
+
+---
+
+(source_file
+  (paragraph
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (text)
+        (brace_group
+          (text)
+          (text))
+        (text))))
+  (paragraph
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (text)
+        (brace_group
+          (text))
+        (text))))
+  (paragraph
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (text)
+        (inline_command
+          name: (command_name)
+          arguments: (brace_arguments
+            (text)
+            (text)))
+        (text)))))
+
+================================================================================
+A blank line inside a brace command in a preformatted block
+================================================================================
+
+@example
+example @samp{in samp
+
+after empty} line
+@end example
+
+Para @samp{open
+
+Next.
+
+---
+
+(source_file
+  (block
+    name: (command_name)
+    (paragraph
+      (text)
+      (inline_command
+        name: (command_name)
+        arguments: (brace_arguments
+          (text)
+          (text)))
+      (text))
+    end: (block_end))
+  (paragraph
+    (text)
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (text))
+      (missing_brace)))
+  (paragraph
+    (text)))
+
+================================================================================
+Raw blocks other than verbatim stay inside a brace command
+================================================================================
+
+@code{
+@html
+in html
+@end html
+}
+
+@emph{c
+@ignore
+x
+@end ignore
+d}
+
+---
+
+(source_file
+  (paragraph
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (raw_block
+          name: (command_name)
+          body: (raw_text)
+          end: (block_end)))))
+  (paragraph
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (text)
+        (raw_block
+          name: (command_name)
+          body: (raw_text)
+          end: (block_end))
+        (text)))))

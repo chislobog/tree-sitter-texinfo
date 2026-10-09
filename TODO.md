@@ -150,8 +150,8 @@ of a line.
 
 ## Differences from texi2any
 
-From comparing with texi2any on its own test inputs (84 of 1,755 differ;
-the manuals match fully).
+From comparing with texi2any on its own test inputs (133 of 1,755 differ, all listed with their reasons in `test/texi2any-differences.txt`;
+the manuals match but for three binutils fragments meant for `@include`).
 
 Gaps, where we give a parse error and texi2any recovers:
 
@@ -163,19 +163,12 @@ Gaps, where we give a parse error and texi2any recovers:
   at the end of the line; a lone `@` at the end of the file is a symbol
 - [x] Comments after `@bye` and `@definfoenclose`: the tree was right; the
   comparison script skipped them
-- [ ] A blank line inside a brace group or brace command in `@math`
-  (`03coverage_braces/empty_line_in_braces_in_math`); the brace group recovery
-  closes it there
-- [ ] A blank line inside a style command in a preformatted block
-  (`20preformatted/empty_line_style_command`)
-- [ ] A block inside a brace command (`@code{` then `@html ... @end html`,
-  `@errormsg{` then `@table`): texi2any keeps it inside the argument
-- [ ] A comment line inside a brace argument (`info_tests/anchor_in_command`)
-- [ ] Text starting with a non-ASCII space such as U+00A0
-  (`40moresectioning/special_spaces_in_nodes`, `plaintext_tests/all_spaces`)
-- [ ] Smaller ones: an empty menu entry name, `@ignore` inside `@xref`, a brace
-  command without braces as an `@itemize` or `@table` argument, an inline
-  conditional's brace on the next line
+- [x] Gaps found by listing every difference: blank lines inside braces in
+  `@math` and inside brace commands in preformatted blocks; raw blocks
+  other than `@verbatim` inside brace commands and cross-reference
+  arguments; lone carriage returns in text; an empty menu entry name;
+  `@footnote`, `@caption`, `@inlineraw`, the inline conditionals and
+  `@verb` without braces
 - [ ] Files not in UTF-8 (`@documentencoding ISO-8859-1`, Shift-JIS): the
   editor has to convert them, as tree-sitter reads UTF-8
 
@@ -196,6 +189,9 @@ Deliberate, so the tree shows the source as it is written and edited:
   `@itemx` in `@itemize`, `@item` outside a list, a recursive
   `@insertcopying`. Only an `@end` that ends no block is marked
   (`unmatched_end`)
+- A brace on the line after its command (`@code` then `{a}`), which texi2any
+  accepts with a warning that the command "must not be followed by new
+  line": the brace starts a group
 - Commands inside a malformed `@end` line (`@end @code{quotation}`) are part
   of the `unmatched_end` node, not parsed
 

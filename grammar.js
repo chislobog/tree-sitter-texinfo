@@ -177,6 +177,7 @@ export default grammar({
     $._context_command_name,
     $._container_item_name,
     $._macro_start,
+    $._math_name,
     $._error_sentinel,
   ],
 
@@ -225,7 +226,7 @@ export default grammar({
     comment: _ => /@c(omment)?([ \t\v\f][^\r\n]*)?/,
 
     // `\input texinfo` on the first line, for TeX.
-    input_line: $ => seq(token(prec(1, /\\input[ \t\v\f]+[^\s@]+/)), $._newline),
+    input_line: $ => seq(token(prec(1, /\\input[ \t\v\f]+[^ \t\n\r\v\f@]+/)), $._newline),
 
     // Everything after `@bye` is ignored.
     // The rest of the `@bye` line is still read, so a comment there counts.
@@ -304,7 +305,7 @@ export default grammar({
 
     // Takes precedence over the longer text of an argument, which may only
     // follow the names.
-    _alias_name: _ => token(prec(1, /[^@{}\s=]+/)),
+    _alias_name: _ => token(prec(1, /[^@{} \t\n\r\v\f=]+/)),
 
     // `@subentry` in an index entry: the rest of the line, which may hold the
     // next level's subentry, as in texi2any.
@@ -413,9 +414,10 @@ export default grammar({
         ),
         // An entry still being typed: no separator yet.
         seq(optional(field('label', alias($._menu_name, $.menu_label))), $._line_end),
-        // Without a separator, the node runs to the end of the line.
+        // Without a separator, the node runs to the end of the line. The
+        // label may be empty, as texi2any accepts with a warning.
         seq(
-          field('label', alias($._menu_name, $.menu_label)),
+          optional(field('label', alias($._menu_name, $.menu_label))),
           ':',
           choice(
             $._line_end,
@@ -443,7 +445,7 @@ export default grammar({
       $.brace_group,
     )),
 
-    _menu_name_text: _ => /[^@{}:\s]([^@{}:\r\n]*[^@{}:\s])?/,
+    _menu_name_text: _ => /[^@{}: \t\n\r\v\f]([^@{}:\n]*[^@{}: \t\n\r\v\f])?/,
 
     menu_node: $ => repeat1(choice(
       alias($._menu_node_text, $.text),
@@ -454,7 +456,7 @@ export default grammar({
 
     // Stops before `,` and before a `.` that is followed by whitespace; may
     // contain spaces, but doesn't start or end with one.
-    _menu_node_text: _ => /([^@{}.,\s]|\.+[^@{}.,\s])(([^@{}.,\r\n]|\.+[^@{}.,\s])*([^@{}.,\s]|\.+[^@{}.,\s]))?/,
+    _menu_node_text: _ => /([^@{}., \t\n\r\v\f]|\.+[^@{}., \t\n\r\v\f])(([^@{}.,\n]|\.+[^@{}., \t\n\r\v\f])*([^@{}., \t\n\r\v\f]|\.+[^@{}., \t\n\r\v\f]))?/,
 
     // The rest of the line, and following lines up to a blank line or the
     // next entry.
@@ -513,7 +515,7 @@ export default grammar({
       $.symbol_command,
     ),
 
-    _word_text: _ => /[^@{}\s]+/,
+    _word_text: _ => /[^@{} \t\n\r\v\f]+/,
 
     // Raw text up to the end of the line or a comment, as in texi2any. A
     // comment lexes as the longer match at `@c note`, and `@cfoo` as the
@@ -642,6 +644,16 @@ export default grammar({
     ),
 
     inline_command: $ => choice(
+      // `@math{...}`: as in texi2any, nothing in it ends at a blank line,
+      // neither a brace group nor a brace command.
+      prec.right(seq(
+        field('name', alias($._math_name, $.command_name)),
+        optional(seq(
+          '{',
+          optional(field('arguments', alias($._math_content, $.brace_arguments))),
+          choice('}', alias($._brace_close_at_block_end, $.missing_brace)),
+        )),
+      )),
       prec.right(seq(
         // Built-in brace commands, recognised by the scanner (BRACE_COMMANDS
         // in src/scanner.c): their argument ends at a blank line.
@@ -670,6 +682,39 @@ export default grammar({
       )),
       $._argument_command,
       $._verb_command,
+    ),
+
+    _math_content: $ => repeat1(choice(
+      $.text,
+      $.symbol_command,
+      $._newline,
+      alias($._math_group, $.brace_group),
+      alias($._math_command, $.inline_command),
+    )),
+
+    _math_group: $ => seq(
+      '{',
+      optional($._math_content),
+      choice('}', alias($._brace_close_at_block_end, $.missing_brace)),
+    ),
+
+    _math_command: $ => choice(
+      prec.right(seq(
+        field('name', alias($._brace_command_name, $.command_name)),
+        optional(choice(
+          seq('{', $._math_brace_arguments),
+          field('argument', alias($._accent_argument, $.text)),
+        )),
+      )),
+      prec.right(seq(
+        field('name', $.command_name),
+        optional(seq(token.immediate('{'), $._math_brace_arguments)),
+      )),
+    ),
+
+    _math_brace_arguments: $ => seq(
+      optional(field('arguments', alias($._math_content, $.brace_arguments))),
+      choice('}', alias($._brace_close_at_block_end, $.missing_brace)),
     ),
 
     // A built-in brace command or accent in a float's type.
@@ -707,9 +752,11 @@ export default grammar({
       // paragraphs and blocks, and its last paragraph may end at the `}`.
       prec.right(seq(
         field('name', alias($._context_command_name, $.command_name)),
-        '{',
-        optional(field('arguments', alias($._context_body, $.brace_arguments))),
-        choice('}', alias($._brace_close_at_block_end, $.missing_brace)),
+        optional(seq(
+          '{',
+          optional(field('arguments', alias($._context_body, $.brace_arguments))),
+          choice('}', alias($._brace_close_at_block_end, $.missing_brace)),
+        )),
       )),
       // `@inlinefmt{FORMAT, TEXT}`, `@inlineifset{FLAG, TEXT}`: like a
       // conditional block, the text may hold blank lines and blocks.
@@ -717,22 +764,26 @@ export default grammar({
       // several hundred parser states.
       prec.right(seq(
         field('name', command($, ['inlinefmt', 'inlineifset', 'inlineifclear'])),
-        '{',
-        optional(field('condition', $._condition)),
-        optional(seq(',', optional(field('text', alias($._long_arguments, $.argument))))),
-        choice('}', alias($._brace_close_at_block_end, $.missing_brace)),
+        optional(seq(
+          '{',
+          optional(field('condition', $._condition)),
+          optional(seq(',', optional(field('text', alias($._long_arguments, $.argument))))),
+          choice('}', alias($._brace_close_at_block_end, $.missing_brace)),
+        )),
       )),
       // `@inlineraw{FORMAT, TEXT}`: the text is raw, up to the matching brace.
       prec.right(seq(
         field('name', command($, ['inlineraw'])),
-        '{',
-        optional(field('condition', $._condition)),
-        optional(seq(',', optional(field('body', alias($._inline_raw_text, $.raw_text))))),
-        choice(
-          '}',
-          alias($._brace_close_at_paragraph_end, $.missing_brace),
-          alias($._brace_close_at_block_end, $.missing_brace),
-        ),
+        optional(seq(
+          '{',
+          optional(field('condition', $._condition)),
+          optional(seq(',', optional(field('body', alias($._inline_raw_text, $.raw_text))))),
+          choice(
+            '}',
+            alias($._brace_close_at_paragraph_end, $.missing_brace),
+            alias($._brace_close_at_block_end, $.missing_brace),
+          ),
+        )),
       )),
       ...Object.entries(ARGUMENT_COMMANDS).map(([names, commands]) => prec.right(seq(
         field('name', command($, commands)),
@@ -749,27 +800,33 @@ export default grammar({
     ),
 
     // `@verb{xTEXTx}`: the scanner reads the delimiter `x` and the raw text.
-    _verb_command: $ => seq(
+    _verb_command: $ => prec.right(seq(
       field('name', alias('@verb', $.command_name)),
-      token.immediate('{'),
-      $._verb_open,
-      optional(field('body', alias($._verb_text, $.raw_text))),
-      $._verb_close,
-      '}',
-    ),
+      optional(seq(
+        token.immediate('{'),
+        $._verb_open,
+        optional(field('body', alias($._verb_text, $.raw_text))),
+        $._verb_close,
+        '}',
+      )),
+    )),
 
     // Lines separated by single newlines: like texi2any, an ordinary brace
     // command ends at a blank line, so an unclosed brace only breaks its own
     // paragraph. Blocks and line commands are recognised at the start of a
     // line, but a line command not right after the `{`.
+    // Elsewhere the scanner closes the command before a blank line, but in a
+    // preformatted block it may continue past one, as in texi2any.
     brace_arguments: $ => choice(
       seq(
-        choice($._brace_first_line, seq($._newline, $._brace_line)),
-        repeat(seq($._newline, $._brace_line)),
-        optional($._newline),
+        choice($._brace_first_line, seq($._newlines, $._brace_line)),
+        repeat(seq($._newlines, $._brace_line)),
+        optional($._newlines),
       ),
-      $._newline,
+      $._newlines,
     ),
+
+    _newlines: $ => repeat1($._newline),
 
     _brace_first_line: $ => prec.right(choice(
       seq(repeat1($._line_block), repeat($._inline)),
@@ -786,23 +843,27 @@ export default grammar({
     // One argument of an ARGUMENT_COMMANDS command: lines without commas,
     // separated by single newlines.
     // An argument that is only a line break is kept, empty, as in texi2any.
+    // A raw block such as `@ignore` may stand on a line of its own, which
+    // texi2any keeps in the argument.
     argument: $ => choice(
       seq(
-        optional($._newline),
-        $._argument_line,
-        repeat(seq($._newline, $._argument_line)),
+        choice($._argument_line, seq($._newline, $._argument_line_item)),
+        repeat(seq($._newline, $._argument_line_item)),
         optional($._newline),
       ),
       $._newline,
     ),
 
+    _argument_line_item: $ => choice($._argument_line, $.raw_block),
+
     // The last argument, which may contain commas.
     _last_argument: $ => seq(
-      optional($._newline),
-      $._line,
-      repeat(seq($._newline, $._line)),
+      choice($._line, seq($._newline, $._last_argument_line)),
+      repeat(seq($._newline, $._last_argument_line)),
       optional($._newline),
     ),
+
+    _last_argument_line: $ => choice($._line, $.raw_block),
 
     _argument_line: $ => prec.right(repeat1(choice(
       alias($._argument_text, $.text),
@@ -812,7 +873,7 @@ export default grammar({
     ))),
 
     // Text in an argument other than the last, where a comma separates.
-    _argument_text: _ => /[^@{},\s]([^@{},\r\n]*[^@{},\s])?/,
+    _argument_text: _ => /[^@{}, \t\n\r\v\f]([^@{},\n]*[^@{}, \t\n\r\v\f])?/,
 
     // For brace commands other than the scanner's BRACE_COMMANDS, which may contain blank
     // lines.
@@ -850,7 +911,9 @@ export default grammar({
     // the longer match.
     symbol_command: _ => /@[^a-zA-Z\r\n]?/,
 
-    text: _ => /[^@{}\s]([^@{}\r\n]*[^@{}\s])?/,
+    // Only ASCII spaces count, as in texi2any: a text may start with a
+    // no-break space. A carriage return not before a newline is part of it.
+    text: _ => /[^@{} \t\n\r\v\f]([^@{}\n]*[^@{} \t\n\r\v\f])?/,
 
     _newline: _ => /\r?\n/,
 

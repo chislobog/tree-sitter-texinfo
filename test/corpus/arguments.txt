@@ -227,3 +227,28 @@ Inline conditionals
       name: (command_name)
       condition: (argument
         (text)))))
+
+================================================================================
+A raw block inside a cross-reference's arguments
+================================================================================
+
+@xref{first,
+@ignore
+ignore me
+@end ignore
+}.
+
+---
+
+(source_file
+  (paragraph
+    (inline_command
+      name: (command_name)
+      node: (argument
+        (text))
+      label: (argument
+        (raw_block
+          name: (command_name)
+          body: (raw_text)
+          end: (block_end))))
+    (text)))

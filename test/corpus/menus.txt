@@ -222,3 +222,27 @@ Comment.
     (paragraph
       (text))
     end: (block_end)))
+
+================================================================================
+Menu entries with an empty name
+================================================================================
+
+@menu
+* : (vvv). fff
+* :aaa,
+@end menu
+
+---
+
+(source_file
+  (menu
+    name: (command_name)
+    (menu_entry
+      node: (menu_node
+        (text))
+      description: (menu_description
+        (text)))
+    (menu_entry
+      node: (menu_node
+        (text)))
+    end: (block_end)))

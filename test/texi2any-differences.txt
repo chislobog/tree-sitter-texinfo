@@ -39,36 +39,12 @@ texinfo-tests/02coverage/indicateurl_end_lines.texi
 texinfo-tests/02coverage/unknown_commands.texi
   line 2: ours '@#', texi2any '(nothing)'
 
-# Invalid input; texi2any reports: @caption expected braces
-texinfo-tests/03coverage_braces/caption_no_braces.texi
-  1 parse errors
-
 # Invalid input; texi2any reports: @anchor missing closing brace
 texinfo-tests/03coverage_braces/empty_line_in_anchor.texi
   1 parse errors
 
-# To fix (TODO.md, Differences from texi2any): a blank line inside a brace group in @math
-texinfo-tests/03coverage_braces/empty_line_in_braces_in_math.texi
-  1 parse errors
-
-# To fix (TODO.md, Differences from texi2any): a blank line inside a brace group in @math
-texinfo-tests/03coverage_braces/empty_line_in_braces_in_math_at_begin_line.texi
-  1 parse errors
-
-# To fix (TODO.md, Differences from texi2any): a blank line inside a brace command in @math
-texinfo-tests/03coverage_braces/empty_line_in_command_in_math.texi
-  1 parse errors
-
 # Invalid input; texi2any reports: @email missing closing brace
 texinfo-tests/03coverage_braces/empty_line_in_email.texi
-  1 parse errors
-
-# Invalid input; texi2any reports: @footnote expected braces
-texinfo-tests/03coverage_braces/footnote_no_braces.texi
-  1 parse errors
-
-# Invalid input; texi2any reports: @TeX expected braces
-texinfo-tests/03coverage_braces/no_brace.texi
   1 parse errors
 
 # Invalid input; texi2any reports: misplaced }
@@ -112,10 +88,6 @@ texinfo-tests/08misc_commands/clickstyle_and_comments.texi
 texinfo-tests/08misc_commands/command_not_closed_on_center_line.texi
   1 parse errors
 
-# To fix (TODO.md, Differences from texi2any): a menu entry with an empty name
-texinfo-tests/10menu/empty_menu_entry_name.texi
-  2 parse errors
-
 # Deliberate: a block and its @end on one line; blocks start and end at the beginning of a line, as the Texinfo manual requires
 texinfo-tests/16raw/beginning_and_end_on_line.texi
   line 2: ours '@end', texi2any '-tex +verbatim -verbatim +html -html'
@@ -125,14 +97,6 @@ texinfo-tests/16raw/raw_commands_and_end_of_lines.texi
   line 13: ours '@html @html @html @html', texi2any '+html -html +html -html +html -html +html -html'
   line 41: ours '@tex @tex @tex @tex', texi2any '+tex -tex +tex -tex +tex -tex +tex -tex'
   line 69: ours '@verbatim @verbatim @verbatim @verbatim', texi2any '+verbatim -verbatim +verbatim -verbatim +verbatim -verbatim +verbatim -verbatim'
-
-# To fix (TODO.md, Differences from texi2any): a block inside a brace command
-texinfo-tests/16raw/raw_expanded_in_style.texi
-  1 parse errors
-
-# To fix (TODO.md, Differences from texi2any): a block inside a brace command
-texinfo-tests/16raw/raw_in_style.texi
-  1 parse errors
 
 # Invalid input; texi2any reports: @samp missing closing brace
 texinfo-tests/16raw/verbatim_in_brace_command.texi
@@ -160,10 +124,6 @@ texinfo-tests/19def/wrong_braces_simple.texi
 
 # Invalid input; texi2any reports: misplaced {
 texinfo-tests/19def/wrong_braces_with_end_of_lines.texi
-  1 parse errors
-
-# To fix (TODO.md, Differences from texi2any): a blank line inside a style command in a preformatted block
-texinfo-tests/20preformatted/empty_line_style_command.texi
   1 parse errors
 
 # Deliberate: multitable cells texi2any drops with a warning are kept as written
@@ -200,35 +160,23 @@ texinfo-tests/30sectioning/empty_ref_arg.texi
 
 # Invalid input; texi2any reports: empty node name in menu entry
 texinfo-tests/30sectioning/in_menu_only_special_ascii_spaces_node.texi
-  5 parse errors
+  2 parse errors
 
 # Invalid input; texi2any reports: empty node name in menu entry
 texinfo-tests/30sectioning/in_menu_only_special_ascii_spaces_node_menu.texi
-  5 parse errors
+  2 parse errors
 
 # Invalid input; texi2any reports: empty node name in menu entry
 texinfo-tests/30sectioning/in_menu_only_special_spaces_node.texi
-  5 parse errors
+  2 parse errors
 
 # Invalid input; texi2any reports: empty node name in menu entry
 texinfo-tests/30sectioning/in_menu_only_special_spaces_node_menu.texi
-  5 parse errors
+  2 parse errors
 
 # Invalid input; texi2any reports: empty node name in menu entry
 texinfo-tests/30sectioning/in_menu_only_special_spaces_node_menu_transliterate.texi
-  5 parse errors
-
-# Invalid input; texi2any reports: empty argument in @node
-texinfo-tests/40moresectioning/only_special_spaces_node.texi
   2 parse errors
-
-# Invalid input; texi2any reports: empty argument in @node
-texinfo-tests/40moresectioning/only_special_spaces_node_transliterate.texi
-  2 parse errors
-
-# To fix (TODO.md, Differences from texi2any): text starting with a non-ASCII space
-texinfo-tests/40moresectioning/special_spaces_in_nodes.texi
-  4 parse errors
 
 # Invalid input; texi2any reports: @set requires a name
 texinfo-tests/50value/bad_syntax.texi
@@ -305,14 +253,11 @@ texinfo-tests/57invalid_nestings/flushright_in_style_command.texi
 texinfo-tests/57invalid_nestings/formats_not_closed_in_example.texi
   line 11: ours '(nothing)', texi2any '-example'
 
-# To fix (TODO.md, Differences from texi2any): @ignore inside a cross-reference's arguments
-texinfo-tests/57invalid_nestings/ignore_in_xref.texi
-  1 parse errors
-
 # Invalid input; texi2any reports: no matching `@end ifinfo'
 texinfo-tests/57invalid_nestings/ignored_text.texi
   line 1: ours '@ifinfo', texi2any '(nothing)'
-# To fix (TODO.md, Differences from texi2any): a block inside a brace command
+
+# Invalid input; texi2any reports: @errormsg missing closing brace
 texinfo-tests/57invalid_nestings/in_errormsg.texi
   1 parse errors
 
@@ -602,47 +547,15 @@ texinfo-tests/80include/cpp_line_latin1.texi
 texinfo-tests/80include/cpp_lines.texi
   1 parse errors
 
-# To fix (TODO.md, Differences from texi2any): an inline conditional's brace on the next line
-texinfo-tests/converters_tests/inlineifsetifclearspaces.texi
-  2 parse errors
-
 # Invalid input; texi2any reports: too many columns in multitable item (max 3)
 texinfo-tests/converters_tests/multitable_prototypes.texi
   line 5: ours '@tab', texi2any '(nothing)'
-
-# To fix (TODO.md, Differences from texi2any): a brace command without braces as an @itemize or @table argument
-texinfo-tests/converters_tests/various_itemize_command_as_argument.texi
-  4 parse errors
-
-# To fix (TODO.md, Differences from texi2any): a brace command without braces as an @itemize or @table argument
-texinfo-tests/converters_tests/various_vtable_command_as_argument.texi
-  4 parse errors
 
 # Deliberate: the file is in Shift-JIS, not UTF-8; an editor converts it
 texinfo-tests/formats_encodings/japanese_shift_jis.texi
   line 19: ours '@�', texi2any '(nothing)'
   line 33: ours '@�', texi2any '(nothing)'
   1 parse errors
-
-# Invalid input; texi2any reports: empty argument in @node
-texinfo-tests/html_tests/simple_only_special_spaces_node.texi
-  2 parse errors
-
-# Invalid input; texi2any reports: empty argument in @node
-texinfo-tests/html_tests/simple_only_special_spaces_node_no_translit_files.texi
-  2 parse errors
-
-# Invalid input; texi2any reports: empty argument in @node
-texinfo-tests/html_tests/simple_only_special_spaces_node_test_split_section.texi
-  2 parse errors
-
-# To fix (TODO.md, Differences from texi2any): a comment line inside a brace argument
-texinfo-tests/info_tests/anchor_in_command.texi
-  1 parse errors
-
-# To fix (TODO.md, Differences from texi2any): text starting with a non-ASCII space
-texinfo-tests/plaintext_tests/all_spaces.texi
-  2 parse errors
 
 # Invalid input; texi2any reports: @headitem not meaningful inside `@itemize' block
 texinfo-tests/plaintext_tests/itemize_in_headitem_in_example.texi

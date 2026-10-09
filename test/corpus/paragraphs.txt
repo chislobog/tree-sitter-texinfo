@@ -283,3 +283,20 @@ load-path}.
         (text)
         (text)))
     (text)))
+
+================================================================================
+Text starting with a non-ASCII space
+================================================================================
+
+@node   
+ starts with a no-break space.
+
+---
+
+(source_file
+  (node_line
+    name: (command_name)
+    node: (argument
+      (text)))
+  (paragraph
+    (text)))

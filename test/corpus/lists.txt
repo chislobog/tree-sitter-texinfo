@@ -377,3 +377,53 @@ Second.
       (paragraph
         (text)))
     end: (block_end)))
+
+================================================================================
+Brace commands without braces as a list's argument
+================================================================================
+
+@itemize @footnote
+@item a
+@end itemize
+
+@vtable @verb
+@item b
+@end vtable
+
+@itemize @inlineraw
+@item c
+@end itemize
+
+---
+
+(source_file
+  (list
+    name: (command_name)
+    argument: (line_argument
+      (inline_command
+        name: (command_name)))
+    (item
+      name: (command_name)
+      (paragraph
+        (text)))
+    end: (block_end))
+  (list
+    name: (command_name)
+    argument: (line_argument
+      (inline_command
+        name: (command_name)))
+    (item
+      name: (command_name)
+      argument: (line_argument
+        (text)))
+    end: (block_end))
+  (list
+    name: (command_name)
+    argument: (line_argument
+      (inline_command
+        name: (command_name)))
+    (item
+      name: (command_name)
+      (paragraph
+        (text)))
+    end: (block_end)))
