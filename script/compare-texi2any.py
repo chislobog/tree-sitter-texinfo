@@ -605,6 +605,11 @@ def run_texi2any(path: Path) -> tuple[str, set[tuple[int, str]]]:
                 path.name,
             ],
             cwd=directory,
+            # texi2any's parser written in C, which it uses where it was
+            # built, treats invalid input such as Latin-1 bytes differently
+            # from its Perl one: always use the Perl one, so the results are
+            # the same on every platform.
+            env={**os.environ, "TEXINFO_XS": "omit"},
             capture_output=True,
             # texi2any exits with an error on invalid input, but still
             # prints its tree, which is what is compared.
