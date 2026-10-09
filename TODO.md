@@ -133,7 +133,8 @@ of a line.
 - [ ] A brace argument crossing a conditional's boundary (e.g. `@footnote{`
   inside `@ifnottex`, closed after its `@end`) can't be represented and stays
   a one-character error
-- [ ] TeX lines before `\input texinfo` (e.g. gawk's Italian manual)
+- [x] TeX lines before `\input texinfo` (e.g. gawk's Italian manual): text,
+  as in texi2any, which only recognises `\input` on the first line
 
 ## Queries
 
