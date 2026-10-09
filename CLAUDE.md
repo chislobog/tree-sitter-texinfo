@@ -100,11 +100,14 @@ Known noise in the comparison: `gawk-5.4.1/it/gawk.texi` and
 `html_default_commands_args.texi` (a fragment for `@include`), and the Italian
 `pm-gawk.texi` (uses a macro before defining it). Commands texi2any reports
 as unknown (TeX primitives, index commands defined in another file of the
-manual) are left out of the comparison at the line it reports. The script doesn't expand
-`@linemacro` calls, so their expansions show up as differences. In
-`texinfo-tests/`, the macro and value suites (`50value`, `58alias`, `60macro`,
+manual) are left out of the comparison at the line it reports. The script
+imitates texi2any's expansion of `@macro`, `@linemacro`, `@value` (when it is
+used, not when it is set), `@alias` and `@clickstyle`, simply: in
+`texinfo-tests/`, the macro and value suites (`50value`, `60macro`,
 `65linemacro`, `70value_and_macro`) and `57invalid_nestings` differ mostly
-because of the script's simple macro expansion and different error recovery. Use
+because of that and of different error recovery. The binutils option files
+(`*.options.texi`) are fragments whose `@item`s texi2any drops outside a
+table. Use
 `--structure` to compare only blocks, items and line commands.
 
 ## Conventions

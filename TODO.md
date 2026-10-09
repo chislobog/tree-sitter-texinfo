@@ -145,7 +145,7 @@ of a line.
 
 ## Differences from texi2any
 
-From comparing with texi2any on its own test inputs (104 of 1,755 differ;
+From comparing with texi2any on its own test inputs (84 of 1,755 differ;
 the manuals match fully).
 
 Gaps, where we give a parse error and texi2any recovers:
@@ -209,7 +209,7 @@ Deliberate, so the tree shows the source as it is written and edited:
   match rates (`--fail-under`)
 - [x] README: supported features, editor setup, development with Nix
 - [x] `CLAUDE.md` with project conventions
-- [ ] Expand `@linemacro` calls in the texi2any comparison
+- [x] Expand `@linemacro` calls in the texi2any comparison
 - [ ] In `--structure` mode, classify texi2any's commands from one shared list
   of line commands, headings and blocks, not from the commands our parser
   produced; a line command we don't know is currently hidden there

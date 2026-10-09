@@ -36,7 +36,6 @@ Usage: script/compare-texi2any.py [--structure] [--hunks N] [--fail-under PERCEN
 
 import argparse
 import ctypes
-import dataclasses
 import difflib
 import itertools
 import os
@@ -131,8 +130,14 @@ class OurWalker:
         self.tokens: list[Token] = []
         self.flags: set[str] = {"txicommandconditionals"}
         # Commands in each `@set` value, emitted again at each `@value`.
-        self.values: dict[str, list[Token]] = {}
+        self.values: dict[str, str] = {}
         self.macros: dict[str, Macro | None] = {}
+        self.linemacros: dict[str, Macro] = {}
+        # The source being walked: the file, or an expansion in it.
+        self.sources: list[bytes] = []
+        # Tokens of a line macro call's own line, replaced by its expansion:
+        # (expansion depth, end byte of the call).
+        self.skip: tuple[int, int] | None = None
         # `@alias NEW = EXISTING`: texi2any replaces NEW with EXISTING.
         self.aliases: dict[str, str] = {}
         # The command `@clickstyle` chose, which texi2any puts for `@click`.
@@ -152,6 +157,8 @@ class OurWalker:
 
     def emit(self, name: str, node, structural: bool):
         line = self.line(node)
+        if self.skip and self.skip[0] == self.depth and node.start_byte < self.skip[1]:
+            return
         if line != self.comment_line:
             self.tokens.append(Token(name, line, structural))
 
@@ -162,19 +169,38 @@ class OurWalker:
         name = name.strip()
         # A new definition replaces an alias of the same name.
         self.aliases.pop("@" + name, None)
-        if kind == "linemacro":
-            self.macros[name] = None
-            return
         body = node.child_by_field_name("body")
-        self.macros[name] = Macro(
+        macro = Macro(
             [p.strip() for p in parameters.rstrip("}").split(",") if p.strip()],
             text(body).removesuffix("\n") if body else "",
         )
+        if kind == "linemacro":
+            self.macros.pop(name, None)
+            self.linemacros[name] = macro
+        else:
+            self.linemacros.pop(name, None)
+            self.macros[name] = macro
 
-    def expand_macro(self, macro: Macro, node, call: str):
-        if self.depth >= MAX_EXPANSION_DEPTH:
-            return
-        values = [v.strip() for v in call.split(",", max(len(macro.parameters) - 1, 0))]
+    def expand_linemacro(self, macro: Macro, node):
+        """Expands a line macro call at `node`, a command at the start of a
+        line: its arguments are the rest of the line, and the next ones while
+        a line ends in `@`. The other tokens of those lines are left out."""
+        source = self.sources[-1]
+        end = node.end_byte
+        while True:
+            newline = source.find(b"\n", end)
+            if newline < 0:
+                end = len(source)
+                break
+            end = newline
+            if not source[:end].rstrip(b"\r").endswith(b"@"):
+                break
+            end += 1
+        call = source[node.end_byte : end].decode("utf-8", "replace")
+        self.skip = (self.depth, end)
+        self.substitute(macro, node, linemacro_arguments(call, len(macro.parameters)))
+
+    def substitute(self, macro: Macro, node, values: list[str]):
         body = macro.body
         # A call may give fewer arguments than the macro has parameters.
         for parameter, value in zip(macro.parameters, values, strict=False):
@@ -182,13 +208,23 @@ class OurWalker:
         body = body.replace("\\\\", "\\")
         self.walk_source(body, node)
 
+    def expand_macro(self, macro: Macro, node, call: str):
+        if self.depth >= MAX_EXPANSION_DEPTH:
+            return
+        values = [v.strip() for v in call.split(",", max(len(macro.parameters) - 1, 0))]
+        self.substitute(macro, node, values)
+
     def walk_source(self, source: str, node):
         """Parses and walks text that texi2any parses where it is used (a
         macro expansion or an `@set` value), as if it were at `node`."""
+        if self.depth >= MAX_EXPANSION_DEPTH:
+            return
         call_line = self.call_line
         self.call_line = self.line(node)
         self.depth += 1
-        self.walk(self.parser.parse(source.encode()).root_node)
+        self.sources.append(source.encode())
+        self.walk(self.parser.parse(self.sources[-1]).root_node)
+        self.sources.pop()
         self.depth -= 1
         self.call_line = call_line
 
@@ -320,17 +356,13 @@ class OurWalker:
                 return
             self.emit(name, node, True)
             if name == "@set":
-                # The value is raw text; its commands are emitted at each
-                # `@value`, where texi2any parses it.
+                # The value is raw text, which texi2any parses at each
+                # `@value`, with the variables set by then.
                 variable = node.child_by_field_name("variable")
                 value = node.child_by_field_name("value")
                 word = first_word(variable)
                 self.flags.add(word)
-                start = len(self.tokens)
-                if value is not None:
-                    self.walk_source(text(value), node)
-                self.values[word] = self.tokens[start:]
-                del self.tokens[start:]
+                self.values[word] = text(value) if value is not None else ""
                 self.children(node, name_node, variable, value)  # comments
             elif name == "@clear":
                 variable = node.child_by_field_name("variable")
@@ -379,11 +411,15 @@ class OurWalker:
                 arguments = node.child_by_field_name("arguments")
                 value = text(arguments).strip() if arguments else ""
                 if value in self.values:
-                    self.tokens.extend(
-                        dataclasses.replace(t, line=self.line(node)) for t in self.values[value]
-                    )
+                    self.walk_source(self.values[value], node)
                 else:
                     self.emit(name, node, False)
+                return
+            if name[1:] in self.linemacros:
+                # Only a call at the start of a line expands.
+                start = self.sources[-1].rfind(b"\n", 0, node.start_byte) + 1
+                if not self.sources[-1][start : node.start_byte].strip():
+                    self.expand_linemacro(self.linemacros[name[1:]], node)
                 return
             if name[1:] in self.macros:
                 macro = self.macros[name[1:]]
@@ -399,8 +435,11 @@ class OurWalker:
             return
 
         if kind == "symbol_command":
-            if not (self.in_definition_line and text(node) == "@\n"):
-                self.emit(text(node), node, False)
+            # A lone `@` is at the end of a line (or of the file): texi2any's
+            # end-of-line command, which keeps the newline in its name.
+            name = "@\n" if text(node) == "@" else text(node)
+            if not (self.in_definition_line and name == "@\n"):
+                self.emit(name, node, False)
             return
 
         if kind == "comment":
@@ -419,9 +458,56 @@ class OurWalker:
         self.children(node)
 
 
+def linemacro_arguments(call: str, count: int) -> list[str]:
+    """Splits a line macro call's arguments at spaces, as texi2any does:
+    braces around an argument are removed, and the last one takes the rest."""
+    arguments: list[str] = []
+    # A newline kept after a final `@` belongs to the last argument.
+    rest = call.strip(" \t")
+    while rest and len(arguments) < count - 1:
+        depth = index = 0
+        while index < len(rest):
+            char = rest[index]
+            if char == "@":
+                index += 1
+            elif char == "{":
+                depth += 1
+            elif char == "}":
+                depth -= 1
+            elif char.isspace() and depth == 0:
+                break
+            index += 1
+        arguments.append(rest[:index])
+        rest = rest[index:].lstrip()
+    if rest:
+        arguments.append(rest)
+    return [
+        a[1:-1] if a.startswith("{") and a.endswith("}") and _balanced(a[1:-1]) else a
+        for a in arguments
+    ]
+
+
+def _balanced(text: str) -> bool:
+    depth = 0
+    escaped = False
+    for char in text:
+        if escaped:
+            escaped = False
+        elif char == "@":
+            escaped = True
+        elif char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth < 0:
+                return False
+    return depth == 0
+
+
 def our_tokens(parser: Parser, path: Path) -> tuple[list[Token], int]:
     walker = OurWalker(parser)
-    walker.walk(parser.parse(path.read_bytes()).root_node)
+    walker.sources.append(path.read_bytes())
+    walker.walk(parser.parse(walker.sources[0]).root_node)
     return walker.tokens, walker.errors
 
 
