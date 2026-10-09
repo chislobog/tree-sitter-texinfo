@@ -368,3 +368,45 @@ A @code {a} b @xref {N, L}. @mymacro {x}
       name: (command_name))
     (brace_group
       (text))))
+
+================================================================================
+An unclosed brace in a line argument closes at the end of the line
+================================================================================
+
+@chapter A @code{x @emph{y
+Next line.
+
+@cindex B @var{z
+Para.
+
+---
+
+(source_file
+  (chapter
+    heading: (chapter_heading
+      name: (command_name)
+      title: (line_argument
+        (text)
+        (inline_command
+          name: (command_name)
+          arguments: (brace_arguments
+            (text)
+            (inline_command
+              name: (command_name)
+              arguments: (brace_arguments
+                (text))
+              (missing_brace)))
+          (missing_brace))))
+    (paragraph
+      (text))
+    (line_command
+      name: (command_name)
+      argument: (line_argument
+        (text)
+        (inline_command
+          name: (command_name)
+          arguments: (brace_arguments
+            (text))
+          (missing_brace))))
+    (paragraph
+      (text))))

@@ -88,9 +88,9 @@ block commands only start a line (texi2any also accepts `text @html` and
 `@tex in tex @end tex` on one line), and `@end` only ends a block at the start
 of a line.
 
-- [ ] An unclosed brace in a line command's argument (`@chapter A @code{x`)
-  should close at the end of that line, as in texi2any; now it runs on to the
-  next blank line
+- [x] An unclosed brace in a line command's argument (`@chapter A @code{x`)
+  closes at the end of that line, as in texi2any. Not yet in `@node` lines
+  or in the commands with named arguments (`@xref{` in a heading)
 - [x] A block right after `@footnote{` (`@footnote{@quotation`)
 
 - [x] `@itemx` after index entries or comments that follow an `@item`

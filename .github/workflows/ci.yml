@@ -50,13 +50,18 @@ jobs:
       - name: Incremental parsing
         run: nix develop --command tree-sitter fuzz --iterations 100
 
-      # gawk's Italian manual has a footnote crossing a conditional, which a
-      # tree-sitter parse can't represent (see TODO.md).
+      # Only the manuals with errors in their source may fail to parse:
+      # gawk.texi has a brace crossing a line in an @center argument, which
+      # texi2any also reports, and the Italian gawk.texi a footnote crossing
+      # a conditional, which a tree-sitter parse can't represent (TODO.md).
       - name: Parse the example manuals
         run: |
           nix develop --command bash -c "
-            find -L examples -name '*.texi' ! -path '*/it/gawk.texi' -print0 |
-              xargs -0 tree-sitter parse --quiet --stat"
+            find -L examples -name '*.texi' -print0 |
+              xargs -0 tree-sitter parse --quiet --stat |
+              grep -E '\((ERROR|MISSING)' | cut -f1 | sed 's/ *$//' | sort > errors.txt
+            printf '%s\n' examples/gawk-5.4.1/gawk.texi examples/gawk-5.4.1/it/gawk.texi |
+              diff - errors.txt"
 
       # Without the files texi2any itself fails on, and those listed as noise
       # in CLAUDE.md.

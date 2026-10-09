@@ -144,6 +144,7 @@ export default grammar({
     $._verb_close,
     $._brace_close_at_paragraph_end,
     $._brace_close_at_block_end,
+    $._brace_close_at_line_end,
     $._missing_end,
     $._menu_start,
     ...DEFINITION_LAYOUTS.map((_, i) => $[`_definition_start_${i}`]),
@@ -260,7 +261,29 @@ export default grammar({
       ),
     ),
 
-    line_argument: $ => repeat1($._inline),
+    // Like texi2any, a line command's argument ends at the end of its line,
+    // closing any brace command left open in it.
+    line_argument: $ => repeat1($._line_argument_inline),
+
+    _line_argument_inline: $ => choice(
+      $.text,
+      alias($._line_argument_command, $.inline_command),
+      $.symbol_command,
+      $.brace_group,
+    ),
+
+    _line_argument_command: $ => choice(
+      prec.right(seq(
+        field('name', alias($._brace_command_name, $.command_name)),
+        optional(seq('{', $._line_brace_arguments)),
+      )),
+      prec.right(seq(
+        field('name', $.command_name),
+        optional(seq(token.immediate('{'), $._line_brace_arguments)),
+      )),
+      $._argument_command,
+      $._verb_command,
+    ),
 
     // `@node NAME, NEXT, PREVIOUS, UP` not followed by a sectioning command;
     // otherwise it is the `node` of a section.
@@ -477,6 +500,20 @@ export default grammar({
           choice('}', alias($._brace_close_at_block_end, $.missing_brace)),
         )),
       )),
+      $._argument_command,
+      $._verb_command,
+    ),
+
+    _line_brace_arguments: $ => seq(
+      optional(field('arguments', alias(
+        repeat1($._line_argument_inline),
+        $.brace_arguments,
+      ))),
+      choice('}', alias($._brace_close_at_line_end, $.missing_brace)),
+    ),
+
+    // Commands whose arguments split at commas into named fields.
+    _argument_command: $ => choice(
       ...Object.entries(ARGUMENT_COMMANDS).map(([names, commands]) => prec.right(seq(
         field('name', command($, commands)),
         optional(seq(
@@ -489,15 +526,16 @@ export default grammar({
           ),
         )),
       ))),
-      // `@verb{xTEXTx}`: the scanner reads the delimiter `x` and the raw text.
-      seq(
-        field('name', alias('@verb', $.command_name)),
-        token.immediate('{'),
-        $._verb_open,
-        optional(field('body', alias($._verb_text, $.raw_text))),
-        $._verb_close,
-        '}',
-      ),
+    ),
+
+    // `@verb{xTEXTx}`: the scanner reads the delimiter `x` and the raw text.
+    _verb_command: $ => seq(
+      field('name', alias('@verb', $.command_name)),
+      token.immediate('{'),
+      $._verb_open,
+      optional(field('body', alias($._verb_text, $.raw_text))),
+      $._verb_close,
+      '}',
     ),
 
     // Lines separated by single newlines: like texi2any, an ordinary brace

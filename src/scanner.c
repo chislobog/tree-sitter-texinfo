@@ -32,6 +32,7 @@ enum TokenType {
   // the end of the file, and before the `@end` of the innermost open block.
   BRACE_CLOSE_AT_PARAGRAPH_END,
   BRACE_CLOSE_AT_BLOCK_END,
+  BRACE_CLOSE_AT_LINE_END,
   // Zero-width end of a block still open at the end of the file.
   MISSING_END,
   MENU_START,
@@ -771,10 +772,17 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
   }
 
   if (valid_symbols[BRACE_CLOSE_AT_PARAGRAPH_END] ||
-      valid_symbols[BRACE_CLOSE_AT_BLOCK_END]) {
+      valid_symbols[BRACE_CLOSE_AT_BLOCK_END] ||
+      valid_symbols[BRACE_CLOSE_AT_LINE_END]) {
     while (is_blank(lexer->lookahead)) skip(lexer);
     if (lexer->eof(lexer) || lexer->lookahead == '\n' ||
         lexer->lookahead == '\r') {
+      // In a line command's argument, a brace closes at the end of the line.
+      if (valid_symbols[BRACE_CLOSE_AT_LINE_END]) {
+        lexer->mark_end(lexer);
+        lexer->result_symbol = BRACE_CLOSE_AT_LINE_END;
+        return true;
+      }
       return scan_missing_brace(scanner, lexer, valid_symbols);
     }
   }
