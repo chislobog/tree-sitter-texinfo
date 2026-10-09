@@ -86,30 +86,32 @@ CI also fuzzes the scanner with libFuzzer and sanitizers
 (`tree-sitter/fuzz-action`), seeded by `script/corpus-inputs.py`; this hangs
 at startup on macOS with Nix's clang, so it only runs in CI.
 
-CI (`.github/workflows/ci.yml`) runs all of these on every push, with
-minimum match rates for the comparisons (`--fail-under`). Raise them when the
-grammar improves.
+CI (`.github/workflows/ci.yml`) runs all of these on every push. The
+comparisons pass only if the differences from texi2any are exactly those
+listed in `test/texi2any-differences.txt`, each file with a `#` comment giving
+the reason: deliberate (the Texinfo manual over texi2any's error recovery,
+source kept unexpanded), invalid input (with texi2any's own error), a limit of
+the comparison, or a gap still to fix (also in `TODO.md`). A difference not
+listed fails, and so does a listed one no longer found. After a deliberate
+change, or a fix, run the comparison with `--write-expected
+test/texi2any-differences.txt` (on the same files as CI), check the diff of
+that file, and give each new file a reason; never list a regression.
 
 To compare with texi2any on its own test inputs (about a minute):
 
 ```sh
-find -L texinfo-tests -name '*.texi' | sort | xargs python3 script/compare-texi2any.py
+find -L texinfo-tests -name '*.texi' | sort |
+  xargs python3 script/compare-texi2any.py --expected test/texi2any-differences.txt
 ```
 
-Known noise in the comparison: `gawk-5.4.1/it/gawk.texi` and
-`texinfo-7.3/texinfo-tex-test.texi` (texi2any fails on them),
-`html_default_commands_args.texi` (a fragment for `@include`), and the Italian
-`pm-gawk.texi` (uses a macro before defining it). Commands texi2any reports
-as unknown (TeX primitives, index commands defined in another file of the
-manual) are left out of the comparison at the line it reports. The script
-imitates texi2any's expansion of `@macro`, `@linemacro`, `@value` (when it is
-used, not when it is set), `@alias` and `@clickstyle`, simply: in
-`texinfo-tests/`, the macro and value suites (`50value`, `60macro`,
-`65linemacro`, `70value_and_macro`) and `57invalid_nestings` differ mostly
-because of that and of different error recovery. The binutils option files
-(`*.options.texi`) are fragments whose `@item`s texi2any drops outside a
-table. Use
-`--structure` to compare only blocks, items and line commands.
+The comparisons skip the files texi2any itself fails on (the Italian gawk
+manuals, `texinfo-tex-test.texi`) and `html_default_commands_args.texi`, a
+fragment for `@include`. Commands texi2any reports as unknown (TeX primitives,
+index commands defined in another file of the manual) are left out at the
+line it reports. The script imitates texi2any's expansion of `@macro`,
+`@linemacro`, `@value` (when it is used, not when it is set), `@alias` and
+`@clickstyle`, simply. Use `--structure` to compare only blocks, items and
+line commands.
 
 ## Conventions
 

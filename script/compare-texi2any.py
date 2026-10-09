@@ -15,7 +15,7 @@ texi2any does things a tree-sitter grammar cannot, so this side mirrors them:
   uses it, so the commands in a value are moved to each `@value`.
 - Calls to user-defined macros are expanded like texi2any does: arguments
   are substituted into the body, which is parsed with this grammar.
-  `@linemacro` calls are skipped.
+  `@linemacro` calls at the start of a line are expanded too.
 - Inline conditionals are evaluated the same way: only the arguments
   texi2any expands (`@inlinefmtifelse`'s else, `@inlineifset`'s text when
   the flag is set, ...) contribute commands.
@@ -31,7 +31,14 @@ texi2any does things a tree-sitter grammar cannot, so this side mirrors them:
 On our side, a command name inside an ERROR node still counts as a command:
 error recovery keeps it, and that is what an editor highlights.
 
-Usage: script/compare-texi2any.py [--structure] [--hunks N] [--fail-under PERCENT] FILE...
+The differences that are expected, because they are deliberate or come from
+the limits of this comparison, are listed with their reasons in
+test/texi2any-differences.txt; `--expected` fails on any other difference,
+and on a listed one that is no longer found, and `--write-expected` updates
+the list.
+
+Usage: script/compare-texi2any.py [--structure] [--hunks N]
+       [--expected FILE] [--write-expected FILE] FILE...
 """
 
 import argparse
@@ -44,6 +51,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
@@ -646,26 +654,64 @@ def texi2any_tokens(dump: str, structural_names: set[str]) -> list[Token]:
 # Comparison ------------------------------------------------------------
 
 
-def report(path: Path, ours: list[Token], theirs: list[Token], hunks: int) -> float:
+def differences(ours: list[Token], theirs: list[Token]) -> tuple[list[str], int]:
+    """The differences between the two command sequences, one line each, and
+    the number of commands that match."""
     matcher = difflib.SequenceMatcher(
         a=[t.name for t in ours],
         b=[t.name for t in theirs],
         autojunk=False,
     )
-    ratio = matcher.ratio()
-    differences = [op for op in matcher.get_opcodes() if op[0] != "equal"]
-    print(
-        f"{path}: {ratio:.2%} match, {len(ours)} vs {len(theirs)} commands, "
-        f"{len(differences)} differences"
-    )
-    for _tag, a1, a2, b1, b2 in differences[:hunks]:
+    found = []
+    matched = 0
+    for tag, a1, a2, b1, b2 in matcher.get_opcodes():
+        if tag == "equal":
+            matched += a2 - a1
+            continue
         line = ours[a1].line if a1 < len(ours) else ours[-1].line if ours else "?"
         mine = " ".join(t.name for t in ours[a1:a2]) or "(nothing)"
         reference = " ".join(t.name for t in theirs[b1:b2]) or "(nothing)"
-        print(f"  line {line}: ours {mine!r}, texi2any {reference!r}")
-    if len(differences) > hunks:
-        print(f"  ... {len(differences) - hunks} more")
-    return ratio
+        found.append(f"line {line}: ours {mine!r}, texi2any {reference!r}")
+    return found, matched
+
+
+@dataclass
+class Expected:
+    """A file's expected differences, with the comment that explains them."""
+
+    comment: list[str]
+    differences: list[str]
+
+
+def read_expected(path: Path) -> dict[str, Expected]:
+    """Reads the expected differences: comment lines (`#`), then a file's path,
+    then its differences, each indented by two spaces."""
+    entries: dict[str, Expected] = {}
+    comment: list[str] = []
+    current = None
+    if not path.exists():
+        return entries
+    for line in path.read_text().splitlines():
+        if line.startswith("#"):
+            comment.append(line)
+        elif line.startswith("  ") and current is not None:
+            current.differences.append(line[2:])
+        elif line.strip():
+            current = entries[line] = Expected(comment, [])
+            comment = []
+    return entries
+
+
+def write_expected(path: Path, entries: dict[str, Expected]):
+    lines = []
+    for name in sorted(entries):
+        entry = entries[name]
+        if lines and entry.comment:
+            lines.append("")
+        lines.extend(entry.comment)
+        lines.append(name)
+        lines.extend("  " + d for d in entry.differences)
+    path.write_text("\n".join(lines) + "\n")
 
 
 def main() -> int:
@@ -678,15 +724,24 @@ def main() -> int:
         "--hunks", type=int, default=5, help="differences to show per file (default 5)"
     )
     arguments.add_argument(
-        "--fail-under",
-        type=float,
-        metavar="PERCENT",
-        help="exit with an error if fewer commands match overall",
+        "--expected",
+        type=Path,
+        metavar="FILE",
+        help="exit with an error on any difference not listed in FILE, or "
+        "listed for a compared file but not found",
+    )
+    arguments.add_argument(
+        "--write-expected",
+        type=Path,
+        metavar="FILE",
+        help="record the differences of the compared files in FILE, keeping "
+        "its comments and its other files",
     )
     options = arguments.parse_args()
 
     parser = Parser(load_language())
-    total_ours = total_matched = 0
+    total_ours = total_matched = total_differences = 0
+    found: dict[str, list[str]] = {}
     # texi2any is the slow part: run it for all files in parallel, and report
     # in file order.
     with ThreadPoolExecutor(max_workers=os.cpu_count()) as pool:
@@ -702,17 +757,63 @@ def main() -> int:
             if options.structure:
                 ours = [t for t in ours if t.structural]
                 theirs = [t for t in theirs if t.structural]
-            ratio = report(path, ours, theirs, options.hunks)
+            file_differences, matched = differences(ours, theirs)
             if errors:
-                print(f"  {errors} parse errors")
+                file_differences.append(f"{errors} parse errors")
+            found[str(path)] = file_differences
+            print(
+                f"{path}: {len(file_differences)} differences, {matched} of "
+                f"{len(ours)} vs {len(theirs)} commands match"
+            )
+            for difference in file_differences[: options.hunks]:
+                print(f"  {difference}")
+            if len(file_differences) > options.hunks:
+                print(f"  ... {len(file_differences) - options.hunks} more")
             total_ours += len(ours)
-            total_matched += round(ratio * len(ours))
-    overall = total_matched / total_ours if total_ours else 1.0
+            total_matched += matched
+            total_differences += len(file_differences)
     if len(options.files) > 1:
-        print(f"\nOverall: {overall:.2%} of {total_ours} commands match")
-    if options.fail_under is not None and overall * 100 < options.fail_under:
-        print(f"Fewer than {options.fail_under}% of commands match", file=sys.stderr)
-        return 1
+        differing = sum(1 for d in found.values() if d)
+        print(
+            f"\nOverall: {total_differences} differences in {differing} of "
+            f"{len(found)} files; {total_matched} of {total_ours} commands match"
+        )
+
+    if options.write_expected:
+        entries = read_expected(options.write_expected)
+        for name, file_differences in found.items():
+            if file_differences:
+                comment = entries[name].comment if name in entries else []
+                entries[name] = Expected(comment, file_differences)
+            else:
+                entries.pop(name, None)
+        write_expected(options.write_expected, entries)
+
+    if options.expected:
+        entries = read_expected(options.expected)
+        failed = False
+        for name in found:
+            if name in entries and not entries[name].comment:
+                print(f"No reason given: {name}", file=sys.stderr)
+                failed = True
+        for name, file_differences in found.items():
+            expected = entries[name].differences if name in entries else []
+            unexpected = Counter(file_differences) - Counter(expected)
+            gone = Counter(expected) - Counter(file_differences)
+            for difference in unexpected.elements():
+                print(f"Unexpected: {name}: {difference}", file=sys.stderr)
+            for difference in gone.elements():
+                print(f"No longer found: {name}: {difference}", file=sys.stderr)
+            failed = failed or bool(unexpected or gone)
+        if failed:
+            print(
+                f"Differences from texi2any don't match {options.expected}: fix "
+                "the regression, or if the change is deliberate, rerun with "
+                "--write-expected and give each new file a `#` comment with "
+                "the reason.",
+                file=sys.stderr,
+            )
+            return 1
     return 0
 
 

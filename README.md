@@ -8,8 +8,10 @@ The reference for correct behaviour is `texi2any` from Texinfo 7.3. The
 grammar is checked against it on over 400 files of real manuals (texinfo,
 make, sed, gawk, glibc, gdb, binutils, bash, coreutils, autoconf, automake,
 and Emacs's manuals, Gnus and Calc among them) and on the 1,755 inputs of
-`texi2any`'s own parser tests: the commands found agree on over 99.99% of the
-manuals and 99% of the test inputs.
+`texi2any`'s own parser tests. Every difference in the commands found is
+listed, with its reason, in `test/texi2any-differences.txt`: in the manuals,
+6 of 524,778 commands, in fragments meant for `@include`; in the test inputs,
+mostly deliberately invalid input and macro expansion.
 
 ## What is parsed
 

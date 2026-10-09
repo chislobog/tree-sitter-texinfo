@@ -163,6 +163,19 @@ Gaps, where we give a parse error and texi2any recovers:
   at the end of the line; a lone `@` at the end of the file is a symbol
 - [x] Comments after `@bye` and `@definfoenclose`: the tree was right; the
   comparison script skipped them
+- [ ] A blank line inside a brace group or brace command in `@math`
+  (`03coverage_braces/empty_line_in_braces_in_math`); the brace group recovery
+  closes it there
+- [ ] A blank line inside a style command in a preformatted block
+  (`20preformatted/empty_line_style_command`)
+- [ ] A block inside a brace command (`@code{` then `@html ... @end html`,
+  `@errormsg{` then `@table`): texi2any keeps it inside the argument
+- [ ] A comment line inside a brace argument (`info_tests/anchor_in_command`)
+- [ ] Text starting with a non-ASCII space such as U+00A0
+  (`40moresectioning/special_spaces_in_nodes`, `plaintext_tests/all_spaces`)
+- [ ] Smaller ones: an empty menu entry name, `@ignore` inside `@xref`, a brace
+  command without braces as an `@itemize` or `@table` argument, an inline
+  conditional's brace on the next line
 - [ ] Files not in UTF-8 (`@documentencoding ISO-8859-1`, Shift-JIS): the
   editor has to convert them, as tree-sitter reads UTF-8
 

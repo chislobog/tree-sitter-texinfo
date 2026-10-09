@@ -66,22 +66,24 @@ jobs:
                 examples/gawk-5.4.1/gawk.texi examples/gawk-5.4.1/it/gawk.texi |
               diff - errors.txt"
 
-      # Without the files texi2any itself fails on, and those listed as noise
-      # in CLAUDE.md.
+      # Without the files texi2any itself fails on, and a fragment for
+      # @include. Any difference not listed in test/texi2any-differences.txt
+      # with its reason fails, as does a listed one no longer found.
       - name: Compare with texi2any on the manuals
         run: |
           nix develop --command bash -c "
             find -L examples \( -name '*.texi' -o -name '*.texinfo' \) ! -path '*/it/*' \
                 ! -name texinfo-tex-test.texi ! -name html_default_commands_args.texi |
-              sort | xargs python3 script/compare-texi2any.py --hunks 3 --fail-under 99.99"
+              sort | xargs python3 script/compare-texi2any.py --hunks 0 \
+                --expected test/texi2any-differences.txt"
 
       - name: Compare with texi2any on its test inputs
         run: |
           nix develop --command bash -c "
             set -o pipefail
             find -L texinfo-tests -name '*.texi' | sort |
-              xargs python3 script/compare-texi2any.py --hunks 0 --fail-under 99.4 |
-              tail -1"
+              xargs python3 script/compare-texi2any.py --hunks 0 \
+                --expected test/texi2any-differences.txt | tail -1"
 
   # libFuzzer with address and undefined-behaviour sanitizers, looking for
   # crashes and memory errors in the scanner. Seeded with the corpus test
