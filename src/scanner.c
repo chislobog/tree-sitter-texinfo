@@ -190,7 +190,9 @@ static inline bool is_alpha(int32_t c) {
 
 static inline bool is_digit(int32_t c) { return c >= '0' && c <= '9'; }
 
-static inline bool is_blank(int32_t c) { return c == ' ' || c == '\t'; }
+static inline bool is_blank(int32_t c) {
+  return c == ' ' || c == '\t' || c == '\v' || c == '\f';
+}
 
 static void skip_blanks(TSLexer *lexer) {
   while (is_blank(lexer->lookahead)) advance(lexer);

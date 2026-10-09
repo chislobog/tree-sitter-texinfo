@@ -163,3 +163,32 @@ Call @files-char{a} here.
       (brace_arguments
         (text)))
     (text)))
+
+================================================================================
+Form feeds and vertical tabs are spaces
+================================================================================
+
+Para.
+
+@chapterNext
+@code{a}@emph{b}
+
+---
+
+(source_file
+  (paragraph
+    (text))
+  (chapter
+    heading: (chapter_heading
+      name: (command_name)
+      title: (line_argument
+        (text)))
+    (paragraph
+      (inline_command
+        name: (command_name)
+        arguments: (brace_arguments
+          (text)))
+      (inline_command
+        name: (command_name)
+        arguments: (brace_arguments
+          (text))))))

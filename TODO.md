@@ -55,7 +55,10 @@ sources, which is what `texi2any` itself uses.
 - [x] `@set NAME VALUE` and `@clear NAME` split into `variable` and `value`
   fields. As in texi2any, the value is raw text up to a comment; its
   commands are parsed where `@value` uses it
-- [ ] Form feeds as spaces, as texi2any treats them (a parse error now)
+- [x] Form feeds and vertical tabs as spaces, as in texi2any. Unlike
+  texi2any, a form feed in the middle of a line doesn't end the paragraph
+- [ ] Spaces between a brace command and its brace (`@code {a}`), which
+  texi2any accepts
 - [x] Definition lines: `@deffn`, `@deftypefn`, ..., their `x` variants and
   `@defline`/`@deftypeline` split into `category`, `class`, `type`, `entity`
   and `arguments` fields (braces group words)

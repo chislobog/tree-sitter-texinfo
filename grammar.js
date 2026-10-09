@@ -125,7 +125,8 @@ const command = ($, names) => {
 export default grammar({
   name: 'texinfo',
 
-  extras: $ => [/[ \t]/, $.comment],
+  // Spaces as texi2any has them: space, tab, vertical tab and form feed.
+  extras: $ => [/[ \t\v\f]/, $.comment],
 
   // Block openers are recognised by the scanner, which keeps a stack of open
   // blocks so that `@end NAME` must match. The block names live in
@@ -197,10 +198,10 @@ export default grammar({
     ])),
 
     // Listed before `command_name` so that a bare `@c` lexes as a comment.
-    comment: _ => /@c(omment)?([ \t][^\r\n]*)?/,
+    comment: _ => /@c(omment)?([ \t\v\f][^\r\n]*)?/,
 
     // `\input texinfo` on the first line, for TeX.
-    input_line: $ => seq(token(prec(1, /\\input[ \t]+[^\s@]+/)), $._newline),
+    input_line: $ => seq(token(prec(1, /\\input[ \t\v\f]+[^\s@]+/)), $._newline),
 
     // Everything after `@bye` is ignored.
     // The rest of the `@bye` line is still read, so a comment there counts.
@@ -319,7 +320,7 @@ export default grammar({
 
     // `*` and whitespace at the start of a line in a menu; it takes precedence
     // over text there, which would otherwise match the whole line.
-    _menu_star: _ => token(prec(2, /\*[ \t]+/)),
+    _menu_star: _ => token(prec(2, /\*[ \t\v\f]+/)),
 
     _menu_name: $ => repeat1(choice(
       alias($._menu_name_text, $.text),

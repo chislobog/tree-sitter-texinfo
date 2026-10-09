@@ -1696,7 +1696,7 @@
     },
     "comment": {
       "type": "PATTERN",
-      "value": "@c(omment)?([ \\t][^\\r\\n]*)?"
+      "value": "@c(omment)?([ \\t\\v\\f][^\\r\\n]*)?"
     },
     "input_line": {
       "type": "SEQ",
@@ -1708,7 +1708,7 @@
             "value": 1,
             "content": {
               "type": "PATTERN",
-              "value": "\\\\input[ \\t]+[^\\s@]+"
+              "value": "\\\\input[ \\t\\v\\f]+[^\\s@]+"
             }
           }
         },
@@ -2753,7 +2753,7 @@
         "value": 2,
         "content": {
           "type": "PATTERN",
-          "value": "\\*[ \\t]+"
+          "value": "\\*[ \\t\\v\\f]+"
         }
       }
     },
@@ -6702,7 +6702,7 @@
   "extras": [
     {
       "type": "PATTERN",
-      "value": "[ \\t]"
+      "value": "[ \\t\\v\\f]"
     },
     {
       "type": "SYMBOL",
