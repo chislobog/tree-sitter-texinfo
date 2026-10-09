@@ -53,6 +53,7 @@ enum TokenType {
   SUBENTRY_NAME,
   // The one-character argument of an accent command without braces.
   ACCENT_ARGUMENT,
+  FLOAT_START,
   ERROR_SENTINEL,
 };
 
@@ -62,6 +63,8 @@ typedef enum {
   KIND_LIST,
   // `@multitable`: a list whose items are rows of cells separated by `@tab`.
   KIND_MULTITABLE,
+  // `@float`: a block whose argument is a type and a label.
+  KIND_FLOAT,
   // Body is plain text. A nested block of the same name is counted.
   KIND_RAW,
   // Body is plain text. Nested macro definitions of any kind are counted.
@@ -98,7 +101,7 @@ static const Block BLOCKS[] = {
     {"flushright", KIND_BLOCK},
     {"raggedright", KIND_BLOCK},
     {"group", KIND_BLOCK},
-    {"float", KIND_BLOCK},
+    {"float", KIND_FLOAT},
     // Document regions
     {"titlepage", KIND_BLOCK},
     {"copying", KIND_BLOCK},
@@ -594,6 +597,8 @@ static bool scan_block_start(Scanner *scanner, TSLexer *lexer,
     token = LIST_START;
   } else if (kind == KIND_MULTITABLE) {
     token = MULTITABLE_START;
+  } else if (kind == KIND_FLOAT) {
+    token = FLOAT_START;
   } else if (kind == KIND_MENU) {
     token = MENU_START;
   } else {

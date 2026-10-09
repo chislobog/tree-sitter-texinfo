@@ -70,7 +70,7 @@ Line command inside a caption
 (source_file
   (block
     (command_name)
-    (line_argument
+    (argument
       (text))
     (paragraph
       (inline_command

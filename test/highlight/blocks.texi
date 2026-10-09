@@ -46,3 +46,7 @@ Text @code{grep}, @emph{this} and @var{file}.
 Caf@'e and @u o.
 @c  ^ string.escape
 @c         ^ string.escape
+
+@float Figure, fig:one
+@c             ^ markup.link.label
+@end float

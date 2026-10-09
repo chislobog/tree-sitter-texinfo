@@ -43,7 +43,9 @@ sources, which is what `texi2any` itself uses.
 - [x] `@node` arguments in fields (`node_line`: node, next, previous, up)
 - [ ] Split the inline conditionals' arguments (`@inlineraw`'s second argument
   is raw text)
-- [ ] `@float` arguments (type, label)
+- [x] `@float` arguments: `type` and `label` fields; the label is a tag and
+  highlighted like a node name. Commands with named arguments (`@xref`)
+  aren't allowed in the type
 - [x] A block at the start of a line closes an ordinary brace command, as in
   texi2any (conditionals don't)
 - [x] Accent commands without braces: `@'e`, `@"u`, and letter accents with

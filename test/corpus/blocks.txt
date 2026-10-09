@@ -22,9 +22,9 @@ foo @{bar@}
 Block with an argument
 ================================================================================
 
-@float Figure, fig:one
+@quotation Note
 Caption text.
-@end float
+@end quotation
 
 ---
 
@@ -220,3 +220,74 @@ Nested unclosed blocks at end of file
           (text)))
       (missing_end))
     (missing_end)))
+
+================================================================================
+Float type and label
+================================================================================
+
+@float Table, tab:one
+@caption{C}
+@end float
+
+@float ,lab
+Y
+@end float
+
+@float
+@end float
+
+---
+
+(source_file
+  (block
+    name: (command_name)
+    type: (argument
+      (text))
+    label: (argument
+      (text))
+    (paragraph
+      (inline_command
+        name: (command_name)
+        arguments: (brace_arguments
+          (text))))
+    end: (block_end))
+  (block
+    name: (command_name)
+    label: (argument
+      (text))
+    (paragraph
+      (text))
+    end: (block_end))
+  (block
+    name: (command_name)
+    end: (block_end)))
+
+================================================================================
+Accents and brace commands in a float type
+================================================================================
+
+@float Th@'eor@`eme @code{x}, thm
+@end float
+
+---
+
+(source_file
+  (block
+    name: (command_name)
+    type: (argument
+      (text)
+      (inline_command
+        name: (command_name)
+        argument: (text))
+      (text)
+      (inline_command
+        name: (command_name)
+        argument: (text))
+      (text)
+      (inline_command
+        name: (command_name)
+        arguments: (brace_arguments
+          (text))))
+    label: (argument
+      (text))
+    end: (block_end)))

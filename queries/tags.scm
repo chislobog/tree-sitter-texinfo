@@ -11,6 +11,9 @@
 (inline_command
   anchor: (argument) @name) @definition.anchor
 
+(block
+  label: (argument) @name) @definition.anchor
+
 (inline_command
   node: (argument) @name) @reference.node
 

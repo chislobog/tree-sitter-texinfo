@@ -171,6 +171,7 @@ export default grammar({
     $._row_name,
     $._subentry_name,
     $._accent_argument,
+    $._float_start,
     $._error_sentinel,
   ],
 
@@ -319,8 +320,30 @@ export default grammar({
     node_line: $ => nodeLine($, alias('@node', $.command_name)),
 
     block: $ => seq(
-      field('name', alias($._block_start, $.command_name)),
-      optional(field('argument', $.line_argument)),
+      choice(
+        seq(
+          field('name', alias($._block_start, $.command_name)),
+          optional(field('argument', $.line_argument)),
+        ),
+        // `@float TYPE, LABEL`: the label is a cross-reference target. The
+        // type is a word such as `Figure` or `Th@'eor@`eme`; allowing the
+        // commands with named arguments in it would cost several hundred
+        // parser states.
+        seq(
+          field('name', alias($._float_start, $.command_name)),
+          optional(commaArguments(
+            ['type', 'label'],
+            alias(repeat1(choice(
+              alias($._argument_text, $.text),
+              alias($._float_type_command, $.inline_command),
+              $.symbol_command,
+              $.brace_group,
+            )), $.argument),
+            alias($.line_argument, $.argument),
+            ',',
+          )),
+        ),
+      ),
       $._newline,
       // Items and multitable rows, for conditionals that wrap some of a
       // list's items, and sections, for conditionals that wrap whole sections.
@@ -566,6 +589,15 @@ export default grammar({
       $._argument_command,
       $._verb_command,
     ),
+
+    // A built-in brace command or accent in a float's type.
+    _float_type_command: $ => prec.right(seq(
+      field('name', alias($._brace_command_name, $.command_name)),
+      optional(choice(
+        seq('{', $._line_brace_arguments),
+        field('argument', alias($._accent_argument, $.text)),
+      )),
+    )),
 
     _line_brace_arguments: $ => seq(
       optional(field('arguments', alias(

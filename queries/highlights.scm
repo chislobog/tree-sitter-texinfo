@@ -76,6 +76,10 @@
 (menu_entry
   node: (menu_node) @markup.link.label)
 
+; A float's label is a cross-reference target, like an anchor.
+(block
+  label: (argument) @markup.link.label)
+
 (menu_entry
   label: (menu_label) @markup.link)
 
