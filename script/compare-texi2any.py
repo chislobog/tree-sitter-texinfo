@@ -137,6 +137,9 @@ class OurWalker:
         self.aliases: dict[str, str] = {}
         # The command `@clickstyle` chose, which texi2any puts for `@click`.
         self.click: str | None = None
+        # The line of an alias of `@c` or `@comment`, which texi2any makes a
+        # comment to the end of the line.
+        self.comment_line: int | None = None
         # While expanding a macro, tokens get the line of the outermost call.
         self.call_line: int | None = None
         self.in_definition_line = False
@@ -148,7 +151,9 @@ class OurWalker:
         return self.call_line or node.start_point.row + 1
 
     def emit(self, name: str, node, structural: bool):
-        self.tokens.append(Token(name, self.line(node), structural))
+        line = self.line(node)
+        if line != self.comment_line:
+            self.tokens.append(Token(name, line, structural))
 
     def define_macro(self, kind: str, node):
         argument = node.child_by_field_name("argument")
@@ -366,6 +371,10 @@ class OurWalker:
             name = self.aliases.get(text(name_node), text(name_node))
             if name == "@click" and self.click:
                 name = self.click
+            if name in ("@c", "@comment") and text(name_node) != name:
+                self.emit(name, node, True)
+                self.comment_line = self.line(node)
+                return
             if name == "@value":
                 arguments = node.child_by_field_name("arguments")
                 value = text(arguments).strip() if arguments else ""
