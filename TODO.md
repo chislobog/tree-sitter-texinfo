@@ -42,8 +42,11 @@ sources, which is what `texi2any` itself uses.
   `@xref`, `@pxref`, `@ref`, `@inforef`, `@link`, `@uref`, `@url`, `@email`,
   `@image`, `@abbr`, `@acronym`, `@namedanchor`
 - [x] `@node` arguments in fields (`node_line`: node, next, previous, up)
-- [ ] Split the inline conditionals' arguments (`@inlineraw`'s second argument
-  is raw text)
+- [x] Split the inline conditionals' arguments into `condition` and `text`
+  (multi-line, like a conditional block) or, for `@inlineraw`, a raw `body`,
+  injected in the language its format names
+- [ ] `@inlinefmtifelse`'s three arguments (a third field costs several
+  hundred parser states)
 - [x] `@float` arguments: `type` and `label` fields; the label is a tag and
   highlighted like a node name. Commands with named arguments (`@xref`)
   aren't allowed in the type

@@ -56,6 +56,8 @@ enum TokenType {
   FLOAT_START,
   // `@end` that doesn't end the innermost open block, to the end of its line.
   UNMATCHED_END,
+  // The raw text of `@inlineraw`, up to the matching brace.
+  INLINE_RAW_TEXT,
   ERROR_SENTINEL,
 };
 
@@ -567,6 +569,34 @@ static bool scan_accent_argument(TSLexer *lexer) {
 }
 
 /**
+ * Scans the raw text of `@inlineraw` up to, not including, the brace that
+ * closes the command: braces nest, and `@` escapes the next character. Leading
+ * blanks are left out.
+ */
+static bool scan_inline_raw(TSLexer *lexer) {
+  while (is_blank(lexer->lookahead)) skip(lexer);
+  unsigned depth = 0;
+  bool has_text = false;
+  while (!lexer->eof(lexer)) {
+    int32_t c = lexer->lookahead;
+    if (c == '}') {
+      if (depth == 0) break;
+      depth--;
+    } else if (c == '{') {
+      depth++;
+    } else if (c == '@') {
+      advance(lexer);
+      if (lexer->eof(lexer)) break;
+    }
+    advance(lexer);
+    has_text = true;
+    lexer->mark_end(lexer);
+  }
+  lexer->result_symbol = INLINE_RAW_TEXT;
+  return has_text;
+}
+
+/**
  * Whether the innermost open block, other than conditionals, which texi2any
  * evaluates before parsing, is a multitable.
  */
@@ -855,6 +885,15 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
   }
 
   if (valid_symbols[RAW_TEXT]) return scan_raw(scanner, lexer);
+
+  // Only blanks are skipped before deciding, so on an empty body the other
+  // tokens can still be scanned.
+  if (valid_symbols[INLINE_RAW_TEXT]) {
+    while (is_blank(lexer->lookahead)) skip(lexer);
+    if (!lexer->eof(lexer) && lexer->lookahead != '}') {
+      return scan_inline_raw(lexer);
+    }
+  }
 
   if (valid_symbols[MISSING_END] && lexer->eof(lexer) && scanner->depth > 0) {
     scanner->depth--;

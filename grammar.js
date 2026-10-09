@@ -173,6 +173,7 @@ export default grammar({
     $._accent_argument,
     $._float_start,
     $.unmatched_end,
+    $._inline_raw_text,
     $._error_sentinel,
   ],
 
@@ -602,6 +603,9 @@ export default grammar({
       )),
     )),
 
+    // An inline conditional's output format or flag name.
+    _condition: $ => alias(repeat1(alias($._argument_text, $.text)), $.argument),
+
     _line_brace_arguments: $ => seq(
       optional(field('arguments', alias(
         repeat1($._line_argument_inline),
@@ -612,6 +616,29 @@ export default grammar({
 
     // Commands whose arguments split at commas into named fields.
     _argument_command: $ => choice(
+      // `@inlinefmt{FORMAT, TEXT}`, `@inlineifset{FLAG, TEXT}`: like a
+      // conditional block, the text may hold blank lines and blocks.
+      // @inlinefmtifelse keeps a single argument: a third field would cost
+      // several hundred parser states.
+      prec.right(seq(
+        field('name', command($, ['inlinefmt', 'inlineifset', 'inlineifclear'])),
+        '{',
+        optional(field('condition', $._condition)),
+        optional(seq(',', optional(field('text', alias($._long_arguments, $.argument))))),
+        choice('}', alias($._brace_close_at_block_end, $.missing_brace)),
+      )),
+      // `@inlineraw{FORMAT, TEXT}`: the text is raw, up to the matching brace.
+      prec.right(seq(
+        field('name', command($, ['inlineraw'])),
+        '{',
+        optional(field('condition', $._condition)),
+        optional(seq(',', optional(field('body', alias($._inline_raw_text, $.raw_text))))),
+        choice(
+          '}',
+          alias($._brace_close_at_paragraph_end, $.missing_brace),
+          alias($._brace_close_at_block_end, $.missing_brace),
+        ),
+      )),
       ...Object.entries(ARGUMENT_COMMANDS).map(([names, commands]) => prec.right(seq(
         field('name', command($, commands)),
         optional(seq(

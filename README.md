@@ -67,7 +67,8 @@ is not done yet.
   lists, commands and inline markup, using the common `@markup.*`,
   `@keyword` and `@function` capture names.
 - `queries/injections.scm`: LaTeX in `@tex`, `@latex`, `@math` and
-  `@displaymath`, HTML in `@html`, XML in `@xml` and `@docbook`.
+  `@displaymath`, HTML in `@html`, XML in `@xml` and `@docbook`, and the
+  language its format names in `@inlineraw{html, ...}`.
 - `queries/folds.scm`: sections, blocks, lists, items and menus.
 - `queries/tags.scm`: nodes, anchors and documented functions and variables
   as definitions; cross-references and menu entries as references.

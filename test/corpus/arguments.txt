@@ -190,3 +190,40 @@ see @ref{Features,
           arguments: (brace_arguments
             (text)))))
     (text)))
+
+================================================================================
+Inline conditionals
+================================================================================
+
+@inlinefmt{tex, \TeX\ @code{x}} @inlineifset{FLAG, set, really}
+@inlineraw{html, <b>x, {y}</b> @} } @inlineraw{latex,}
+
+---
+
+(source_file
+  (paragraph
+    (inline_command
+      name: (command_name)
+      condition: (argument
+        (text))
+      text: (argument
+        (text)
+        (inline_command
+          name: (command_name)
+          arguments: (brace_arguments
+            (text)))))
+    (inline_command
+      name: (command_name)
+      condition: (argument
+        (text))
+      text: (argument
+        (text)))
+    (inline_command
+      name: (command_name)
+      condition: (argument
+        (text))
+      body: (raw_text))
+    (inline_command
+      name: (command_name)
+      condition: (argument
+        (text)))))

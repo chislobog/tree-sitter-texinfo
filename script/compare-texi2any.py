@@ -204,10 +204,13 @@ class OurWalker:
             return False
         return None
 
-    def walk_expanded_arguments(self, name: str, arguments):
+    def walk_expanded_arguments(self, name: str, node):
         """Walks only the arguments of an inline conditional that texi2any
-        expands. Arguments are separated by top-level commas in text."""
-        flag = first_word(arguments).rstrip(",")
+        expands: the `condition` and `text` fields, or for @inlinefmtifelse,
+        whose argument isn't split, the parts between top-level commas."""
+        condition = node.child_by_field_name("condition")
+        arguments = node.child_by_field_name("arguments")
+        flag = first_word(condition or arguments).rstrip(",")
         expanded = {
             "@inlinefmt": set(),
             "@inlineraw": set(),
@@ -215,6 +218,11 @@ class OurWalker:
             "@inlineifset": {1} if flag in self.flags else set(),
             "@inlineifclear": set() if flag in self.flags else {1},
         }[name]
+        if arguments is None:
+            body = node.child_by_field_name("text")
+            if 1 in expanded and body is not None:
+                self.walk(body)
+            return
         index = 0
         for child in arguments.children:
             if child.type == "text":
@@ -343,9 +351,8 @@ class OurWalker:
                     self.expand_macro(macro, node, text(arguments) if arguments else "")
                 return
             self.emit(name, node, False)
-            arguments = node.child_by_field_name("arguments")
-            if name in INLINE_CONDITIONALS and arguments is not None:
-                self.walk_expanded_arguments(name, arguments)
+            if name in INLINE_CONDITIONALS:
+                self.walk_expanded_arguments(name, node)
             else:
                 self.children(node, name_node)
             return

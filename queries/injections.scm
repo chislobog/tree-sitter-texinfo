@@ -18,6 +18,22 @@
   (#any-of? @_name "@xml" "@docbook")
   (#set! injection.language "xml"))
 
+; `@inlineraw{FORMAT, TEXT}`: the format names the language, `tex` aside.
+((inline_command
+  name: (command_name) @_name
+  condition: (argument) @_format
+  body: (raw_text) @injection.content)
+  (#eq? @_name "@inlineraw")
+  (#any-of? @_format "tex" "latex")
+  (#set! injection.language "latex"))
+
+((inline_command
+  name: (command_name) @_name
+  condition: (argument) @injection.language
+  body: (raw_text) @injection.content)
+  (#eq? @_name "@inlineraw")
+  (#not-any-of? @injection.language "tex" "latex"))
+
 ; Math. The contents are made of text and command nodes, so include them.
 ((inline_command
   name: (command_name) @_name
