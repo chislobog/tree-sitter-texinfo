@@ -120,7 +120,7 @@ of a line.
 - [x] `queries/folds.scm`
 - [x] `queries/tags.scm`: nodes, anchors and documented functions and variables
   as definitions; cross-references and menu entries as references
-- [ ] Register queries in `tree-sitter.json`
+- [x] Register queries in `tree-sitter.json`
 
 ## Project
 

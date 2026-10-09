@@ -12,7 +12,10 @@
         "texinfo"
       ],
       "injection-regex": "^texinfo$",
-      "class-name": "TreeSitterTexinfo"
+      "class-name": "TreeSitterTexinfo",
+      "highlights": "queries/highlights.scm",
+      "injections": "queries/injections.scm",
+      "tags": "queries/tags.scm"
     }
   ],
   "metadata": {
