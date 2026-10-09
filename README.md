@@ -5,10 +5,11 @@ A [tree-sitter](https://tree-sitter.github.io/) grammar for
 and structural editing.
 
 The reference for correct behaviour is `texi2any` from Texinfo 7.3. The
-grammar is checked against it on real manuals (texinfo, make, sed, gawk, and
-Emacs's user manual and Lisp reference: over 170 files) and on the 1,755
-inputs of `texi2any`'s own parser tests: the commands found agree on over
-99.99% of the manuals and 99% of the test inputs.
+grammar is checked against it on over 400 files of real manuals (texinfo,
+make, sed, gawk, glibc, gdb, binutils, bash, coreutils, autoconf, automake,
+and Emacs's manuals, Gnus and Calc among them) and on the 1,755 inputs of
+`texi2any`'s own parser tests: the commands found agree on over 99.99% of the
+manuals and 99% of the test inputs.
 
 ## What is parsed
 
@@ -128,8 +129,8 @@ as `examples/` and `texi2any`'s test inputs as `texinfo-tests/`.
 ```sh
 tree-sitter generate && tree-sitter test
 tree-sitter fuzz --iterations 100
-tree-sitter parse --quiet --stat 'examples/**/*.texi'
-find -L examples -name '*.texi' | sort | xargs python3 script/compare-texi2any.py
+tree-sitter parse --quiet --stat 'examples/**/*.texi' 'examples/**/*.texinfo'
+find -L examples -name '*.texi*' | sort | xargs python3 script/compare-texi2any.py
 ```
 
 CI runs these on every push. `CLAUDE.md` describes the conventions.

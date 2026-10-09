@@ -21,8 +21,10 @@ well with incomplete input, which is normal while editing.
 - GNU coreutils and sed are on the path, not the macOS ones: use `sed -i`, not
   `sed -i ''`.
 - `examples/` is a symlink, created by the dev shell, to real manuals pinned by
-  `flake.lock` (texinfo, make, sed, gawk, and Emacs's user manual and Lisp
-  reference, whose chapters are separate files). It is not committed.
+  `flake.lock`: texinfo, make, sed, gawk, glibc, gdb (`.texinfo` files),
+  binutils, bash, coreutils, autoconf, automake and Emacs's manuals, over
+  400 files. Some are chapters of a manual, in separate files. It is not
+  committed.
 - `texinfo-tests/` is a symlink to the inputs of texi2any's own parser tests,
   one file per test case (about 1,750), extracted by
   `script/extract-texi2any-tests.pl`. Many are deliberately invalid, so parse
@@ -68,8 +70,8 @@ also run:
 cc -std=c11 -Wall -Wextra -Wpedantic -Wshadow -Werror -Isrc -c src/scanner.c -o /tmp/scanner.o
 script/lint.sh                           # linters, formatters, query check
 tree-sitter fuzz --iterations 100        # incremental parsing after edits
-tree-sitter parse --quiet --stat 'examples/**/*.texi'
-find -L examples -name '*.texi' | sort | xargs python3 script/compare-texi2any.py
+tree-sitter parse --quiet --stat 'examples/**/*.texi' 'examples/**/*.texinfo'
+find -L examples -name '*.texi*' | sort | xargs python3 script/compare-texi2any.py
 ```
 
 Git hooks in `.githooks/` (enabled by the dev shell through

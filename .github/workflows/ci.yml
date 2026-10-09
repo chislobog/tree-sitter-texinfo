@@ -50,17 +50,20 @@ jobs:
       - name: Incremental parsing
         run: nix develop --command tree-sitter fuzz --iterations 100
 
-      # Only the manuals with errors in their source may fail to parse:
-      # gawk.texi has a brace crossing a line in an @center argument, which
-      # texi2any also reports, and the Italian gawk.texi a footnote crossing
-      # a conditional, which a tree-sitter parse can't represent (TODO.md).
+      # Only the manuals with errors in their source may fail to parse, each
+      # with one stray brace that texi2any reports or never sees: gawk.texi
+      # has a brace crossing a line in an @center argument; the Italian
+      # gawk.texi a footnote crossing a conditional, which a tree-sitter parse
+      # can't represent (TODO.md); Calc and Gnus TeX braces opened and closed
+      # in different @iftex or @iflatex blocks.
       - name: Parse the example manuals
         run: |
           nix develop --command bash -c "
-            find -L examples -name '*.texi' -print0 |
+            find -L examples \( -name '*.texi' -o -name '*.texinfo' \) -print0 |
               xargs -0 tree-sitter parse --quiet --stat |
               grep -E '\((ERROR|MISSING)' | cut -f1 | sed 's/ *$//' | sort > errors.txt
-            printf '%s\n' examples/gawk-5.4.1/gawk.texi examples/gawk-5.4.1/it/gawk.texi |
+            printf '%s\n' examples/emacs-31.1/misc/calc.texi examples/emacs-31.1/misc/gnus.texi \
+                examples/gawk-5.4.1/gawk.texi examples/gawk-5.4.1/it/gawk.texi |
               diff - errors.txt"
 
       # Without the files texi2any itself fails on, and those listed as noise
@@ -68,7 +71,7 @@ jobs:
       - name: Compare with texi2any on the manuals
         run: |
           nix develop --command bash -c "
-            find -L examples -name '*.texi' ! -path '*/it/*' \
+            find -L examples \( -name '*.texi' -o -name '*.texinfo' \) ! -path '*/it/*' \
                 ! -name texinfo-tex-test.texi ! -name html_default_commands_args.texi |
               sort | xargs python3 script/compare-texi2any.py --hunks 3 --fail-under 99.99"
 

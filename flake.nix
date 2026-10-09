@@ -36,12 +36,35 @@
                 tar -xf "$src" -C "$dir" --strip-components=2 --wildcards '*/doc/*.texi'
               done
 
-              # Emacs: the Lisp reference and the user manual, the largest and
-              # most varied manuals here. Its source is a directory, not a tarball.
+              # Other GNU manuals, each with the files where it keeps them:
+              # glibc's many custom definition macros, autoconf's and
+              # automake's m4 examples full of braces, gdb's and binutils'
+              # conditionals per target, bash's and coreutils' variables.
+              extract() {
+                local src=$1
+                shift
+                name=$(stripHash "$src")
+                dir="$out/''${name%.tar.*}"
+                mkdir -p "$dir"
+                tar -xf "$src" -C "$dir" --strip-components=1 --wildcards "$@"
+              }
+              extract ${pkgs.glibc.src} '*/manual/*.texi' '*/manual/*.texinfo'
+              extract ${pkgs.autoconf.src} '*/doc/*.texi'
+              extract ${pkgs.automake.src} '*/doc/*.texi'
+              extract ${pkgs.gdb.src} '*/gdb/doc/*.texinfo' '*/gdb/doc/*.texi'
+              extract ${pkgs.binutils-unwrapped.src} \
+                '*/binutils/doc/*.texi' '*/ld/*.texi' '*/gas/doc/*.texi'
+              extract ${pkgs.bash.src} '*/doc/*.texi'
+              extract ${pkgs.coreutils.src} '*/doc/*.texi'
+
+              # Emacs: its user manual, Lisp reference and other manuals
+              # (Gnus, Calc, TRAMP, ...), the largest and most varied here.
+              # Its source is a directory, not a tarball.
               dir="$out/emacs-${pkgs.emacs.version}"
-              mkdir -p "$dir/lispref" "$dir/emacs"
+              mkdir -p "$dir/lispref" "$dir/emacs" "$dir/misc"
               cp ${pkgs.emacs.src}/doc/lispref/*.texi "$dir/lispref"
               cp ${pkgs.emacs.src}/doc/emacs/*.texi "$dir/emacs"
+              cp ${pkgs.emacs.src}/doc/misc/*.texi "$dir/misc"
             '';
 
         # The inputs of texi2any's own parser tests, one file per test case

@@ -38,6 +38,11 @@ sources, which is what `texi2any` itself uses.
   such as `@footnote` and `@caption` (found by the texi2any comparison)
 - [x] Paragraphs inside `@footnote`, `@caption` and `@shortcaption`, with
   blocks and line commands
+- [x] In `@itemize` and `@enumerate`, the text after `@item` starts the item's
+  first paragraph (in tables it is the item's line argument); `@noindent`
+  and `@indent` start a paragraph too, as in texi2any
+- [x] An unclosed `{` group ends at a blank line or its block's end, like a
+  brace command, instead of breaking the rest of the file
 - [x] Split brace arguments on commas into fields named by position for
   `@xref`, `@pxref`, `@ref`, `@inforef`, `@link`, `@uref`, `@url`, `@email`,
   `@image`, `@abbr`, `@acronym`, `@namedanchor`
@@ -132,8 +137,9 @@ of a line.
   `@math`; the enclosing block's `@end`; the end of the file), marked by a
   zero-width `missing_brace` node, so they don't break the rest of the file
 - [ ] A brace argument crossing a conditional's boundary (e.g. `@footnote{`
-  inside `@ifnottex`, closed after its `@end`) can't be represented and stays
-  a one-character error
+  inside `@ifnottex`, closed after its `@end`, or TeX braces in Calc's and
+  Gnus's `@iftex` blocks) can't be represented: the brace closes at the
+  conditional's end, and the later `}` is a one-character error
 - [x] TeX lines before `\input texinfo` (e.g. gawk's Italian manual): text,
   as in texi2any, which only recognises `\input` on the first line
 
@@ -207,7 +213,8 @@ Deliberate, so the tree shows the source as it is written and edited:
 - [ ] In `--structure` mode, classify texi2any's commands from one shared list
   of line commands, headings and blocks, not from the commands our parser
   produced; a line command we don't know is currently hidden there
-- [x] More example manuals: Emacs's user manual and Lisp reference
+- [x] More example manuals: Emacs's manuals, glibc, gdb, binutils, bash,
+  coreutils, autoconf, automake
 - [x] Reduce the parser's size: `src/parser.c` was 29 MB. The line and brace
   command keywords, now recognised by the scanner, made each parser state
   where a command can start carry about 200 entries; it is now 6 MB, with
