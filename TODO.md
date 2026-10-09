@@ -54,7 +54,8 @@ sources, which is what `texi2any` itself uses.
   texi2any (conditionals don't)
 - [x] Accent commands without braces: `@'e`, `@"u`, and letter accents with
   a space: `@u o`, `@v c`; the character is the command's `argument`
-- [ ] `@value{name}` as its own node
+- [x] `@value{name}`: an inline command whose name is highlighted as a
+  variable, like `@set`'s
 - [x] `@math{...}` body for TeX injection
 - [x] Plain-text line arguments (`@include`, `@setfilename`, ...): texi2any
   parses commands in them too, so they stay a `line_argument`; file names

@@ -213,6 +213,12 @@
   arguments: (brace_arguments) @variable.parameter)
   (#eq? @function "@var"))
 
+; `@value{NAME}` refers to a variable set by `@set NAME`.
+((inline_command
+  name: (command_name) @function
+  arguments: (brace_arguments) @variable)
+  (#eq? @function "@value"))
+
 ; Accents, like the symbol commands they mostly are: `@'e`, `@u{o}`
 ((inline_command
   name: (command_name) @string.escape)
@@ -226,9 +232,9 @@
   name: (command_name) @function)
   (#not-any-of? @function
     "@code" "@samp" "@kbd" "@key" "@file" "@command" "@option" "@env" "@t" "@indicateurl" "@emph"
-    "@i" "@dfn" "@cite" "@slanted" "@strong" "@b" "@var" "@'" "@\"" "@^" "@`" "@~" "@=" "@," "@H"
-    "@dotaccent" "@dotless" "@ogonek" "@ringaccent" "@tieaccent" "@u" "@ubaraccent" "@udotaccent"
-    "@v"))
+    "@i" "@dfn" "@cite" "@slanted" "@strong" "@b" "@var" "@value" "@'" "@\"" "@^" "@`" "@~" "@="
+    "@," "@H" "@dotaccent" "@dotless" "@ogonek" "@ringaccent" "@tieaccent" "@u" "@ubaraccent"
+    "@udotaccent" "@v"))
 
 ; Commands that error recovery left without their usual parent. A generic
 ; (command_name) pattern would win over the specific ones above, since a

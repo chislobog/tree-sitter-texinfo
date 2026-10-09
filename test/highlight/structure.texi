@@ -38,3 +38,6 @@ Text @emph{important} and @var{file}.
 @include version.texi
 @c <- keyword
 @c         ^ string.special.path
+
+Version @value{VERSION}.
+@c              ^ variable
