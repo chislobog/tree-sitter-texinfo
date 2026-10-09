@@ -4,9 +4,18 @@ on:
   push:
   pull_request:
 
+# A newer push to the same branch cancels a run in progress, except on main,
+# where every commit gets a full result.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
   check:
     runs-on: ubuntu-latest
+    # Branches in this repository are checked on push; pull requests only
+    # from forks, to avoid running twice.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     steps:
       - uses: actions/checkout@v7
 
@@ -72,6 +81,9 @@ jobs:
   fuzz:
     name: Fuzz the scanner
     runs-on: ubuntu-latest
+    # Branches in this repository are checked on push; pull requests only
+    # from forks, to avoid running twice.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     steps:
       - uses: actions/checkout@v7
 
@@ -88,6 +100,9 @@ jobs:
   # with MSVC on Windows; the bindings are how most projects use the grammar.
   platforms:
     name: Tests and bindings on ${{ matrix.os }}
+    # Branches in this repository are checked on push; pull requests only
+    # from forks, to avoid running twice.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false

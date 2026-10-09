@@ -8,7 +8,7 @@ set -uo pipefail
 cd "$(git rev-parse --show-toplevel)" || exit 1
 
 # Use the dev shell's tools if this process didn't inherit them all.
-for tool in clang-format ruff shellcheck nixfmt ts_query_ls tree-sitter npx; do
+for tool in clang-format ruff shellcheck actionlint nixfmt ts_query_ls tree-sitter npx; do
   if ! command -v "$tool" >/dev/null 2>&1; then
     if [[ -z ${LINT_IN_DEV_SHELL:-} ]]; then
       LINT_IN_DEV_SHELL=1 exec direnv exec . "$0" "$@"
@@ -46,6 +46,7 @@ else
   check "ruff format" ruff format --check script/
   check shellcheck shellcheck .githooks/* .claude/hooks/*.sh script/*.sh
   check nixfmt nixfmt --check flake.nix
+  check actionlint actionlint
   check ts_query_ls bash -c 'tree-sitter build >/dev/null && ts_query_ls check -f queries/'
 fi
 exit $status

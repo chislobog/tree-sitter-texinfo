@@ -69,6 +69,7 @@
             # and ESLint from npm
             ruff
             shellcheck
+            actionlint
             nixfmt
 
             # Reference implementation and sample documents to test against
