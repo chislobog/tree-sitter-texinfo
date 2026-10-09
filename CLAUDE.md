@@ -26,12 +26,12 @@ well with incomplete input, which is normal while editing.
 
 ## Layout
 
-- `grammar.js`: the grammar. Line commands, sections by level (`SECTIONS`,
-  mirrored by `SECTIONING` in the scanner), the built-in
-  brace commands (`BRACE_COMMANDS`, from texi2any's command table) and the
-  commands whose arguments split at commas into named fields
-  (`ARGUMENT_COMMANDS`) are listed here.
-- `src/scanner.c`: external scanner. Holds the table of block names and kinds
+- `grammar.js`: the grammar. Sections by level (`SECTIONS`, mirrored by
+  `SECTIONING` in the scanner) and the commands whose arguments split at
+  commas into named fields (`ARGUMENT_COMMANDS`) are listed here.
+- `src/scanner.c`: external scanner. Holds the tables of line commands
+  (`LINE_COMMANDS`) and built-in brace commands (`BRACE_COMMANDS`, from
+  texi2any's command table), and the table of block names and kinds
   (block, list, raw, macro, menu, definition with its layout, whose numbers
   index `DEFINITION_LAYOUTS` in `grammar.js`), the stack of open blocks that makes `@end NAME`
   match, raw block bodies, `@verb` bodies (its delimiter is saved state), the
@@ -118,7 +118,11 @@ because of the script's simple macro expansion and different error recovery. Use
   after a private capture like `@_name`. So keep patterns from overlapping
   (use predicates to make them exclusive) and capture predicate nodes with
   a real highlight.
-- Watch `tree-sitter generate` time (normally about 15 seconds) and the
+- Recognise long lists of command names in the scanner, not with keywords in
+  the grammar: every keyword is an entry in every parser state where a
+  command can start. Moving 199 keywords to the scanner took `parser.c` from
+  29 MB to 6 MB.
+- Watch `tree-sitter generate` time (normally about 5 seconds) and the
   parser's state count: CI (`script/check-parser-size.sh`) warns when it grows
   by 10% and fails at 50%. Nested
   optional sequences, as in `commaArguments`, multiply parser states quickly;

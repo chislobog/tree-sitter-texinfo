@@ -41,7 +41,9 @@ enum TokenType {
   // `@node` lines followed by a sectioning command, one per level, in the
   // order of SECTIONS in grammar.js.
   NODE_BEFORE_SECTION = DEFINITION_START + 8,
-  ERROR_SENTINEL = NODE_BEFORE_SECTION + 6,
+  LINE_COMMAND_NAME = NODE_BEFORE_SECTION + 6,
+  BRACE_COMMAND_NAME,
+  ERROR_SENTINEL,
 };
 
 typedef enum {
@@ -233,6 +235,171 @@ static bool read_end_name(TSLexer *lexer, char *name) {
   if (!is_blank(lexer->lookahead)) return false;
   skip_blanks(lexer);
   return read_name(lexer, name);
+}
+
+// Commands whose argument is the rest of the line.
+static const char *const LINE_COMMANDS[] = {
+    // Structure and cross-referencing
+    "printindex", "include", "insertcopying", "contents", "shortcontents",
+    "summarycontents", "listoffloats", "nodedescription",
+    // Indices
+    "cindex", "findex", "kindex", "pindex", "tindex", "vindex", "defindex",
+    "defcodeindex", "synindex", "syncodeindex",
+    // Header and title page
+    "setfilename", "settitle", "title", "subtitle", "author", "shorttitlepage",
+    "dircategory", "documentencoding", "documentlanguage", "setchapternewpage",
+    "headings", "evenheading", "oddheading", "everyheading", "evenfooting",
+    "oddfooting", "everyfooting",
+    // Variables and macros
+    "set", "clear", "alias", "definfoenclose", "unmacro",
+    // Layout
+    "page", "need", "sp", "vskip", "center", "exdent", "noindent", "indent",
+    "finalout", "smallbook", "afourpaper", "afivepaper", "afourlatex",
+    "afourwide", "pagesizes", "paragraphindent", "firstparagraphindent",
+    "exampleindent", "footnotestyle", "frenchspacing", "allowcodebreaks",
+    "kbdinputstyle", "codequoteundirected", "codequotebacktick",
+    "deftypefnnewline", "urefbreakstyle", "xrefautomaticsectiontitle",
+    "setcontentsaftertitlepage", "setshortcontentsaftertitlepage", "novalidate",
+    "raisesections", "lowersections",
+    // Less common: two-letter index names, page layout, cross-reference names
+    "cpindex", "fnindex", "kyindex", "pgindex", "tpindex", "vrindex",
+    "bsixpaper", "clickstyle", "fonttextsize", "microtype", "maketitle",
+    "verbatiminclude", "xrefname", "evenfootingmarks", "evenheadingmarks",
+    "everyfootingmarks", "everyheadingmarks", "oddfootingmarks",
+    "oddheadingmarks"};
+
+// Built-in brace commands whose argument ends at a blank line, as in texi2any:
+// all of them except @verb, the "context" commands @footnote, @caption,
+// @shortcaption and @math, and the inline conditionals (@inlinefmt, ...),
+// whose skipped arguments may contain blank lines. Any other command with
+// braces, including calls to user-defined macros, may contain blank lines.
+static const char *const BRACE_COMMANDS[] = {"AA",
+                                             "AE",
+                                             "DH",
+                                             "H",
+                                             "L",
+                                             "LaTeX",
+                                             "O",
+                                             "OE",
+                                             "TH",
+                                             "TeX",
+                                             "U",
+                                             "aa",
+                                             "ae",
+                                             "ampchar",
+                                             "anchor",
+                                             "arrow",
+                                             "asis",
+                                             "atchar",
+                                             "b",
+                                             "backslashchar",
+                                             "bullet",
+                                             "cite",
+                                             "click",
+                                             "clicksequence",
+                                             "code",
+                                             "comma",
+                                             "command",
+                                             "copyright",
+                                             "dfn",
+                                             "dh",
+                                             "dmn",
+                                             "dotaccent",
+                                             "dotless",
+                                             "dots",
+                                             "emph",
+                                             "enddots",
+                                             "env",
+                                             "equiv",
+                                             "error",
+                                             "errormsg",
+                                             "euro",
+                                             "exclamdown",
+                                             "expansion",
+                                             "file",
+                                             "geq",
+                                             "guillemetleft",
+                                             "guillemetright",
+                                             "guillemotleft",
+                                             "guillemotright",
+                                             "guilsinglleft",
+                                             "guilsinglright",
+                                             "hashchar",
+                                             "headitemfont",
+                                             "hyphenation",
+                                             "i",
+                                             "indicateurl",
+                                             "kbd",
+                                             "key",
+                                             "l",
+                                             "lbracechar",
+                                             "leq",
+                                             "minus",
+                                             "o",
+                                             "oe",
+                                             "ogonek",
+                                             "option",
+                                             "ordf",
+                                             "ordm",
+                                             "point",
+                                             "pounds",
+                                             "print",
+                                             "questiondown",
+                                             "quotedblbase",
+                                             "quotedblleft",
+                                             "quotedblright",
+                                             "quoteleft",
+                                             "quoteright",
+                                             "quotesinglbase",
+                                             "r",
+                                             "rbracechar",
+                                             "registeredsymbol",
+                                             "result",
+                                             "ringaccent",
+                                             "samp",
+                                             "sansserif",
+                                             "sc",
+                                             "seealso",
+                                             "seeentry",
+                                             "slanted",
+                                             "sortas",
+                                             "ss",
+                                             "strong",
+                                             "sub",
+                                             "sup",
+                                             "t",
+                                             "textdegree",
+                                             "th",
+                                             "tie",
+                                             "tieaccent",
+                                             "titlefont",
+                                             "today",
+                                             "u",
+                                             "ubaraccent",
+                                             "udotaccent",
+                                             "v",
+                                             "value",
+                                             "var",
+                                             "w"};
+
+static bool in_table(const char *const *table, size_t count, const char *name) {
+  for (size_t i = 0; i < count; i++) {
+    if (strcmp(table[i], name) == 0) return true;
+  }
+  return false;
+}
+
+#define TABLE_COUNT(table) (sizeof(table) / sizeof(table[0]))
+
+/**
+ * Whether `@name` at the start of a line is a line command. Commands ending
+ * in `index` count, including user-defined index commands (`@defindex op`
+ * makes `@opindex`), as texi2any treats them as index entries.
+ */
+static bool is_line_command(const char *name) {
+  size_t length = strlen(name);
+  return in_table(LINE_COMMANDS, TABLE_COUNT(LINE_COMMANDS), name) ||
+         (length > 5 && strcmp(name + length - 5, "index") == 0);
 }
 
 // Sectioning commands by level: the index of the section in SECTIONS in
@@ -633,6 +800,18 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
 
   if (strcmp(name, "node") == 0) {
     return scan_node_before_section(lexer, valid_symbols);
+  }
+
+  if (valid_symbols[LINE_COMMAND_NAME] && is_line_command(name)) {
+    lexer->mark_end(lexer);
+    lexer->result_symbol = LINE_COMMAND_NAME;
+    return true;
+  }
+  if (valid_symbols[BRACE_COMMAND_NAME] &&
+      in_table(BRACE_COMMANDS, TABLE_COUNT(BRACE_COMMANDS), name)) {
+    lexer->mark_end(lexer);
+    lexer->result_symbol = BRACE_COMMAND_NAME;
+    return true;
   }
 
   // read_name stops at the first character that can't be part of a name, so

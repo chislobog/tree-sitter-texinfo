@@ -50,60 +50,9 @@ const nodeLine = ($, name) => seq(
 // Headings that don't start a section, from chapter to subsubsection level.
 const HEADING_COMMANDS = ['majorheading', 'chapheading', 'heading', 'subheading', 'subsubheading'];
 
-// Commands whose argument is the rest of the line.
-const LINE_COMMANDS = [
-  // Structure and cross-referencing
-  'printindex', 'include', 'insertcopying', 'contents', 'shortcontents',
-  'summarycontents', 'listoffloats', 'nodedescription',
-  // Indices
-  'cindex', 'findex', 'kindex', 'pindex', 'tindex', 'vindex', 'defindex', 'defcodeindex',
-  'synindex', 'syncodeindex',
-  // Header and title page
-  'setfilename', 'settitle', 'title', 'subtitle', 'author', 'shorttitlepage', 'dircategory',
-  'documentencoding', 'documentlanguage', 'setchapternewpage', 'headings', 'evenheading',
-  'oddheading', 'everyheading', 'evenfooting', 'oddfooting', 'everyfooting',
-  // Variables and macros
-  'set', 'clear', 'alias', 'definfoenclose', 'unmacro',
-  // Layout
-  'page', 'need', 'sp', 'vskip', 'center', 'exdent', 'noindent', 'indent', 'finalout',
-  'smallbook', 'afourpaper', 'afivepaper', 'afourlatex', 'afourwide', 'pagesizes',
-  'paragraphindent', 'firstparagraphindent', 'exampleindent', 'footnotestyle',
-  'frenchspacing', 'allowcodebreaks', 'kbdinputstyle', 'codequoteundirected',
-  'codequotebacktick', 'deftypefnnewline', 'urefbreakstyle', 'xrefautomaticsectiontitle',
-  'setcontentsaftertitlepage', 'setshortcontentsaftertitlepage', 'novalidate',
-  'raisesections', 'lowersections',
-  // Less common: two-letter index names, page layout, cross-reference names
-  'cpindex', 'fnindex', 'kyindex', 'pgindex', 'tpindex', 'vrindex', 'bsixpaper',
-  'clickstyle', 'fonttextsize', 'microtype', 'maketitle', 'verbatiminclude',
-  'xrefname', 'evenfootingmarks', 'evenheadingmarks', 'everyfootingmarks',
-  'everyheadingmarks', 'oddfootingmarks', 'oddheadingmarks',
-];
-
-// Built-in brace commands whose argument ends at a blank line, as in texi2any:
-// all of them except @verb, the "context" commands @footnote, @caption,
-// @shortcaption and @math, and the inline conditionals (@inlinefmt, ...),
-// whose skipped arguments may contain blank lines. Any other command with
-// braces, including calls to user-defined macros, may contain blank lines.
-const BRACE_COMMANDS = [
-  'AA', 'AE', 'DH', 'H', 'L', 'LaTeX', 'O', 'OE', 'TH', 'TeX', 'U', 'aa', 'ae', 'ampchar', 'anchor', 'arrow', 'asis', 'atchar', 'b',
-  'backslashchar', 'bullet', 'cite', 'click', 'clicksequence', 'code', 'comma',
-  'command', 'copyright', 'dfn', 'dh', 'dmn', 'dotaccent', 'dotless', 'dots',
-  'emph', 'enddots', 'env', 'equiv', 'error', 'errormsg', 'euro',
-  'exclamdown', 'expansion', 'file', 'geq', 'guillemetleft', 'guillemetright',
-  'guillemotleft', 'guillemotright', 'guilsinglleft', 'guilsinglright',
-  'hashchar', 'headitemfont', 'hyphenation', 'i', 'indicateurl',
-  'kbd', 'key', 'l', 'lbracechar', 'leq', 'minus',
-  'o', 'oe', 'ogonek', 'option', 'ordf', 'ordm', 'point', 'pounds',
-  'print', 'questiondown', 'quotedblbase', 'quotedblleft',
-  'quotedblright', 'quoteleft', 'quoteright', 'quotesinglbase', 'r',
-  'rbracechar', 'registeredsymbol', 'result', 'ringaccent', 'samp',
-  'sansserif', 'sc', 'seealso', 'seeentry', 'slanted', 'sortas', 'ss', 'strong',
-  'sub', 'sup', 't', 'textdegree', 'th', 'tie', 'tieaccent', 'titlefont', 'today',
-  'u', 'ubaraccent', 'udotaccent', 'v', 'value', 'var', 'w'];
-
 // Brace commands whose argument splits at commas, with the field name of each
 // argument by position. As in texi2any, the last argument takes any further
-// commas. These also end at a blank line, like BRACE_COMMANDS.
+// commas. These also end at a blank line, like the scanner's BRACE_COMMANDS.
 const ARGUMENT_COMMANDS = {
   'node label title file manual': ['xref', 'pxref', 'ref'],
   'node label file': ['inforef', 'link'],
@@ -199,6 +148,10 @@ export default grammar({
     ...DEFINITION_LAYOUTS.map((_, i) => $[`_definition_start_${i}`]),
     // `@node` followed by the sectioning command of this section.
     ...SECTIONS.map(({name}) => $[`_node_before_${name}`]),
+    // Command names the scanner recognises from its tables: recognising them
+    // with keywords in the grammar would make the parser several times larger.
+    $._line_command_name,
+    $._brace_command_name,
     $._error_sentinel,
   ],
 
@@ -287,14 +240,9 @@ export default grammar({
     ),
 
     line_command: $ => seq(
-      field('name', choice(
-        command($, LINE_COMMANDS),
-        // Index commands, including user-defined ones (`@defindex op` makes
-        // `@opindex`), which texi2any treats as index entries at the start
-        // of a line. Takes precedence over an inline command there; in the
-        // middle of a line only inline commands are valid.
-        alias(token(prec(1, /@[a-zA-Z]+index/)), $.command_name),
-      )),
+      // The scanner recognises line commands by name (LINE_COMMANDS in
+      // src/scanner.c), including user-defined index commands.
+      field('name', alias($._line_command_name, $.command_name)),
       optional(field('argument', $.line_argument)),
       $._line_end,
     ),
@@ -490,7 +438,9 @@ export default grammar({
 
     inline_command: $ => choice(
       prec.right(seq(
-        field('name', command($, BRACE_COMMANDS)),
+        // Built-in brace commands, recognised by the scanner (BRACE_COMMANDS
+        // in src/scanner.c): their argument ends at a blank line.
+        field('name', alias($._brace_command_name, $.command_name)),
         optional(seq(
           token.immediate('{'),
           optional(field('arguments', $.brace_arguments)),
@@ -588,7 +538,7 @@ export default grammar({
     // Text in an argument other than the last, where a comma separates.
     _argument_text: _ => /[^@{},\s]([^@{},\r\n]*[^@{},\s])?/,
 
-    // For brace commands other than BRACE_COMMANDS, which may contain blank
+    // For brace commands other than the scanner's BRACE_COMMANDS, which may contain blank
     // lines.
     _long_arguments: $ => choice(
       // A block may also start right after the `{`.
