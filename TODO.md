@@ -118,8 +118,8 @@ of a line.
 - [x] `queries/injections.scm`: TeX/LaTeX, HTML, XML, DocBook raw blocks
 - [x] Inject LaTeX into `@math` and `@displaymath`
 - [x] `queries/folds.scm`
-- [ ] `queries/tags.scm`: nodes and anchors as definitions, cross-references as
-  references
+- [x] `queries/tags.scm`: nodes, anchors and documented functions and variables
+  as definitions; cross-references and menu entries as references
 - [ ] Register queries in `tree-sitter.json`
 
 ## Project

@@ -40,8 +40,10 @@ well with incomplete input, which is normal while editing.
   committed; always commit it together with the `grammar.js` change.
 - `test/corpus/*.txt`: corpus tests.
 - `script/compare-texi2any.py`: compares our trees with texi2any's.
-- `queries/`: highlights, injections and folds; highlight tests are in
-  `test/highlight/` (run by `tree-sitter test`).
+- `queries/`: highlights, injections, folds and tags; highlight and tags
+  tests are in `test/highlight/` and `test/tags/` (run by `tree-sitter
+  test`). Tags queries only allow tag captures, so their predicates test the
+  text of the whole captured command.
 
 ## Checks
 

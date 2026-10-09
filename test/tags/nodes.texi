@@ -1,0 +1,17 @@
+@node Overview, Next, Top, Top
+@c    ^ definition.node
+@anchor{intro}
+@c       ^ definition.anchor
+See @xref{Overview} and @ref{intro}.
+@c         ^ reference.node
+@c                            ^ reference.node
+@menu
+* Overview::
+@c ^ reference.node
+@end menu
+@deffn Command forward-word count
+@c             ^ definition.function
+@end deffn
+@defvar fill-column
+@c      ^ definition.variable
+@end defvar
