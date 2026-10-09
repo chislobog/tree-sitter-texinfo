@@ -155,6 +155,10 @@
         },
         {
           "type": "SYMBOL",
+          "name": "heading"
+        },
+        {
+          "type": "SYMBOL",
           "name": "block"
         },
         {
@@ -276,14 +280,6 @@
                 },
                 {
                   "type": "STRING",
-                  "value": "@majorheading"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@chapheading"
-                },
-                {
-                  "type": "STRING",
                   "value": "@centerchap"
                 }
               ]
@@ -340,10 +336,6 @@
                 {
                   "type": "STRING",
                   "value": "@appendixsection"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@heading"
                 }
               ]
             },
@@ -395,10 +387,6 @@
                 {
                   "type": "STRING",
                   "value": "@appendixsubsec"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@subheading"
                 }
               ]
             },
@@ -450,6 +438,61 @@
                 {
                   "type": "STRING",
                   "value": "@appendixsubsubsec"
+                }
+              ]
+            },
+            "named": true,
+            "value": "command_name"
+          }
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "FIELD",
+              "name": "title",
+              "content": {
+                "type": "SYMBOL",
+                "name": "line_argument"
+              }
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_line_end"
+        }
+      ]
+    },
+    "heading": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "FIELD",
+          "name": "name",
+          "content": {
+            "type": "ALIAS",
+            "content": {
+              "type": "CHOICE",
+              "members": [
+                {
+                  "type": "STRING",
+                  "value": "@majorheading"
+                },
+                {
+                  "type": "STRING",
+                  "value": "@chapheading"
+                },
+                {
+                  "type": "STRING",
+                  "value": "@heading"
+                },
+                {
+                  "type": "STRING",
+                  "value": "@subheading"
                 },
                 {
                   "type": "STRING",

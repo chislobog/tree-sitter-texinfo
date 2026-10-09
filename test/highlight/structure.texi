@@ -25,3 +25,5 @@ See @xref{Top, , Title} and @emph{this} @@.
 Text @emph{important} and @var{file}.
 @c         ^ markup.italic
 @c                             ^ variable.parameter
+@heading Not a section
+@c       ^ markup.heading.2

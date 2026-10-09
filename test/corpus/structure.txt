@@ -205,3 +205,27 @@ Command fields are named consistently
       (text)))
   (bye
     name: (command_name)))
+
+================================================================================
+Heading commands that don't start a section
+================================================================================
+
+@majorheading Big
+@heading Plain heading
+@subsubheading Small
+
+---
+
+(source_file
+  (heading
+    name: (command_name)
+    title: (line_argument
+      (text)))
+  (heading
+    name: (command_name)
+    title: (line_argument
+      (text)))
+  (heading
+    name: (command_name)
+    title: (line_argument
+      (text))))

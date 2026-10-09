@@ -7,17 +7,18 @@
 /// <reference types="tree-sitter-cli/dsl" />
 // @ts-check
 
-// Sectioning commands, grouped by level. Headings are flat siblings for now:
-// they often sit inside conditionals like `@ifnottex`, which makes nesting
-// sections fragile.
+// Sectioning commands, grouped by level as in texi2any.
 const HEADINGS = {
   part_heading: ['part'],
   top_heading: ['top'],
-  chapter_heading: ['chapter', 'unnumbered', 'appendix', 'majorheading', 'chapheading', 'centerchap'],
-  section_heading: ['section', 'unnumberedsec', 'appendixsec', 'appendixsection', 'heading'],
-  subsection_heading: ['subsection', 'unnumberedsubsec', 'appendixsubsec', 'subheading'],
-  subsubsection_heading: ['subsubsection', 'unnumberedsubsubsec', 'appendixsubsubsec', 'subsubheading'],
+  chapter_heading: ['chapter', 'unnumbered', 'appendix', 'centerchap'],
+  section_heading: ['section', 'unnumberedsec', 'appendixsec', 'appendixsection'],
+  subsection_heading: ['subsection', 'unnumberedsubsec', 'appendixsubsec'],
+  subsubsection_heading: ['subsubsection', 'unnumberedsubsubsec', 'appendixsubsubsec'],
 };
+
+// Headings that don't start a section, from chapter to subsubsection level.
+const HEADING_COMMANDS = ['majorheading', 'chapheading', 'heading', 'subheading', 'subsubheading'];
 
 // Commands whose argument is the rest of the line.
 const LINE_COMMANDS = [
@@ -197,6 +198,7 @@ export default grammar({
       alias($._definition_continuation, $.definition_line),
       $.line_command,
       ...Object.keys(HEADINGS).map((name) => $[name]),
+      $.heading,
       $.block,
       $.definition_block,
       $.menu,
@@ -212,6 +214,12 @@ export default grammar({
         $._line_end,
       ),
     ])),
+
+    heading: $ => seq(
+      field('name', command($, HEADING_COMMANDS)),
+      optional(field('title', $.line_argument)),
+      $._line_end,
+    ),
 
     line_command: $ => seq(
       field('name', choice(

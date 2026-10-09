@@ -34,6 +34,26 @@
   name: (command_name) @keyword
   title: (line_argument) @markup.heading.4)
 
+((heading
+  name: (command_name) @keyword
+  title: (line_argument) @markup.heading.1)
+  (#any-of? @keyword "@majorheading" "@chapheading"))
+
+((heading
+  name: (command_name) @keyword
+  title: (line_argument) @markup.heading.2)
+  (#eq? @keyword "@heading"))
+
+((heading
+  name: (command_name) @keyword
+  title: (line_argument) @markup.heading.3)
+  (#eq? @keyword "@subheading"))
+
+((heading
+  name: (command_name) @keyword
+  title: (line_argument) @markup.heading.4)
+  (#eq? @keyword "@subsubheading"))
+
 ; Nodes, cross-references and menus
 
 (node_line

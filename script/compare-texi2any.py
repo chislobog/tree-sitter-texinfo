@@ -57,7 +57,7 @@ LIBRARY = ROOT / "build" / "texinfo.dylib"
 FORMATS = ("info", "plaintext", "html", "docbook", "xml", "latex", "tex")
 HEADINGS = (
     "part_heading", "top_heading", "chapter_heading", "section_heading",
-    "subsection_heading", "subsubsection_heading",
+    "subsection_heading", "subsubsection_heading", "heading",
 )
 MACRO_BLOCKS = ("macro", "rmacro", "linemacro")
 # Block names, from the scanner's table.

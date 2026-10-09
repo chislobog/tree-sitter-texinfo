@@ -86,6 +86,10 @@
           "named": true
         },
         {
+          "type": "heading",
+          "named": true
+        },
+        {
           "type": "item",
           "named": true
         },
@@ -337,6 +341,10 @@
           "named": true
         },
         {
+          "type": "heading",
+          "named": true
+        },
+        {
           "type": "line_command",
           "named": true
         },
@@ -491,6 +499,32 @@
           },
           {
             "type": "text",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "heading",
+    "named": true,
+    "fields": {
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "command_name",
+            "named": true
+          }
+        ]
+      },
+      "title": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "line_argument",
             "named": true
           }
         ]
@@ -754,6 +788,10 @@
           "named": true
         },
         {
+          "type": "heading",
+          "named": true
+        },
+        {
           "type": "itemx",
           "named": true
         },
@@ -943,6 +981,10 @@
           "named": true
         },
         {
+          "type": "heading",
+          "named": true
+        },
+        {
           "type": "item",
           "named": true
         },
@@ -1050,6 +1092,10 @@
         },
         {
           "type": "definition_line",
+          "named": true
+        },
+        {
+          "type": "heading",
           "named": true
         },
         {
@@ -1432,6 +1478,10 @@
         },
         {
           "type": "definition_line",
+          "named": true
+        },
+        {
+          "type": "heading",
           "named": true
         },
         {
