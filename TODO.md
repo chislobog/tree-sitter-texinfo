@@ -133,8 +133,9 @@ of a line.
   misplaced `@tab` and `@headitem`, stray `@end`), `@click` (texi2any
   substitutes the `@clickstyle` symbol), and the divergences below
 - [ ] Mirror `@clickstyle`/`@click` and `@linemacro` calls in the comparison
-- [ ] CI: generate, check `src/` is up to date, test, fuzz, parse examples,
-  compare with texi2any
+- [x] CI (`.github/workflows/ci.yml`): generated `src/` up to date, tests,
+  fuzzing, parsing the manuals, and both texi2any comparisons with minimum
+  match rates (`--fail-under`)
 - [ ] README: supported features, editor setup, development with Nix
 - [x] `CLAUDE.md` with project conventions
 - [ ] Expand `@linemacro` calls in the texi2any comparison

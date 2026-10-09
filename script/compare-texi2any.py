@@ -31,7 +31,7 @@ texi2any does things a tree-sitter grammar cannot, so this side mirrors them:
 On our side, a command name inside an ERROR node still counts as a command:
 error recovery keeps it, and that is what an editor highlights.
 
-Usage: script/compare-texi2any.py [--structure] [--hunks N] FILE...
+Usage: script/compare-texi2any.py [--structure] [--hunks N] [--fail-under PERCENT] FILE...
 """
 
 import argparse
@@ -482,6 +482,8 @@ def main() -> int:
                            help="compare only blocks, items and line commands")
     arguments.add_argument("--hunks", type=int, default=5,
                            help="differences to show per file (default 5)")
+    arguments.add_argument("--fail-under", type=float, metavar="PERCENT",
+                           help="exit with an error if fewer commands match overall")
     options = arguments.parse_args()
 
     parser = Parser(load_language())
@@ -502,8 +504,12 @@ def main() -> int:
                 print(f"  {errors} parse errors")
             total_ours += len(ours)
             total_matched += round(ratio * len(ours))
-    if len(options.files) > 1 and total_ours:
-        print(f"\nOverall: {total_matched / total_ours:.2%} of {total_ours} commands match")
+    overall = total_matched / total_ours if total_ours else 1.0
+    if len(options.files) > 1:
+        print(f"\nOverall: {overall:.2%} of {total_ours} commands match")
+    if options.fail_under is not None and overall * 100 < options.fail_under:
+        print(f"Fewer than {options.fail_under}% of commands match", file=sys.stderr)
+        return 1
     return 0
 
 

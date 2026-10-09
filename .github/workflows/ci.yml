@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: cachix/install-nix-action@v31
+
+      # The dev shell provides the same tools as locally, and links the
+      # example manuals and texi2any's test inputs into the checkout.
+      - name: Build the dev shell
+        run: nix develop --command true
+
+      - name: Generated parser is up to date
+        run: |
+          nix develop --command tree-sitter generate
+          git diff --exit-code src/
+
+      - name: Tests
+        run: nix develop --command tree-sitter test
+
+      - name: Incremental parsing
+        run: nix develop --command tree-sitter fuzz --iterations 100
+
+      # gawk's Italian manual has a footnote crossing a conditional, which a
+      # tree-sitter parse can't represent (see TODO.md).
+      - name: Parse the example manuals
+        run: |
+          nix develop --command bash -c "
+            find -L examples -name '*.texi' ! -path '*/it/gawk.texi' -print0 |
+              xargs -0 tree-sitter parse --quiet --stat"
+
+      # Without the files texi2any itself fails on, and those listed as noise
+      # in CLAUDE.md.
+      - name: Compare with texi2any on the manuals
+        run: |
+          nix develop --command bash -c "
+            find -L examples -name '*.texi' ! -path '*/it/*' \
+                ! -name texinfo-tex-test.texi ! -name html_default_commands_args.texi |
+              sort | xargs python3 script/compare-texi2any.py --hunks 3 --fail-under 99.99"
+
+      - name: Compare with texi2any on its test inputs
+        run: |
+          nix develop --command bash -c "
+            set -o pipefail
+            find -L texinfo-tests -name '*.texi' | sort |
+              xargs python3 script/compare-texi2any.py --hunks 0 --fail-under 98.6 |
+              tail -1"

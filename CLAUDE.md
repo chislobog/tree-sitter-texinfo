@@ -58,6 +58,10 @@ tree-sitter parse --quiet --stat 'examples/**/*.texi'
 find -L examples -name '*.texi' | sort | xargs python3 script/compare-texi2any.py
 ```
 
+CI (`.github/workflows/ci.yml`) runs all of these on every push, with
+minimum match rates for the comparisons (`--fail-under`). Raise them when the
+grammar improves.
+
 To compare with texi2any on its own test inputs (about a minute):
 
 ```sh
