@@ -42,3 +42,7 @@ Text @code{grep}, @emph{this} and @var{file}.
 @c         ^ markup.raw
 @c                      ^ markup.italic
 @c                                     ^ variable.parameter
+
+Caf@'e and @u o.
+@c  ^ string.escape
+@c         ^ string.escape

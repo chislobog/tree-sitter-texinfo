@@ -51,6 +51,8 @@ enum TokenType {
   ROW_NAME,
   // `@subentry` after the argument of a line command.
   SUBENTRY_NAME,
+  // The one-character argument of an accent command without braces.
+  ACCENT_ARGUMENT,
   ERROR_SENTINEL,
 };
 
@@ -188,6 +190,8 @@ typedef struct {
   unsigned depth;
   // Delimiter of the `@verb` being scanned, from its opening to its closing.
   int32_t verb_delimiter;
+  // Whether the last token was the name of an accent command.
+  bool after_accent;
 } Scanner;
 
 static inline void advance(TSLexer *lexer) { lexer->advance(lexer, false); }
@@ -523,6 +527,40 @@ static bool pop_block(Scanner *scanner, TSLexer *lexer) {
   return true;
 }
 
+// Accent commands, which texi2any also accepts without braces: `@'e`,
+// `@u o`.
+static const char *const LETTER_ACCENTS[] = {
+    "H",         "dotaccent", "dotless",    "ogonek",     "ringaccent",
+    "tieaccent", "u",         "ubaraccent", "udotaccent", "v"};
+
+static bool is_symbol_accent(int32_t c) {
+  return c == '\'' || c == '"' || c == '^' || c == '`' || c == '~' ||
+         c == '=' || c == ',';
+}
+
+/**
+ * Scans the argument of an accent command without braces: one character
+ * after any blanks and at most one newline, as in texi2any. Not `@`, a brace
+ * or a blank line.
+ */
+static bool scan_accent_argument(TSLexer *lexer) {
+  while (is_blank(lexer->lookahead)) skip(lexer);
+  if (lexer->lookahead == '\r') skip(lexer);
+  if (lexer->lookahead == '\n') {
+    skip(lexer);
+    while (is_blank(lexer->lookahead)) skip(lexer);
+  }
+  int32_t c = lexer->lookahead;
+  if (lexer->eof(lexer) || c == '@' || c == '{' || c == '}' || c == '\n' ||
+      c == '\r') {
+    return false;
+  }
+  advance(lexer);
+  lexer->mark_end(lexer);
+  lexer->result_symbol = ACCENT_ARGUMENT;
+  return true;
+}
+
 /**
  * Whether the innermost open block, other than conditionals, which texi2any
  * evaluates before parsing, is a multitable.
@@ -759,8 +797,9 @@ unsigned tree_sitter_texinfo_external_scanner_serialize(void *payload,
                                                         char *buffer) {
   Scanner *scanner = payload;
   memcpy(buffer, &scanner->verb_delimiter, sizeof(int32_t));
-  memcpy(buffer + sizeof(int32_t), scanner->stack, scanner->depth);
-  return sizeof(int32_t) + scanner->depth;
+  buffer[sizeof(int32_t)] = (char)scanner->after_accent;
+  memcpy(buffer + sizeof(int32_t) + 1, scanner->stack, scanner->depth);
+  return sizeof(int32_t) + 1 + scanner->depth;
 }
 
 void tree_sitter_texinfo_external_scanner_deserialize(void *payload,
@@ -768,11 +807,13 @@ void tree_sitter_texinfo_external_scanner_deserialize(void *payload,
                                                       unsigned length) {
   Scanner *scanner = payload;
   scanner->verb_delimiter = 0;
+  scanner->after_accent = false;
   scanner->depth = 0;
-  if (length < sizeof(int32_t)) return;
+  if (length < sizeof(int32_t) + 1) return;
   memcpy(&scanner->verb_delimiter, buffer, sizeof(int32_t));
-  scanner->depth = length - sizeof(int32_t);
-  memcpy(scanner->stack, buffer + sizeof(int32_t), scanner->depth);
+  scanner->after_accent = buffer[sizeof(int32_t)];
+  scanner->depth = length - sizeof(int32_t) - 1;
+  memcpy(scanner->stack, buffer + sizeof(int32_t) + 1, scanner->depth);
 }
 
 bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
@@ -782,6 +823,15 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
   // During error recovery every symbol is valid; let the internal lexer
   // handle it rather than pushing or popping blocks speculatively.
   if (valid_symbols[ERROR_SENTINEL]) return false;
+
+  // tree-sitter restores the state saved after the last external token
+  // before each scan, so this is only set right after an accent's name.
+  bool after_accent = scanner->after_accent;
+  scanner->after_accent = false;
+  if (after_accent && valid_symbols[ACCENT_ARGUMENT] &&
+      scan_accent_argument(lexer)) {
+    return true;
+  }
 
   if (valid_symbols[VERB_OPEN] || valid_symbols[VERB_TEXT] ||
       valid_symbols[VERB_CLOSE]) {
@@ -826,6 +876,14 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
   if (lexer->lookahead != '@') return false;
   advance(lexer);
 
+  if (valid_symbols[BRACE_COMMAND_NAME] && is_symbol_accent(lexer->lookahead)) {
+    advance(lexer);
+    lexer->mark_end(lexer);
+    scanner->after_accent = true;
+    lexer->result_symbol = BRACE_COMMAND_NAME;
+    return true;
+  }
+
   char name[MAX_NAME + 1];
   if (!read_name(lexer, name)) return false;
 
@@ -862,6 +920,8 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
   if (valid_symbols[BRACE_COMMAND_NAME] &&
       in_table(BRACE_COMMANDS, TABLE_COUNT(BRACE_COMMANDS), name)) {
     lexer->mark_end(lexer);
+    scanner->after_accent =
+        in_table(LETTER_ACCENTS, TABLE_COUNT(LETTER_ACCENTS), name);
     lexer->result_symbol = BRACE_COMMAND_NAME;
     return true;
   }

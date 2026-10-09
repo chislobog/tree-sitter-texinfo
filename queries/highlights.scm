@@ -200,13 +200,22 @@
   arguments: (brace_arguments) @variable.parameter)
   (#eq? @function "@var"))
 
+; Accents, like the symbol commands they mostly are: `@'e`, `@u{o}`
+((inline_command
+  name: (command_name) @string.escape)
+  (#any-of? @string.escape
+    "@'" "@\"" "@^" "@`" "@~" "@=" "@," "@H" "@dotaccent" "@dotless" "@ogonek" "@ringaccent"
+    "@tieaccent" "@u" "@ubaraccent" "@udotaccent" "@v"))
+
 ; Everything else. Excludes the commands above: this pattern finishes
 ; matching first, so it would claim their names and drop their matches.
 ((inline_command
   name: (command_name) @function)
   (#not-any-of? @function
     "@code" "@samp" "@kbd" "@key" "@file" "@command" "@option" "@env" "@t" "@indicateurl" "@emph"
-    "@i" "@dfn" "@cite" "@slanted" "@strong" "@b" "@var"))
+    "@i" "@dfn" "@cite" "@slanted" "@strong" "@b" "@var" "@'" "@\"" "@^" "@`" "@~" "@=" "@," "@H"
+    "@dotaccent" "@dotless" "@ogonek" "@ringaccent" "@tieaccent" "@u" "@ubaraccent" "@udotaccent"
+    "@v"))
 
 ; Commands that error recovery left without their usual parent. A generic
 ; (command_name) pattern would win over the specific ones above, since a

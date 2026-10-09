@@ -170,6 +170,7 @@ export default grammar({
     $._tab,
     $._row_name,
     $._subentry_name,
+    $._accent_argument,
     $._error_sentinel,
   ],
 
@@ -300,7 +301,10 @@ export default grammar({
     _line_argument_command: $ => choice(
       prec.right(seq(
         field('name', alias($._brace_command_name, $.command_name)),
-        optional(seq('{', $._line_brace_arguments)),
+        optional(choice(
+          seq('{', $._line_brace_arguments),
+          field('argument', alias($._accent_argument, $.text)),
+        )),
       )),
       prec.right(seq(
         field('name', $.command_name),
@@ -537,14 +541,18 @@ export default grammar({
         // Built-in brace commands, recognised by the scanner (BRACE_COMMANDS
         // in src/scanner.c): their argument ends at a blank line.
         field('name', alias($._brace_command_name, $.command_name)),
-        optional(seq(
-          '{',
-          optional(field('arguments', $.brace_arguments)),
-          choice(
-            '}',
-            alias($._brace_close_at_paragraph_end, $.missing_brace),
-            alias($._brace_close_at_block_end, $.missing_brace),
+        optional(choice(
+          seq(
+            '{',
+            optional(field('arguments', $.brace_arguments)),
+            choice(
+              '}',
+              alias($._brace_close_at_paragraph_end, $.missing_brace),
+              alias($._brace_close_at_block_end, $.missing_brace),
+            ),
           ),
+          // An accent command's argument without braces: `@'e`, `@u o`.
+          field('argument', alias($._accent_argument, $.text)),
         )),
       )),
       prec.right(seq(

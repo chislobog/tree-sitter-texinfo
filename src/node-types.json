@@ -640,6 +640,16 @@
           }
         ]
       },
+      "argument": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "text",
+            "named": true
+          }
+        ]
+      },
       "arguments": {
         "multiple": false,
         "required": false,

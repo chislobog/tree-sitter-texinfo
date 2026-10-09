@@ -118,8 +118,9 @@ Symbol commands
     (symbol_command)
     (symbol_command)
     (symbol_command)
-    (symbol_command)
-    (text)))
+    (inline_command
+      (command_name)
+      (text))))
 
 ================================================================================
 Brace groups
@@ -192,3 +193,41 @@ Para.
         name: (command_name)
         arguments: (brace_arguments
           (text))))))
+
+================================================================================
+Accent commands with and without braces
+================================================================================
+
+Caf@'e @u o @'{e} @'@"i @dotless i @'.
+@'
+e
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (inline_command
+      name: (command_name)
+      argument: (text))
+    (inline_command
+      name: (command_name)
+      argument: (text))
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (text)))
+    (inline_command
+      name: (command_name))
+    (inline_command
+      name: (command_name)
+      argument: (text))
+    (inline_command
+      name: (command_name)
+      argument: (text))
+    (inline_command
+      name: (command_name)
+      argument: (text))
+    (inline_command
+      name: (command_name)
+      argument: (text))))

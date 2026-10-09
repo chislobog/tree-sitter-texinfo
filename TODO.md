@@ -46,8 +46,8 @@ sources, which is what `texi2any` itself uses.
 - [ ] `@float` arguments (type, label)
 - [x] A block at the start of a line closes an ordinary brace command, as in
   texi2any (conditionals don't)
-- [ ] Accent commands without braces: `@'e`, `@"u`, and letter accents with
-  a space: `@u o`, `@v c`
+- [x] Accent commands without braces: `@'e`, `@"u`, and letter accents with
+  a space: `@u o`, `@v c`; the character is the command's `argument`
 - [ ] `@value{name}` as its own node
 - [x] `@math{...}` body for TeX injection
 - [ ] Plain-text line arguments (`@include`, `@setfilename`,
