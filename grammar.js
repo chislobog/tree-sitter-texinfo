@@ -22,12 +22,12 @@ const HEADINGS = {
 // the sectioning commands by level too, in the same order, to tell which
 // section a `@node` line starts.
 const SECTIONS = [
-  { name: 'part', heading: 'part_heading', contains: ['chapter', 'section', 'subsection', 'subsubsection'] },
-  { name: 'top', heading: 'top_heading', contains: ['chapter', 'section', 'subsection', 'subsubsection'] },
-  { name: 'chapter', heading: 'chapter_heading', contains: ['section', 'subsection', 'subsubsection'] },
-  { name: 'section', heading: 'section_heading', contains: ['subsection', 'subsubsection'] },
-  { name: 'subsection', heading: 'subsection_heading', contains: ['subsubsection'] },
-  { name: 'subsubsection', heading: 'subsubsection_heading', contains: [] },
+  {name: 'part', heading: 'part_heading', contains: ['chapter', 'section', 'subsection', 'subsubsection']},
+  {name: 'top', heading: 'top_heading', contains: ['chapter', 'section', 'subsection', 'subsubsection']},
+  {name: 'chapter', heading: 'chapter_heading', contains: ['section', 'subsection', 'subsubsection']},
+  {name: 'section', heading: 'section_heading', contains: ['subsection', 'subsubsection']},
+  {name: 'subsection', heading: 'subsection_heading', contains: ['subsubsection']},
+  {name: 'subsubsection', heading: 'subsubsection_heading', contains: []},
 ];
 
 /**
@@ -85,7 +85,7 @@ const LINE_COMMANDS = [
 // whose skipped arguments may contain blank lines. Any other command with
 // braces, including calls to user-defined macros, may contain blank lines.
 const BRACE_COMMANDS = [
-  'AA', 'AE', 'DH', 'H', 'L', 'LaTeX', 'O', 'OE', 'TH', 'TeX', 'U', 'aa',   'ae', 'ampchar', 'anchor', 'arrow', 'asis', 'atchar', 'b',
+  'AA', 'AE', 'DH', 'H', 'L', 'LaTeX', 'O', 'OE', 'TH', 'TeX', 'U', 'aa', 'ae', 'ampchar', 'anchor', 'arrow', 'asis', 'atchar', 'b',
   'backslashchar', 'bullet', 'cite', 'click', 'clicksequence', 'code', 'comma',
   'command', 'copyright', 'dfn', 'dh', 'dmn', 'dotaccent', 'dotless', 'dots',
   'emph', 'enddots', 'env', 'equiv', 'error', 'errormsg', 'euro',
@@ -99,7 +99,7 @@ const BRACE_COMMANDS = [
   'rbracechar', 'registeredsymbol', 'result', 'ringaccent', 'samp',
   'sansserif', 'sc', 'seealso', 'seeentry', 'slanted', 'sortas', 'ss', 'strong',
   'sub', 'sup', 't', 'textdegree', 'th', 'tie', 'tieaccent', 'titlefont', 'today',
-  'u', 'ubaraccent', 'udotaccent', 'v', 'value', 'var', 'w', ];
+  'u', 'ubaraccent', 'udotaccent', 'v', 'value', 'var', 'w'];
 
 // Brace commands whose argument splits at commas, with the field name of each
 // argument by position. As in texi2any, the last argument takes any further
@@ -137,14 +137,14 @@ const commaArguments = (names, argument, lastArgument, separator) => {
 // and the line commands with that layout. The block commands for each layout
 // (`@deffn`, ...) are in src/scanner.c, which numbers them in this order.
 const DEFINITION_LAYOUTS = [
-  { fields: ['category', 'entity'], lines: ['deffnx', 'defvrx', 'deftpx', 'defline'] },
-  { fields: ['category', 'type', 'entity'], lines: ['deftypefnx', 'deftypevrx', 'deftypeline'] },
-  { fields: ['category', 'class', 'entity'], lines: ['defopx', 'defcvx'] },
-  { fields: ['category', 'class', 'type', 'entity'], lines: ['deftypeopx', 'deftypecvx'] },
-  { fields: ['entity'], lines: ['defunx', 'defmacx', 'defspecx', 'defvarx', 'defoptx'] },
-  { fields: ['type', 'entity'], lines: ['deftypefunx', 'deftypevarx'] },
-  { fields: ['class', 'entity'], lines: ['defmethodx', 'defivarx'] },
-  { fields: ['class', 'type', 'entity'], lines: ['deftypemethodx', 'deftypeivarx'] },
+  {fields: ['category', 'entity'], lines: ['deffnx', 'defvrx', 'deftpx', 'defline']},
+  {fields: ['category', 'type', 'entity'], lines: ['deftypefnx', 'deftypevrx', 'deftypeline']},
+  {fields: ['category', 'class', 'entity'], lines: ['defopx', 'defcvx']},
+  {fields: ['category', 'class', 'type', 'entity'], lines: ['deftypeopx', 'deftypecvx']},
+  {fields: ['entity'], lines: ['defunx', 'defmacx', 'defspecx', 'defvarx', 'defoptx']},
+  {fields: ['type', 'entity'], lines: ['deftypefunx', 'deftypevarx']},
+  {fields: ['class', 'entity'], lines: ['defmethodx', 'defivarx']},
+  {fields: ['class', 'type', 'entity'], lines: ['deftypemethodx', 'deftypeivarx']},
 ];
 
 /**
@@ -198,7 +198,7 @@ export default grammar({
     $._menu_start,
     ...DEFINITION_LAYOUTS.map((_, i) => $[`_definition_start_${i}`]),
     // `@node` followed by the sectioning command of this section.
-    ...SECTIONS.map(({ name }) => $[`_node_before_${name}`]),
+    ...SECTIONS.map(({name}) => $[`_node_before_${name}`]),
     $._error_sentinel,
   ],
 
@@ -209,9 +209,9 @@ export default grammar({
       optional($.bye),
     ),
 
-    _section: $ => choice(...SECTIONS.map(({ name }) => $[name])),
+    _section: $ => choice(...SECTIONS.map(({name}) => $[name])),
 
-    ...Object.fromEntries(SECTIONS.map(({ name, heading, contains }) => [
+    ...Object.fromEntries(SECTIONS.map(({name, heading, contains}) => [
       name,
       $ => prec.right(seq(
         // Blank and comment lines, the node's description and `@anchor` lines
@@ -238,7 +238,7 @@ export default grammar({
       $._line_end,
     ),
 
-    ...Object.fromEntries(SECTIONS.map(({ name }) => [
+    ...Object.fromEntries(SECTIONS.map(({name}) => [
       `_node_line_before_${name}`,
       $ => nodeLine($, alias($[`_node_before_${name}`], $.command_name)),
     ])),
@@ -396,14 +396,14 @@ export default grammar({
       field('end', $._block_end),
     ),
 
-    _definition_opener: $ => choice(...DEFINITION_LAYOUTS.map(({ fields }, i) => seq(
+    _definition_opener: $ => choice(...DEFINITION_LAYOUTS.map(({fields}, i) => seq(
       field('name', alias($[`_definition_start_${i}`], $.command_name)),
       definitionFields($, fields),
       $._line_end,
     ))),
 
     // `@deffnx` and friends, and `@defline` in `@defblock`.
-    _definition_continuation: $ => choice(...DEFINITION_LAYOUTS.map(({ fields, lines }) => seq(
+    _definition_continuation: $ => choice(...DEFINITION_LAYOUTS.map(({fields, lines}) => seq(
       field('name', command($, lines)),
       definitionFields($, fields),
       $._line_end,

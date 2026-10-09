@@ -12,7 +12,6 @@ target/
 Cargo.lock
 
 # Node
-package-lock.json
 prebuilds/
 
 # Python

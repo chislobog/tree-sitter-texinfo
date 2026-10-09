@@ -264,11 +264,12 @@ static const struct {
 /**
  * Scans `@node` when the next line, after blank and comment lines, the
  * node's description (`@nodedescription`, `@nodedescriptionblock`) and
- * `@anchor` lines, is a sectioning command: emits the node token for that section's level, so the
- * node line starts the section. The `@node` has already been read; otherwise
- * it is left to the grammar as a plain node line.
+ * `@anchor` lines, is a sectioning command: emits the node token for that
+ * section's level, so the node line starts the section. The `@node` has already
+ * been read; otherwise it is left to the grammar as a plain node line.
  */
-static bool scan_node_before_section(TSLexer *lexer, const bool *valid_symbols) {
+static bool scan_node_before_section(TSLexer *lexer,
+                                     const bool *valid_symbols) {
   lexer->mark_end(lexer);
   skip_to_next_line(lexer);
   for (;;) {
@@ -330,6 +331,11 @@ static bool scan_node_before_section(TSLexer *lexer, const bool *valid_symbols) 
   }
 }
 
+/** The name of the innermost open block; there must be one. */
+static inline const char *innermost_block(const Scanner *scanner) {
+  return BLOCKS[scanner->stack[scanner->depth - 1]].name;
+}
+
 /** Pops the innermost block, whose `@end NAME` has just been read. */
 static bool pop_block(Scanner *scanner, TSLexer *lexer) {
   scanner->depth--;
@@ -378,7 +384,7 @@ static bool scan_block_end(Scanner *scanner, TSLexer *lexer, const char *name) {
 
   char end_name[MAX_NAME + 1];
   if (!read_end_name(lexer, end_name)) return false;
-  if (strcmp(end_name, BLOCKS[scanner->stack[scanner->depth - 1]].name) != 0) {
+  if (strcmp(end_name, innermost_block(scanner)) != 0) {
     return false;
   }
   return pop_block(scanner, lexer);
@@ -531,7 +537,7 @@ static bool scan_missing_brace(Scanner *scanner, TSLexer *lexer,
   if (strcmp(name, "end") == 0) {
     char end_name[MAX_NAME + 1];
     if (!block_end || scanner->depth == 0 || !read_end_name(lexer, end_name) ||
-        strcmp(end_name, BLOCKS[scanner->stack[scanner->depth - 1]].name) != 0) {
+        strcmp(end_name, innermost_block(scanner)) != 0) {
       return false;
     }
     lexer->result_symbol = BRACE_CLOSE_AT_BLOCK_END;

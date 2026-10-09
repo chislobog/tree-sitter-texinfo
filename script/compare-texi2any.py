@@ -56,16 +56,26 @@ LIBRARY = ROOT / "build" / "texinfo.dylib"
 
 FORMATS = ("info", "plaintext", "html", "docbook", "xml", "latex", "tex")
 HEADINGS = (
-    "part_heading", "top_heading", "chapter_heading", "section_heading",
-    "subsection_heading", "subsubsection_heading", "heading",
+    "part_heading",
+    "top_heading",
+    "chapter_heading",
+    "section_heading",
+    "subsection_heading",
+    "subsubsection_heading",
+    "heading",
 )
 MACRO_BLOCKS = ("macro", "rmacro", "linemacro")
 # Block names, from the scanner's table.
-BLOCK_NAMES = set(re.findall(r'\{"(\w+)", KIND_\w+(?: \+ \d+)?\}',
-                             (ROOT / "src" / "scanner.c").read_text()))
+BLOCK_NAMES = set(
+    re.findall(r'\{"(\w+)", KIND_\w+(?: \+ \d+)?\}', (ROOT / "src" / "scanner.c").read_text())
+)
 MAX_EXPANSION_DEPTH = 20
 INLINE_CONDITIONALS = (
-    "@inlinefmt", "@inlineraw", "@inlinefmtifelse", "@inlineifset", "@inlineifclear",
+    "@inlinefmt",
+    "@inlineraw",
+    "@inlinefmtifelse",
+    "@inlineifset",
+    "@inlineifclear",
 )
 
 
@@ -90,7 +100,9 @@ def load_language() -> Language:
     if not LIBRARY.exists() or LIBRARY.stat().st_mtime < newest:
         subprocess.run(
             ["tree-sitter", "build", "-o", str(LIBRARY)],
-            cwd=ROOT, check=True, capture_output=True,
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
         )
     library = ctypes.cdll.LoadLibrary(str(LIBRARY))
     library.tree_sitter_texinfo.restype = ctypes.c_void_p
@@ -153,7 +165,8 @@ class OurWalker:
             return
         values = [v.strip() for v in call.split(",", max(len(macro.parameters) - 1, 0))]
         body = macro.body
-        for parameter, value in zip(macro.parameters, values):
+        # A call may give fewer arguments than the macro has parameters.
+        for parameter, value in zip(macro.parameters, values, strict=False):
             body = body.replace("\\" + parameter + "\\", value)
         body = body.replace("\\\\", "\\")
 
@@ -244,7 +257,8 @@ class OurWalker:
                     # together with the conditional.
                     marker_rows = {node.start_point.row, end.start_point.row}
                     on_marker_lines = [
-                        child for child in node.children
+                        child
+                        for child in node.children
                         if child.type == "comment" and child.start_point.row in marker_rows
                     ]
                     self.children(node, name_node, argument, end, *on_marker_lines)
@@ -305,8 +319,9 @@ class OurWalker:
                 arguments = node.child_by_field_name("arguments")
                 value = text(arguments).strip() if arguments else ""
                 if value in self.values:
-                    self.tokens.extend(dataclasses.replace(t, line=self.line(node))
-                                       for t in self.values[value])
+                    self.tokens.extend(
+                        dataclasses.replace(t, line=self.line(node)) for t in self.values[value]
+                    )
                 else:
                     self.emit(name, node, False)
                 return
@@ -421,9 +436,12 @@ def run_texi2any(path: Path) -> str:
     with tempfile.TemporaryDirectory() as directory:
         shutil.copyfile(path, Path(directory) / path.name)
         result = subprocess.run(
-            ["texi2any", "--force", "-c", "TEXINFO_OUTPUT_FORMAT=debugtree",
-             "-o", "-", path.name],
-            cwd=directory, capture_output=True,
+            ["texi2any", "--force", "-c", "TEXINFO_OUTPUT_FORMAT=debugtree", "-o", "-", path.name],
+            cwd=directory,
+            capture_output=True,
+            # texi2any exits with an error on invalid input, but still
+            # prints its tree, which is what is compared.
+            check=False,
         )
     return result.stdout.decode("utf-8", "replace")
 
@@ -464,13 +482,17 @@ def texi2any_tokens(dump: str, structural_names: set[str]) -> list[Token]:
 
 def report(path: Path, ours: list[Token], theirs: list[Token], hunks: int) -> float:
     matcher = difflib.SequenceMatcher(
-        a=[t.name for t in ours], b=[t.name for t in theirs], autojunk=False,
+        a=[t.name for t in ours],
+        b=[t.name for t in theirs],
+        autojunk=False,
     )
     ratio = matcher.ratio()
     differences = [op for op in matcher.get_opcodes() if op[0] != "equal"]
-    print(f"{path}: {ratio:.2%} match, {len(ours)} vs {len(theirs)} commands, "
-          f"{len(differences)} differences")
-    for tag, a1, a2, b1, b2 in differences[:hunks]:
+    print(
+        f"{path}: {ratio:.2%} match, {len(ours)} vs {len(theirs)} commands, "
+        f"{len(differences)} differences"
+    )
+    for _tag, a1, a2, b1, b2 in differences[:hunks]:
         line = ours[a1].line if a1 < len(ours) else ours[-1].line if ours else "?"
         mine = " ".join(t.name for t in ours[a1:a2]) or "(nothing)"
         reference = " ".join(t.name for t in theirs[b1:b2]) or "(nothing)"
@@ -483,12 +505,18 @@ def report(path: Path, ours: list[Token], theirs: list[Token], hunks: int) -> fl
 def main() -> int:
     arguments = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     arguments.add_argument("files", nargs="+", type=Path)
-    arguments.add_argument("--structure", action="store_true",
-                           help="compare only blocks, items and line commands")
-    arguments.add_argument("--hunks", type=int, default=5,
-                           help="differences to show per file (default 5)")
-    arguments.add_argument("--fail-under", type=float, metavar="PERCENT",
-                           help="exit with an error if fewer commands match overall")
+    arguments.add_argument(
+        "--structure", action="store_true", help="compare only blocks, items and line commands"
+    )
+    arguments.add_argument(
+        "--hunks", type=int, default=5, help="differences to show per file (default 5)"
+    )
+    arguments.add_argument(
+        "--fail-under",
+        type=float,
+        metavar="PERCENT",
+        help="exit with an error if fewer commands match overall",
+    )
     options = arguments.parse_args()
 
     parser = Parser(load_language())
@@ -497,7 +525,7 @@ def main() -> int:
     # in file order.
     with ThreadPoolExecutor(max_workers=os.cpu_count()) as pool:
         dumps = [pool.submit(run_texi2any, path) for path in options.files]
-        for path, dump in zip(options.files, dumps):
+        for path, dump in zip(options.files, dumps, strict=True):
             ours, errors = our_tokens(parser, path)
             structural_names = {t.name for t in ours if t.structural}
             theirs = texi2any_tokens(dump.result(), structural_names)
