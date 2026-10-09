@@ -69,6 +69,10 @@ Git hooks in `.githooks/` (enabled by the dev shell through
 `pre-push` checks that `src/` matches `grammar.js` and runs `tree-sitter
 test`.
 
+CI also fuzzes the scanner with libFuzzer and sanitizers
+(`tree-sitter/fuzz-action`), seeded by `script/corpus-inputs.py`; this hangs
+at startup on macOS with Nix's clang, so it only runs in CI.
+
 CI (`.github/workflows/ci.yml`) runs all of these on every push, with
 minimum match rates for the comparisons (`--fail-under`). Raise them when the
 grammar improves.
