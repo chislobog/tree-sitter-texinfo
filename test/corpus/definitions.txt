@@ -245,3 +245,63 @@ Body.
     (paragraph
       (text))
     end: (block_end)))
+
+================================================================================
+A brace group in a definition line continues over a line ending in @
+================================================================================
+
+@deffn category name arguments @
+   more {args @
+  with end of line within} with 3 @@ @@@
+ {one last arg}
+deffn
+@end deffn
+
+---
+
+(source_file
+  (definition_block
+    (definition_line
+      name: (command_name)
+      category: (text)
+      entity: (text)
+      arguments: (definition_arguments
+        (text)
+        (line_continuation)
+        (text)
+        (brace_group
+          (text)
+          (line_continuation)
+          (text))
+        (text)
+        (symbol_command)
+        (symbol_command)
+        (line_continuation)
+        (brace_group
+          (text))))
+    (paragraph
+      (text))
+    end: (block_end)))
+
+================================================================================
+A definition line continued before its name
+================================================================================
+
+@deftypefn {Function Reference} {int} @
+ name (args)
+@end deftypefn
+
+---
+
+(source_file
+  (definition_block
+    (definition_line
+      name: (command_name)
+      category: (brace_group
+        (text))
+      type: (brace_group
+        (text))
+      entity: (text)
+      arguments: (definition_arguments
+        (text)))
+    end: (block_end)))

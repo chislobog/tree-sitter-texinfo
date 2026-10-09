@@ -478,8 +478,11 @@ export default grammar({
     // A word of a definition line: braces group several words into one.
     // A definition line is a line command: braces left open close at its end.
     _definition_word: $ => choice(
+      // A line ending in `@` may continue before any word. Anonymous, so a
+      // query for the word's field (`entity: (_)`) only finds the word.
+      seq(alias($.line_continuation, '@\n'), $._definition_word),
       alias($._word_text, $.text),
-      alias($._line_brace_group, $.brace_group),
+      alias($._definition_brace_group, $.brace_group),
       alias($._line_argument_command, $.inline_command),
       $.symbol_command,
     ),
@@ -492,9 +495,20 @@ export default grammar({
     _set_value: _ => repeat1(choice(/[^@\r\n]+/, /@[a-zA-Z][a-zA-Z0-9-]*/, /@[^a-zA-Z\r\n]/)),
 
     definition_arguments: $ => prec.right(repeat1(choice(
-      $._line_argument_inline,
+      $.text,
+      alias($._line_argument_command, $.inline_command),
+      $.symbol_command,
+      alias($._definition_brace_group, $.brace_group),
       $.line_continuation,
     ))),
+
+    // A brace group in a definition line, which continues over a line ending
+    // in `@`, as the line itself does.
+    _definition_brace_group: $ => seq(
+      '{',
+      repeat(choice($._line_argument_inline, $.line_continuation)),
+      choice('}', alias($._brace_close_at_line_end, $.missing_brace)),
+    ),
 
     // `@` at the end of a definition line continues it. Elsewhere `@` at the
     // end of a line is a symbol command (a space).
@@ -794,9 +808,11 @@ export default grammar({
     command_name: _ => /@[a-zA-Z][a-zA-Z0-9-]*/,
 
     // `@@`, `@{`, `@}`, accents like `@'`, spacing like `@*`, `@ ` and `@` at end of line.
-    // Also a lone `@` at the end of the file, as when one has just been typed;
-    // anywhere else a following command name makes the longer match.
-    symbol_command: _ => /@[^a-zA-Z]?/,
+    // `@` at the end of a line, like at the end of the file, is a lone `@`:
+    // the newline stays outside it, so the next line still starts a line (an
+    // `@end` there ends its block). Elsewhere a following command name makes
+    // the longer match.
+    symbol_command: _ => /@[^a-zA-Z\r\n]?/,
 
     text: _ => /[^@{}\s]([^@{}\r\n]*[^@{}\s])?/,
 

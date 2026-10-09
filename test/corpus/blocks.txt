@@ -340,3 +340,29 @@ Raw block command at the end of a file without a newline
   (raw_block
     name: (command_name)
     end: (missing_end)))
+
+================================================================================
+A block ends after a line ending in @
+================================================================================
+
+@smallexample
+A @}@
+@end smallexample
+
+Para a @
+b.
+
+---
+
+(source_file
+  (block
+    name: (command_name)
+    (paragraph
+      (text)
+      (symbol_command)
+      (symbol_command))
+    end: (block_end))
+  (paragraph
+    (text)
+    (symbol_command)
+    (text)))

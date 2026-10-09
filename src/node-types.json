@@ -260,6 +260,10 @@
           "named": true
         },
         {
+          "type": "line_continuation",
+          "named": true
+        },
+        {
           "type": "missing_brace",
           "named": true
         },
@@ -535,9 +539,13 @@
         ]
       },
       "category": {
-        "multiple": false,
+        "multiple": true,
         "required": false,
         "types": [
+          {
+            "type": "@\n",
+            "named": false
+          },
           {
             "type": "brace_group",
             "named": true
@@ -557,9 +565,13 @@
         ]
       },
       "class": {
-        "multiple": false,
+        "multiple": true,
         "required": false,
         "types": [
+          {
+            "type": "@\n",
+            "named": false
+          },
           {
             "type": "brace_group",
             "named": true
@@ -579,9 +591,13 @@
         ]
       },
       "entity": {
-        "multiple": false,
+        "multiple": true,
         "required": false,
         "types": [
+          {
+            "type": "@\n",
+            "named": false
+          },
           {
             "type": "brace_group",
             "named": true
@@ -611,9 +627,13 @@
         ]
       },
       "type": {
-        "multiple": false,
+        "multiple": true,
         "required": false,
         "types": [
+          {
+            "type": "@\n",
+            "named": false
+          },
           {
             "type": "brace_group",
             "named": true
@@ -2285,6 +2305,10 @@
   },
   {
     "type": "::",
+    "named": false
+  },
+  {
+    "type": "@\n",
     "named": false
   },
   {
