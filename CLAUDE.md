@@ -18,7 +18,8 @@ well with incomplete input, which is normal while editing.
 - GNU coreutils and sed are on the path, not the macOS ones: use `sed -i`, not
   `sed -i ''`.
 - `examples/` is a symlink, created by the dev shell, to real manuals pinned by
-  `flake.lock` (texinfo, make, sed, gawk). It is not committed.
+  `flake.lock` (texinfo, make, sed, gawk, and Emacs's user manual and Lisp
+  reference, whose chapters are separate files). It is not committed.
 - `texinfo-tests/` is a symlink to the inputs of texi2any's own parser tests,
   one file per test case (about 1,750), extracted by
   `script/extract-texi2any-tests.pl`. Many are deliberately invalid, so parse
@@ -92,7 +93,9 @@ find -L texinfo-tests -name '*.texi' | sort | xargs python3 script/compare-texi2
 Known noise in the comparison: `gawk-5.4.1/it/gawk.texi` and
 `texinfo-7.3/texinfo-tex-test.texi` (texi2any fails on them),
 `html_default_commands_args.texi` (a fragment for `@include`), and the Italian
-`pm-gawk.texi` (uses a macro before defining it). The script doesn't expand
+`pm-gawk.texi` (uses a macro before defining it). Commands texi2any reports
+as unknown (TeX primitives, index commands defined in another file of the
+manual) are left out of the comparison at the line it reports. The script doesn't expand
 `@linemacro` calls, so their expansions show up as differences. In
 `texinfo-tests/`, the macro and value suites (`50value`, `58alias`, `60macro`,
 `65linemacro`, `70value_and_macro`) and `57invalid_nestings` differ mostly

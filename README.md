@@ -5,9 +5,10 @@ A [tree-sitter](https://tree-sitter.github.io/) grammar for
 and structural editing.
 
 The reference for correct behaviour is `texi2any` from Texinfo 7.3. The
-grammar is checked against it on 14 real manuals (texinfo, make, sed, gawk)
-and on the 1,755 inputs of `texi2any`'s own parser tests: the commands found
-agree on over 99.9% of the manuals and 98.8% of the test inputs.
+grammar is checked against it on real manuals (texinfo, make, sed, gawk, and
+Emacs's user manual and Lisp reference: over 170 files) and on the 1,755
+inputs of `texi2any`'s own parser tests: the commands found agree on over
+99.99% of the manuals and 99% of the test inputs.
 
 ## What is parsed
 

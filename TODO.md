@@ -169,7 +169,7 @@ of a line.
 - [ ] In `--structure` mode, classify texi2any's commands from one shared list
   of line commands, headings and blocks, not from the commands our parser
   produced; a line command we don't know is currently hidden there
-- [ ] More example manuals (e.g. Emacs Lisp reference)
+- [x] More example manuals: Emacs's user manual and Lisp reference
 - [x] Reduce the parser's size: `src/parser.c` was 29 MB. The line and brace
   command keywords, now recognised by the scanner, made each parser state
   where a command can start carry about 200 entries; it is now 6 MB, with

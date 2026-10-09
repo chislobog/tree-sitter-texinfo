@@ -35,6 +35,13 @@
                 mkdir -p "$dir"
                 tar -xf "$src" -C "$dir" --strip-components=2 --wildcards '*/doc/*.texi'
               done
+
+              # Emacs: the Lisp reference and the user manual, the largest and
+              # most varied manuals here. Its source is a directory, not a tarball.
+              dir="$out/emacs-${pkgs.emacs.version}"
+              mkdir -p "$dir/lispref" "$dir/emacs"
+              cp ${pkgs.emacs.src}/doc/lispref/*.texi "$dir/lispref"
+              cp ${pkgs.emacs.src}/doc/emacs/*.texi "$dir/emacs"
             '';
 
         # The inputs of texi2any's own parser tests, one file per test case
