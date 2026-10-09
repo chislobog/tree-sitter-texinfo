@@ -149,4 +149,7 @@ of a line.
   of line commands, headings and blocks, not from the commands our parser
   produced; a line command we don't know is currently hidden there
 - [ ] More example manuals (e.g. Emacs Lisp reference)
+- [ ] Reduce the parser's size: `src/parser.c` grew from 1.3 MB to 29 MB
+  (311 to 5,623 states), 8.6 times by splitting arguments into positional
+  fields alone. Look for a cheaper way to get the same fields
 - [ ] Release automation (npm, crates.io, PyPI)

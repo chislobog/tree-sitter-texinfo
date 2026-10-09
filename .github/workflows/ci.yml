@@ -10,6 +10,14 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # Warns when the parser's state count grows by 10%, fails at 50%.
+      - name: Parser size
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          git fetch --quiet --depth=1 origin "$BASE" || true
+          script/check-parser-size.sh "$BASE"
+
       - uses: cachix/install-nix-action@v31
 
       # The dev shell provides the same tools as locally, and links the

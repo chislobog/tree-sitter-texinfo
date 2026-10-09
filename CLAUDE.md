@@ -116,7 +116,9 @@ because of the script's simple macro expansion and different error recovery. Use
   after a private capture like `@_name`. So keep patterns from overlapping
   (use predicates to make them exclusive) and capture predicate nodes with
   a real highlight.
-- Watch `tree-sitter generate` time (normally about 15 seconds). Nested
+- Watch `tree-sitter generate` time (normally about 15 seconds) and the
+  parser's state count: CI (`script/check-parser-size.sh`) warns when it grows
+  by 10% and fails at 50%. Nested
   optional sequences, as in `commaArguments`, multiply parser states quickly;
   a change there once made generation run for over 13 minutes.
 - Favour error recovery that keeps the rest of the document intact: a
