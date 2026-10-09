@@ -139,7 +139,7 @@ of a line.
 
 ## Differences from texi2any
 
-From comparing with texi2any on its own test inputs (121 of 1,755 differ;
+From comparing with texi2any on its own test inputs (104 of 1,755 differ;
 the manuals match fully).
 
 Gaps, where we give a parse error and texi2any recovers:
@@ -158,9 +158,9 @@ Gaps, where we give a parse error and texi2any recovers:
 Deliberate, so the tree shows the source as it is written and edited:
 
 - Macros, `@value`, `@alias`, `@linemacro` and conditionals aren't expanded or
-  evaluated. Most of the remaining differences (the `50value`, `58alias`,
-  `60macro` and `65linemacro` suites) come from the comparison script only
-  approximating texi2any's expansion
+  evaluated. Most of the remaining differences (the `50value`, `60macro` and
+  `65linemacro` suites) come from the comparison script only approximating
+  texi2any's expansion
 - `@click` stays `@click`; texi2any outputs the command `@clickstyle` chose
 - Block commands and `@end` only count at the start of a line, as the Texinfo
   manual requires ("at the beginning of a line by itself"). texi2any's error
@@ -197,7 +197,7 @@ Deliberate, so the tree shows the source as it is written and edited:
   macro expansion), invalid input that texi2any discards (unknown commands,
   misplaced `@tab` and `@headitem`, stray `@end`), `@click` (texi2any
   substitutes the `@clickstyle` symbol), and the divergences below
-- [ ] Mirror `@clickstyle`/`@click` and `@linemacro` calls in the comparison
+- [x] Mirror `@clickstyle`/`@click` and `@alias` in the comparison
 - [x] CI (`.github/workflows/ci.yml`): generated `src/` up to date, tests,
   fuzzing, parsing the manuals, and both texi2any comparisons with minimum
   match rates (`--fail-under`)

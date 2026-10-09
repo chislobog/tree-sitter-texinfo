@@ -133,6 +133,10 @@ class OurWalker:
         # Commands in each `@set` value, emitted again at each `@value`.
         self.values: dict[str, list[Token]] = {}
         self.macros: dict[str, Macro | None] = {}
+        # `@alias NEW = EXISTING`: texi2any replaces NEW with EXISTING.
+        self.aliases: dict[str, str] = {}
+        # The command `@clickstyle` chose, which texi2any puts for `@click`.
+        self.click: str | None = None
         # While expanding a macro, tokens get the line of the outermost call.
         self.call_line: int | None = None
         self.in_definition_line = False
@@ -151,6 +155,8 @@ class OurWalker:
         header = text(argument).strip() if argument else ""
         name, _, parameters = header.partition("{")
         name = name.strip()
+        # A new definition replaces an alias of the same name.
+        self.aliases.pop("@" + name, None)
         if kind == "linemacro":
             self.macros[name] = None
             return
@@ -296,7 +302,7 @@ class OurWalker:
 
         if kind in ("line_command", "node_line", "item", "itemx", "bye") or kind in HEADINGS:
             name_node = node.child_by_field_name("name")
-            name = text(name_node)
+            name = self.aliases.get(text(name_node), text(name_node))
             argument = node.child_by_field_name("argument")
             # A macro whose name ends in `index` parses as a line command.
             if name[1:] in self.macros:
@@ -325,6 +331,29 @@ class OurWalker:
                 variable = node.child_by_field_name("variable")
                 self.flags.discard(first_word(variable))
                 self.children(node, name_node, variable)  # comments
+            elif name == "@alias":
+                # texi2any only accepts `NEW = EXISTING`, but parses commands
+                # on a bad line too.
+                match = ALIAS.fullmatch(text(argument).strip()) if argument else None
+                if match:
+                    self.aliases["@" + match.group(1)] = "@" + match.group(2)
+                self.children(node, name_node)
+            elif name in ("@defindex", "@defcodeindex", "@definfoenclose"):
+                # Defines `@NAMEindex` or `@NAME`, replacing an alias of it.
+                word = first_word(argument).split(",")[0] if argument else ""
+                suffix = "" if name == "@definfoenclose" else "index"
+                self.aliases.pop("@" + word + suffix, None)
+                self.walk_definition_line(node, name_node)
+            elif name == "@clickstyle":
+                # The argument is raw text to texi2any.
+                match = (
+                    re.match(r"@([a-zA-Z][a-zA-Z0-9-]*)", text(argument).strip())
+                    if argument
+                    else None
+                )
+                if match:
+                    self.click = "@" + match.group(1)
+                self.children(node, name_node, argument)  # comments
             elif name.startswith("@def"):
                 self.walk_definition_line(node, name_node)
             else:
@@ -334,7 +363,9 @@ class OurWalker:
 
         if kind == "inline_command":
             name_node = node.child_by_field_name("name")
-            name = text(name_node)
+            name = self.aliases.get(text(name_node), text(name_node))
+            if name == "@click" and self.click:
+                name = self.click
             if name == "@value":
                 arguments = node.child_by_field_name("arguments")
                 value = text(arguments).strip() if arguments else ""
@@ -478,6 +509,9 @@ def run_texi2any(path: Path) -> tuple[str, set[tuple[int, str]]]:
     stderr = result.stderr.decode("utf-8", "replace")
     unknown = {(int(line), name) for line, name in UNKNOWN_COMMAND.findall(stderr)}
     return result.stdout.decode("utf-8", "replace"), unknown
+
+
+ALIAS = re.compile(r"([a-zA-Z][a-zA-Z0-9-]*)\s*=\s*([a-zA-Z][a-zA-Z0-9-]*)")
 
 
 # texi2any's warning for a command it doesn't know, such as a TeX primitive or
