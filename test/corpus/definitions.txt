@@ -206,3 +206,42 @@ b
     (text)
     (symbol_command)
     (text)))
+
+================================================================================
+Unclosed braces in a definition line close at the end of the line
+================================================================================
+
+@deffn {Command foo (@var{x}
+@end deffn
+
+@deffn Command bar a { b
+Body.
+@end deffn
+
+---
+
+(source_file
+  (definition_block
+    (definition_line
+      name: (command_name)
+      category: (brace_group
+        (text)
+        (inline_command
+          name: (command_name)
+          arguments: (brace_arguments
+            (text)))
+        (missing_brace)))
+    end: (block_end))
+  (definition_block
+    (definition_line
+      name: (command_name)
+      category: (text)
+      entity: (text)
+      arguments: (definition_arguments
+        (text)
+        (brace_group
+          (text)
+          (missing_brace))))
+    (paragraph
+      (text))
+    end: (block_end)))

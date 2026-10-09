@@ -260,6 +260,10 @@
           "named": true
         },
         {
+          "type": "missing_brace",
+          "named": true
+        },
+        {
           "type": "symbol_command",
           "named": true
         },

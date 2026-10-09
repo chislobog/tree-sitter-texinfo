@@ -301,7 +301,15 @@ export default grammar({
       $.text,
       alias($._line_argument_command, $.inline_command),
       $.symbol_command,
-      $.brace_group,
+      alias($._line_brace_group, $.brace_group),
+    ),
+
+    // A brace group in a line argument, like a multitable's column prototype,
+    // closes at the end of the line if left open.
+    _line_brace_group: $ => seq(
+      '{',
+      repeat($._line_argument_inline),
+      choice('}', alias($._brace_close_at_line_end, $.missing_brace)),
     ),
 
     _line_argument_command: $ => choice(
@@ -349,7 +357,7 @@ export default grammar({
           )),
         ),
       ),
-      $._newline,
+      $._line_end,
       // Items and multitable rows, for conditionals that wrap some of a
       // list's items, and sections, for conditionals that wrap whole sections.
       repeat(choice($._content, $.item, alias($._row, $.item), $._section)),
@@ -361,7 +369,7 @@ export default grammar({
     menu: $ => seq(
       field('name', alias($._menu_start, $.command_name)),
       optional(field('argument', $.line_argument)),
-      $._newline,
+      $._line_end,
       repeat(choice($._content, $.menu_entry)),
       field('end', $._block_end),
     ),
@@ -461,10 +469,11 @@ export default grammar({
     ),
 
     // A word of a definition line: braces group several words into one.
+    // A definition line is a line command: braces left open close at its end.
     _definition_word: $ => choice(
       alias($._word_text, $.text),
-      $.brace_group,
-      $.inline_command,
+      alias($._line_brace_group, $.brace_group),
+      alias($._line_argument_command, $.inline_command),
       $.symbol_command,
     ),
 
@@ -475,7 +484,10 @@ export default grammar({
     // longer value piece.
     _set_value: _ => repeat1(choice(/[^@\r\n]+/, /@[a-zA-Z][a-zA-Z0-9-]*/, /@[^a-zA-Z\r\n]/)),
 
-    definition_arguments: $ => prec.right(repeat1(choice($._inline, $.line_continuation))),
+    definition_arguments: $ => prec.right(repeat1(choice(
+      $._line_argument_inline,
+      $.line_continuation,
+    ))),
 
     // `@` at the end of a definition line continues it. Elsewhere `@` at the
     // end of a line is a symbol command (a space).
@@ -485,7 +497,7 @@ export default grammar({
       seq(
         field('name', alias($._list_start, $.command_name)),
         optional(field('argument', $.line_argument)),
-        $._newline,
+        $._line_end,
         repeat($._content),
         repeat($.item),
         field('end', $._block_end),
@@ -495,7 +507,7 @@ export default grammar({
       seq(
         field('name', alias($._multitable_start, $.command_name)),
         optional(field('argument', $.line_argument)),
-        $._newline,
+        $._line_end,
         repeat($._content),
         repeat(alias($._row, $.item)),
         field('end', $._block_end),
@@ -526,7 +538,7 @@ export default grammar({
     raw_block: $ => seq(
       field('name', alias($._raw_block_start, $.command_name)),
       optional(field('argument', $.line_argument)),
-      $._newline,
+      $._line_end,
       optional(field('body', $.raw_text)),
       field('end', $._block_end),
     ),
@@ -758,7 +770,9 @@ export default grammar({
     command_name: _ => /@[a-zA-Z][a-zA-Z0-9-]*/,
 
     // `@@`, `@{`, `@}`, accents like `@'`, spacing like `@*`, `@ ` and `@` at end of line.
-    symbol_command: _ => /@[^a-zA-Z]/,
+    // Also a lone `@` at the end of the file, as when one has just been typed;
+    // anywhere else a following command name makes the longer match.
+    symbol_command: _ => /@[^a-zA-Z]?/,
 
     text: _ => /[^@{}\s]([^@{}\r\n]*[^@{}\s])?/,
 

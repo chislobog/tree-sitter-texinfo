@@ -886,6 +886,13 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
     return scan_verb(scanner, lexer, valid_symbols);
   }
 
+  // Before raw text: a raw block opened on the last line has none.
+  if (valid_symbols[MISSING_END] && lexer->eof(lexer) && scanner->depth > 0) {
+    scanner->depth--;
+    lexer->result_symbol = MISSING_END;
+    return true;
+  }
+
   if (valid_symbols[RAW_TEXT]) return scan_raw(scanner, lexer);
 
   // Only blanks are skipped before deciding, so on an empty body the other
@@ -895,12 +902,6 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
     if (!lexer->eof(lexer) && lexer->lookahead != '}') {
       return scan_inline_raw(lexer);
     }
-  }
-
-  if (valid_symbols[MISSING_END] && lexer->eof(lexer) && scanner->depth > 0) {
-    scanner->depth--;
-    lexer->result_symbol = MISSING_END;
-    return true;
   }
 
   if (valid_symbols[BRACE_CLOSE_AT_PARAGRAPH_END] ||

@@ -139,17 +139,17 @@ of a line.
 
 ## Differences from texi2any
 
-From comparing with texi2any on its own test inputs (137 of 1,755 differ;
+From comparing with texi2any on its own test inputs (123 of 1,755 differ;
 the manuals match fully).
 
 Gaps, where we give a parse error and texi2any recovers:
 
-- [ ] A block command on the last line without a newline (`@iftex` at the end
-  of the file) is an `ERROR`; it should be a block ending in `missing_end`
-- [ ] An unclosed brace in a `@multitable` prototype (`@multitable { a`)
-  should close at the end of the line
-- [ ] Badly braced definition lines (`@deffn {cat name`) and a definition line
-  ending in `@` at the end of the file
+- [x] A block command on the last line without a newline (`@iftex` at the end
+  of the file) is a block ending in `missing_end`
+- [x] An unclosed brace group in a line argument, such as a `@multitable`
+  prototype (`@multitable { a`), closes at the end of the line
+- [x] Badly braced definition lines (`@deffn {cat name`) close their braces
+  at the end of the line; a lone `@` at the end of the file is a symbol
 - [ ] `@c` right after a `@ ` symbol command on some line commands
   (`08misc_commands/comment_space_command_on_line`)
 - [ ] Files not in UTF-8 (`@documentencoding ISO-8859-1`, Shift-JIS): the

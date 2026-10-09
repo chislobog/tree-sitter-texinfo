@@ -2378,8 +2378,47 @@
           "name": "symbol_command"
         },
         {
-          "type": "SYMBOL",
-          "name": "brace_group"
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_line_brace_group"
+          },
+          "named": true,
+          "value": "brace_group"
+        }
+      ]
+    },
+    "_line_brace_group": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "{"
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_line_argument_inline"
+          }
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "}"
+            },
+            {
+              "type": "ALIAS",
+              "content": {
+                "type": "SYMBOL",
+                "name": "_brace_close_at_line_end"
+              },
+              "named": true,
+              "value": "missing_brace"
+            }
+          ]
         }
       ]
     },
@@ -2832,7 +2871,7 @@
         },
         {
           "type": "SYMBOL",
-          "name": "_newline"
+          "name": "_line_end"
         },
         {
           "type": "REPEAT",
@@ -2907,7 +2946,7 @@
         },
         {
           "type": "SYMBOL",
-          "name": "_newline"
+          "name": "_line_end"
         },
         {
           "type": "REPEAT",
@@ -4868,12 +4907,22 @@
           "value": "text"
         },
         {
-          "type": "SYMBOL",
-          "name": "brace_group"
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_line_brace_group"
+          },
+          "named": true,
+          "value": "brace_group"
         },
         {
-          "type": "SYMBOL",
-          "name": "inline_command"
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_line_argument_command"
+          },
+          "named": true,
+          "value": "inline_command"
         },
         {
           "type": "SYMBOL",
@@ -4915,7 +4964,7 @@
           "members": [
             {
               "type": "SYMBOL",
-              "name": "_inline"
+              "name": "_line_argument_inline"
             },
             {
               "type": "SYMBOL",
@@ -4973,7 +5022,7 @@
             },
             {
               "type": "SYMBOL",
-              "name": "_newline"
+              "name": "_line_end"
             },
             {
               "type": "REPEAT",
@@ -5033,7 +5082,7 @@
             },
             {
               "type": "SYMBOL",
-              "name": "_newline"
+              "name": "_line_end"
             },
             {
               "type": "REPEAT",
@@ -5232,7 +5281,7 @@
         },
         {
           "type": "SYMBOL",
-          "name": "_newline"
+          "name": "_line_end"
         },
         {
           "type": "CHOICE",
@@ -7721,7 +7770,7 @@
     },
     "symbol_command": {
       "type": "PATTERN",
-      "value": "@[^a-zA-Z]"
+      "value": "@[^a-zA-Z]?"
     },
     "text": {
       "type": "PATTERN",

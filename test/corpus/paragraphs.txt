@@ -232,3 +232,33 @@ e
     (inline_command
       name: (command_name)
       argument: (text))))
+
+================================================================================
+A lone @ at the end of a file
+================================================================================
+
+Text @
+---
+
+(source_file
+  (paragraph
+    (text)
+    (symbol_command)))
+
+================================================================================
+A definition line ending in @ at the end of a file
+================================================================================
+
+@deffn category name arguments @
+---
+
+(source_file
+  (definition_block
+    (definition_line
+      name: (command_name)
+      category: (text)
+      entity: (text)
+      arguments: (definition_arguments
+        (text)
+        (symbol_command)))
+    end: (missing_end)))

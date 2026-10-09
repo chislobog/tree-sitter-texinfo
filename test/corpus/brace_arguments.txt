@@ -447,3 +447,39 @@ Second @emph{para}.} after.
               (text)))
           (text))))
     (text)))
+
+================================================================================
+An unclosed brace group in a line argument closes at the end of the line
+================================================================================
+
+@multitable { a
+@item x
+@end multitable
+
+@chapter A {b
+Text.
+
+---
+
+(source_file
+  (list
+    name: (command_name)
+    argument: (line_argument
+      (brace_group
+        (text)
+        (missing_brace)))
+    (item
+      name: (command_name)
+      (paragraph
+        (text)))
+    end: (block_end))
+  (chapter
+    heading: (chapter_heading
+      name: (command_name)
+      title: (line_argument
+        (text)
+        (brace_group
+          (text)
+          (missing_brace))))
+    (paragraph
+      (text))))

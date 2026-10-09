@@ -301,3 +301,42 @@ Accents and brace commands in a float type
     label: (argument
       (text))
     end: (block_end)))
+
+================================================================================
+Block command at the end of a file without a newline
+================================================================================
+
+@iftex
+---
+
+(source_file
+  (block
+    name: (command_name)
+    end: (missing_end)))
+
+================================================================================
+List command with an argument at the end of a file without a newline
+================================================================================
+
+@table @code
+---
+
+(source_file
+  (list
+    name: (command_name)
+    argument: (line_argument
+      (inline_command
+        name: (command_name)))
+    end: (missing_end)))
+
+================================================================================
+Raw block command at the end of a file without a newline
+================================================================================
+
+@verbatim
+---
+
+(source_file
+  (raw_block
+    name: (command_name)
+    end: (missing_end)))
