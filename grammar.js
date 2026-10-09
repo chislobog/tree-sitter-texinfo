@@ -169,6 +169,7 @@ export default grammar({
     $._multitable_start,
     $._tab,
     $._row_name,
+    $._subentry_name,
     $._error_sentinel,
   ],
 
@@ -262,6 +263,7 @@ export default grammar({
         // src/scanner.c), including user-defined index commands.
         field('name', alias($._line_command_name, $.command_name)),
         optional(field('argument', $.line_argument)),
+        optional($.subentry),
         $._line_end,
       ),
       // `@set NAME VALUE` and `@clear NAME`. As in texi2any, the value is raw
@@ -274,6 +276,14 @@ export default grammar({
         )),
         $._line_end,
       ),
+    ),
+
+    // `@subentry` in an index entry: the rest of the line, which may hold the
+    // next level's subentry, as in texi2any.
+    subentry: $ => seq(
+      field('name', alias($._subentry_name, $.command_name)),
+      optional(field('argument', $.line_argument)),
+      optional($.subentry),
     ),
 
     // Like texi2any, a line command's argument ends at the end of its line,

@@ -285,3 +285,43 @@ Comments end an @set value
     name: (command_name)
     variable: (text)
     value: (raw_text)))
+
+================================================================================
+Index entries with subentries
+================================================================================
+
+@cindex Fruit @subentry apple @sortas{Apple} @subentry red
+@findex Pear @seealso{Fruit}
+@cindex @subentry
+
+---
+
+(source_file
+  (line_command
+    name: (command_name)
+    argument: (line_argument
+      (text))
+    (subentry
+      name: (command_name)
+      argument: (line_argument
+        (text)
+        (inline_command
+          name: (command_name)
+          arguments: (brace_arguments
+            (text))))
+      (subentry
+        name: (command_name)
+        argument: (line_argument
+          (text)))))
+  (line_command
+    name: (command_name)
+    argument: (line_argument
+      (text)
+      (inline_command
+        name: (command_name)
+        arguments: (brace_arguments
+          (text)))))
+  (line_command
+    name: (command_name)
+    (subentry
+      name: (command_name))))

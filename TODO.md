@@ -68,7 +68,8 @@ sources, which is what `texi2any` itself uses.
   (still a `symbol_command` before the arguments start)
 - [ ] A definition word glued to a command (`foo@var{x}`) counts as two
   words
-- [ ] Index entries with `@subentry`, `@seeentry`, `@seealso`, `@sortas`
+- [x] Index entries with `@subentry` (a nested `subentry` node, as in
+  texi2any), `@seeentry`, `@seealso`, `@sortas`
 - [ ] `@multitable` prototype argument and `@columnfractions`
 - [x] Multitable rows: each `@item`/`@headitem` holds its first cell and a
   `tab` node per further cell, including rows inside conditionals

@@ -49,6 +49,8 @@ enum TokenType {
   TAB,
   // `@item` or `@headitem` starting a multitable row.
   ROW_NAME,
+  // `@subentry` after the argument of a line command.
+  SUBENTRY_NAME,
   ERROR_SENTINEL,
 };
 
@@ -840,6 +842,11 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
       in_multitable(scanner)) {
     lexer->mark_end(lexer);
     lexer->result_symbol = ROW_NAME;
+    return true;
+  }
+  if (valid_symbols[SUBENTRY_NAME] && strcmp(name, "subentry") == 0) {
+    lexer->mark_end(lexer);
+    lexer->result_symbol = SUBENTRY_NAME;
     return true;
   }
   if (valid_symbols[TAB] && strcmp(name, "tab") == 0) {

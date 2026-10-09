@@ -31,3 +31,6 @@ Text @emph{important} and @var{file}.
 @c   ^ variable
 @c           ^ string
 
+@cindex Fruit @subentry apple
+@c              ^ keyword
+

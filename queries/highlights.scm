@@ -160,6 +160,9 @@
 (line_command
   name: (command_name) @keyword)
 
+(subentry
+  name: (command_name) @keyword)
+
 (line_command
   variable: (text) @variable)
 
