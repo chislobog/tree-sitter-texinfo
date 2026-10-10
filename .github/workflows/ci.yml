@@ -85,6 +85,22 @@ jobs:
               xargs python3 script/compare-texi2any.py --hunks 0 \
                 --expected test/texi2any-differences.txt | tail -1"
 
+      # Any change to a tree, in any manual or test input, must be deliberate
+      # and recorded with `script/tree-snapshots.py --write`.
+      - name: Tree snapshots
+        run: |
+          nix develop --command bash -c "
+            find -L examples texinfo-tests -name '*.texi*' | sort |
+              xargs python3 script/tree-snapshots.py --check"
+
+      # Typing mistakes in the manuals: each must stay local, and an edited
+      # tree must equal a fresh parse. A fixed seed, so a failure reproduces.
+      - name: Editing simulation
+        run: |
+          nix develop --command bash -c "
+            find -L examples -name '*.texi*' ! -path '*/it/*' | sort |
+              xargs python3 script/check-edits.py --edits 5 --seed 0"
+
   # libFuzzer with address and undefined-behaviour sanitizers, looking for
   # crashes and memory errors in the scanner. Seeded with the corpus test
   # inputs, so the fuzzer starts from blocks, raw text, menus and sections.

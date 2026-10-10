@@ -42,7 +42,6 @@ Usage: script/compare-texi2any.py [--structure] [--hunks N]
 """
 
 import argparse
-import ctypes
 import difflib
 import itertools
 import os
@@ -56,10 +55,9 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 
-from tree_sitter import Language, Parser
+from texinfo_language import ROOT, load_language
 
-ROOT = Path(__file__).resolve().parent.parent
-LIBRARY = ROOT / "build" / "texinfo.dylib"
+from tree_sitter import Parser
 
 FORMATS = ("info", "plaintext", "html", "docbook", "xml", "latex", "tex")
 HEADINGS = (
@@ -102,25 +100,6 @@ class Token:
     line: int | None = None
     # Block markers, items and line commands; the rest are inline.
     structural: bool = False
-
-
-def load_language() -> Language:
-    sources = [*ROOT.glob("src/*.c"), *ROOT.glob("src/tree_sitter/*.h")]
-    newest = max(source.stat().st_mtime for source in sources)
-    if not LIBRARY.exists() or LIBRARY.stat().st_mtime < newest:
-        subprocess.run(
-            ["tree-sitter", "build", "-o", str(LIBRARY)],
-            cwd=ROOT,
-            check=True,
-            capture_output=True,
-        )
-    library = ctypes.cdll.LoadLibrary(str(LIBRARY))
-    library.tree_sitter_texinfo.restype = ctypes.c_void_p
-    # py-tree-sitter takes the language pointer wrapped in a PyCapsule.
-    capsule_new = ctypes.pythonapi.PyCapsule_New
-    capsule_new.restype = ctypes.py_object
-    capsule_new.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]
-    return Language(capsule_new(library.tree_sitter_texinfo(), b"tree_sitter.Language", None))
 
 
 # Our tree ---------------------------------------------------------------

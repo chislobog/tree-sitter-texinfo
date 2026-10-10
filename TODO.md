@@ -234,4 +234,8 @@ Deliberate, so the tree shows the source as it is written and edited:
   command keywords, now recognised by the scanner, made each parser state
   where a command can start carry about 200 entries; it is now 6 MB, with
   the same tree
+- [x] Tree snapshots of every manual and test input
+  (`script/tree-snapshots.py`), and a simulation of typing mistakes in the
+  manuals that checks error locality and incremental parsing
+  (`script/check-edits.py`), both in CI
 - [ ] Release automation (npm, crates.io, PyPI)

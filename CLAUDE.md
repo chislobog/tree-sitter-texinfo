@@ -73,7 +73,20 @@ script/lint.sh                           # linters, formatters, query check
 tree-sitter fuzz --iterations 100        # incremental parsing after edits
 tree-sitter parse --quiet --stat 'examples/**/*.texi' 'examples/**/*.texinfo'
 find -L examples -name '*.texi*' | sort | xargs python3 script/compare-texi2any.py
+find -L examples texinfo-tests -name '*.texi*' | sort | xargs python3 script/tree-snapshots.py --check
+find -L examples -name '*.texi*' ! -path '*/it/*' | sort | xargs python3 script/check-edits.py --edits 5
 ```
+
+`script/tree-snapshots.py` checks every manual's and test input's tree
+against `test/tree-snapshots.txt`, digests of the full trees. After a
+deliberate change to the trees, review it with `--diff HEAD FILE...` on the
+files it names, then record it with `--write`. `script/check-edits.py`
+simulates typing mistakes in the manuals' paragraphs: each must leave the
+tree outside its paragraph unchanged (as texi2any's error recovery does), and
+an incrementally parsed tree must equal a fresh parse. CI runs it with
+`--seed 0`; other seeds find other edits, so try a few after changing the
+scanner or error recovery. Its docstring says which edits are expected to
+reach further, as in texi2any.
 
 Git hooks in `.githooks/` (enabled by the dev shell through
 `core.hooksPath`): `commit-msg` checks the Conventional Commits format,
