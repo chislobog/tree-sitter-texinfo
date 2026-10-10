@@ -1,3 +1,11 @@
 A @code{x
 
+@example
+  #  2  2
+@end example
+
 B @hfil{} C.
+
+More.
+
+End.

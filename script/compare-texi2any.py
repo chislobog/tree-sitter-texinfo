@@ -405,8 +405,9 @@ def messages_without_unknown(messages: str) -> Counter[str]:
 # character that makes no command.
 UNKNOWN_COMMAND = re.compile(r":(\d+): (?:unknown command `([^']+)'|(unexpected) @)")
 # A C preprocessor line directive, which texi2any follows when it reports
-# lines: `#line 10 "file"`, `# 10 "file" 2`.
-CPP_LINE = re.compile(rb'^\s*#\s*(?:line\s+)?(\d+)(?:\s+"[^"]*")?(?:\s+\d+)*\s*$')
+# lines: `#line 10 "file"`, `# 10 "file" 2`. Its own pattern, so that a line
+# such as `#  80  80` in an example isn't taken for one.
+CPP_LINE = re.compile(rb'^\s*#\s*(?:line)? (\d+)(?: "[^"]+"(?:\s+\d+)*)?\s*$')
 
 
 def unknown_commands(messages: str, source: bytes) -> set[tuple[int, str]]:
