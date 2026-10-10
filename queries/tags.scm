@@ -31,9 +31,7 @@
 
 ; Macros, aliases and variables, and uses of a variable
 (macro_definition
-  argument: (line_argument
-    .
-    (text) @name)) @definition.macro
+  macro: (text) @name) @definition.macro
 
 (line_command
   alias: (text) @name) @definition.macro

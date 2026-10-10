@@ -321,6 +321,21 @@ export default grammar({
     // follow the names.
     _alias_name: _ => token(prec(1, /[^@{} \t\n\r\v\f=]+/)),
 
+    // A rule of its own, which lets the parser share its states: inline, it
+    // costs six times as many.
+    _macro_parameters: $ => seq(
+      '{',
+      optional(field('parameter', alias($._macro_parameter, $.text))),
+      repeat(seq(',', optional(field('parameter', alias($._macro_parameter, $.text))))),
+      // Without the `}` while the line is being typed.
+      optional(seq('}', optional($._macro_line_rest))),
+    ),
+
+    // A macro parameter, spaces inside included (texi2any reports them).
+    _macro_parameter: _ => /[^,}\s]([^,}\r\n]*[^,}\s])?/,
+    // What follows a macro's name or parameters other than a comment.
+    _macro_line_rest: $ => field('argument', alias(/[^@{\s][^\r\n]*/, $.raw_text)),
+
     // `@subentry` in an index entry: the rest of the line, which may hold the
     // next level's subentry, as in texi2any.
     subentry: $ => seq(
@@ -620,9 +635,16 @@ export default grammar({
 
     // `@macro`, `@rmacro` and `@linemacro`: like a raw block, but the body is
     // Texinfo with `\param\` placeholders, parsed where the macro is used.
+    // `@macro NAME {PARAM, ...}`, also `@rmacro` and `@linemacro`. texi2any
+    // keeps the line as raw text: the parameters are what is between the
+    // first `{` and `}`, split at commas. Only a command, such as a comment,
+    // may follow; anything else, which texi2any reports, is left as raw text.
     macro_definition: $ => seq(
       field('name', alias($._macro_start, $.command_name)),
-      optional(field('argument', $.line_argument)),
+      optional(seq(
+        field('macro', alias($._word_text, $.text)),
+        optional(choice($._macro_parameters, $._macro_line_rest)),
+      )),
       $._line_end,
       optional(field('body', $.raw_text)),
       field('end', $._block_end),
@@ -702,11 +724,12 @@ export default grammar({
         )),
       )),
       // A call to a macro defined earlier in the file, recognised by the
-      // scanner: as in texi2any, its arguments may hold blank lines.
+      // scanner: as in texi2any, its arguments may hold blank lines, and
+      // spaces may come before its brace.
       prec.right(seq(
         field('name', alias($._macro_call_name, $.command_name)),
         optional(seq(
-          token.immediate('{'),
+          '{',
           optional(field('arguments', alias($._long_arguments, $.brace_arguments))),
           choice('}', alias($._brace_close_at_block_end, $.missing_brace)),
         )),

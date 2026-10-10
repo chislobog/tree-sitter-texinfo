@@ -259,10 +259,8 @@ After.
 (source_file
   (macro_definition
     name: (command_name)
-    argument: (line_argument
-      (text)
-      (brace_group
-        (text)))
+    macro: (text)
+    parameter: (text)
     body: (raw_text)
     end: (block_end))
   (paragraph
@@ -373,6 +371,34 @@ b
           (paragraph
             (text))
           end: (block_end))))))
+
+================================================================================
+Spaces between a macro call and its brace
+================================================================================
+
+@macro mymacro {arg}
+\arg\
+@end macro
+
+@mymacro {first
+
+second}
+
+---
+
+(source_file
+  (macro_definition
+    name: (command_name)
+    macro: (text)
+    parameter: (text)
+    body: (raw_text)
+    end: (block_end))
+  (paragraph
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (text)
+        (text)))))
 
 ================================================================================
 Spaces between a built-in brace command and its brace

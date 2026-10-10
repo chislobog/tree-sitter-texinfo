@@ -1311,7 +1311,7 @@
         "required": false,
         "types": [
           {
-            "type": "line_argument",
+            "type": "raw_text",
             "named": true
           }
         ]
@@ -1340,12 +1340,32 @@
           }
         ]
       },
+      "macro": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "text",
+            "named": true
+          }
+        ]
+      },
       "name": {
         "multiple": false,
         "required": true,
         "types": [
           {
             "type": "command_name",
+            "named": true
+          }
+        ]
+      },
+      "parameter": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "text",
             "named": true
           }
         ]

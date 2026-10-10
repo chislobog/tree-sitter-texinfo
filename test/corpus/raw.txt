@@ -54,12 +54,130 @@ x
 (source_file
   (macro_definition
     (command_name)
-    (line_argument
-      (text)
-      (brace_group
-        (text)))
+    (text)
+    (text)
+    (text)
     (raw_text)
     (block_end)))
+
+================================================================================
+Macro name and parameters
+================================================================================
+
+@macro foo {a, b-c}
+\a\ and \b-c\
+@end macro
+
+@rmacro bar
+x
+@end rmacro
+
+@linemacro baz { one ,two }
+\one\
+@end linemacro
+
+---
+
+(source_file
+  (macro_definition
+    name: (command_name)
+    macro: (text)
+    parameter: (text)
+    parameter: (text)
+    body: (raw_text)
+    end: (block_end))
+  (macro_definition
+    name: (command_name)
+    macro: (text)
+    body: (raw_text)
+    end: (block_end))
+  (macro_definition
+    name: (command_name)
+    macro: (text)
+    parameter: (text)
+    parameter: (text)
+    body: (raw_text)
+    end: (block_end)))
+
+================================================================================
+Comments on a macro line
+================================================================================
+
+@macro foo {}@c foo c
+in foo
+@end macro
+
+@macro abar@comment bar comment
+in bar
+@end macro
+
+---
+
+(source_file
+  (macro_definition
+    name: (command_name)
+    macro: (text)
+    (comment)
+    body: (raw_text)
+    end: (block_end))
+  (macro_definition
+    name: (command_name)
+    macro: (text)
+    (comment)
+    body: (raw_text)
+    end: (block_end)))
+
+================================================================================
+Bad macro parameters stay raw text
+================================================================================
+
+@macro testvalue { arg , the@value{argument} }
+x
+@end macro
+
+@macro bad  { , in 2arg}
+x
+@end macro
+
+---
+
+(source_file
+  (macro_definition
+    name: (command_name)
+    macro: (text)
+    parameter: (text)
+    parameter: (text)
+    argument: (raw_text)
+    body: (raw_text)
+    end: (block_end))
+  (macro_definition
+    name: (command_name)
+    macro: (text)
+    parameter: (text)
+    body: (raw_text)
+    end: (block_end)))
+
+================================================================================
+Macro line being typed
+================================================================================
+
+@macro foo {a,
+@end macro
+
+@macro
+@end macro
+
+---
+
+(source_file
+  (macro_definition
+    name: (command_name)
+    macro: (text)
+    parameter: (text)
+    end: (block_end))
+  (macro_definition
+    name: (command_name)
+    end: (block_end)))
 
 ================================================================================
 Other raw blocks do not count nested macros
@@ -178,17 +296,14 @@ Safety: @code{\notes\}
 (source_file
   (macro_definition
     name: (command_name)
-    argument: (line_argument
-      (text)
-      (brace_group
-        (text)))
+    macro: (text)
+    parameter: (text)
     body: (raw_text)
     end: (block_end))
   (macro_definition
     name: (command_name)
-    argument: (line_argument
-      (text)
-      (brace_group
-        (text)))
+    macro: (text)
+    parameter: (text)
+    parameter: (text)
     body: (raw_text)
     end: (block_end)))

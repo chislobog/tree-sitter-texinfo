@@ -371,11 +371,7 @@ texinfo-tests/60macro/macro_inlineifcond_end_in_empty_set.texi
 texinfo-tests/60macro/text_before_after.texi
   line 1: ours '@macro', texi2any '+macro -macro'
 
-# Grammar: a macro call with a space before its brace (`@mymacrowithargs {an`) whose argument spans a blank line; the grammar takes the brace as a group, which ends at the blank line (TODO.md)
-texinfo-tests/60macro/two_macros_on_a_line.texi
-  1 parse errors
-
-# Grammar: the @macro line is parsed as a line argument, with its comments and commands, where texi2any keeps it as raw text (TODO.md)
+# Deliberate: a comment after a macro's name or parameters is a comment, which texi2any accepts there but keeps in the macro line's raw text
 texinfo-tests/60macro/zero_argument_comment.texi
   line 1: ours '@c', texi2any '(nothing)'
   line 5: ours '@comment', texi2any '(nothing)'
@@ -395,10 +391,6 @@ texinfo-tests/65linemacro/end_conditional_in_linemacro.texi
 # Invalid input; texi2any reports at line 6: @mycommand missing closing brace
 texinfo-tests/65linemacro/verb_not_closed.texi
   1 parse errors
-
-# Grammar: the @macro line is parsed as a line argument, with its comments and commands, where texi2any keeps it as raw text (TODO.md)
-texinfo-tests/70value_and_macro/value_in_macro_formal_arg.texi
-  line 3: ours '@value', texi2any '(nothing)'
 
 # Invalid input; texi2any reports at line 74: @include: could not find file_with_cpp_lines.texi
 texinfo-tests/80include/cpp_lines.texi
@@ -437,7 +429,3 @@ texinfo-tests/plaintext_tests/tab_in_table_in_example.texi
 # Invalid input; texi2any reports at line 2: ignoring @tab outside of multitable
 texinfo-tests/plaintext_tests/tab_item_in_example.texi
   line 2: ours '@tab @item', texi2any '(nothing)'
-
-# Invalid input; texi2any reports at line 4: bad or empty @macro formal argument: ggg"@@^_ ff
-texinfo-tests/xml_tests/macro_and_args.texi
-  line 4: ours '@@', texi2any '(nothing)'

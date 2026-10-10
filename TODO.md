@@ -148,13 +148,11 @@ of a line.
   conditional's end, and the later `}` is a one-character error
 - [x] TeX lines before `\input texinfo` (e.g. gawk's Italian manual): text,
   as in texi2any, which only recognises `\input` on the first line
-- [ ] The `@macro` line is a line argument, with commands and comments
-  parsed in it; texi2any keeps it as raw text (`@macro foo {}@c x`,
-  `@value` in a parameter list). Structured `name` and `parameter` fields
-  would also help tags and highlighting
-- [ ] A call of a macro defined in the file, with a space before its brace
-  (`@mymacro {an`), whose argument spans a blank line: texi2any takes the
-  brace as the argument, the grammar as a group that ends at the blank line
+- [x] The `@macro` line has `macro` and `parameter` fields, as texi2any
+  reads it, rather than an argument parsed for commands; anything else on it
+  but a comment is raw text. Tags and highlighting use the fields
+- [x] A call of a macro defined in the file may have spaces before its
+  brace, as in texi2any, also when its argument spans a blank line
 
 ## Differences from texi2any
 

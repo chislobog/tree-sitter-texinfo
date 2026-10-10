@@ -149,9 +149,10 @@
 
 (macro_definition
   name: (command_name) @keyword
-  argument: (line_argument
-    .
-    (text) @function))
+  macro: (text) @function)
+
+(macro_definition
+  parameter: (text) @variable.parameter)
 
 ((block_end) @keyword
   (#not-match? @keyword "^@end[ \t]+if"))
