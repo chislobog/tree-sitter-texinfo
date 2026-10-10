@@ -242,19 +242,44 @@ Next.
 Macro call argument containing a blank line
 ================================================================================
 
+@macro mymacro {arg}
+\arg\
+@end macro
+
 @mymacro{first
 
 second}
 
+Text @unknwn{open
+
+After.
+
 ---
 
 (source_file
+  (macro_definition
+    name: (command_name)
+    argument: (line_argument
+      (text)
+      (brace_group
+        (text)))
+    body: (raw_text)
+    end: (block_end))
   (paragraph
     (inline_command
-      (command_name)
-      (brace_arguments
+      name: (command_name)
+      arguments: (brace_arguments
         (text)
-        (text)))))
+        (text))))
+  (paragraph
+    (text)
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (text))
+      (missing_brace)))
+  (paragraph
+    (text)))
 
 ================================================================================
 Inline conditional containing a blank line
@@ -643,3 +668,67 @@ d}
           body: (raw_text)
           end: (block_end))
         (text)))))
+
+================================================================================
+An unclosed brace ends at a blank line after a line command
+================================================================================
+
+@anchor{name
+@cindex entry
+
+Next paragraph.
+
+---
+
+(source_file
+  (paragraph
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (text)
+        (line_command
+          name: (command_name)
+          argument: (line_argument
+            (text))))
+      (missing_brace)))
+  (paragraph
+    (text)))
+
+================================================================================
+An unclosed brace ends at its block's end after a line command
+================================================================================
+
+@table @asis
+@item x
+A @code{open
+@vindex v
+@end table
+
+After.
+
+---
+
+(source_file
+  (list
+    name: (command_name)
+    argument: (line_argument
+      (inline_command
+        name: (command_name)))
+    (item
+      name: (command_name)
+      argument: (line_argument
+        (text))
+      (paragraph
+        (text)
+        (inline_command
+          name: (command_name)
+          arguments: (brace_arguments
+            (text)
+            (line_command
+              name: (command_name)
+              argument: (line_argument
+                (text))))
+          (missing_brace))))
+    end: (block_end))
+  (paragraph
+    (text)))

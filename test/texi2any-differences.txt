@@ -43,6 +43,10 @@ texinfo-tests/03coverage_braces/empty_line_in_anchor.texi
 texinfo-tests/03coverage_braces/empty_line_in_email.texi
   1 parse errors
 
+# Invalid input; texi2any reports at line 5: misplaced } (the { after an unknown command, which closes here at the blank line)
+texinfo-tests/03coverage_braces/unknown_command_with_braces.texi
+  2 parse errors
+
 # Invalid input; texi2any reports at line 1: misplaced }
 texinfo-tests/03coverage_braces/unmatched_brace.texi
   1 parse errors
@@ -448,7 +452,7 @@ texinfo-tests/65linemacro/arobase_brace_in_linemacro_call.texi
 
 # Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion
 texinfo-tests/65linemacro/begin_conditional_in_linemacro.texi
-  line 6: ours '@ifset @ifclear', texi2any '(nothing)'
+  1 parse errors
 
 # Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion
 texinfo-tests/65linemacro/block_begin_end_in_linemacro_call.texi

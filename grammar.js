@@ -178,6 +178,8 @@ export default grammar({
     $._container_item_name,
     $._macro_start,
     $._math_name,
+    $._paragraph_end_at_line_start,
+    $._macro_call_name,
     $._error_sentinel,
   ],
 
@@ -655,7 +657,10 @@ export default grammar({
       $._line,
       // A newline followed by more inline content continues the paragraph.
       repeat(prec(1, seq($._newline, $._line))),
-      $._line_end,
+      // Or zero-width at the start of a line that ends it (blank, an `@end`
+      // or a block), when a line command inside a brace command took the
+      // newline before it.
+      choice($._line_end, $._paragraph_end_at_line_start),
     ),
 
     _line: $ => prec.right(repeat1($._inline)),
@@ -696,12 +701,31 @@ export default grammar({
           field('argument', alias($._accent_argument, $.text)),
         )),
       )),
+      // A call to a macro defined earlier in the file, recognised by the
+      // scanner: as in texi2any, its arguments may hold blank lines.
       prec.right(seq(
-        field('name', $.command_name),
+        field('name', alias($._macro_call_name, $.command_name)),
         optional(seq(
           token.immediate('{'),
           optional(field('arguments', alias($._long_arguments, $.brace_arguments))),
           choice('}', alias($._brace_close_at_block_end, $.missing_brace)),
+        )),
+      )),
+      // Any other command: a macro call, or a command texi2any doesn't know.
+      // Like a built-in brace command, it ends at a blank line, so a mistyped
+      // name with an open brace only breaks its own paragraph; so does a call
+      // to a macro defined in another file whose arguments hold a blank
+      // line, which texi2any allows.
+      prec.right(seq(
+        field('name', $.command_name),
+        optional(seq(
+          token.immediate('{'),
+          optional(field('arguments', $.brace_arguments)),
+          choice(
+            '}',
+            alias($._brace_close_at_paragraph_end, $.missing_brace),
+            alias($._brace_close_at_block_end, $.missing_brace),
+          ),
         )),
       )),
       $._argument_command,
@@ -841,7 +865,9 @@ export default grammar({
     // line, but a line command not right after the `{`.
     // Elsewhere the scanner closes the command before a blank line, but in a
     // preformatted block it may continue past one, as in texi2any.
-    brace_arguments: $ => choice(
+    brace_arguments: $ => $._brace_content,
+
+    _brace_content: $ => choice(
       seq(
         choice($._brace_first_line, seq($._newlines, $._brace_line)),
         repeat(seq($._newlines, $._brace_line)),
@@ -917,9 +943,11 @@ export default grammar({
 
     // Like a built-in brace command, an unclosed group ends at a blank line or
     // the end of its block, so it only breaks its own paragraph.
+    // Its lines may hold blocks, as a brace command's do: a conditional,
+    // which closes no brace, stays inside it.
     brace_group: $ => seq(
       '{',
-      optional(choice($._last_argument, $._newline)),
+      optional($._brace_content),
       choice(
         '}',
         alias($._brace_close_at_paragraph_end, $.missing_brace),

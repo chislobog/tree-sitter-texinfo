@@ -66,6 +66,12 @@ enum TokenType {
   MACRO_START,
   // `@math`, in whose argument nothing ends at a blank line.
   MATH_NAME,
+  // The end of a paragraph at the start of a line that ends it (blank, an
+  // `@end` or a block), after a line command inside a brace command took the
+  // newline before it.
+  PARAGRAPH_END_AT_LINE_START,
+  // A call to a macro defined earlier in the file.
+  MACRO_CALL_NAME,
   ERROR_SENTINEL,
 };
 
@@ -196,8 +202,16 @@ static const Block BLOCKS[] = {
 // Deepest nesting tracked inside a single raw block body.
 #define MAX_RAW_DEPTH 64
 
-// Serialized state: the `@verb` delimiter, then the block stack.
-#define MAX_DEPTH (TREE_SITTER_SERIALIZATION_BUFFER_SIZE - sizeof(int32_t))
+// Macros whose names are remembered; later ones count as unknown commands.
+#define MAX_MACROS 64
+
+// Serialized state: the `@verb` delimiter, the accent flag, the number of
+// macros and their name hashes, then the block stack, which takes the rest
+// of tree-sitter's buffer.
+#define STATE_HEADER (sizeof(int32_t) + 2)
+#define MAX_DEPTH                                         \
+  (TREE_SITTER_SERIALIZATION_BUFFER_SIZE - STATE_HEADER - \
+   MAX_MACROS * sizeof(uint32_t))
 
 typedef struct {
   // Indices into BLOCKS, innermost last.
@@ -207,6 +221,10 @@ typedef struct {
   int32_t verb_delimiter;
   // Whether the last token was the name of an accent command.
   bool after_accent;
+  // Hashes of the names of the macros defined so far (`@macro`, `@rmacro`):
+  // a call to one may hold blank lines, as in texi2any.
+  uint32_t macros[MAX_MACROS];
+  uint8_t macro_count;
 } Scanner;
 
 static inline void advance(TSLexer *lexer) { lexer->advance(lexer, false); }
@@ -638,6 +656,48 @@ static bool in_item_container(const Scanner *scanner) {
                            strcmp(block->name, "enumerate") == 0);
 }
 
+static bool is_macro_name_char(int32_t c) {
+  return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+         (c >= '0' && c <= '9') || c == '-' || c == '_';
+}
+
+// FNV-1a.
+static uint32_t name_hash(const char *name) {
+  uint32_t hash = 2166136261u;
+  for (; *name; name++) {
+    hash = (hash ^ (uint8_t)*name) * 16777619u;
+  }
+  return hash;
+}
+
+static bool is_macro(const Scanner *scanner, const char *name) {
+  uint32_t hash = name_hash(name);
+  for (unsigned i = 0; i < scanner->macro_count; i++) {
+    if (scanner->macros[i] == hash) return true;
+  }
+  return false;
+}
+
+/**
+ * Reads ahead the name of the macro a `@macro` line defines, after the end
+ * of its token, and remembers it.
+ */
+static void remember_macro(Scanner *scanner, TSLexer *lexer) {
+  while (is_blank(lexer->lookahead)) advance(lexer);
+  char name[MAX_NAME + 1];
+  unsigned length = 0;
+  while (length < MAX_NAME && is_macro_name_char(lexer->lookahead)) {
+    name[length++] = (char)lexer->lookahead;
+    advance(lexer);
+  }
+  name[length] = '\0';
+  if (length == 0 || is_macro(scanner, name) ||
+      scanner->macro_count >= MAX_MACROS) {
+    return;
+  }
+  scanner->macros[scanner->macro_count++] = name_hash(name);
+}
+
 /**
  * Scans a block opener such as `@example` at the start of a line. The `@` has
  * already been consumed.
@@ -672,6 +732,9 @@ static bool scan_block_start(Scanner *scanner, TSLexer *lexer,
   scanner->stack[scanner->depth++] = (uint8_t)index;
   lexer->mark_end(lexer);
   lexer->result_symbol = token;
+  if (strcmp(name, "macro") == 0 || strcmp(name, "rmacro") == 0) {
+    remember_macro(scanner, lexer);
+  }
   return true;
 }
 
@@ -689,11 +752,24 @@ static bool encloses(const Scanner *scanner, const char *name) {
  * which texi2any reports and ignores. The `@end` has already been consumed.
  */
 static bool scan_end(Scanner *scanner, TSLexer *lexer,
-                     const bool *valid_symbols) {
+                     const bool *valid_symbols, bool brace_at_line_start,
+                     bool paragraph_at_line_start) {
   char end_name[MAX_NAME + 1];
   bool has_name = read_end_name(lexer, end_name);
   bool matches = has_name && scanner->depth > 0 &&
                  strcmp(end_name, innermost_block(scanner)) == 0;
+  // A brace command still open at the start of the line closes first, with
+  // a zero-width token before the `@end`, which is then read again.
+  if (matches && brace_at_line_start &&
+      valid_symbols[BRACE_CLOSE_AT_BLOCK_END]) {
+    lexer->result_symbol = BRACE_CLOSE_AT_BLOCK_END;
+    return true;
+  }
+  // Then the paragraph it was in.
+  if (paragraph_at_line_start) {
+    lexer->result_symbol = PARAGRAPH_END_AT_LINE_START;
+    return true;
+  }
   if (matches) {
     return valid_symbols[BLOCK_END] && pop_block(scanner, lexer);
   }
@@ -833,6 +909,19 @@ static bool scan_verb(Scanner *scanner, TSLexer *lexer,
 }
 
 /**
+ * Whether a block opened by `@name` closes an ordinary brace command left
+ * open before it. texi2any evaluates conditionals before parsing, so they
+ * close nothing, and keeps raw blocks other than `@verbatim` inside the
+ * command.
+ */
+static bool closes_brace(const char *name) {
+  static const char *const KEPT_INSIDE[] = {"ignore", "tex", "html",
+                                            "latex",  "xml", "docbook"};
+  return find_block(name) >= 0 && strncmp(name, "if", 2) != 0 &&
+         !in_table(KEPT_INSIDE, TABLE_COUNT(KEPT_INSIDE), name);
+}
+
+/**
  * Closes an unclosed brace command before the end of the current line if
  * texi2any would close it there: the next line is blank or opens a block
  * other than a conditional (ordinary brace commands only), or it is the `@end`
@@ -877,14 +966,7 @@ static bool scan_missing_brace(Scanner *scanner, TSLexer *lexer,
     return true;
   }
 
-  // texi2any evaluates conditionals before parsing, so they close nothing,
-  // and keeps raw blocks other than `@verbatim` inside the command.
-  static const char *const KEPT_INSIDE[] = {"ignore", "tex", "html",
-                                            "latex",  "xml", "docbook"};
-  if (!paragraph_end || find_block(name) < 0 || strncmp(name, "if", 2) == 0 ||
-      in_table(KEPT_INSIDE, TABLE_COUNT(KEPT_INSIDE), name)) {
-    return false;
-  }
+  if (!paragraph_end || !closes_brace(name)) return false;
   lexer->result_symbol = BRACE_CLOSE_AT_PARAGRAPH_END;
   return true;
 }
@@ -900,10 +982,16 @@ void tree_sitter_texinfo_external_scanner_destroy(void *payload) {
 unsigned tree_sitter_texinfo_external_scanner_serialize(void *payload,
                                                         char *buffer) {
   Scanner *scanner = payload;
+  unsigned size = 0;
   memcpy(buffer, &scanner->verb_delimiter, sizeof(int32_t));
-  buffer[sizeof(int32_t)] = (char)scanner->after_accent;
-  memcpy(buffer + sizeof(int32_t) + 1, scanner->stack, scanner->depth);
-  return sizeof(int32_t) + 1 + scanner->depth;
+  size += sizeof(int32_t);
+  buffer[size++] = (char)scanner->after_accent;
+  buffer[size++] = (char)scanner->macro_count;
+  memcpy(buffer + size, scanner->macros,
+         scanner->macro_count * sizeof(uint32_t));
+  size += scanner->macro_count * sizeof(uint32_t);
+  memcpy(buffer + size, scanner->stack, scanner->depth);
+  return size + scanner->depth;
 }
 
 void tree_sitter_texinfo_external_scanner_deserialize(void *payload,
@@ -912,12 +1000,19 @@ void tree_sitter_texinfo_external_scanner_deserialize(void *payload,
   Scanner *scanner = payload;
   scanner->verb_delimiter = 0;
   scanner->after_accent = false;
+  scanner->macro_count = 0;
   scanner->depth = 0;
-  if (length < sizeof(int32_t) + 1) return;
+  if (length < STATE_HEADER) return;
+  unsigned size = 0;
   memcpy(&scanner->verb_delimiter, buffer, sizeof(int32_t));
-  scanner->after_accent = buffer[sizeof(int32_t)];
-  scanner->depth = length - sizeof(int32_t) - 1;
-  memcpy(scanner->stack, buffer + sizeof(int32_t) + 1, scanner->depth);
+  size += sizeof(int32_t);
+  scanner->after_accent = buffer[size++];
+  scanner->macro_count = (uint8_t)buffer[size++];
+  memcpy(scanner->macros, buffer + size,
+         scanner->macro_count * sizeof(uint32_t));
+  size += scanner->macro_count * sizeof(uint32_t);
+  scanner->depth = length - size;
+  memcpy(scanner->stack, buffer + size, scanner->depth);
 }
 
 bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
@@ -960,10 +1055,40 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
     }
   }
 
+  // Right after a brace closed at a blank line there, the paragraph ends
+  // too; at an `@end` or a block, it does so when the name has been read.
+  bool paragraph_at_line_start = valid_symbols[PARAGRAPH_END_AT_LINE_START] &&
+                                 lexer->get_column(lexer) == 0;
+  if (paragraph_at_line_start) {
+    lexer->mark_end(lexer);
+    while (is_blank(lexer->lookahead)) skip(lexer);
+    if (lexer->lookahead == '\n' || lexer->lookahead == '\r') {
+      lexer->result_symbol = PARAGRAPH_END_AT_LINE_START;
+      return true;
+    }
+  }
+
+  // A brace still open at the start of a line, where a line command inside
+  // the braces has taken the newline before it, closes on that line as it
+  // would from the end of the previous one. The only column checked in the
+  // scanner: nothing comes before it on its line, and an edit that puts
+  // something there touches the newline right before it, which tree-sitter
+  // re-scans.
+  bool brace_at_line_start = false;
   if (valid_symbols[BRACE_CLOSE_AT_PARAGRAPH_END] ||
       valid_symbols[BRACE_CLOSE_AT_BLOCK_END] ||
       valid_symbols[BRACE_CLOSE_AT_LINE_END]) {
+    bool line_start = lexer->get_column(lexer) == 0;
+    brace_at_line_start = line_start;
     while (is_blank(lexer->lookahead)) skip(lexer);
+    if (line_start && valid_symbols[BRACE_CLOSE_AT_PARAGRAPH_END] &&
+        !in_preformatted(scanner) &&
+        (lexer->lookahead == '\n' || lexer->lookahead == '\r')) {
+      // The line is blank: the paragraph has ended.
+      lexer->mark_end(lexer);
+      lexer->result_symbol = BRACE_CLOSE_AT_PARAGRAPH_END;
+      return true;
+    }
     if (lexer->eof(lexer) || lexer->lookahead == '\n' ||
         lexer->lookahead == '\r') {
       // In a line command's argument, a brace closes at the end of the line.
@@ -1003,7 +1128,21 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
   char name[MAX_NAME + 1];
   if (!read_name(lexer, name)) return false;
 
-  if (strcmp(name, "end") == 0) return scan_end(scanner, lexer, valid_symbols);
+  if (strcmp(name, "end") == 0) {
+    return scan_end(scanner, lexer, valid_symbols, brace_at_line_start,
+                    paragraph_at_line_start);
+  }
+  if (paragraph_at_line_start && find_block(name) >= 0) {
+    lexer->result_symbol = PARAGRAPH_END_AT_LINE_START;
+    return true;
+  }
+  // A block other than a conditional, or a raw block texi2any keeps inside,
+  // closes an ordinary brace command at the start of its line too.
+  if (brace_at_line_start && valid_symbols[BRACE_CLOSE_AT_PARAGRAPH_END] &&
+      closes_brace(name)) {
+    lexer->result_symbol = BRACE_CLOSE_AT_PARAGRAPH_END;
+    return true;
+  }
 
   if (strcmp(name, "node") == 0) {
     return scan_node_before_section(lexer, valid_symbols);
@@ -1014,6 +1153,11 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
       in_multitable(scanner)) {
     lexer->mark_end(lexer);
     lexer->result_symbol = ROW_NAME;
+    return true;
+  }
+  if (valid_symbols[MACRO_CALL_NAME] && is_macro(scanner, name)) {
+    lexer->mark_end(lexer);
+    lexer->result_symbol = MACRO_CALL_NAME;
     return true;
   }
   if (valid_symbols[MATH_NAME] && strcmp(name, "math") == 0) {

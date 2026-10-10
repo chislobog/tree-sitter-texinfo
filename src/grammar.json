@@ -5945,8 +5945,17 @@
           }
         },
         {
-          "type": "SYMBOL",
-          "name": "_line_end"
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "_line_end"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "_paragraph_end_at_line_start"
+            }
+          ]
         }
       ]
     },
@@ -6173,8 +6182,13 @@
                 "type": "FIELD",
                 "name": "name",
                 "content": {
-                  "type": "SYMBOL",
-                  "name": "command_name"
+                  "type": "ALIAS",
+                  "content": {
+                    "type": "SYMBOL",
+                    "name": "_macro_call_name"
+                  },
+                  "named": true,
+                  "value": "command_name"
                 }
               },
               {
@@ -6217,6 +6231,86 @@
                           {
                             "type": "STRING",
                             "value": "}"
+                          },
+                          {
+                            "type": "ALIAS",
+                            "content": {
+                              "type": "SYMBOL",
+                              "name": "_brace_close_at_block_end"
+                            },
+                            "named": true,
+                            "value": "missing_brace"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "BLANK"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "type": "PREC_RIGHT",
+          "value": 0,
+          "content": {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "FIELD",
+                "name": "name",
+                "content": {
+                  "type": "SYMBOL",
+                  "name": "command_name"
+                }
+              },
+              {
+                "type": "CHOICE",
+                "members": [
+                  {
+                    "type": "SEQ",
+                    "members": [
+                      {
+                        "type": "IMMEDIATE_TOKEN",
+                        "content": {
+                          "type": "STRING",
+                          "value": "{"
+                        }
+                      },
+                      {
+                        "type": "CHOICE",
+                        "members": [
+                          {
+                            "type": "FIELD",
+                            "name": "arguments",
+                            "content": {
+                              "type": "SYMBOL",
+                              "name": "brace_arguments"
+                            }
+                          },
+                          {
+                            "type": "BLANK"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "CHOICE",
+                        "members": [
+                          {
+                            "type": "STRING",
+                            "value": "}"
+                          },
+                          {
+                            "type": "ALIAS",
+                            "content": {
+                              "type": "SYMBOL",
+                              "name": "_brace_close_at_paragraph_end"
+                            },
+                            "named": true,
+                            "value": "missing_brace"
                           },
                           {
                             "type": "ALIAS",
@@ -8240,6 +8334,10 @@
       }
     },
     "brace_arguments": {
+      "type": "SYMBOL",
+      "name": "_brace_content"
+    },
+    "_brace_content": {
       "type": "CHOICE",
       "members": [
         {
@@ -8638,17 +8736,8 @@
           "type": "CHOICE",
           "members": [
             {
-              "type": "CHOICE",
-              "members": [
-                {
-                  "type": "SYMBOL",
-                  "name": "_last_argument"
-                },
-                {
-                  "type": "SYMBOL",
-                  "name": "_newline"
-                }
-              ]
+              "type": "SYMBOL",
+              "name": "_brace_content"
             },
             {
               "type": "BLANK"
@@ -8894,6 +8983,14 @@
     {
       "type": "SYMBOL",
       "name": "_math_name"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_paragraph_end_at_line_start"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_macro_call_name"
     },
     {
       "type": "SYMBOL",

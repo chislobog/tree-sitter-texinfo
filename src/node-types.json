@@ -264,7 +264,19 @@
       "required": false,
       "types": [
         {
+          "type": "block",
+          "named": true
+        },
+        {
           "type": "brace_group",
+          "named": true
+        },
+        {
+          "type": "definition_block",
+          "named": true
+        },
+        {
+          "type": "definition_line",
           "named": true
         },
         {
@@ -272,7 +284,19 @@
           "named": true
         },
         {
+          "type": "line_command",
+          "named": true
+        },
+        {
           "type": "line_continuation",
+          "named": true
+        },
+        {
+          "type": "list",
+          "named": true
+        },
+        {
+          "type": "macro_definition",
           "named": true
         },
         {
