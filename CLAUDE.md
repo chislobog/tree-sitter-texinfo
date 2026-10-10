@@ -100,9 +100,12 @@ lists of differences. `--keep DIR` saves the edited text of each problem, to ins
 rejects every edit in tree-sitter 0.26.11). `script/parse-examples.py` checks
 that only the manuals in `test/parse-errors.txt`, each with its reason, fail
 to parse, and that none parses ten times slower than the median.
-`script/texi2any-corpus.py` turns texi2any's test inputs into a corpus file
-that git ignores, for `tree-sitter fuzz --include texinfo-tests`; delete it
-afterwards, as CI does, or `tree-sitter test` runs it too.
+`script/fuzz-corpus.py` turns texi2any's test inputs and the manuals into a
+corpus file that git ignores, for `tree-sitter fuzz --include texinfo-tests`
+or `--include examples` (about 10 seconds an iteration for the manuals);
+delete it afterwards, as CI does, or `tree-sitter test` runs it too. It
+writes the expected trees itself: `tree-sitter test --update` would drop the
+delimiters' suffix, after which a line of dashes in a manual ends its input.
 `script/test-checks.py` runs these checks on small inputs in `test/checks/`
 whose outcome is known, and fails if one no longer reports what it should
 (or reports something it shouldn't); add a case there when a check gains a

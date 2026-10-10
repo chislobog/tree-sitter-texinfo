@@ -91,17 +91,23 @@ jobs:
             find -L examples texinfo-tests \( -name '*.texi' -o -name '*.texinfo' -o -name '*.txi' \) | sort |
               python3 script/tree-snapshots.py --check"
 
-      # texi2any's 1,700 small, often invalid test inputs, as a corpus that
-      # exists only here (their licence differs from this repository's), so
-      # `tree-sitter fuzz` checks incremental parsing on them.
-      - name: Fuzz texi2any's test inputs
+      # texi2any's 1,700 small, often invalid test inputs and the manuals, as
+      # a corpus that exists only here (their licences differ from this
+      # repository's), so `tree-sitter fuzz` checks incremental parsing on
+      # them after random edits anywhere. The test first checks that each
+      # input was written whole. Each run has a random seed, which the
+      # fuzzer prints.
+      - name: Fuzz texi2any's test inputs and the manuals
         run: |
           nix develop --command bash -c "
-            set -e
-            find -L texinfo-tests -name '*.texi' | sort | python3 script/texi2any-corpus.py
-            tree-sitter test --update --file-name texi2any-tests.txt > /dev/null
+            set -e -o pipefail
+            { find -L texinfo-tests -name '*.texi'
+              find -L examples \( -name '*.texi' -o -name '*.texinfo' -o -name '*.txi' \); } |
+              sort | python3 script/fuzz-corpus.py
+            tree-sitter test --file-name fuzz-inputs.txt > /dev/null
             tree-sitter fuzz --include texinfo-tests --iterations 50
-            rm test/corpus/texi2any-tests.txt"
+            tree-sitter fuzz --include examples --iterations 10
+            rm test/corpus/fuzz-inputs.txt"
 
       # Typing mistakes in the manuals: each must stay local, and an edited
       # tree must equal a fresh parse. A fixed seed, so a failure reproduces.

@@ -223,6 +223,8 @@ Deliberate, so the tree shows the source as it is written and edited:
   misplaced `@tab` and `@headitem`, stray `@end`), `@click` (texi2any
   substitutes the `@clickstyle` symbol), and the divergences below
 - [x] Mirror `@clickstyle`/`@click` and `@alias` in the comparison
+- [x] Fuzz the manuals too (`tree-sitter fuzz`, random edits anywhere), not
+  only texi2any's test inputs
 - [x] Test the checks themselves (`script/test-checks.py`): each must fail
   on inputs in `test/checks/` that it is meant to catch
 - [x] Compare our tree of texi2any's own expansion of each file
