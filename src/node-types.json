@@ -753,6 +753,10 @@
         "required": false,
         "types": [
           {
+            "type": "line_argument",
+            "named": true
+          },
+          {
             "type": "text",
             "named": true
           }

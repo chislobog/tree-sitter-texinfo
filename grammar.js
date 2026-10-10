@@ -567,12 +567,24 @@ export default grammar({
       // cell's content and a `tab` for each further cell, as in texi2any.
       seq(
         field('name', alias($._multitable_start, $.command_name)),
-        optional(field('argument', $.line_argument)),
+        optional(field('argument', choice(
+          $.line_argument,
+          alias($._column_fractions, $.line_argument),
+        ))),
         $._line_end,
         repeat($._content),
         repeat(alias($._row, $.item)),
         field('end', $._block_end),
       ),
+    ),
+
+    // `@columnfractions .3 .7`: as in texi2any, a command in the multitable's
+    // argument, whose own argument is the rest of the line.
+    _column_fractions: $ => alias($._column_fractions_command, $.inline_command),
+
+    _column_fractions_command: $ => seq(
+      field('name', command($, ['columnfractions'])),
+      optional(field('argument', $.line_argument)),
     ),
 
     _row: $ => prec.right(seq(

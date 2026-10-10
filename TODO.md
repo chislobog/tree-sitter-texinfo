@@ -88,7 +88,8 @@ sources, which is what `texi2any` itself uses.
   words
 - [x] Index entries with `@subentry` (a nested `subentry` node, as in
   texi2any), `@seeentry`, `@seealso`, `@sortas`
-- [ ] `@multitable` prototype argument and `@columnfractions`
+- [x] `@columnfractions`: an inline command in the multitable's argument,
+  with its own `argument`, as texi2any has it as a line command there
 - [x] Multitable rows: each `@item`/`@headitem` holds its first cell and a
   `tab` node per further cell, including rows inside conditionals
 - [x] `@headings`, `@everyheading` and friends with `@|` separators: a line
@@ -224,9 +225,9 @@ Deliberate, so the tree shows the source as it is written and edited:
 - [x] README: supported features, editor setup, development with Nix
 - [x] `CLAUDE.md` with project conventions
 - [x] Expand `@linemacro` calls in the texi2any comparison
-- [ ] In `--structure` mode, classify texi2any's commands from one shared list
-  of line commands, headings and blocks, not from the commands our parser
-  produced; a line command we don't know is currently hidden there
+- [x] In `--structure` mode, texi2any's line commands come from its own
+  command table, not from what our parser produced, so a line command we
+  don't parse as one shows up
 - [x] More example manuals: Emacs's manuals, glibc, gdb, binutils, bash,
   coreutils, autoconf, automake
 - [x] Reduce the parser's size: `src/parser.c` was 29 MB. The line and brace

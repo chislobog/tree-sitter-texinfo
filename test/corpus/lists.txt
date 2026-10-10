@@ -142,8 +142,9 @@ Multitable
     (command_name)
     (line_argument
       (inline_command
-        (command_name))
-      (text))
+        (command_name)
+        (line_argument
+          (text))))
     (item
       (command_name)
       (paragraph
@@ -321,8 +322,9 @@ Multitable rows inside conditionals
     name: (command_name)
     argument: (line_argument
       (inline_command
-        name: (command_name))
-      (text))
+        name: (command_name)
+        argument: (line_argument
+          (text))))
     (block
       name: (command_name)
       (item
@@ -426,4 +428,33 @@ Brace commands without braces as a list's argument
       name: (command_name)
       (paragraph
         (text)))
+    end: (block_end)))
+
+================================================================================
+Multitable column fractions
+================================================================================
+
+@multitable @columnfractions .3 .7 @c note
+@item a @tab b
+@end multitable
+
+---
+
+(source_file
+  (list
+    name: (command_name)
+    argument: (line_argument
+      (inline_command
+        name: (command_name)
+        argument: (line_argument
+          (text))))
+    (comment)
+    (item
+      name: (command_name)
+      (paragraph
+        (text))
+      (tab
+        name: (command_name)
+        (paragraph
+          (text))))
     end: (block_end)))

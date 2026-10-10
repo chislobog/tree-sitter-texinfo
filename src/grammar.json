@@ -5408,8 +5408,22 @@
                   "type": "FIELD",
                   "name": "argument",
                   "content": {
-                    "type": "SYMBOL",
-                    "name": "line_argument"
+                    "type": "CHOICE",
+                    "members": [
+                      {
+                        "type": "SYMBOL",
+                        "name": "line_argument"
+                      },
+                      {
+                        "type": "ALIAS",
+                        "content": {
+                          "type": "SYMBOL",
+                          "name": "_column_fractions"
+                        },
+                        "named": true,
+                        "value": "line_argument"
+                      }
+                    ]
                   }
                 },
                 {
@@ -5447,6 +5461,49 @@
                 "type": "SYMBOL",
                 "name": "_block_end"
               }
+            }
+          ]
+        }
+      ]
+    },
+    "_column_fractions": {
+      "type": "ALIAS",
+      "content": {
+        "type": "SYMBOL",
+        "name": "_column_fractions_command"
+      },
+      "named": true,
+      "value": "inline_command"
+    },
+    "_column_fractions_command": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "FIELD",
+          "name": "name",
+          "content": {
+            "type": "ALIAS",
+            "content": {
+              "type": "STRING",
+              "value": "@columnfractions"
+            },
+            "named": true,
+            "value": "command_name"
+          }
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "FIELD",
+              "name": "argument",
+              "content": {
+                "type": "SYMBOL",
+                "name": "line_argument"
+              }
+            },
+            {
+              "type": "BLANK"
             }
           ]
         }
