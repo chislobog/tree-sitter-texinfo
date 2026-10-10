@@ -762,9 +762,10 @@ static bool scan_end(Scanner *scanner, TSLexer *lexer,
   bool matches = has_name && scanner->depth > 0 &&
                  strcmp(end_name, innermost_block(scanner)) == 0;
   // A brace command still open at the start of the line closes first, with
-  // a zero-width token before the `@end`, which is then read again.
-  if (matches && brace_at_line_start &&
-      valid_symbols[BRACE_CLOSE_AT_BLOCK_END]) {
+  // a zero-width token before the `@end`, which is then read again; also at
+  // the `@end` of an enclosing block, which closes the blocks inside it.
+  if ((matches || (has_name && encloses(scanner, end_name))) &&
+      brace_at_line_start && valid_symbols[BRACE_CLOSE_AT_BLOCK_END]) {
     lexer->result_symbol = BRACE_CLOSE_AT_BLOCK_END;
     return true;
   }
@@ -961,8 +962,11 @@ static bool scan_missing_brace(Scanner *scanner, TSLexer *lexer,
 
   if (strcmp(name, "end") == 0) {
     char end_name[MAX_NAME + 1];
+    // The end of the innermost block, or of an enclosing one, which closes
+    // the blocks inside it, as in texi2any.
     if (!block_end || scanner->depth == 0 || !read_end_name(lexer, end_name) ||
-        strcmp(end_name, innermost_block(scanner)) != 0) {
+        (strcmp(end_name, innermost_block(scanner)) != 0 &&
+         !encloses(scanner, end_name))) {
       return false;
     }
     lexer->result_symbol = BRACE_CLOSE_AT_BLOCK_END;

@@ -77,7 +77,7 @@ Single-argument commands keep commas as text
         (text)))))
 
 ================================================================================
-Argument spanning lines
+A cross-reference argument spanning lines
 ================================================================================
 
 @ref{Node
@@ -326,3 +326,74 @@ x
           end: (block_end)))
       else: (argument
         (text)))))
+
+================================================================================
+Abbreviations, URLs, e-mail addresses, named anchors and images
+================================================================================
+
+@abbr{Comput. Sci., Computer Science} and @acronym{GNU, GNU's Not Unix}.
+@uref{https://gnu.org, the GNU site, GNU} and @url{https://example.org}.
+@email{bug@@gnu.org, the maintainers}.
+@namedanchor{here, Here} and @image{photo, 2in, 1in, A photo, .png}.
+
+---
+
+(source_file
+  (paragraph
+    (inline_command
+      (command_name)
+      (argument
+        (text))
+      (argument
+        (text)))
+    (text)
+    (inline_command
+      (command_name)
+      (argument
+        (text))
+      (argument
+        (text)))
+    (text)
+    (inline_command
+      (command_name)
+      (argument
+        (text))
+      (argument
+        (text))
+      (argument
+        (text)))
+    (text)
+    (inline_command
+      (command_name)
+      (argument
+        (text)))
+    (text)
+    (inline_command
+      (command_name)
+      (argument
+        (text)
+        (symbol_command)
+        (text))
+      (argument
+        (text)))
+    (text)
+    (inline_command
+      (command_name)
+      (argument
+        (text))
+      (argument
+        (text)))
+    (text)
+    (inline_command
+      (command_name)
+      (argument
+        (text))
+      (argument
+        (text))
+      (argument
+        (text))
+      (argument
+        (text))
+      (argument
+        (text)))
+    (text)))

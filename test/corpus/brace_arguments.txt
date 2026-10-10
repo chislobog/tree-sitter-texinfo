@@ -199,6 +199,36 @@ Unclosed brace command ends at the end of its block
     (block_end)))
 
 ================================================================================
+Unclosed brace command ends at the end of an enclosing block
+================================================================================
+
+@quotation
+@example
+A @code{open
+@end quotation
+
+After.
+
+---
+
+(source_file
+  (block
+    name: (command_name)
+    (block
+      name: (command_name)
+      (paragraph
+        (text)
+        (inline_command
+          name: (command_name)
+          arguments: (brace_arguments
+            (text))
+          (missing_brace)))
+      end: (missing_end))
+    end: (block_end))
+  (paragraph
+    (text)))
+
+================================================================================
 Unclosed brace command ends at the end of the file
 ================================================================================
 
@@ -832,3 +862,46 @@ After.
     end: (block_end))
   (paragraph
     (text)))
+
+================================================================================
+A block after a line command inside braces closes the brace
+================================================================================
+
+@table @asis
+@item x
+A @code{open
+@cindex entry
+@example
+code
+@end example
+@end table
+
+---
+
+(source_file
+  (list
+    (command_name)
+    (line_argument
+      (inline_command
+        (command_name)))
+    (item
+      (command_name)
+      (line_argument
+        (text))
+      (paragraph
+        (text)
+        (inline_command
+          (command_name)
+          (brace_arguments
+            (text)
+            (line_command
+              (command_name)
+              (line_argument
+                (text))))
+          (missing_brace)))
+      (block
+        (command_name)
+        (paragraph
+          (text))
+        (block_end)))
+    (block_end)))

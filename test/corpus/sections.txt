@@ -286,3 +286,150 @@ An anchor between a node and its heading
       name: (command_name)
       title: (line_argument
         (text)))))
+
+================================================================================
+@part contains the chapters after it
+================================================================================
+
+@node Top
+@top Manual
+
+@node Part One
+@part Part One
+
+@node First
+@chapter First
+
+Text.
+
+---
+
+(source_file
+  (top
+    (node_line
+      (command_name)
+      (argument
+        (text)))
+    (top_heading
+      (command_name)
+      (line_argument
+        (text))))
+  (part
+    (node_line
+      (command_name)
+      (argument
+        (text)))
+    (part_heading
+      (command_name)
+      (line_argument
+        (text)))
+    (chapter
+      (node_line
+        (command_name)
+        (argument
+          (text)))
+      (chapter_heading
+        (command_name)
+        (line_argument
+          (text)))
+      (paragraph
+        (text)))))
+
+================================================================================
+Blank and comment lines between a node and its heading at lower levels
+================================================================================
+
+@node Section, Sub, Prev, Up
+@section Section
+
+@node Sub
+
+@subsection Sub
+
+@node Subsub
+@c a comment line
+
+@subsubsection Subsub
+
+Text.
+
+---
+
+(source_file
+  (section
+    (node_line
+      (command_name)
+      (argument
+        (text))
+      (argument
+        (text))
+      (argument
+        (text))
+      (argument
+        (text)))
+    (section_heading
+      (command_name)
+      (line_argument
+        (text)))
+    (subsection
+      (node_line
+        (command_name)
+        (argument
+          (text)))
+      (subsection_heading
+        (command_name)
+        (line_argument
+          (text)))
+      (subsubsection
+        (node_line
+          (command_name)
+          (argument
+            (text)))
+        (comment)
+        (subsubsection_heading
+          (command_name)
+          (line_argument
+            (text)))
+        (paragraph
+          (text))))))
+
+================================================================================
+Only comment lines may come between a node and its heading
+================================================================================
+
+@node Entry
+@cindex entry
+@section Entry
+
+@node Cfoo
+@cfoo
+@section Cfoo
+
+---
+
+(source_file
+  (node_line
+    (command_name)
+    (argument
+      (text)))
+  (line_command
+    (command_name)
+    (line_argument
+      (text)))
+  (section
+    (section_heading
+      (command_name)
+      (line_argument
+        (text)))
+    (node_line
+      (command_name)
+      (argument
+        (text)))
+    (paragraph
+      (inline_command
+        (command_name))))
+  (section
+    (section_heading
+      (command_name)
+      (line_argument
+        (text)))))

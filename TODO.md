@@ -152,6 +152,10 @@ of a line.
   built-in commands other than `@footnote`, `@caption`, `@shortcaption` and
   `@math`; the enclosing block's `@end`; the end of the file), marked by a
   zero-width `missing_brace` node, so they don't break the rest of the file
+- [x] An unclosed brace command also ends at the `@end` of an enclosing block
+  (`@code{` in an `@example` inside a `@quotation`, then `@end quotation`),
+  which closes the blocks inside it, as in texi2any; the rest of the file
+  stayed inside the brace
 - [ ] A brace argument crossing a conditional's boundary (e.g. `@footnote{`
   inside `@ifnottex`, closed after its `@end`, or TeX braces in Calc's and
   Gnus's `@iftex` blocks) can't be represented: the brace closes at the

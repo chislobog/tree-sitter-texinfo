@@ -423,3 +423,50 @@ After.
     end: (block_end))
   (paragraph
     (text)))
+
+================================================================================
+Text after the name of a menu or a raw block
+================================================================================
+
+@menu text after menu
+* Node::
+@end menu
+
+@ignore text after ignore
+ignored
+@end ignore
+
+---
+
+(source_file
+  (menu
+    (command_name)
+    (line_argument
+      (text))
+    (menu_entry
+      (menu_node
+        (text)))
+    (block_end))
+  (raw_block
+    (command_name)
+    (line_argument
+      (text))
+    (raw_text)
+    (block_end)))
+
+================================================================================
+Text after an unmatched end
+================================================================================
+
+Para.
+@end example and text
+More.
+
+---
+
+(source_file
+  (paragraph
+    (text))
+  (unmatched_end)
+  (paragraph
+    (text)))

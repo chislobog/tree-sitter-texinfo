@@ -399,3 +399,21 @@ bar baz
         (line_continuation)
         (text)))
     end: (block_end)))
+
+================================================================================
+A comment after a word is not glued to it
+================================================================================
+
+@deffn Command foo@c a comment
+@end deffn
+
+---
+
+(source_file
+  (definition_block
+    (definition_line
+      (command_name)
+      (text)
+      (text)
+      (comment))
+    (block_end)))

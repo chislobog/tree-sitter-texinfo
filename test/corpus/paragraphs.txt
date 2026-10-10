@@ -45,27 +45,6 @@ Use @code{ls} or @emph{not} @dots{} @TeX{} @bullet here.
     (text)))
 
 ================================================================================
-Cross-reference arguments
-================================================================================
-
-See @xref{Node, , Title, manual}.
-
----
-
-(source_file
-  (paragraph
-    (text)
-    (inline_command
-      (command_name)
-      (argument
-        (text))
-      (argument
-        (text))
-      (argument
-        (text)))
-    (text)))
-
-================================================================================
 Nested inline commands
 ================================================================================
 
@@ -85,7 +64,7 @@ Nested inline commands
             (text)))))))
 
 ================================================================================
-Arguments spanning lines
+A footnote argument spanning lines
 ================================================================================
 
 A @footnote{first line

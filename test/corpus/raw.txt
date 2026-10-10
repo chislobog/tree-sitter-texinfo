@@ -278,32 +278,3 @@ Comment directly after a block name
     (raw_text)
     (block_end))
   (comment))
-
-================================================================================
-Macro definitions
-================================================================================
-
-@macro safety {notes}
-Safety: @code{\notes\}
-@end macro
-
-@linemacro defbuiltin {name, args}
-@defline {Builtin} \name\ \args\
-@end linemacro
-
----
-
-(source_file
-  (macro_definition
-    name: (command_name)
-    macro: (text)
-    parameter: (text)
-    body: (raw_text)
-    end: (block_end))
-  (macro_definition
-    name: (command_name)
-    macro: (text)
-    parameter: (text)
-    parameter: (text)
-    body: (raw_text)
-    end: (block_end)))
