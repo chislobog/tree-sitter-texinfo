@@ -282,9 +282,9 @@ static const char *const LINE_COMMANDS[] = {
     "headings", "evenheading", "oddheading", "everyheading", "evenfooting",
     "oddfooting", "everyfooting",
     // Variables and macros
-    "definfoenclose", "unmacro",
+    "definfoenclose",
     // Layout
-    "page", "need", "sp", "vskip", "center", "exdent", "finalout", "smallbook",
+    "page", "need", "sp", "center", "exdent", "finalout", "smallbook",
     "afourpaper", "afivepaper", "afourlatex", "afourwide", "pagesizes",
     "paragraphindent", "firstparagraphindent", "exampleindent", "footnotestyle",
     "frenchspacing", "allowcodebreaks", "kbdinputstyle", "codequoteundirected",
@@ -294,10 +294,9 @@ static const char *const LINE_COMMANDS[] = {
     "lowersections",
     // Less common: two-letter index names, page layout, cross-reference names
     "cpindex", "fnindex", "kyindex", "pgindex", "tpindex", "vrindex",
-    "bsixpaper", "clickstyle", "fonttextsize", "microtype", "maketitle",
-    "verbatiminclude", "xrefname", "evenfootingmarks", "evenheadingmarks",
-    "everyfootingmarks", "everyheadingmarks", "oddfootingmarks",
-    "oddheadingmarks"};
+    "bsixpaper", "fonttextsize", "microtype", "maketitle", "verbatiminclude",
+    "xrefname", "evenfootingmarks", "evenheadingmarks", "everyfootingmarks",
+    "everyheadingmarks", "oddfootingmarks", "oddheadingmarks"};
 
 // Built-in brace commands whose argument ends at a blank line, as in texi2any:
 // all of them except @verb, the "context" commands @footnote, @caption,
@@ -676,6 +675,14 @@ static bool scan_block_start(Scanner *scanner, TSLexer *lexer,
   return true;
 }
 
+// Whether a block named `name` is open, other than the innermost one.
+static bool encloses(const Scanner *scanner, const char *name) {
+  for (unsigned i = scanner->depth > 0 ? scanner->depth - 1 : 0; i > 0; i--) {
+    if (strcmp(BLOCKS[scanner->stack[i - 1]].name, name) == 0) return true;
+  }
+  return false;
+}
+
 /**
  * Scans `@end NAME`: the end of the innermost open block, or, at the start of
  * a line where it ends no block, an unmatched end up to the end of the line,
@@ -689,6 +696,22 @@ static bool scan_end(Scanner *scanner, TSLexer *lexer,
                  strcmp(end_name, innermost_block(scanner)) == 0;
   if (matches) {
     return valid_symbols[BLOCK_END] && pop_block(scanner, lexer);
+  }
+  // The `@end` of an enclosing block first closes the blocks inside it, as in
+  // texi2any, with a zero-width end each; the `@end` is then read again.
+  if (has_name && valid_symbols[MISSING_END] && encloses(scanner, end_name)) {
+    scanner->depth--;
+    lexer->result_symbol = MISSING_END;
+    return true;
+  }
+  // An `@end` of a block that isn't open closes the open blocks too, as in
+  // texi2any, before it is reported as unmatched; but not conditionals,
+  // which texi2any has evaluated, nor for an `@end` without a name.
+  if (has_name && valid_symbols[MISSING_END] && scanner->depth > 0 &&
+      strncmp(innermost_block(scanner), "if", 2) != 0) {
+    scanner->depth--;
+    lexer->result_symbol = MISSING_END;
+    return true;
   }
   if (!valid_symbols[UNMATCHED_END]) return false;
   while (!lexer->eof(lexer) && lexer->lookahead != '\n' &&
@@ -965,6 +988,8 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
   }
 
   if (lexer->lookahead != '@') return false;
+  // Zero-width tokens end here; every other token marks its own end.
+  lexer->mark_end(lexer);
   advance(lexer);
 
   if (valid_symbols[BRACE_COMMAND_NAME] && is_symbol_accent(lexer->lookahead)) {

@@ -1097,6 +1097,10 @@
           {
             "type": "line_argument",
             "named": true
+          },
+          {
+            "type": "raw_text",
+            "named": true
           }
         ]
       },

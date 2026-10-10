@@ -2316,6 +2316,101 @@
                 "type": "ALIAS",
                 "content": {
                   "type": "STRING",
+                  "value": "@vskip"
+                },
+                "named": true,
+                "value": "command_name"
+              }
+            },
+            {
+              "type": "CHOICE",
+              "members": [
+                {
+                  "type": "FIELD",
+                  "name": "argument",
+                  "content": {
+                    "type": "ALIAS",
+                    "content": {
+                      "type": "PATTERN",
+                      "value": "[^\\r\\n]+"
+                    },
+                    "named": true,
+                    "value": "raw_text"
+                  }
+                },
+                {
+                  "type": "BLANK"
+                }
+              ]
+            },
+            {
+              "type": "SYMBOL",
+              "name": "_line_end"
+            }
+          ]
+        },
+        {
+          "type": "SEQ",
+          "members": [
+            {
+              "type": "FIELD",
+              "name": "name",
+              "content": {
+                "type": "ALIAS",
+                "content": {
+                  "type": "CHOICE",
+                  "members": [
+                    {
+                      "type": "STRING",
+                      "value": "@clickstyle"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "@unmacro"
+                    }
+                  ]
+                },
+                "named": true,
+                "value": "command_name"
+              }
+            },
+            {
+              "type": "CHOICE",
+              "members": [
+                {
+                  "type": "FIELD",
+                  "name": "argument",
+                  "content": {
+                    "type": "ALIAS",
+                    "content": {
+                      "type": "SYMBOL",
+                      "name": "_set_value"
+                    },
+                    "named": true,
+                    "value": "raw_text"
+                  }
+                },
+                {
+                  "type": "BLANK"
+                }
+              ]
+            },
+            {
+              "type": "SYMBOL",
+              "name": "_line_end"
+            }
+          ]
+        },
+        {
+          "type": "SEQ",
+          "members": [
+            {
+              "type": "FIELD",
+              "name": "name",
+              "content": {
+                "type": "ALIAS",
+                "content": {
+                  "type": "STRING",
                   "value": "@alias"
                 },
                 "named": true,
@@ -8246,7 +8341,7 @@
                   "members": [
                     {
                       "type": "SYMBOL",
-                      "name": "_newline"
+                      "name": "_newlines"
                     },
                     {
                       "type": "SYMBOL",
@@ -8263,7 +8358,7 @@
                 "members": [
                   {
                     "type": "SYMBOL",
-                    "name": "_newline"
+                    "name": "_newlines"
                   },
                   {
                     "type": "SYMBOL",
@@ -8277,7 +8372,7 @@
               "members": [
                 {
                   "type": "SYMBOL",
-                  "name": "_newline"
+                  "name": "_newlines"
                 },
                 {
                   "type": "BLANK"
@@ -8288,7 +8383,7 @@
         },
         {
           "type": "SYMBOL",
-          "name": "_newline"
+          "name": "_newlines"
         }
       ]
     },
@@ -8320,7 +8415,7 @@
               "members": [
                 {
                   "type": "SYMBOL",
-                  "name": "_newline"
+                  "name": "_newlines"
                 },
                 {
                   "type": "SYMBOL",
@@ -8337,7 +8432,7 @@
             "members": [
               {
                 "type": "SYMBOL",
-                "name": "_newline"
+                "name": "_newlines"
               },
               {
                 "type": "SYMBOL",
@@ -8351,7 +8446,7 @@
           "members": [
             {
               "type": "SYMBOL",
-              "name": "_newline"
+              "name": "_newlines"
             },
             {
               "type": "BLANK"

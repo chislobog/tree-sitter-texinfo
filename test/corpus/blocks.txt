@@ -117,6 +117,13 @@ Mismatched end
 x
 @end display
 
+@ifclear X
+@example
+y
+@end display
+z
+@end ifclear
+
 ---
 
 (source_file
@@ -124,8 +131,21 @@ x
     (command_name)
     (paragraph
       (text))
+    (missing_end))
+  (unmatched_end)
+  (block
+    (command_name)
+    (line_argument
+      (text))
+    (block
+      (command_name)
+      (paragraph
+        (text))
+      (missing_end))
     (unmatched_end)
-    (missing_end)))
+    (paragraph
+      (text))
+    (block_end)))
 
 ================================================================================
 Unmatched end
@@ -365,4 +385,41 @@ b.
   (paragraph
     (text)
     (symbol_command)
+    (text)))
+
+================================================================================
+An @end of an enclosing block closes the blocks inside it
+================================================================================
+
+@quotation
+@table @asis
+@item item
+@example
+code
+@end quotation
+
+After.
+
+---
+
+(source_file
+  (block
+    name: (command_name)
+    (list
+      name: (command_name)
+      argument: (line_argument
+        (inline_command
+          name: (command_name)))
+      (item
+        name: (command_name)
+        argument: (line_argument
+          (text))
+        (block
+          name: (command_name)
+          (paragraph
+            (text))
+          end: (missing_end)))
+      end: (missing_end))
+    end: (block_end))
+  (paragraph
     (text)))

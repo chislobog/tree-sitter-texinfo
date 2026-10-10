@@ -56,8 +56,10 @@ Errors are kept local, so a half-typed command doesn't break the rest of the
 document. An unclosed brace command ends where `texi2any` ends it (a blank
 line, the `@end` of the enclosing block, or the end of the file), marked by a
 zero-width `missing_brace` node; a block still open at the end of the file
-ends with a zero-width `missing_end` node. An `@end` that ends no open block
-is an `unmatched_end` node, which `texi2any` reports and ignores. Editors that
+ends with a zero-width `missing_end` node. An `@end` of an enclosing block
+closes the blocks inside it with `missing_end`, as in `texi2any`; one of a
+block that isn't open closes the open blocks (but not conditionals), and is
+then an `unmatched_end` node, which `texi2any` reports and ignores. Editors that
 report tree-sitter errors should also report these three nodes.
 
 A section inside a conditional ends at the conditional's `@end`, so when only

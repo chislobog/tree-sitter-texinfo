@@ -252,3 +252,30 @@ ignore me
           body: (raw_text)
           end: (block_end))))
     (text)))
+
+================================================================================
+Comment lines inside a cross-reference's arguments
+================================================================================
+
+@ref{first, @c aaa
+ @ 
+@c ggg
+, @c fff
+@c
+}
+
+---
+
+(source_file
+  (paragraph
+    (inline_command
+      name: (command_name)
+      node: (argument
+        (text))
+      (comment)
+      label: (argument
+        (symbol_command)
+        (comment))
+      (comment)
+      title: (argument
+        (comment)))))

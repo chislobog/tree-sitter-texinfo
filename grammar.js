@@ -287,6 +287,18 @@ export default grammar({
         )),
         $._line_end,
       ),
+      // Commands whose argument texi2any keeps as raw text: all of the line
+      // for `@vskip`, up to a comment for `@clickstyle` and `@unmacro`.
+      seq(
+        field('name', command($, ['vskip'])),
+        optional(field('argument', alias(/[^\r\n]+/, $.raw_text))),
+        $._line_end,
+      ),
+      seq(
+        field('name', command($, ['clickstyle', 'unmacro'])),
+        optional(field('argument', alias($._set_value, $.raw_text))),
+        $._line_end,
+      ),
       // `@alias NEW = EXISTING`; the spaces are optional. Anything else on the
       // line, which texi2any reports, is left as an argument.
       seq(
@@ -845,22 +857,24 @@ export default grammar({
     // An argument that is only a line break is kept, empty, as in texi2any.
     // A raw block such as `@ignore` may stand on a line of its own, which
     // texi2any keeps in the argument.
+    // Lines may be separated by comment lines, which leave two newlines; the
+    // scanner closes the command before a blank line.
     argument: $ => choice(
       seq(
-        choice($._argument_line, seq($._newline, $._argument_line_item)),
-        repeat(seq($._newline, $._argument_line_item)),
-        optional($._newline),
+        choice($._argument_line, seq($._newlines, $._argument_line_item)),
+        repeat(seq($._newlines, $._argument_line_item)),
+        optional($._newlines),
       ),
-      $._newline,
+      $._newlines,
     ),
 
     _argument_line_item: $ => choice($._argument_line, $.raw_block),
 
     // The last argument, which may contain commas.
     _last_argument: $ => seq(
-      choice($._line, seq($._newline, $._last_argument_line)),
-      repeat(seq($._newline, $._last_argument_line)),
-      optional($._newline),
+      choice($._line, seq($._newlines, $._last_argument_line)),
+      repeat(seq($._newlines, $._last_argument_line)),
+      optional($._newlines),
     ),
 
     _last_argument_line: $ => choice($._line, $.raw_block),

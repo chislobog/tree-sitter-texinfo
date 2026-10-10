@@ -159,9 +159,7 @@ Less common line commands
 (source_file
   (line_command
     (command_name)
-    (line_argument
-      (inline_command
-        (command_name))))
+    (raw_text))
   (line_command
     (command_name)
     (line_argument
@@ -351,3 +349,25 @@ Aliases
     target: (text)
     argument: (line_argument
       (text))))
+
+================================================================================
+Raw arguments of @vskip, @clickstyle and @unmacro
+================================================================================
+
+@vskip 1pt @atext{} @c note
+@clickstyle @result @c note
+@unmacro foo
+
+---
+
+(source_file
+  (line_command
+    name: (command_name)
+    argument: (raw_text))
+  (line_command
+    name: (command_name)
+    argument: (raw_text)
+    (comment))
+  (line_command
+    name: (command_name)
+    argument: (raw_text)))
