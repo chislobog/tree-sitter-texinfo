@@ -808,14 +808,27 @@ export default grammar({
       )),
       // `@inlinefmt{FORMAT, TEXT}`, `@inlineifset{FLAG, TEXT}`: like a
       // conditional block, the text may hold blank lines and blocks.
-      // @inlinefmtifelse keeps a single argument: a third field would cost
-      // several hundred parser states.
       prec.right(seq(
         field('name', command($, ['inlinefmt', 'inlineifset', 'inlineifclear'])),
         optional(seq(
           '{',
           optional(field('condition', $._condition)),
           optional(seq(',', optional(field('text', alias($._long_arguments, $.argument))))),
+          choice('}', alias($._brace_close_at_block_end, $.missing_brace)),
+        )),
+      )),
+      // `@inlinefmtifelse{FORMAT, THEN, ELSE}`: both texts may hold blank
+      // lines and blocks; the first ends at a comma, the last takes the rest.
+      prec.right(seq(
+        field('name', command($, ['inlinefmtifelse'])),
+        optional(seq(
+          '{',
+          optional(field('condition', $._condition)),
+          optional(seq(
+            ',',
+            optional(field('then', alias($._long_comma_arguments, $.argument))),
+            optional(seq(',', optional(field('else', alias($._long_arguments, $.argument))))),
+          )),
           choice('}', alias($._brace_close_at_block_end, $.missing_brace)),
         )),
       )),
@@ -934,6 +947,21 @@ export default grammar({
       seq(repeat1($._line_block), optional($._long_lines)),
       $._long_lines,
     ),
+
+    // Like `_long_arguments`, but ending at a comma.
+    _long_comma_arguments: $ => choice(
+      seq(repeat1($._line_block), optional($._long_comma_lines)),
+      $._long_comma_lines,
+    ),
+
+    _long_comma_lines: $ => repeat1(choice(
+      alias($._argument_text, $.text),
+      $.inline_command,
+      $.symbol_command,
+      $.brace_group,
+      $._newline,
+      seq($._newline, repeat1($._line_item)),
+    )),
 
     _long_lines: $ => repeat1(choice(
       $._inline,

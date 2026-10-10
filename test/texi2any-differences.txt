@@ -359,6 +359,10 @@ texinfo-tests/60macro/glossary.texi
   line 43: ours '@item @anchor', texi2any '(nothing)'
   line 47: ours '@item', texi2any '(nothing)'
 
+# Comparison: the tree keeps macros, aliases and @value unexpanded; here a macro call inside an inline conditional's condition, a plain word in the grammar, which only makes sense after expansion
+texinfo-tests/60macro/macro_call_in_inlinefmtifelse_format.texi
+  1 parse errors
+
 # Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion
 texinfo-tests/60macro/macro_end_call_in_ignored_inlinefmt.texi
   1 parse errors

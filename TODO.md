@@ -50,8 +50,8 @@ sources, which is what `texi2any` itself uses.
 - [x] Split the inline conditionals' arguments into `condition` and `text`
   (multi-line, like a conditional block) or, for `@inlineraw`, a raw `body`,
   injected in the language its format names
-- [ ] `@inlinefmtifelse`'s three arguments (a third field costs several
-  hundred parser states)
+- [x] `@inlinefmtifelse`'s three arguments: `condition`, `then` and `else`,
+  both texts spanning blank lines and blocks (+1,074 parser states)
 - [x] `@float` arguments: `type` and `label` fields; the label is a tag and
   highlighted like a node name. Commands with named arguments (`@xref`)
   aren't allowed in the type

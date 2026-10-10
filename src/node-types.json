@@ -816,6 +816,16 @@
           }
         ]
       },
+      "else": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "argument",
+            "named": true
+          }
+        ]
+      },
       "extension": {
         "multiple": false,
         "required": false,
@@ -907,6 +917,16 @@
         ]
       },
       "text": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "argument",
+            "named": true
+          }
+        ]
+      },
+      "then": {
         "multiple": false,
         "required": false,
         "types": [

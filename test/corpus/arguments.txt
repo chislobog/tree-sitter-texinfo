@@ -279,3 +279,50 @@ Comment lines inside a cross-reference's arguments
       (comment)
       title: (argument
         (comment)))))
+
+================================================================================
+Inline format conditional with then and else
+================================================================================
+
+@inlinefmtifelse{html, <b>@code{x}</b>, plain, with comma}
+
+@inlinefmtifelse{tex, first
+
+second para
+@example
+x
+@end example
+, else}
+
+---
+
+(source_file
+  (paragraph
+    (inline_command
+      name: (command_name)
+      condition: (argument
+        (text))
+      then: (argument
+        (text)
+        (inline_command
+          name: (command_name)
+          arguments: (brace_arguments
+            (text)))
+        (text))
+      else: (argument
+        (text))))
+  (paragraph
+    (inline_command
+      name: (command_name)
+      condition: (argument
+        (text))
+      then: (argument
+        (text)
+        (text)
+        (block
+          name: (command_name)
+          (paragraph
+            (text))
+          end: (block_end)))
+      else: (argument
+        (text)))))
