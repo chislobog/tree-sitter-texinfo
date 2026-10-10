@@ -239,6 +239,11 @@ Deliberate, so the tree shows the source as it is written and edited:
   don't parse as one shows up
 - [x] More example manuals: Emacs's manuals, glibc, gdb, binutils, bash,
   coreutils, autoconf, automake
+- [x] Manuals by other authors, found with nix-locate: SBCL (with ASDF),
+  Maxima (English and Japanese), GNU Parallel, Stow, LaTeX2e. They showed
+  that a comma-separated argument (`@xref{`) didn't take a conditional
+  block, so a brace left open before one broke the enclosing block; and
+  `.txi` files are checked too
 - [x] Reduce the parser's size: `src/parser.c` was 29 MB. The line and brace
   command keywords, now recognised by the scanner, made each parser state
   where a command can start carry about 200 entries; it is now 6 MB, with

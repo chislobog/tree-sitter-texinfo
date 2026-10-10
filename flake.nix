@@ -29,33 +29,35 @@
               ];
             }
             ''
-              for src in $srcs; do
+              # Extracts the given paths of a source tarball, minus the
+              # leading directories, and keeps only its Texinfo files.
+              extract() {
+                local src=$1 strip=$2
+                shift 2
                 name=$(stripHash "$src")
                 dir="$out/''${name%.tar.*}"
                 mkdir -p "$dir"
-                tar -xf "$src" -C "$dir" --strip-components=2 --wildcards '*/doc/*.texi'
+                tar -xf "$src" -C "$dir" --strip-components="$strip" --wildcards "$@"
+                find "$dir" -type f ! \( -name '*.texi' -o -name '*.texinfo' -o -name '*.txi' \) -delete
+                find "$dir" -depth -type d -empty -delete
+              }
+
+              for src in $srcs; do
+                extract "$src" 2 '*/doc/*'
               done
 
               # Other GNU manuals, each with the files where it keeps them:
               # glibc's many custom definition macros, autoconf's and
               # automake's m4 examples full of braces, gdb's and binutils'
               # conditionals per target, bash's and coreutils' variables.
-              extract() {
-                local src=$1
-                shift
-                name=$(stripHash "$src")
-                dir="$out/''${name%.tar.*}"
-                mkdir -p "$dir"
-                tar -xf "$src" -C "$dir" --strip-components=1 --wildcards "$@"
-              }
-              extract ${pkgs.glibc.src} '*/manual/*.texi' '*/manual/*.texinfo'
-              extract ${pkgs.autoconf.src} '*/doc/*.texi'
-              extract ${pkgs.automake.src} '*/doc/*.texi'
-              extract ${pkgs.gdb.src} '*/gdb/doc/*.texinfo' '*/gdb/doc/*.texi'
-              extract ${pkgs.binutils-unwrapped.src} \
-                '*/binutils/doc/*.texi' '*/ld/*.texi' '*/gas/doc/*.texi'
-              extract ${pkgs.bash.src} '*/doc/*.texi'
-              extract ${pkgs.coreutils.src} '*/doc/*.texi'
+              extract ${pkgs.glibc.src} 1 '*/manual/*'
+              extract ${pkgs.autoconf.src} 1 '*/doc/*'
+              extract ${pkgs.automake.src} 1 '*/doc/*'
+              extract ${pkgs.gdb.src} 1 '*/gdb/doc/*'
+              extract ${pkgs.binutils-unwrapped.src} 1 \
+                '*/binutils/doc/*' '*/ld/*.texi' '*/gas/doc/*'
+              extract ${pkgs.bash.src} 1 '*/doc/*'
+              extract ${pkgs.coreutils.src} 1 '*/doc/*'
 
               # Emacs: its user manual, Lisp reference and other manuals
               # (Gnus, Calc, TRAMP, ...), the largest and most varied here.
@@ -65,6 +67,19 @@
               cp ${pkgs.emacs.src}/doc/lispref/*.texi "$dir/lispref"
               cp ${pkgs.emacs.src}/doc/emacs/*.texi "$dir/emacs"
               cp ${pkgs.emacs.src}/doc/misc/*.texi "$dir/misc"
+
+              # Manuals by other authors, in other styles: SBCL's, with its
+              # contribs (ASDF's among them); Maxima's, in English and
+              # Japanese; GNU Parallel's, generated from Perl's POD by
+              # pod2texi; Stow's; and the LaTeX2e reference manual.
+              extract ${pkgs.sbcl.src} 1 '*/doc/manual/*' '*/doc/internals/*' '*/contrib/*.texinfo'
+              extract ${pkgs.maxima.src} 1 '*/doc/info/*' \
+                --exclude='*/doc/info/'{de,es,pt,pt_BR,ru}'/*'
+              extract ${pkgs.parallel.src} 1 '*/src/*.texi'
+              extract ${pkgs.stow.src} 1 '*/doc/*'
+              dir="$out/latex2e-help-texinfo"
+              mkdir -p "$dir"
+              cp ${pkgs.texlive.pkgs.latex2e-help-texinfo.texdoc}/doc/latex/latex2e-help-texinfo/*.texi "$dir"
             '';
 
         # The inputs of texi2any's own parser tests, one file per test case

@@ -53,7 +53,7 @@ and on a listed one that is no longer found, and `--write-expected` updates
 the list.
 
 Usage: script/compare-texi2any.py [--structure] [--hunks N]
-       [--expected FILE] [--write-expected FILE] FILE...
+       [--expected FILE] [--write-expected FILE] [FILE...]
 """
 
 import argparse
@@ -70,7 +70,7 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 
-from texinfo_language import ROOT, load_language
+from texinfo_language import ROOT, add_files_argument, files_argument, load_language
 
 from tree_sitter import Parser
 
@@ -580,7 +580,7 @@ def write_expected(path: Path, entries: dict[str, Expected]):
 
 def main() -> int:
     arguments = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    arguments.add_argument("files", nargs="+", type=Path)
+    add_files_argument(arguments)
     arguments.add_argument(
         "--structure", action="store_true", help="compare only blocks, items and line commands"
     )
@@ -602,6 +602,7 @@ def main() -> int:
         "its comments and its other files",
     )
     options = arguments.parse_args()
+    options.files = files_argument(options)
 
     parser = Parser(load_language())
     line_commands = texi2any_line_commands()

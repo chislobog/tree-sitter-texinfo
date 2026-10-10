@@ -11,7 +11,7 @@ another file of digests. After a deliberate change,
 revision REV, to review before writing the new digests.
 
 Usage: script/tree-snapshots.py [--snapshots FILE] (--check | --write | --diff REV)
-       FILE...
+       [FILE...]
 """
 
 import argparse
@@ -22,7 +22,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from texinfo_language import ROOT, dump, load_language
+from texinfo_language import ROOT, add_files_argument, dump, files_argument, load_language
 
 from tree_sitter import Parser
 
@@ -91,8 +91,9 @@ def main() -> int:
     arguments.add_argument(
         "--snapshots", type=Path, default=SNAPSHOTS, help="the digests (default %(default)s)"
     )
-    arguments.add_argument("files", nargs="+", type=Path)
+    add_files_argument(arguments)
     options = arguments.parse_args()
+    options.files = files_argument(options)
 
     parser = Parser(load_language())
     if options.diff:

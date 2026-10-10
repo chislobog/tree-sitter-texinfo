@@ -10,7 +10,7 @@
   fails, so a grammar change that makes some input pathologically slow
   shows. Relative to the median, so it holds on any machine.
 
-Usage: script/parse-examples.py [--slowdown N] [--expected FILE] FILE...
+Usage: script/parse-examples.py [--slowdown N] [--expected FILE] [FILE...]
 """
 
 import argparse
@@ -21,7 +21,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from texinfo_language import ROOT
+from texinfo_language import ROOT, add_files_argument, files_argument
 
 EXPECTED = ROOT / "test" / "parse-errors.txt"
 MIN_BYTES = 20_000
@@ -44,11 +44,12 @@ def main() -> int:
     arguments = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     arguments.add_argument("--slowdown", type=float, default=10.0)
     arguments.add_argument("--expected", type=Path, default=EXPECTED, metavar="FILE")
-    arguments.add_argument("files", nargs="+")
+    add_files_argument(arguments)
     options = arguments.parse_args()
+    options.files = files_argument(options)
 
     with tempfile.NamedTemporaryFile("w", suffix=".txt") as paths:
-        paths.write("\n".join(options.files) + "\n")
+        paths.write("".join(f"{path}\n" for path in options.files))
         paths.flush()
         result = subprocess.run(
             ["tree-sitter", "parse", "--quiet", "--json-summary", "--paths", paths.name],

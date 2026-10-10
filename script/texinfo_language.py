@@ -4,8 +4,10 @@ The parser is built into build/ when src/ is newer than the build, or into
 another checkout's build/ for comparing with an earlier revision.
 """
 
+import argparse
 import ctypes
 import subprocess
+import sys
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -55,3 +57,24 @@ def dump(node: Node) -> Iterator[str]:
             if not cursor.goto_parent():
                 return
             depth -= 1
+
+
+def add_files_argument(arguments: argparse.ArgumentParser):
+    """The files a script checks: given as arguments, or else one per line on
+    standard input, so that a check sees all of them at once, as `xargs`
+    wouldn't ensure."""
+    arguments.add_argument(
+        "files",
+        nargs="*",
+        type=Path,
+        help="the files; read from standard input, one per line, if none are given",
+    )
+
+
+def files_argument(options: argparse.Namespace) -> list[Path]:
+    if options.files:
+        return options.files
+    files = [Path(line) for line in sys.stdin.read().splitlines() if line]
+    if not files:
+        raise SystemExit("no files given")
+    return files

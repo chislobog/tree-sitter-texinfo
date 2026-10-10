@@ -5,12 +5,13 @@ A [tree-sitter](https://tree-sitter.github.io/) grammar for
 and structural editing.
 
 The reference for correct behaviour is `texi2any` from Texinfo 7.3. The
-grammar is checked against it on over 400 files of real manuals (texinfo,
+grammar is checked against it on about 690 files of real manuals (texinfo,
 make, sed, gawk, glibc, gdb, binutils, bash, coreutils, autoconf, automake,
-and Emacs's manuals, Gnus and Calc among them) and on the 1,755 inputs of
-`texi2any`'s own parser tests. Every difference in the commands found is
+and Emacs's manuals, Gnus and Calc among them, and SBCL's, Maxima's, GNU
+Parallel's, Stow's and the LaTeX2e reference manual) and on the 1,755 inputs
+of `texi2any`'s own parser tests. Every difference in the commands found is
 listed, with its reason, in `test/texi2any-differences.txt`: in the manuals,
-6 of 524,778 commands, in fragments meant for `@include`; in the test inputs,
+6 of 694,902 commands, in fragments meant for `@include`; in the test inputs,
 mostly deliberately invalid input and macro expansion.
 
 ## What is parsed
@@ -140,7 +141,7 @@ as `examples/` and `texi2any`'s test inputs as `texinfo-tests/`.
 tree-sitter generate && tree-sitter test
 tree-sitter fuzz --iterations 100
 tree-sitter parse --quiet --stat 'examples/**/*.texi' 'examples/**/*.texinfo'
-find -L examples -name '*.texi*' | sort | xargs python3 script/compare-texi2any.py
+find -L examples \( -name '*.texi' -o -name '*.texinfo' -o -name '*.txi' \) | sort | python3 script/compare-texi2any.py
 ```
 
 CI runs these on every push. `CLAUDE.md` describes the conventions.

@@ -21,10 +21,17 @@ well with incomplete input, which is normal while editing.
 - GNU coreutils and sed are on the path, not the macOS ones: use `sed -i`, not
   `sed -i ''`.
 - `examples/` is a symlink, created by the dev shell, to real manuals pinned by
-  `flake.lock`: texinfo, make, sed, gawk, glibc, gdb (`.texinfo` files),
-  binutils, bash, coreutils, autoconf, automake and Emacs's manuals, over
-  400 files. Some are chapters of a manual, in separate files. It is not
-  committed.
+  `flake.lock`: texinfo, make, sed, gawk, glibc, gdb, binutils, bash,
+  coreutils, autoconf, automake and Emacs's manuals, and by other authors
+  SBCL's (`.texinfo` files, ASDF's among them), Maxima's (in English and
+  Japanese), GNU Parallel's (made by pod2texi), Stow's and the LaTeX2e
+  reference manual: about 690 files. Some are chapters of a manual, in
+  separate files. Texinfo files are `.texi`, `.texinfo` or `.txi`; the checks
+  take all three. It is not committed.
+- The scripts that check many files read their names from standard input
+  when none are given, as the commands below do: with `xargs`, a long list
+  is split over several runs, and a check that compares the whole set (a
+  snapshot of a file no longer checked, the median speed) goes wrong.
 - `texinfo-tests/` is a symlink to the inputs of texi2any's own parser tests,
   one file per test case (about 1,750), extracted by
   `script/extract-texi2any-tests.pl`. Many are deliberately invalid, so parse
@@ -71,10 +78,10 @@ also run:
 cc -std=c11 -Wall -Wextra -Wpedantic -Wshadow -Werror -Isrc -c src/scanner.c -o /tmp/scanner.o
 script/lint.sh                           # linters, formatters, query check
 tree-sitter fuzz --iterations 100        # incremental parsing after edits
-find -L examples -name '*.texi*' | sort | xargs python3 script/parse-examples.py
-find -L examples -name '*.texi*' | sort | xargs python3 script/compare-texi2any.py
-find -L examples texinfo-tests -name '*.texi*' | sort | xargs python3 script/tree-snapshots.py --check
-find -L examples -name '*.texi*' ! -path '*/it/*' | sort | xargs python3 script/check-edits.py --edits 5
+find -L examples \( -name '*.texi' -o -name '*.texinfo' -o -name '*.txi' \) | sort | python3 script/parse-examples.py
+find -L examples \( -name '*.texi' -o -name '*.texinfo' -o -name '*.txi' \) | sort | python3 script/compare-texi2any.py
+find -L examples texinfo-tests \( -name '*.texi' -o -name '*.texinfo' -o -name '*.txi' \) | sort | python3 script/tree-snapshots.py --check
+find -L examples \( -name '*.texi' -o -name '*.texinfo' -o -name '*.txi' \) ! -path '*/it/*' | sort | python3 script/check-edits.py --edits 5
 script/test-checks.py                    # the checks above still catch what they should
 ```
 
@@ -127,7 +134,7 @@ To compare with texi2any on its own test inputs (about a minute):
 
 ```sh
 find -L texinfo-tests -name '*.texi' | sort |
-  xargs python3 script/compare-texi2any.py --expected test/texi2any-differences.txt
+  python3 script/compare-texi2any.py --expected test/texi2any-differences.txt
 ```
 
 The comparisons skip the files texi2any itself fails on (the Italian gawk

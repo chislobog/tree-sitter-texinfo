@@ -10,13 +10,13 @@ errors are marked `:error`): the point is
 fuzzing incremental parsing on many small, often invalid inputs, not
 checking the trees, which test/tree-snapshots.txt does.
 
-Usage: script/texi2any-corpus.py FILE...
+Usage: script/texi2any-corpus.py [FILE...]
 """
 
+import argparse
 import sys
-from pathlib import Path
 
-from texinfo_language import ROOT, load_language
+from texinfo_language import ROOT, add_files_argument, files_argument, load_language
 
 from tree_sitter import Parser
 
@@ -26,10 +26,13 @@ SUFFIX = "|texi2any"
 
 
 def main() -> int:
+    arguments = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    add_files_argument(arguments)
+    options = arguments.parse_args()
     parser = Parser(load_language())
     tests = []
-    for name in sys.argv[1:]:
-        source = Path(name).read_bytes()
+    for name in files_argument(options):
+        source = name.read_bytes()
         try:
             text = source.decode("utf-8")
         except UnicodeDecodeError:

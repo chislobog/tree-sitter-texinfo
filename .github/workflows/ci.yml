@@ -61,8 +61,8 @@ jobs:
       - name: Parse the example manuals
         run: |
           nix develop --command bash -c "
-            find -L examples -name '*.texi*' | sort |
-              xargs python3 script/parse-examples.py"
+            find -L examples \( -name '*.texi' -o -name '*.texinfo' -o -name '*.txi' \) | sort |
+              python3 script/parse-examples.py"
 
       # Without the files texi2any itself fails on, and a fragment for
       # @include. Any difference not listed in test/texi2any-differences.txt
@@ -70,9 +70,9 @@ jobs:
       - name: Compare with texi2any on the manuals
         run: |
           nix develop --command bash -c "
-            find -L examples \( -name '*.texi' -o -name '*.texinfo' \) ! -path '*/it/*' \
+            find -L examples \( -name '*.texi' -o -name '*.texinfo' -o -name '*.txi' \) ! -path '*/it/*' \
                 ! -name texinfo-tex-test.texi ! -name html_default_commands_args.texi |
-              sort | xargs python3 script/compare-texi2any.py --hunks 0 \
+              sort | python3 script/compare-texi2any.py --hunks 0 \
                 --expected test/texi2any-differences.txt"
 
       - name: Compare with texi2any on its test inputs
@@ -80,7 +80,7 @@ jobs:
           nix develop --command bash -c "
             set -o pipefail
             find -L texinfo-tests -name '*.texi' | sort |
-              xargs python3 script/compare-texi2any.py --hunks 0 \
+              python3 script/compare-texi2any.py --hunks 0 \
                 --expected test/texi2any-differences.txt | tail -1"
 
       # Any change to a tree, in any manual or test input, must be deliberate
@@ -88,8 +88,8 @@ jobs:
       - name: Tree snapshots
         run: |
           nix develop --command bash -c "
-            find -L examples texinfo-tests -name '*.texi*' | sort |
-              xargs python3 script/tree-snapshots.py --check"
+            find -L examples texinfo-tests \( -name '*.texi' -o -name '*.texinfo' -o -name '*.txi' \) | sort |
+              python3 script/tree-snapshots.py --check"
 
       # texi2any's 1,700 small, often invalid test inputs, as a corpus that
       # exists only here (their licence differs from this repository's), so
@@ -98,7 +98,7 @@ jobs:
         run: |
           nix develop --command bash -c "
             set -e
-            find -L texinfo-tests -name '*.texi' | sort | xargs python3 script/texi2any-corpus.py
+            find -L texinfo-tests -name '*.texi' | sort | python3 script/texi2any-corpus.py
             tree-sitter test --update --file-name texi2any-tests.txt > /dev/null
             tree-sitter fuzz --include texinfo-tests --iterations 50
             rm test/corpus/texi2any-tests.txt"
@@ -108,8 +108,8 @@ jobs:
       - name: Editing simulation
         run: |
           nix develop --command bash -c "
-            find -L examples -name '*.texi*' ! -path '*/it/*' | sort |
-              xargs python3 script/check-edits.py --edits 5 --seed 0"
+            find -L examples \( -name '*.texi' -o -name '*.texinfo' -o -name '*.txi' \) ! -path '*/it/*' | sort |
+              python3 script/check-edits.py --edits 5 --seed 0"
 
   # libFuzzer with address and undefined-behaviour sanitizers, looking for
   # crashes and memory errors in the scanner. Seeded with the corpus test

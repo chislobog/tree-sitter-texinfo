@@ -23,7 +23,7 @@ The edits are the same on every run for a given --seed.
 With --keep DIR, the edited text of each problem is saved there, with the
 original, to inspect with `tree-sitter parse --cst` or `--debug-graph`.
 
-Usage: script/check-edits.py [--edits N] [--seed N] [--keep DIR] FILE...
+Usage: script/check-edits.py [--edits N] [--seed N] [--keep DIR] [FILE...]
 """
 
 import argparse
@@ -33,7 +33,7 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-from texinfo_language import dump, load_language
+from texinfo_language import add_files_argument, dump, files_argument, load_language
 
 from tree_sitter import Node, Parser, Point, Tree
 
@@ -282,8 +282,9 @@ def main() -> int:
         metavar="DIR",
         help="save the edited text of each problem, and the original, in DIR",
     )
-    arguments.add_argument("files", nargs="+", type=Path)
+    add_files_argument(arguments)
     options = arguments.parse_args()
+    options.files = files_argument(options)
 
     parser = Parser(load_language())
     rng = random.Random(options.seed)
