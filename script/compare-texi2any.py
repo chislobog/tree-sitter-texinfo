@@ -136,8 +136,12 @@ def first_word(node) -> str:
 
 
 class OurWalker:
-    def __init__(self, parser: Parser):
+    def __init__(self, parser: Parser, line_commands: set[str]):
         self.parser = parser
+        # texi2any's line commands: a macro's expansion is parsed out of its
+        # context (an `@item` without its table), so there a command counts as
+        # line-level by its name.
+        self.line_commands = line_commands
         self.tokens: list[Token] = []
         self.flags: set[str] = {"txicommandconditionals"}
         # Commands in each `@set` value, emitted again at each `@value`.
@@ -170,6 +174,8 @@ class OurWalker:
 
     def emit(self, name: str, node, structural: bool):
         line = self.line(node)
+        if self.depth > 0 and name[1:] in self.line_commands:
+            structural = True
         if self.skip and self.skip[0] == self.depth and node.start_byte < self.skip[1]:
             return
         if line != self.comment_line:
@@ -360,7 +366,9 @@ class OurWalker:
             self.walk_definition_line(node, name_node)
             return
 
-        if kind in ("line_command", "node_line", "item", "itemx", "bye") or kind in HEADINGS:
+        if kind in ("line_command", "node_line", "item", "itemx", "subentry", "bye") or (
+            kind in HEADINGS
+        ):
             name_node = node.child_by_field_name("name")
             name = self.aliases.get(text(name_node), text(name_node))
             argument = node.child_by_field_name("argument")
@@ -456,7 +464,9 @@ class OurWalker:
                     arguments = node.child_by_field_name("arguments")
                     self.expand_macro(macro, node, text(arguments) if arguments else "")
                 return
-            self.emit(name, node, False)
+            # texi2any has `@columnfractions` as a line command inside the
+            # multitable's argument.
+            self.emit(name, node, name == "@columnfractions")
             if name in INLINE_CONDITIONALS:
                 self.walk_expanded_arguments(name, node)
             else:
@@ -533,8 +543,8 @@ def _balanced(text: str) -> bool:
     return depth == 0
 
 
-def our_tokens(parser: Parser, path: Path) -> tuple[list[Token], int]:
-    walker = OurWalker(parser)
+def our_tokens(parser: Parser, path: Path, line_commands: set[str]) -> tuple[list[Token], int]:
+    walker = OurWalker(parser, line_commands)
     walker.sources.append(path.read_bytes())
     walker.walk(parser.parse(walker.sources[0]).root_node)
     return walker.tokens, walker.errors
@@ -679,7 +689,19 @@ def is_unknown(token: Token, at_lines: set[tuple[int, str]], anywhere: set[str])
     )
 
 
-def texi2any_tokens(dump: str, structural_names: set[str]) -> list[Token]:
+def texi2any_line_commands() -> set[str]:
+    """texi2any's line commands, from its own command table, with the items
+    of lists and tables: what `--structure` keeps of its tree, whatever this
+    grammar makes of them."""
+    commands = Path(shutil.which("texi2any") or "texi2any").resolve().parent.parent
+    table = (commands / "share" / "texi2any" / "Texinfo" / "Commands.pm").read_text()
+    line_commands = re.search(r"our %line_commands = \((.*?)\n\);", table, re.S)
+    if line_commands is None:
+        raise SystemExit("texi2any's Commands.pm has no %line_commands table")
+    return set(re.findall(r'"([^"]+)"\s*=>', line_commands.group(1))) | {"item", "headitem"}
+
+
+def texi2any_tokens(dump: str, line_commands: set[str]) -> list[Token]:
     tokens: list[Token] = []
 
     def walk(node: DumpNode):
@@ -702,7 +724,9 @@ def texi2any_tokens(dump: str, structural_names: set[str]) -> list[Token]:
                 for child in children[-1].children:
                     walk(child)
             return
-        tokens.append(Token(name, structural=name in structural_names))
+        # User-defined index commands (`@defindex op` makes `@opindex`).
+        structural = name[1:] in line_commands or "index_entry_command" in node.label
+        tokens.append(Token(name, structural=structural))
         for child in children:
             walk(child)
 
@@ -799,6 +823,7 @@ def main() -> int:
     options = arguments.parse_args()
 
     parser = Parser(load_language())
+    line_commands = texi2any_line_commands()
     total_ours = total_matched = total_differences = 0
     found: dict[str, list[str]] = {}
     # texi2any is the slow part: run it for all files in parallel, and report
@@ -806,14 +831,13 @@ def main() -> int:
     with ThreadPoolExecutor(max_workers=os.cpu_count()) as pool:
         dumps = [pool.submit(run_texi2any, path) for path in options.files]
         for path, dump in zip(options.files, dumps, strict=True):
-            ours, errors = our_tokens(parser, path)
+            ours, errors = our_tokens(parser, path, line_commands)
             output, messages = dump.result()
             # texi2any drops the commands it doesn't know, so they can't be
             # compared.
             at_lines, anywhere = unknown_commands(messages, path.read_bytes())
             ours = [t for t in ours if not is_unknown(t, at_lines, anywhere)]
-            structural_names = {t.name for t in ours if t.structural}
-            theirs = texi2any_tokens(output, structural_names)
+            theirs = texi2any_tokens(output, line_commands)
             if options.structure:
                 ours = [t for t in ours if t.structural]
                 theirs = [t for t in theirs if t.structural]
