@@ -84,6 +84,13 @@ sources, which is what `texi2any` itself uses.
   and `arguments` fields (braces group words)
 - [x] `@` at the end of a definition line's arguments is a `line_continuation`
   (still a `symbol_command` before the arguments start)
+- [ ] A call of a macro with exactly one parameter, without braces, takes
+  the rest of the line as its argument (`@bar aah`, in the manual's "Macro
+  Details"); the tree has a command without an argument, then text
+- [ ] A `@linemacro` call takes the rest of its line as arguments separated
+  by spaces, continued over lines ending in `@`; the tree has a paragraph
+  starting with a command. The scanner only records `@macro` and `@rmacro`
+  names
 - [x] A definition word glued to a command (`foo@var{x}`,
   `@var{$converter}->method` in texi2any's API reference) is one `word` node,
   as in texi2any; the scanner emits a zero-width glue between its parts.
