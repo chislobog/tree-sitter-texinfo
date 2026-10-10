@@ -50,21 +50,14 @@ jobs:
       - name: Incremental parsing
         run: nix develop --command tree-sitter fuzz --iterations 100
 
-      # Only the manuals with errors in their source may fail to parse, each
-      # with one stray brace that texi2any reports or never sees: gawk.texi
-      # has a brace crossing a line in an @center argument; the Italian
-      # gawk.texi a footnote crossing a conditional, which a tree-sitter parse
-      # can't represent (TODO.md); Calc and Gnus TeX braces opened and closed
-      # in different @iftex or @iflatex blocks.
+      # Only the manuals listed in test/parse-errors.txt, with the errors in
+      # their source, may fail to parse, and none may parse ten times slower
+      # than the median (script/parse-examples.py).
       - name: Parse the example manuals
         run: |
           nix develop --command bash -c "
-            find -L examples \( -name '*.texi' -o -name '*.texinfo' \) -print0 |
-              xargs -0 tree-sitter parse --quiet --stat |
-              grep -E '\((ERROR|MISSING)' | cut -f1 | sed 's/ *$//' | sort > errors.txt
-            printf '%s\n' examples/emacs-31.1/misc/calc.texi examples/emacs-31.1/misc/gnus.texi \
-                examples/gawk-5.4.1/gawk.texi examples/gawk-5.4.1/it/gawk.texi |
-              diff - errors.txt"
+            find -L examples -name '*.texi*' | sort |
+              xargs python3 script/parse-examples.py"
 
       # Without the files texi2any itself fails on, and a fragment for
       # @include. Any difference not listed in test/texi2any-differences.txt
@@ -92,6 +85,18 @@ jobs:
           nix develop --command bash -c "
             find -L examples texinfo-tests -name '*.texi*' | sort |
               xargs python3 script/tree-snapshots.py --check"
+
+      # texi2any's 1,700 small, often invalid test inputs, as a corpus that
+      # exists only here (their licence differs from this repository's), so
+      # `tree-sitter fuzz` checks incremental parsing on them.
+      - name: Fuzz texi2any's test inputs
+        run: |
+          nix develop --command bash -c "
+            set -e
+            find -L texinfo-tests -name '*.texi' | sort | xargs python3 script/texi2any-corpus.py
+            tree-sitter test --update --file-name texi2any-tests.txt > /dev/null
+            tree-sitter fuzz --include texinfo-tests --iterations 50
+            rm test/corpus/texi2any-tests.txt"
 
       # Typing mistakes in the manuals: each must stay local, and an edited
       # tree must equal a fresh parse. A fixed seed, so a failure reproduces.

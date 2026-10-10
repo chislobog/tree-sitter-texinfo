@@ -20,7 +20,10 @@ For each edit:
 
 The edits are the same on every run for a given --seed.
 
-Usage: script/check-edits.py [--edits N] [--seed N] FILE...
+With --keep DIR, the edited text of each problem is saved there, with the
+original, to inspect with `tree-sitter parse --cst` or `--debug-graph`.
+
+Usage: script/check-edits.py [--edits N] [--seed N] [--keep DIR] FILE...
 """
 
 import argparse
@@ -149,7 +152,9 @@ def outside(node: Node, start: int, end: int, shift: int) -> Counter:
     return found
 
 
-def check_file(parser: Parser, path: Path, edits: int, rng: random.Random) -> list[str]:
+def check_file(
+    parser: Parser, path: Path, edits: int, rng: random.Random, keep: Path | None
+) -> list[str]:
     source = path.read_bytes()
     old_tree = parser.parse(source)
     candidates = [p for p in paragraphs(old_tree.root_node) if p.end_byte - p.start_byte > 1]
@@ -195,10 +200,9 @@ def check_file(parser: Parser, path: Path, edits: int, rng: random.Random) -> li
             new_end_point=point(edited, offset + len(inserted)),
         )
         incremental = parser.parse(edited, tree)
+        found = []
         if list(dump(incremental.root_node)) != list(dump(fresh.root_node)):
-            problems.append(
-                f"{location}: {description}: incremental parse differs from a fresh one"
-            )
+            found.append(f"{location}: {description}: incremental parse differs from a fresh one")
 
         # The paragraph, and the next one if the edit joined them, up to the
         # next blank line.
@@ -223,18 +227,41 @@ def check_file(parser: Parser, path: Path, edits: int, rng: random.Random) -> li
         if before != after:
             changed = sum(((before - after) + (after - before)).values())
             first = min((after - before) or (before - after), key=lambda n: n[1])
-            problems.append(
+            found.append(
                 f"{location}: {description}: {changed} nodes changed outside "
                 f"bytes {start}-{end} of the edited text, the first a {first[0]} "
                 f"at line {point(edited, first[1]).row + 1}"
             )
+        if found and keep is not None:
+            row, column = point(source, offset)
+            copy = keep_copy(keep, path, row + 1, column + 1, edited)
+            found = [f"{problem} (edited copy: {copy})" for problem in found]
+        problems.extend(found)
     return problems
+
+
+def keep_copy(keep: Path, path: Path, row: int, column: int, edited: bytes) -> Path:
+    """Writes the edited text, to inspect with `tree-sitter parse --cst` or
+    `--debug-graph`, next to a copy of the original."""
+    keep.mkdir(parents=True, exist_ok=True)
+    copy = keep / f"{path.stem}-{row}-{column}{path.suffix}"
+    copy.write_bytes(edited)
+    original = keep / path.name
+    if not original.exists():
+        original.write_bytes(path.read_bytes())
+    return copy
 
 
 def main() -> int:
     arguments = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     arguments.add_argument("--edits", type=int, default=3, help="edits per file (default 3)")
     arguments.add_argument("--seed", type=int, default=0, help="random seed (default 0)")
+    arguments.add_argument(
+        "--keep",
+        type=Path,
+        metavar="DIR",
+        help="save the edited text of each problem, and the original, in DIR",
+    )
     arguments.add_argument("files", nargs="+", type=Path)
     options = arguments.parse_args()
 
@@ -242,7 +269,7 @@ def main() -> int:
     rng = random.Random(options.seed)
     problems = []
     for path in options.files:
-        problems.extend(check_file(parser, path, options.edits, rng))
+        problems.extend(check_file(parser, path, options.edits, rng, options.keep))
     for problem in problems:
         print(problem)
     print(f"{len(problems)} problems in {len(options.files)} files", file=sys.stderr)

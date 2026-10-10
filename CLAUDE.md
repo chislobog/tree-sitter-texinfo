@@ -71,7 +71,7 @@ also run:
 cc -std=c11 -Wall -Wextra -Wpedantic -Wshadow -Werror -Isrc -c src/scanner.c -o /tmp/scanner.o
 script/lint.sh                           # linters, formatters, query check
 tree-sitter fuzz --iterations 100        # incremental parsing after edits
-tree-sitter parse --quiet --stat 'examples/**/*.texi' 'examples/**/*.texinfo'
+find -L examples -name '*.texi*' | sort | xargs python3 script/parse-examples.py
 find -L examples -name '*.texi*' | sort | xargs python3 script/compare-texi2any.py
 find -L examples texinfo-tests -name '*.texi*' | sort | xargs python3 script/tree-snapshots.py --check
 find -L examples -name '*.texi*' ! -path '*/it/*' | sort | xargs python3 script/check-edits.py --edits 5
@@ -86,7 +86,14 @@ tree outside its paragraph unchanged (as texi2any's error recovery does), and
 an incrementally parsed tree must equal a fresh parse. CI runs it with
 `--seed 0`; other seeds find other edits, so try a few after changing the
 scanner or error recovery. Its docstring says which edits are expected to
-reach further, as in texi2any.
+reach further, as in texi2any. `--keep DIR` saves the edited text of each problem, to inspect with
+`tree-sitter parse --cst` or `--debug-graph` (`tree-sitter parse --edits`
+rejects every edit in tree-sitter 0.26.11). `script/parse-examples.py` checks
+that only the manuals in `test/parse-errors.txt`, each with its reason, fail
+to parse, and that none parses ten times slower than the median.
+`script/texi2any-corpus.py` turns texi2any's test inputs into a corpus file
+that git ignores, for `tree-sitter fuzz --include texinfo-tests`; delete it
+afterwards, as CI does, or `tree-sitter test` runs it too.
 
 Git hooks in `.githooks/` (enabled by the dev shell through
 `core.hooksPath`): `commit-msg` checks the Conventional Commits format,

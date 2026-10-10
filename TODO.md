@@ -238,4 +238,7 @@ Deliberate, so the tree shows the source as it is written and edited:
   (`script/tree-snapshots.py`), and a simulation of typing mistakes in the
   manuals that checks error locality and incremental parsing
   (`script/check-edits.py`), both in CI
+- [x] Parse errors and parse speed of the manuals checked from `tree-sitter
+  parse --json-summary`; texi2any's test inputs fuzzed with `tree-sitter fuzz`
+  in CI, from a corpus generated there
 - [ ] Release automation (npm, crates.io, PyPI)
