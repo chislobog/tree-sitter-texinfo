@@ -150,7 +150,7 @@ of a line.
 
 ## Differences from texi2any
 
-From comparing with texi2any on its own test inputs (133 of 1,755 differ, all listed with their reasons in `test/texi2any-differences.txt`;
+From comparing with texi2any on its own test inputs (118 of 1,755 differ, all listed with their reasons in `test/texi2any-differences.txt`;
 the manuals match but for three binutils fragments meant for `@include`).
 
 Gaps, where we give a parse error and texi2any recovers:

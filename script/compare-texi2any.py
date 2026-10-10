@@ -88,8 +88,11 @@ INLINE_CONDITIONALS = (
 
 @dataclass
 class Macro:
+    name: str
     parameters: list[str]
     body: str
+    # Only `@rmacro` may call itself; texi2any refuses a recursive `@macro`.
+    recursive: bool = False
 
 
 @dataclass
@@ -141,6 +144,8 @@ class OurWalker:
         self.values: dict[str, str] = {}
         self.macros: dict[str, Macro | None] = {}
         self.linemacros: dict[str, Macro] = {}
+        # The macros being expanded, innermost last.
+        self.expanding: list[str] = []
         # The source being walked: the file, or an expansion in it.
         self.sources: list[bytes] = []
         # Tokens of a line macro call's own line, replaced by its expansion:
@@ -179,8 +184,10 @@ class OurWalker:
         self.aliases.pop("@" + name, None)
         body = node.child_by_field_name("body")
         macro = Macro(
+            name,
             [p.strip() for p in parameters.rstrip("}").split(",") if p.strip()],
             text(body).removesuffix("\n") if body else "",
+            recursive=kind == "rmacro",
         )
         if kind == "linemacro":
             self.macros.pop(name, None)
@@ -209,12 +216,16 @@ class OurWalker:
         self.substitute(macro, node, linemacro_arguments(call, len(macro.parameters)))
 
     def substitute(self, macro: Macro, node, values: list[str]):
+        if macro.name in self.expanding and not macro.recursive:
+            return
         body = macro.body
         # A call may give fewer arguments than the macro has parameters.
         for parameter, value in zip(macro.parameters, values, strict=False):
             body = body.replace("\\" + parameter + "\\", value)
         body = body.replace("\\\\", "\\")
+        self.expanding.append(macro.name)
         self.walk_source(body, node)
+        self.expanding.pop()
 
     def expand_macro(self, macro: Macro, node, call: str):
         if self.depth >= MAX_EXPANSION_DEPTH:
@@ -382,13 +393,22 @@ class OurWalker:
                 new = node.child_by_field_name("alias")
                 target = node.child_by_field_name("target")
                 if new is not None and target is not None and argument is None:
-                    self.aliases["@" + text(new)] = "@" + text(target)
+                    # texi2any resolves an alias of an alias when it is
+                    # defined; one that would refer to itself is left
+                    # unresolved.
+                    resolved = self.aliases.get("@" + text(target), "@" + text(target))
+                    if resolved == "@" + text(new):
+                        resolved = "@" + text(target)
+                    self.aliases["@" + text(new)] = resolved
                 self.children(node, name_node)
             elif name in ("@defindex", "@defcodeindex", "@definfoenclose"):
-                # Defines `@NAMEindex` or `@NAME`, replacing an alias of it.
+                # Defines `@NAMEindex` or `@NAME`, replacing an alias or a
+                # macro of that name.
                 word = first_word(argument).split(",")[0] if argument else ""
-                suffix = "" if name == "@definfoenclose" else "index"
-                self.aliases.pop("@" + word + suffix, None)
+                defined = word + ("" if name == "@definfoenclose" else "index")
+                self.aliases.pop("@" + defined, None)
+                self.macros.pop(defined, None)
+                self.linemacros.pop(defined, None)
                 self.walk_definition_line(node, name_node)
             elif name == "@clickstyle":
                 # The argument is raw text to texi2any.
@@ -585,9 +605,8 @@ def dump_text(node: DumpNode) -> str:
     return ""
 
 
-def run_texi2any(path: Path) -> tuple[str, set[tuple[int, str]]]:
-    """Returns texi2any's tree for `path`, as a debug dump, and the commands
-    it doesn't know, as (line, name) pairs."""
+def run_texi2any(path: Path) -> tuple[str, str]:
+    """Returns texi2any's tree for `path`, as a debug dump, and its messages."""
     with tempfile.TemporaryDirectory() as directory:
         shutil.copyfile(path, Path(directory) / path.name)
         result = subprocess.run(
@@ -615,14 +634,49 @@ def run_texi2any(path: Path) -> tuple[str, set[tuple[int, str]]]:
             # prints its tree, which is what is compared.
             check=False,
         )
-    stderr = result.stderr.decode("utf-8", "replace")
-    unknown = {(int(line), name) for line, name in UNKNOWN_COMMAND.findall(stderr)}
-    return result.stdout.decode("utf-8", "replace"), unknown
+    return result.stdout.decode("utf-8", "replace"), result.stderr.decode("utf-8", "replace")
 
 
-# texi2any's warning for a command it doesn't know, such as a TeX primitive or
-# an index command defined in another file of the manual.
-UNKNOWN_COMMAND = re.compile(r":(\d+): unknown command `([^']+)'")
+# texi2any's error for a command it doesn't know, such as a TeX primitive or
+# an index command defined in another file of the manual, or for `@` followed
+# by a character that makes no command.
+UNKNOWN_COMMAND = re.compile(r":(\d+): (?:unknown command `([^']+)'|(unexpected) @)(.*)")
+# A C preprocessor line directive, which texi2any follows when it reports
+# lines: `#line 10 "file"`, `# 10 "file" 2`.
+CPP_LINE = re.compile(rb'^\s*#\s*(?:line\s+)?(\d+)(?:\s+"[^"]*")?(?:\s+\d+)*\s*$')
+
+
+def unknown_commands(messages: str, source: bytes) -> tuple[set[tuple[int, str]], set[str]]:
+    """The commands texi2any reports it doesn't know, as (line, name) pairs at
+    the source's lines, and the names of those it reports in a macro
+    expansion, whose line it doesn't say. `unexpected` stands for a symbol."""
+    reported: list[int] = []
+    line = 1
+    for text_line in source.split(b"\n"):
+        reported.append(line)
+        directive = CPP_LINE.match(text_line)
+        # texi2any numbers the line after `#line N` as N + 1.
+        line = int(directive.group(1)) + 1 if directive else line + 1
+    at_lines: set[tuple[int, str]] = set()
+    anywhere: set[str] = set()
+    for number, name, unexpected, rest in UNKNOWN_COMMAND.findall(messages):
+        name = name or unexpected
+        if "(possibly involving" in rest:
+            anywhere.add(name)
+            continue
+        lines = [i + 1 for i, n in enumerate(reported) if n == int(number)]
+        at_lines.update((line, name) for line in lines or [int(number)])
+    return at_lines, anywhere
+
+
+def is_unknown(token: Token, at_lines: set[tuple[int, str]], anywhere: set[str]) -> bool:
+    name = token.name[1:]
+    symbol = len(name) == 1 and not name.isalpha()
+    return (
+        (token.line, name) in at_lines
+        or name in anywhere
+        or (symbol and (token.line, "unexpected") in at_lines)
+    )
 
 
 def texi2any_tokens(dump: str, structural_names: set[str]) -> list[Token]:
@@ -753,10 +807,11 @@ def main() -> int:
         dumps = [pool.submit(run_texi2any, path) for path in options.files]
         for path, dump in zip(options.files, dumps, strict=True):
             ours, errors = our_tokens(parser, path)
-            output, unknown = dump.result()
+            output, messages = dump.result()
             # texi2any drops the commands it doesn't know, so they can't be
             # compared.
-            ours = [t for t in ours if (t.line, t.name[1:]) not in unknown]
+            at_lines, anywhere = unknown_commands(messages, path.read_bytes())
+            ours = [t for t in ours if not is_unknown(t, at_lines, anywhere)]
             structural_names = {t.name for t in ours if t.structural}
             theirs = texi2any_tokens(output, structural_names)
             if options.structure:
