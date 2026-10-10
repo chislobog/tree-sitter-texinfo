@@ -148,6 +148,13 @@ of a line.
   conditional's end, and the later `}` is a one-character error
 - [x] TeX lines before `\input texinfo` (e.g. gawk's Italian manual): text,
   as in texi2any, which only recognises `\input` on the first line
+- [ ] The `@macro` line is a line argument, with commands and comments
+  parsed in it; texi2any keeps it as raw text (`@macro foo {}@c x`,
+  `@value` in a parameter list). Structured `name` and `parameter` fields
+  would also help tags and highlighting
+- [ ] A call of a macro defined in the file, with a space before its brace
+  (`@mymacro {an`), whose argument spans a blank line: texi2any takes the
+  brace as the argument, the grammar as a group that ends at the blank line
 
 ## Differences from texi2any
 
@@ -176,9 +183,8 @@ Gaps, where we give a parse error and texi2any recovers:
 Deliberate, so the tree shows the source as it is written and edited:
 
 - Macros, `@value`, `@alias`, `@linemacro` and conditionals aren't expanded or
-  evaluated. Most of the remaining differences (the `50value`, `60macro` and
-  `65linemacro` suites) come from the comparison script only approximating
-  texi2any's expansion
+  evaluated, so input whose structure only works after expansion (a macro
+  that opens a brace the text after its call closes) has parse errors
 - `@click` stays `@click`; texi2any outputs the command `@clickstyle` chose
 - Block commands and `@end` only count at the start of a line, as the Texinfo
   manual requires ("at the beginning of a line by itself"). texi2any's error
@@ -219,6 +225,9 @@ Deliberate, so the tree shows the source as it is written and edited:
   misplaced `@tab` and `@headitem`, stray `@end`), `@click` (texi2any
   substitutes the `@clickstyle` symbol), and the divergences below
 - [x] Mirror `@clickstyle`/`@click` and `@alias` in the comparison
+- [x] Compare our tree of texi2any's own expansion of each file
+  (`--macro-expand`) rather than imitate the expansion: 300 fewer lines in
+  the script, and the differences it caused in the macro suites are gone
 - [x] CI (`.github/workflows/ci.yml`): generated `src/` up to date, tests,
   fuzzing, parsing the manuals, and both texi2any comparisons with minimum
   match rates (`--fail-under`)

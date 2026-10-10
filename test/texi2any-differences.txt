@@ -13,6 +13,18 @@ examples/binutils-with-gold-2.46/binutils/doc/debug.options.texi
 examples/binutils-with-gold-2.46/binutils/doc/sframe.options.texi
   line 4: ours '@item', texi2any '(nothing)'
 
+# Parse errors inside @iftex blocks, listed with their reasons in test/parse-errors.txt (calc, gnus and gawk)
+examples/emacs-31.1/misc/calc.texi
+  2 parse errors
+
+# Parse errors inside @iftex blocks, listed with their reasons in test/parse-errors.txt (calc, gnus and gawk)
+examples/emacs-31.1/misc/gnus.texi
+  1 parse errors
+
+# Parse errors inside @iftex blocks, listed with their reasons in test/parse-errors.txt (calc, gnus and gawk)
+examples/gawk-5.4.1/gawk.texi
+  1 parse errors
+
 # Invalid input; texi2any reports at line 5: no matching `@end quotation'
 texinfo-tests/02coverage/command_in_end.texi
   line 5: ours '(nothing)', texi2any '@code'
@@ -176,27 +188,17 @@ texinfo-tests/30sectioning/in_menu_only_special_spaces_node_menu_transliterate.t
 
 # Invalid input; texi2any reports at line 13: bad syntax for @value
 texinfo-tests/50value/bad_syntax.texi
-  line 15: ours '@value', texi2any '(nothing)'
   1 parse errors
 
-# Invalid input; texi2any reports: bad name for @set; it then expands the @value of a variable whose name is cut at a comment-like command
-texinfo-tests/50value/begin_like_comment_on_set_line.texi
-  line 4: ours '@come', texi2any '@value'
-
-# Comparison: the script doesn't imitate how texi2any treats comments on the bad @clear lines
+# Invalid input; texi2any reports: bad name for @clear, and drops the comments on those lines; the tree keeps them
 texinfo-tests/50value/comment_on_clear_line.texi
-  line 6: ours '(nothing)', texi2any '@comment'
   line 8: ours '@c', texi2any '(nothing)'
-  line 9: ours '@comment @comment @ggg', texi2any '@value @value'
+  line 9: ours '@comment', texi2any '(nothing)'
 
-# Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion
-texinfo-tests/50value/comment_on_set_line.texi
-  line 6: ours '@ggg', texi2any '(nothing)'
-
-# Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion; texi2any also reports: bad argument to @headings: on line following headings atext
+# Invalid input; texi2any reports: bad argument to @page; it ignores the rest of a @page line, where the tree keeps the commands
 texinfo-tests/50value/value_in_misc_commands.texi
-  line 118: ours '@@ @noindent @@ @refill', texi2any '(nothing)'
-  line 128: ours '@@ @noindent @@ @refill', texi2any '(nothing)'
+  line 112: ours '@@ @value @@ @value', texi2any '(nothing)'
+  line 122: ours '@@ @value @@ @value', texi2any '(nothing)'
 
 # Invalid input; texi2any reports at line 3: misplaced }
 texinfo-tests/57invalid_nestings/bad_style_nesting.texi
@@ -240,10 +242,6 @@ texinfo-tests/57invalid_nestings/float_in_style_command.texi
 # Invalid input; texi2any reports at line 5: misplaced }
 texinfo-tests/57invalid_nestings/flushright_in_style_command.texi
   1 parse errors
-
-# Deliberate: a block command in the middle of a line; blocks start and end at the beginning of a line, as the Texinfo manual requires (texi2any accepts it with an error)
-texinfo-tests/57invalid_nestings/ignored_text.texi
-  line 1: ours '@ifinfo', texi2any '(nothing)'
 
 # Invalid input; texi2any reports at line 9: misplaced }
 texinfo-tests/57invalid_nestings/in_errormsg.texi
@@ -333,159 +331,74 @@ texinfo-tests/57invalid_nestings/unclosed_verb_on_section_line.texi
 texinfo-tests/57invalid_nestings/verbatim_in_ref.texi
   1 parse errors
 
-# Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion
-texinfo-tests/58alias/alias_zero.texi
-  line 2: ours '@0', texi2any '@strong'
+# Comparison: texi2any's expansion of this file isn't the same document, so both sides parse the expansion, whose @alias lines texi2any then applies a second time to the already resolved names
+texinfo-tests/58alias/recursive_alias.texi
+  line 7: ours '@strong', texi2any '(nothing)'
 
-# Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion (an alias of a block command)
-texinfo-tests/58alias/block_command_alias.texi
-  line 3: ours '@lisp', texi2any '+lisp'
-
-# Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion; texi2any also reports: @| should only appear in heading or footing (possibly involving @simplemac)
-texinfo-tests/60macro/arobase_brace_in_macro_call.texi
-  line 8: ours '@}', texi2any '@|'
-
-# Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion
-texinfo-tests/60macro/complete_macro_for_end.texi
-  line 5: ours '(nothing)', texi2any '-cartouche'
-
-# Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion
-texinfo-tests/60macro/expand_two_same.texi
-  line 6: ours '(nothing)', texi2any '@code'
-
-# Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion; texi2any also reports: @pxref reference to nonexistent node `id1' (possibly involving @gentry)
-texinfo-tests/60macro/glossary.texi
-  line 42: ours '@item @anchor', texi2any '(nothing)'
-  line 43: ours '@item @anchor', texi2any '(nothing)'
-  line 47: ours '@item', texi2any '(nothing)'
+# Comparison: texi2any's expansion of this file isn't the same document, so both sides parse the expansion, whose @alias lines texi2any then applies a second time to the already resolved names
+texinfo-tests/58alias/texinfo_command_alias_indirect_before.texi
+  line 9: ours '@strong', texi2any '(nothing)'
 
 # Comparison: the tree keeps macros, aliases and @value unexpanded; here a macro call inside an inline conditional's condition, a plain word in the grammar, which only makes sense after expansion
 texinfo-tests/60macro/macro_call_in_inlinefmtifelse_format.texi
-  1 parse errors
+  2 parse errors
 
-# Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion
+# Macro: its body opens an inline conditional's brace that the text after the call closes, which only works after expansion; the tree keeps the call unexpanded
 texinfo-tests/60macro/macro_end_call_in_ignored_inlinefmt.texi
   1 parse errors
 
-# Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion
+# Macro: its body opens an inline conditional's brace that the text after the call closes, which only works after expansion; the tree keeps the call unexpanded
 texinfo-tests/60macro/macro_end_call_in_ignored_inlinefmtifelse.texi
   1 parse errors
 
-# Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion
+# Macro: its body opens an inline conditional's brace that the text after the call closes, which only works after expansion; the tree keeps the call unexpanded
 texinfo-tests/60macro/macro_end_call_in_ignored_inlineraw.texi
   1 parse errors
-
-# Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion
-texinfo-tests/60macro/macro_end_call_in_ignored_raw.texi
-  line 6: ours '(nothing)', texi2any '-tex'
-
-# Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion
-texinfo-tests/60macro/macro_expansion_in_set_comment_command.texi
-  line 5: ours '(nothing)', texi2any '@comment'
-
-# Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion
-texinfo-tests/60macro/macro_for_end.texi
-  line 5: ours '(nothing)', texi2any '-cartouche'
-
-# Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion
-texinfo-tests/60macro/macro_for_verb.texi
-  line 5: ours '@  @code @}', texi2any '(nothing)'
-
-# Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion
-texinfo-tests/60macro/macro_in_empty_multitable_empty_before_item.texi
-  line 5: ours '@end', texi2any '-multitable'
-
-# Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion
-texinfo-tests/60macro/macro_in_empty_table_empty_before_item.texi
-  line 5: ours '@end', texi2any '-table'
-
-# Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion
-texinfo-tests/60macro/macro_in_end_argument.texi
-  line 5: ours '(nothing)', texi2any '-cartouche'
 
 # Invalid input; texi2any reports at line 8: misplaced }
 texinfo-tests/60macro/macro_in_ifset_end_in_arg.texi
   1 parse errors
 
-# Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion
-texinfo-tests/60macro/macro_in_menu_comment_closed_by_detailmenu.texi
-  line 6: ours '@detailmenu', texi2any '+detailmenu -detailmenu -menu'
-
-# Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion
+# Macro: a call inside an inline conditional's condition supplies its comma, which only works after expansion; the tree keeps the call unexpanded
 texinfo-tests/60macro/macro_inlineifcond_end_in_empty_ignored.texi
-  2 parse errors
+  4 parse errors
 
-# Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion
+# Macro: a call inside an inline conditional's condition supplies its comma, which only works after expansion; the tree keeps the call unexpanded
 texinfo-tests/60macro/macro_inlineifcond_end_in_empty_set.texi
-  2 parse errors
-
-# Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion
-texinfo-tests/60macro/macro_name_zero.texi
-  line 5: ours '@0', texi2any '(nothing)'
-
-# Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion
-texinfo-tests/60macro/protect_in_body.texi
-  line 5: ours '(nothing)', texi2any '@samp'
-  line 5: ours '@samp', texi2any '(nothing)'
-
-# Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion
-texinfo-tests/60macro/protect_in_body_one_arg.texi
-  line 5: ours '(nothing)', texi2any '@samp'
-  line 5: ours '@samp', texi2any '(nothing)'
+  4 parse errors
 
 # Deliberate: a block command in the middle of a line; blocks start and end at the beginning of a line, as the Texinfo manual requires (texi2any accepts it with an error)
 texinfo-tests/60macro/text_before_after.texi
   line 1: ours '@macro', texi2any '+macro -macro'
 
-# Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion
+# Grammar: a macro call with a space before its brace (`@mymacrowithargs {an`) whose argument spans a blank line; the grammar takes the brace as a group, which ends at the blank line (TODO.md)
 texinfo-tests/60macro/two_macros_on_a_line.texi
   1 parse errors
 
-# Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion
-texinfo-tests/60macro/verb_with_arobase_in_macro_call.texi
-  line 6: ours '(nothing)', texi2any '@verb'
-
-# Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion
+# Grammar: the @macro line is parsed as a line argument, with its comments and commands, where texi2any keeps it as raw text (TODO.md)
 texinfo-tests/60macro/zero_argument_comment.texi
   line 1: ours '@c', texi2any '(nothing)'
   line 5: ours '@comment', texi2any '(nothing)'
 
-# Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion
-texinfo-tests/65linemacro/arobase_brace_in_linemacro_call.texi
-  line 6: ours '(nothing)', texi2any '@{ @}'
-
-# Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion
+# Macro: a line macro's braced argument spans lines holding a block's start or end, which only works after expansion; the tree keeps the call unexpanded
 texinfo-tests/65linemacro/begin_conditional_in_linemacro.texi
-  1 parse errors
+  2 parse errors
 
-# Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion
+# Macro: a line macro's braced argument spans lines holding a block's start or end, which only works after expansion; the tree keeps the call unexpanded
 texinfo-tests/65linemacro/block_begin_end_in_linemacro_call.texi
   3 parse errors
 
-# Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion
-texinfo-tests/65linemacro/blockitem_no_item.texi
-  line 7: ours '(nothing)', texi2any '-itemize'
-
-# Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion
-texinfo-tests/65linemacro/call_macro_in_linemacro_call.texi
-  line 14: ours '(nothing)', texi2any '-quotation'
-
-# Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion; texi2any also reports: misplaced }
+# Macro: a line macro's braced argument spans lines holding a block's start or end, which only works after expansion; the tree keeps the call unexpanded
 texinfo-tests/65linemacro/end_conditional_in_linemacro.texi
   2 parse errors
-
-# Comparison: the tree keeps macros, aliases and @value unexpanded; the script only imitates texi2any's expansion; texi2any also reports: misplaced { (possibly involving @mylinecommand)
-texinfo-tests/65linemacro/spaces_after_macro_linemacro_commands_in_call.texi
-  line 15: ours '@samp', texi2any '(nothing)'
-  line 15: ours '@samp @samp', texi2any '(nothing)'
 
 # Invalid input; texi2any reports at line 6: @mycommand missing closing brace
 texinfo-tests/65linemacro/verb_not_closed.texi
   1 parse errors
 
-# Invalid input; texi2any reports at line 7: unknown command `testvalue'
+# Grammar: the @macro line is parsed as a line argument, with its comments and commands, where texi2any keeps it as raw text (TODO.md)
 texinfo-tests/70value_and_macro/value_in_macro_formal_arg.texi
-  line 7: ours '@emph', texi2any '(nothing)'
+  line 3: ours '@value', texi2any '(nothing)'
 
 # Invalid input; texi2any reports at line 74: @include: could not find file_with_cpp_lines.texi
 texinfo-tests/80include/cpp_lines.texi

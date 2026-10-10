@@ -126,12 +126,12 @@ find -L texinfo-tests -name '*.texi' | sort |
 
 The comparisons skip the files texi2any itself fails on (the Italian gawk
 manuals, `texinfo-tex-test.texi`) and `html_default_commands_args.texi`, a
-fragment for `@include`. Commands texi2any reports as unknown (TeX primitives,
-index commands defined in another file of the manual) are left out at the
-line it reports. The script imitates texi2any's expansion of `@macro`,
-`@linemacro`, `@value` (when it is used, not when it is set), `@alias` and
-`@clickstyle`, simply. Use `--structure` to compare only blocks, items and
-line commands.
+fragment for `@include`. The script doesn't imitate what texi2any expands
+(macros, `@value`, aliases, conditionals): our side parses texi2any's own
+expansion of the file (`--macro-expand`), after checking that texi2any finds
+the same document in it; for invalid input it often doesn't, and the script's
+docstring says what it does then. Use `--structure` to compare only blocks,
+items and line commands.
 
 ## Conventions
 

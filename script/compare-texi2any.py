@@ -5,23 +5,38 @@ For each file, both trees are flattened into the sequence of @-commands they
 contain, in document order: `+name` and `-name` for the start and end of a
 block, `@name` for every other command. The two sequences are then diffed.
 
-texi2any does things a tree-sitter grammar cannot, so this side mirrors them:
+texi2any expands macros, line macros, `@value` and aliases, and evaluates
+conditionals, before or while it parses; a tree-sitter grammar keeps them as
+written. Rather than imitate that, this script parses texi2any's own
+expansion of the file (`--macro-expand`, written from texi2any's tree in the
+same run that dumps the tree), so both sides see the same text. That text
+also lacks the commands texi2any doesn't know (TeX primitives, index
+commands defined in another file of a manual), which its tree drops.
 
-- Conditionals are evaluated the way texi2any does for its debug output: no
-  output format is expanded, so `@ifX` blocks are dropped and `@ifnotX` blocks
-  are kept, both without their markers. `@ifset`/`@ifclear` follow `@set` and
-  `@clear`; `@ifcommanddefined` is assumed true.
-- texi2any keeps an `@set` value as raw text and parses it where `@value`
-  uses it, so the commands in a value are moved to each `@value`.
-- Calls to user-defined macros are expanded like texi2any does: arguments
-  are substituted into the body, which is parsed with this grammar.
-  `@linemacro` calls at the start of a line are expanded too.
-- Inline conditionals are evaluated the same way: only the arguments
-  texi2any expands (`@inlinefmtifelse`'s else, `@inlineifset`'s text when
-  the flag is set, ...) contribute commands.
-- `@value` of a variable that is never set stays a command, as in texi2any
-  (typically one set in an `@include`d file).
-- `txicommandconditionals` is set, as texi2any predefines it.
+The expansion stands for the file only where texi2any finds in it what it
+found in the file: the same commands, the same messages apart from those
+about unknown commands, and no unknown commands left. Written from the
+tree, the expansion repairs some errors (a missing `}`, an `@end` that ends
+nothing) and loses some text (a brace after a line command), so for invalid
+input it is often not the same document. Then:
+
+- If the file uses nothing texi2any expands, it is compared as written, so
+  that recovery from its errors is compared.
+- Otherwise both sides parse the expansion: texi2any's tree is the one it
+  makes of its expansion. Its `@alias` lines are kept, so this tree has
+  them applied twice.
+
+The summary counts the files compared each way. In the last two, the
+commands texi2any reports it doesn't know in the text compared are left out
+on our side. Line numbers in the differences are those of the text
+compared. The parse errors are always counted in the file as written.
+
+What is left to mirror on this side:
+
+- Inline conditionals, which texi2any's expansion keeps: only the arguments
+  it expands (`@inlinefmtifelse`'s else, `@inlineifset`'s text when the flag
+  is set, ...) contribute commands. `txicommandconditionals` is set, as
+  texi2any predefines it.
 - `@` at the end of a definition line (`@deffn`, `@defunx`, ...) continues
   the line rather than being a command.
 - The `\input texinfo` line is preamble text to texi2any, so a comment on
@@ -74,7 +89,6 @@ MACRO_BLOCKS = ("macro", "rmacro", "linemacro")
 BLOCK_NAMES = set(
     re.findall(r'\{"(\w+)", KIND_\w+(?: \+ \d+)?\}', (ROOT / "src" / "scanner.c").read_text())
 )
-MAX_EXPANSION_DEPTH = 20
 INLINE_CONDITIONALS = (
     "@inlinefmt",
     "@inlineraw",
@@ -85,18 +99,9 @@ INLINE_CONDITIONALS = (
 
 
 @dataclass
-class Macro:
-    name: str
-    parameters: list[str]
-    body: str
-    # Only `@rmacro` may call itself; texi2any refuses a recursive `@macro`.
-    recursive: bool = False
-
-
-@dataclass
 class Token:
     name: str
-    # Line in the source file; texi2any's dump doesn't record positions.
+    # Line in the expanded text; texi2any's dump doesn't record positions.
     line: int | None = None
     # Block markers, items and line commands; the rest are inline.
     structural: bool = False
@@ -115,122 +120,14 @@ def first_word(node) -> str:
 
 
 class OurWalker:
-    def __init__(self, parser: Parser, line_commands: set[str]):
-        self.parser = parser
-        # texi2any's line commands: a macro's expansion is parsed out of its
-        # context (an `@item` without its table), so there a command counts as
-        # line-level by its name.
-        self.line_commands = line_commands
+    def __init__(self):
         self.tokens: list[Token] = []
+        # The flags set, for `@inlineifset` and `@inlineifclear`.
         self.flags: set[str] = {"txicommandconditionals"}
-        # Commands in each `@set` value, emitted again at each `@value`.
-        self.values: dict[str, str] = {}
-        self.macros: dict[str, Macro | None] = {}
-        self.linemacros: dict[str, Macro] = {}
-        # The macros being expanded, innermost last.
-        self.expanding: list[str] = []
-        # The source being walked: the file, or an expansion in it.
-        self.sources: list[bytes] = []
-        # Tokens of a line macro call's own line, replaced by its expansion:
-        # (expansion depth, end byte of the call).
-        self.skip: tuple[int, int] | None = None
-        # `@alias NEW = EXISTING`: texi2any replaces NEW with EXISTING.
-        self.aliases: dict[str, str] = {}
-        # The command `@clickstyle` chose, which texi2any puts for `@click`.
-        self.click: str | None = None
-        # The line of an alias of `@c` or `@comment`, which texi2any makes a
-        # comment to the end of the line.
-        self.comment_line: int | None = None
-        # While expanding a macro, tokens get the line of the outermost call.
-        self.call_line: int | None = None
         self.in_definition_line = False
-        # Macro expansion depth; errors only count in the file itself.
-        self.depth = 0
-        self.errors = 0
-
-    def line(self, node) -> int:
-        return self.call_line or node.start_point.row + 1
 
     def emit(self, name: str, node, structural: bool):
-        line = self.line(node)
-        if self.depth > 0 and name[1:] in self.line_commands:
-            structural = True
-        if self.skip and self.skip[0] == self.depth and node.start_byte < self.skip[1]:
-            return
-        if line != self.comment_line:
-            self.tokens.append(Token(name, line, structural))
-
-    def define_macro(self, kind: str, node):
-        argument = node.child_by_field_name("argument")
-        header = text(argument).strip() if argument else ""
-        name, _, parameters = header.partition("{")
-        name = name.strip()
-        # A new definition replaces an alias of the same name.
-        self.aliases.pop("@" + name, None)
-        body = node.child_by_field_name("body")
-        macro = Macro(
-            name,
-            [p.strip() for p in parameters.rstrip("}").split(",") if p.strip()],
-            text(body).removesuffix("\n") if body else "",
-            recursive=kind == "rmacro",
-        )
-        if kind == "linemacro":
-            self.macros.pop(name, None)
-            self.linemacros[name] = macro
-        else:
-            self.linemacros.pop(name, None)
-            self.macros[name] = macro
-
-    def expand_linemacro(self, macro: Macro, node):
-        """Expands a line macro call at `node`, a command at the start of a
-        line: its arguments are the rest of the line, and the next ones while
-        a line ends in `@`. The other tokens of those lines are left out."""
-        source = self.sources[-1]
-        end = node.end_byte
-        while True:
-            newline = source.find(b"\n", end)
-            if newline < 0:
-                end = len(source)
-                break
-            end = newline
-            if not source[:end].rstrip(b"\r").endswith(b"@"):
-                break
-            end += 1
-        call = source[node.end_byte : end].decode("utf-8", "replace")
-        self.skip = (self.depth, end)
-        self.substitute(macro, node, linemacro_arguments(call, len(macro.parameters)))
-
-    def substitute(self, macro: Macro, node, values: list[str]):
-        if macro.name in self.expanding and not macro.recursive:
-            return
-        body = macro.body
-        # A call may give fewer arguments than the macro has parameters.
-        for parameter, value in zip(macro.parameters, values, strict=False):
-            body = body.replace("\\" + parameter + "\\", value)
-        body = body.replace("\\\\", "\\")
-        self.expanding.append(macro.name)
-        self.walk_source(body, node)
-        self.expanding.pop()
-
-    def expand_macro(self, macro: Macro, node, call: str):
-        if self.depth >= MAX_EXPANSION_DEPTH:
-            return
-        values = [v.strip() for v in call.split(",", max(len(macro.parameters) - 1, 0))]
-        self.substitute(macro, node, values)
-
-    def walk_source(self, source: str, node):
-        """Parses and walks text that texi2any parses where it is used (a
-        macro expansion or an `@set` value), as if it were at `node`."""
-        if self.depth >= MAX_EXPANSION_DEPTH:
-            return
-        call_line = self.call_line
-        self.call_line = self.line(node)
-        self.depth += 1
-        self.sources.append(source.encode())
-        self.walk(self.parser.parse(self.sources[-1]).root_node)
-        self.sources.pop()
-        self.depth -= 1
-        self.call_line = call_line
+        self.tokens.append(Token(name, node.start_point.row + 1, structural))
 
     def children(self, node, *skip):
         """Walks the children of `node`, except the `skip` nodes."""
@@ -238,22 +135,6 @@ class OurWalker:
         for child in node.children:
             if child.id not in skipped:
                 self.walk(child)
-
-    def conditional(self, name: str, argument: str) -> bool | None:
-        """Whether texi2any expands a conditional, or None if not one."""
-        if name in ("if" + f for f in FORMATS):
-            return False
-        if name in ("ifnot" + f for f in FORMATS):
-            return True
-        if name == "ifset":
-            return argument in self.flags
-        if name == "ifclear":
-            return argument not in self.flags
-        if name == "ifcommanddefined":
-            return True
-        if name == "ifcommandnotdefined":
-            return False
-        return None
 
     def walk_expanded_arguments(self, name: str, node):
         """Walks only the arguments of an inline conditional that texi2any
@@ -284,15 +165,12 @@ class OurWalker:
 
     def walk(self, node):
         kind = node.type
-        if self.depth == 0 and (node.is_error or node.is_missing):
-            self.errors += 1
 
         if kind == "definition_block":
             line = node.children[0]
             name_node = line.child_by_field_name("name")
             end = node.child_by_field_name("end")
-            name = text(name_node)[1:]
-            self.emit("+" + name, node, True)
+            self.emit("+" + text(name_node)[1:], node, True)
             self.walk_definition_line(line, name_node)
             self.children(node, line, end)
             if end.end_byte > end.start_byte:
@@ -304,24 +182,6 @@ class OurWalker:
             argument = node.child_by_field_name("argument")
             end = node.child_by_field_name("end")
             name = text(name_node)[1:]
-
-            flag = re.match(r"[\w-]*", first_word(argument)).group()
-            expanded = self.conditional(name, flag)
-            if expanded is not None:
-                if expanded:
-                    # texi2any drops comments on the conditional's own lines
-                    # together with the conditional.
-                    marker_rows = {node.start_point.row, end.start_point.row}
-                    on_marker_lines = [
-                        child
-                        for child in node.children
-                        if child.type == "comment" and child.start_point.row in marker_rows
-                    ]
-                    self.children(node, name_node, argument, end, *on_marker_lines)
-                return
-
-            if name in MACRO_BLOCKS:
-                self.define_macro(name, node)
             self.emit("+" + name, node, True)
             if argument is not None and name.startswith("def"):
                 self.walk_definition_line(argument)
@@ -342,64 +202,16 @@ class OurWalker:
             kind in HEADINGS
         ):
             name_node = node.child_by_field_name("name")
-            name = self.aliases.get(text(name_node), text(name_node))
-            argument = node.child_by_field_name("argument")
-            # A macro whose name ends in `index` parses as a line command.
-            if name[1:] in self.macros:
-                macro = self.macros[name[1:]]
-                if macro is not None:
-                    call = text(argument).strip() if argument else ""
-                    if call.startswith("{") and call.endswith("}"):
-                        call = call[1:-1]
-                    self.expand_macro(macro, node, call)
-                return
+            name = text(name_node)
             self.emit(name, node, True)
-            if name == "@set":
-                # The value is raw text, which texi2any parses at each
-                # `@value`, with the variables set by then.
+            if name in ("@set", "@clear"):
                 variable = node.child_by_field_name("variable")
-                value = node.child_by_field_name("value")
-                word = first_word(variable)
-                self.flags.add(word)
-                self.values[word] = text(value) if value is not None else ""
-                self.children(node, name_node, variable, value)  # comments
-            elif name == "@clear":
-                variable = node.child_by_field_name("variable")
-                self.flags.discard(first_word(variable))
-                self.children(node, name_node, variable)  # comments
-            elif name == "@alias":
-                # texi2any only accepts `NEW = EXISTING`, with nothing after,
-                # but parses commands on a bad line too.
-                new = node.child_by_field_name("alias")
-                target = node.child_by_field_name("target")
-                if new is not None and target is not None and argument is None:
-                    # texi2any resolves an alias of an alias when it is
-                    # defined; one that would refer to itself is left
-                    # unresolved.
-                    resolved = self.aliases.get("@" + text(target), "@" + text(target))
-                    if resolved == "@" + text(new):
-                        resolved = "@" + text(target)
-                    self.aliases["@" + text(new)] = resolved
-                self.children(node, name_node)
-            elif name in ("@defindex", "@defcodeindex", "@definfoenclose"):
-                # Defines `@NAMEindex` or `@NAME`, replacing an alias or a
-                # macro of that name.
-                word = first_word(argument).split(",")[0] if argument else ""
-                defined = word + ("" if name == "@definfoenclose" else "index")
-                self.aliases.pop("@" + defined, None)
-                self.macros.pop(defined, None)
-                self.linemacros.pop(defined, None)
-                self.walk_definition_line(node, name_node)
-            elif name == "@clickstyle":
-                # The argument is raw text to texi2any.
-                match = (
-                    re.match(r"@([a-zA-Z][a-zA-Z0-9-]*)", text(argument).strip())
-                    if argument
-                    else None
-                )
-                if match:
-                    self.click = "@" + match.group(1)
-                self.children(node, name_node, argument)  # comments
+                if name == "@set":
+                    self.flags.add(first_word(variable))
+                else:
+                    self.flags.discard(first_word(variable))
+                # Comments; the value is raw text.
+                self.children(node, name_node, variable)
             elif name.startswith("@def"):
                 self.walk_definition_line(node, name_node)
             else:
@@ -409,33 +221,7 @@ class OurWalker:
 
         if kind == "inline_command":
             name_node = node.child_by_field_name("name")
-            name = self.aliases.get(text(name_node), text(name_node))
-            if name == "@click" and self.click:
-                name = self.click
-            if name in ("@c", "@comment") and text(name_node) != name:
-                self.emit(name, node, True)
-                self.comment_line = self.line(node)
-                return
-            if name == "@value":
-                arguments = node.child_by_field_name("arguments")
-                value = text(arguments).strip() if arguments else ""
-                if value in self.values:
-                    self.walk_source(self.values[value], node)
-                else:
-                    self.emit(name, node, False)
-                return
-            if name[1:] in self.linemacros:
-                # Only a call at the start of a line expands.
-                start = self.sources[-1].rfind(b"\n", 0, node.start_byte) + 1
-                if not self.sources[-1][start : node.start_byte].strip():
-                    self.expand_linemacro(self.linemacros[name[1:]], node)
-                return
-            if name[1:] in self.macros:
-                macro = self.macros[name[1:]]
-                if macro is not None:
-                    arguments = node.child_by_field_name("arguments")
-                    self.expand_macro(macro, node, text(arguments) if arguments else "")
-                return
+            name = text(name_node)
             # texi2any has `@columnfractions` as a line command inside the
             # multitable's argument.
             self.emit(name, node, name == "@columnfractions")
@@ -469,57 +255,24 @@ class OurWalker:
         self.children(node)
 
 
-def linemacro_arguments(call: str, count: int) -> list[str]:
-    """Splits a line macro call's arguments at spaces, as texi2any does:
-    braces around an argument are removed, and the last one takes the rest."""
-    arguments: list[str] = []
-    # A newline kept after a final `@` belongs to the last argument.
-    rest = call.strip(" \t")
-    while rest and len(arguments) < count - 1:
-        depth = index = 0
-        while index < len(rest):
-            char = rest[index]
-            if char == "@":
-                index += 1
-            elif char == "{":
-                depth += 1
-            elif char == "}":
-                depth -= 1
-            elif char.isspace() and depth == 0:
-                break
-            index += 1
-        arguments.append(rest[:index])
-        rest = rest[index:].lstrip()
-    if rest:
-        arguments.append(rest)
-    return [
-        a[1:-1] if a.startswith("{") and a.endswith("}") and _balanced(a[1:-1]) else a
-        for a in arguments
-    ]
+def our_tokens(parser: Parser, source: bytes) -> list[Token]:
+    walker = OurWalker()
+    walker.walk(parser.parse(source).root_node)
+    return walker.tokens
 
 
-def _balanced(text: str) -> bool:
-    depth = 0
-    escaped = False
-    for char in text:
-        if escaped:
-            escaped = False
-        elif char == "@":
-            escaped = True
-        elif char == "{":
-            depth += 1
-        elif char == "}":
-            depth -= 1
-            if depth < 0:
-                return False
-    return depth == 0
-
-
-def our_tokens(parser: Parser, path: Path, line_commands: set[str]) -> tuple[list[Token], int]:
-    walker = OurWalker(parser, line_commands)
-    walker.sources.append(path.read_bytes())
-    walker.walk(parser.parse(walker.sources[0]).root_node)
-    return walker.tokens, walker.errors
+def parse_errors(parser: Parser, source: bytes) -> int:
+    """The ERROR and MISSING nodes in our tree of `source`."""
+    count = 0
+    cursor = parser.parse(source).walk()
+    while True:
+        node = cursor.node
+        count += node.is_error or node.is_missing
+        if node.has_error and cursor.goto_first_child():
+            continue
+        while not cursor.goto_next_sibling():
+            if not cursor.goto_parent():
+                return count
 
 
 # texi2any's tree -------------------------------------------------------
@@ -587,10 +340,13 @@ def dump_text(node: DumpNode) -> str:
     return ""
 
 
-def run_texi2any(path: Path) -> tuple[str, str]:
-    """Returns texi2any's tree for `path`, as a debug dump, and its messages."""
+def run_texi2any(path: Path, source: bytes) -> tuple[str, str, bytes | None]:
+    """Runs texi2any on `source`, as the file `path`: returns its tree as a
+    debug dump, its messages, and its expansion of the file, or None if it
+    wrote none."""
     with tempfile.TemporaryDirectory() as directory:
-        shutil.copyfile(path, Path(directory) / path.name)
+        (Path(directory) / path.name).write_bytes(source)
+        expansion = Path(directory) / "expanded.texi"
         result = subprocess.run(
             [
                 "texi2any",
@@ -601,6 +357,7 @@ def run_texi2any(path: Path) -> tuple[str, str]:
                 "--error-limit=1000000",
                 "-c",
                 "TEXINFO_OUTPUT_FORMAT=debugtree",
+                f"--macro-expand={expansion}",
                 "-o",
                 "-",
                 path.name,
@@ -616,22 +373,45 @@ def run_texi2any(path: Path) -> tuple[str, str]:
             # prints its tree, which is what is compared.
             check=False,
         )
-    return result.stdout.decode("utf-8", "replace"), result.stderr.decode("utf-8", "replace")
+        expanded = expansion.read_bytes() if expansion.exists() else None
+    return (
+        result.stdout.decode("utf-8", "replace"),
+        result.stderr.decode("utf-8", "replace"),
+        expanded,
+    )
 
 
-# texi2any's error for a command it doesn't know, such as a TeX primitive or
-# an index command defined in another file of the manual, or for `@` followed
-# by a character that makes no command.
-UNKNOWN_COMMAND = re.compile(r":(\d+): (?:unknown command `([^']+)'|(unexpected) @)(.*)")
+# A message, `FILE:LINE: TEXT` or `FILE: TEXT`, with what texi2any adds to
+# one in a macro expansion.
+MESSAGE = re.compile(r"^.*?:(?:\d+:)? (.*?)(?: \(possibly involving @[^)]*\))?$")
+UNKNOWN = ("unknown command", "unexpected @")
+MISPLACED = ("misplaced {", "misplaced }")
+
+
+def messages_without_unknown(messages: str) -> Counter[str]:
+    """texi2any's messages, without where they are (lines differ between a
+    file and its expansion), and without those about unknown commands, which
+    its expansion drops: their own, and if there are any, those about
+    misplaced braces, as the braces of `@name{...}` are, on its line or the
+    next ones."""
+    texts = [m.group(1) for m in map(MESSAGE.match, messages.splitlines()) if m]
+    unknown = any(t.startswith(UNKNOWN) for t in texts)
+    return Counter(
+        t for t in texts if not t.startswith(UNKNOWN) and not (unknown and t in MISPLACED)
+    )
+
+
+# texi2any's error for a command it doesn't know, or for `@` followed by a
+# character that makes no command.
+UNKNOWN_COMMAND = re.compile(r":(\d+): (?:unknown command `([^']+)'|(unexpected) @)")
 # A C preprocessor line directive, which texi2any follows when it reports
 # lines: `#line 10 "file"`, `# 10 "file" 2`.
 CPP_LINE = re.compile(rb'^\s*#\s*(?:line\s+)?(\d+)(?:\s+"[^"]*")?(?:\s+\d+)*\s*$')
 
 
-def unknown_commands(messages: str, source: bytes) -> tuple[set[tuple[int, str]], set[str]]:
-    """The commands texi2any reports it doesn't know, as (line, name) pairs at
-    the source's lines, and the names of those it reports in a macro
-    expansion, whose line it doesn't say. `unexpected` stands for a symbol."""
+def unknown_commands(messages: str, source: bytes) -> set[tuple[int, str]]:
+    """The commands texi2any reports it doesn't know in `source`, as (line,
+    name) pairs; `unexpected` stands for a symbol."""
     reported: list[int] = []
     line = 1
     for text_line in source.split(b"\n"):
@@ -639,26 +419,54 @@ def unknown_commands(messages: str, source: bytes) -> tuple[set[tuple[int, str]]
         directive = CPP_LINE.match(text_line)
         # texi2any numbers the line after `#line N` as N + 1.
         line = int(directive.group(1)) + 1 if directive else line + 1
-    at_lines: set[tuple[int, str]] = set()
-    anywhere: set[str] = set()
-    for number, name, unexpected, rest in UNKNOWN_COMMAND.findall(messages):
-        name = name or unexpected
-        if "(possibly involving" in rest:
-            anywhere.add(name)
-            continue
+    unknown: set[tuple[int, str]] = set()
+    for number, name, unexpected in UNKNOWN_COMMAND.findall(messages):
         lines = [i + 1 for i, n in enumerate(reported) if n == int(number)]
-        at_lines.update((line, name) for line in lines or [int(number)])
-    return at_lines, anywhere
+        unknown.update((line, name or unexpected) for line in lines or [int(number)])
+    return unknown
 
 
-def is_unknown(token: Token, at_lines: set[tuple[int, str]], anywhere: set[str]) -> bool:
+def is_unknown(token: Token, unknown: set[tuple[int, str]]) -> bool:
     name = token.name[1:]
     symbol = len(name) == 1 and not name.isalpha()
-    return (
-        (token.line, name) in at_lines
-        or name in anywhere
-        or (symbol and (token.line, "unexpected") in at_lines)
-    )
+    return (token.line, name) in unknown or (symbol and (token.line, "unexpected") in unknown)
+
+
+# What texi2any expands or evaluates in a file.
+EXPANDED = re.compile(rb"@(?:r?macro|linemacro|alias|clickstyle|value|if[a-z]+)\b")
+
+
+@dataclass
+class Side:
+    """texi2any's commands for a file, and the text to parse on our side."""
+
+    tokens: list[Token]
+    text: bytes
+    # "expanded", "as written" or "both expanded".
+    how: str
+    # The commands texi2any doesn't know in `text`, to leave out on our side.
+    unknown: set[tuple[int, str]]
+
+
+def texi2any_side(path: Path, line_commands: set[str]) -> Side:
+    source = path.read_bytes()
+    dump, messages, expanded = run_texi2any(path, source)
+    tokens = texi2any_tokens(dump, line_commands)
+    if expanded is None or (expanded != source and not EXPANDED.search(source)):
+        # Nothing to expand: the expansion would only repair errors.
+        return Side(tokens, source, "as written", unknown_commands(messages, source))
+    if expanded == source:
+        return Side(tokens, expanded, "expanded", set())
+    again, again_messages, _ = run_texi2any(path, expanded)
+    again_tokens = texi2any_tokens(again, line_commands)
+    unknown = unknown_commands(again_messages, expanded)
+    if (
+        not unknown
+        and [t.name for t in again_tokens] == [t.name for t in tokens]
+        and messages_without_unknown(again_messages) == messages_without_unknown(messages)
+    ):
+        return Side(tokens, expanded, "expanded", set())
+    return Side(again_tokens, expanded, "both expanded", unknown)
 
 
 def texi2any_line_commands() -> set[str]:
@@ -798,22 +606,23 @@ def main() -> int:
     line_commands = texi2any_line_commands()
     total_ours = total_matched = total_differences = 0
     found: dict[str, list[str]] = {}
+    how_compared: Counter[str] = Counter()
     # texi2any is the slow part: run it for all files in parallel, and report
     # in file order.
     with ThreadPoolExecutor(max_workers=os.cpu_count()) as pool:
-        dumps = [pool.submit(run_texi2any, path) for path in options.files]
-        for path, dump in zip(options.files, dumps, strict=True):
-            ours, errors = our_tokens(parser, path, line_commands)
-            output, messages = dump.result()
-            # texi2any drops the commands it doesn't know, so they can't be
-            # compared.
-            at_lines, anywhere = unknown_commands(messages, path.read_bytes())
-            ours = [t for t in ours if not is_unknown(t, at_lines, anywhere)]
-            theirs = texi2any_tokens(output, line_commands)
+        sides = [pool.submit(texi2any_side, path, line_commands) for path in options.files]
+        for path, side in zip(options.files, sides, strict=True):
+            texi2any = side.result()
+            theirs = texi2any.tokens
+            how_compared[texi2any.how] += 1
+            ours = [
+                t for t in our_tokens(parser, texi2any.text) if not is_unknown(t, texi2any.unknown)
+            ]
             if options.structure:
                 ours = [t for t in ours if t.structural]
                 theirs = [t for t in theirs if t.structural]
             file_differences, matched = differences(ours, theirs)
+            errors = parse_errors(parser, path.read_bytes())
             if errors:
                 file_differences.append(f"{errors} parse errors")
             found[str(path)] = file_differences
@@ -833,6 +642,11 @@ def main() -> int:
         print(
             f"\nOverall: {total_differences} differences in {differing} of "
             f"{len(found)} files; {total_matched} of {total_ours} commands match"
+        )
+        print(
+            f"Compared: {how_compared['expanded']} as texi2any expanded them, "
+            f"{how_compared['as written']} as written, {how_compared['both expanded']} "
+            "as texi2any expanded them on both sides (its expansion not being the same)"
         )
 
     if options.write_expected:
