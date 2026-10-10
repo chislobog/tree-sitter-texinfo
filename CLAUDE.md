@@ -140,7 +140,11 @@ line commands.
 - Mark tests that must produce a parse error with `:error` under the title.
 - Don't check the column in the scanner: tree-sitter does not re-scan a token
   when text before it on the same line changes. Keep line-start rules in the
-  grammar (every line-level rule ends in `_line_end`).
+  grammar (every line-level rule ends in `_line_end`). The one exception is
+  column 0, where nothing comes before a token on its line: the scanner uses
+  it to close a brace and end a paragraph after a line command inside the
+  braces took the newline. `script/check-edits.py` checks that incremental
+  parsing still matches a fresh parse.
 - Update `TODO.md` in the same commit as the work it tracks.
 - In `highlights.scm`, each node is highlighted by only one match: the one
   that finishes matching first, not the first in the file, and the
