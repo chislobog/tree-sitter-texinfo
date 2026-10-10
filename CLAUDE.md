@@ -122,9 +122,8 @@ CI also fuzzes the scanner with libFuzzer and sanitizers
 (`tree-sitter/fuzz-action`, two minutes), seeded by `script/corpus-inputs.py`.
 `script/fuzz-scanner.sh [SECONDS] [JOBS]` does the same locally, for longer
 and on several cores, keeping what it covers in `build/fuzz/out` from one
-run to the next. It compiles with the flake's `fuzz-cc`, LLVM 23's clang:
-the dev shell's clang 21 has an AddressSanitizer that deadlocks at startup
-on macOS 27. `script/fuzz-deep.py` runs `tree-sitter fuzz` on texi2any's test
+run to the next. The dev shell's LLVM is version 23, not nixpkgs' default
+21, whose AddressSanitizer deadlocks at startup on macOS 27. `script/fuzz-deep.py` runs `tree-sitter fuzz` on texi2any's test
 inputs and the manuals for longer than CI, on several cores.
 
 CI (`.github/workflows/ci.yml`) runs all of these on every push. The

@@ -7,15 +7,14 @@
 #
 # Seeded with the corpus tests' inputs. Inputs that crash, leak or hang are
 # saved in build/fuzz/artifacts/; replay one with
-# `build/fuzz/fuzzer build/fuzz/artifacts/FILE`. Compiles with the flake's
-# fuzz-cc, LLVM 23's clang: LLVM 21's ASan deadlocks at startup on macOS 27.
+# `build/fuzz/fuzzer build/fuzz/artifacts/FILE`. Run it in the dev shell,
+# whose clang is LLVM 23: LLVM 21's ASan deadlocks at startup on macOS 27.
 set -euo pipefail
 
 seconds=${1:-600}
 jobs=${2:-4}
 root=$(cd "$(dirname "$0")/.." && pwd)
 dir="$root/build/fuzz"
-cc="$(nix build --no-link --print-out-paths "$root#fuzz-cc")/bin/clang"
 ts=$(dirname "$(dirname "$(readlink -f "$(command -v tree-sitter)")")")
 
 mkdir -p "$dir/artifacts" "$dir/out"
@@ -70,7 +69,7 @@ PY
 
 if [[ ! -x $dir/fuzzer || -n $(find "$root/src" -newer "$dir/fuzzer" -name '*.[ch]') ]]; then
   echo "Building the fuzzer (the parser takes a minute or two)..."
-  "$cc" -std=c11 -Og -g -I"$root/src" -I"$ts/include" \
+  clang -std=c11 -Og -g -I"$root/src" -I"$ts/include" \
     -fsanitize=fuzzer,address,undefined -fsanitize-ignorelist="$dir/ignorelist.ini" \
     "$dir/fuzzer.c" "$root/src/parser.c" "$root/src/scanner.c" \
     -L"$ts/lib" -ltree-sitter -Wl,-rpath,"$ts/lib" -o "$dir/fuzzer"
