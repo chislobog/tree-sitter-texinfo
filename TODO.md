@@ -84,8 +84,11 @@ sources, which is what `texi2any` itself uses.
   and `arguments` fields (braces group words)
 - [x] `@` at the end of a definition line's arguments is a `line_continuation`
   (still a `symbol_command` before the arguments start)
-- [ ] A definition word glued to a command (`foo@var{x}`) counts as two
-  words
+- [x] A definition word glued to a command (`foo@var{x}`,
+  `@var{$converter}->method` in texi2any's API reference) is one `word` node,
+  as in texi2any; the scanner emits a zero-width glue between its parts.
+  Only built-in brace commands with their braces glue to what follows:
+  after another command (`@xref{a}b`) the next part starts a new word
 - [x] Index entries with `@subentry` (a nested `subentry` node, as in
   texi2any), `@seeentry`, `@seealso`, `@sortas`
 - [x] `@columnfractions`: an inline command in the multitable's argument,

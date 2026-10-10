@@ -5265,6 +5265,134 @@
           ]
         },
         {
+          "type": "SYMBOL",
+          "name": "_definition_word_part"
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_glued_word"
+          },
+          "named": true,
+          "value": "word"
+        }
+      ]
+    },
+    "_glued_word": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "REPEAT1",
+          "content": {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "_glueable_word_part"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "_word_glue"
+              }
+            ]
+          }
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_definition_word_part"
+        }
+      ]
+    },
+    "_glueable_word_part": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_word_text"
+          },
+          "named": true,
+          "value": "text"
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_definition_brace_group"
+          },
+          "named": true,
+          "value": "brace_group"
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_glueable_command"
+          },
+          "named": true,
+          "value": "inline_command"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "symbol_command"
+        }
+      ]
+    },
+    "_glueable_command": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "FIELD",
+          "name": "name",
+          "content": {
+            "type": "ALIAS",
+            "content": {
+              "type": "SYMBOL",
+              "name": "_brace_command_name"
+            },
+            "named": true,
+            "value": "command_name"
+          }
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "STRING",
+                  "value": "{"
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "_line_brace_arguments"
+                }
+              ]
+            },
+            {
+              "type": "FIELD",
+              "name": "argument",
+              "content": {
+                "type": "ALIAS",
+                "content": {
+                  "type": "SYMBOL",
+                  "name": "_accent_argument"
+                },
+                "named": true,
+                "value": "text"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "_definition_word_part": {
+      "type": "CHOICE",
+      "members": [
+        {
           "type": "ALIAS",
           "content": {
             "type": "SYMBOL",
@@ -9359,6 +9487,10 @@
     {
       "type": "SYMBOL",
       "name": "_macro_call_name"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_word_glue"
     },
     {
       "type": "SYMBOL",

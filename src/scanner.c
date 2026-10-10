@@ -72,6 +72,9 @@ enum TokenType {
   PARAGRAPH_END_AT_LINE_START,
   // A call to a macro defined earlier in the file.
   MACRO_CALL_NAME,
+  // Zero-width, between two parts of a definition line's word with no space
+  // between them, which make one word, as in texi2any.
+  WORD_GLUE,
   ERROR_SENTINEL,
 };
 
@@ -1015,6 +1018,35 @@ void tree_sitter_texinfo_external_scanner_deserialize(void *payload,
   memcpy(scanner->stack, buffer + size, scanner->depth);
 }
 
+/**
+ * Scans the zero-width glue after a part of a definition line's word when
+ * another part follows with no space between them: text, a command or a
+ * brace group, but not a line ending in `@` (a continuation, which is a
+ * space) or a comment. Only the next characters are read, never the
+ * column, so incremental parsing re-scans it when they change.
+ */
+static bool scan_word_glue(TSLexer *lexer) {
+  int32_t c = lexer->lookahead;
+  if (lexer->eof(lexer) || is_blank(c) || c == '\n' || c == '\r' || c == '}') {
+    return false;
+  }
+  lexer->mark_end(lexer);
+  if (c == '@') {
+    advance(lexer);
+    c = lexer->lookahead;
+    if (lexer->eof(lexer) || c == '\n' || c == '\r') return false;
+    char name[MAX_NAME + 1];
+    if (read_name(lexer, name) &&
+        (strcmp(name, "c") == 0 || strcmp(name, "comment") == 0) &&
+        (lexer->eof(lexer) || is_blank(lexer->lookahead) ||
+         lexer->lookahead == '\n' || lexer->lookahead == '\r')) {
+      return false;
+    }
+  }
+  lexer->result_symbol = WORD_GLUE;
+  return true;
+}
+
 bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
                                                const bool *valid_symbols) {
   Scanner *scanner = payload;
@@ -1036,6 +1068,8 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
       valid_symbols[VERB_CLOSE]) {
     return scan_verb(scanner, lexer, valid_symbols);
   }
+
+  if (valid_symbols[WORD_GLUE] && scan_word_glue(lexer)) return true;
 
   // Before raw text: a raw block opened on the last line has none.
   if (valid_symbols[MISSING_END] && lexer->eof(lexer) && scanner->depth > 0) {

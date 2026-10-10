@@ -180,6 +180,7 @@ export default grammar({
     $._math_name,
     $._paragraph_end_at_line_start,
     $._macro_call_name,
+    $._word_glue,
     $._error_sentinel,
   ],
 
@@ -538,6 +539,38 @@ export default grammar({
       // A line ending in `@` may continue before any word. Anonymous, so a
       // query for the word's field (`entity: (_)`) only finds the word.
       seq(alias($.line_continuation, '@\n'), $._definition_word),
+      $._definition_word_part,
+      // Parts with no space between them make one word, as in texi2any
+      // (`foo@var{x}`); the scanner glues them.
+      alias($._glued_word, $.word),
+    ),
+
+    // Glue may only follow a complete part, so that right after a command's
+    // name a `{` is its argument, not a glued brace group: text, a brace
+    // group, a symbol, or a built-in brace command with its braces or accent
+    // argument. Other commands, whose braces are optional too, only end a
+    // word: a part glued after them starts the next one.
+    _glued_word: $ => seq(
+      repeat1(seq($._glueable_word_part, $._word_glue)),
+      $._definition_word_part,
+    ),
+
+    _glueable_word_part: $ => choice(
+      alias($._word_text, $.text),
+      alias($._definition_brace_group, $.brace_group),
+      alias($._glueable_command, $.inline_command),
+      $.symbol_command,
+    ),
+
+    _glueable_command: $ => seq(
+      field('name', alias($._brace_command_name, $.command_name)),
+      choice(
+        seq('{', $._line_brace_arguments),
+        field('argument', alias($._accent_argument, $.text)),
+      ),
+    ),
+
+    _definition_word_part: $ => choice(
       alias($._word_text, $.text),
       alias($._definition_brace_group, $.brace_group),
       alias($._line_argument_command, $.inline_command),

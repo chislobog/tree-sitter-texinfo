@@ -609,6 +609,10 @@
           {
             "type": "text",
             "named": true
+          },
+          {
+            "type": "word",
+            "named": true
           }
         ]
       },
@@ -635,6 +639,10 @@
           {
             "type": "text",
             "named": true
+          },
+          {
+            "type": "word",
+            "named": true
           }
         ]
       },
@@ -660,6 +668,10 @@
           },
           {
             "type": "text",
+            "named": true
+          },
+          {
+            "type": "word",
             "named": true
           }
         ]
@@ -696,6 +708,10 @@
           },
           {
             "type": "text",
+            "named": true
+          },
+          {
+            "type": "word",
             "named": true
           }
         ]
@@ -2495,6 +2511,33 @@
           }
         ]
       }
+    }
+  },
+  {
+    "type": "word",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "brace_group",
+          "named": true
+        },
+        {
+          "type": "inline_command",
+          "named": true
+        },
+        {
+          "type": "symbol_command",
+          "named": true
+        },
+        {
+          "type": "text",
+          "named": true
+        }
+      ]
     }
   },
   {
