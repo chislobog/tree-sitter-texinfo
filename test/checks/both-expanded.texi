@@ -1,0 +1,7 @@
+@macro open
+@code{
+@end macro
+
+A @open{}x
+
+B.

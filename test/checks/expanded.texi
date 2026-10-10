@@ -1,0 +1,24 @@
+@set flag
+@set markup @emph{v}
+@macro mac {a}
+@code{\a\}
+@end macro
+@linemacro lm {a, b}
+@strong{\a\} @var{\b\}
+@end linemacro
+@alias myem = emph
+@clickstyle @result
+
+@mac{x} @value{markup} @myem{y} @click{}.
+
+@lm one two
+
+@ifset flag
+@samp{set}
+@end ifset
+@ifclear flag
+@kbd{clear}
+@end ifclear
+@ifhtml
+@acronym{H}
+@end ifhtml

@@ -1,0 +1,205 @@
+#!/usr/bin/env python3
+"""Check that the checks still catch what they are for.
+
+Each check runs on small inputs in test/checks/ whose outcome is known, with
+temporary lists of expected results: it must fail where the input differs
+from what is expected, with the message that says so, and pass where it
+doesn't. A check that silently stopped detecting anything, after a change to
+its script or to the tools it runs, fails here.
+
+Usage: script/test-checks.py
+"""
+
+import importlib.util
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+from texinfo_language import ROOT, load_language
+
+from tree_sitter import Parser
+
+CHECKS = Path("test/checks")
+TAB = CHECKS / "tab-outside-multitable.texi"
+SAME = CHECKS / "same.texi"
+PARSE_ERROR = CHECKS / "parse-error.texi"
+COMPARED = [
+    TAB,
+    SAME,
+    CHECKS / "expanded.texi",
+    CHECKS / "as-written.texi",
+    CHECKS / "both-expanded.texi",
+]
+TAB_DIFFERENCE = "line 3: ours '@tab', texi2any '(nothing)'"
+
+
+class Checker:
+    def __init__(self, directory: Path):
+        self.directory = directory
+        self.failures = 0
+
+    def file(self, name: str, text: str) -> Path:
+        path = self.directory / name
+        path.write_text(text)
+        return path
+
+    def expect(
+        self,
+        title: str,
+        command: list,
+        succeeds: bool,
+        *messages: str,
+        count: tuple[str, int] | None = None,
+    ):
+        """Runs `command`, which must succeed or fail as `succeeds` says and
+        print each of `messages`; `count` is a text it must print exactly so
+        many times."""
+        result = subprocess.run(
+            [str(c) for c in command], cwd=ROOT, capture_output=True, text=True, check=False
+        )
+        output = result.stdout + result.stderr
+        problems = []
+        if (result.returncode == 0) != succeeds:
+            problems.append(f"exited with {result.returncode}")
+        problems.extend(f"didn't print {m!r}" for m in messages if m not in output)
+        if count and output.count(count[0]) != count[1]:
+            problems.append(f"printed {count[0]!r} {output.count(count[0])} times, not {count[1]}")
+        self.report(title, problems, output)
+
+    def report(self, title: str, problems: list[str], output: str = ""):
+        if problems:
+            self.failures += 1
+            print(f"FAILED: {title}: {'; '.join(problems)}")
+            print("".join(f"  | {line}\n" for line in output.splitlines()[-20:]), end="")
+        else:
+            print(f"ok: {title}")
+
+
+def check_comparison(checker: Checker):
+    compare = ["python3", "script/compare-texi2any.py", "--hunks", "0", "--expected"]
+    none = checker.file("none.txt", "")
+    checker.expect(
+        "comparison: a difference not listed fails",
+        [*compare, none, *COMPARED],
+        False,
+        f"Unexpected: {TAB}: {TAB_DIFFERENCE}",
+        # Each of the ways to compare a file is used, and finds no difference
+        # where the files hold no deliberate one.
+        "Compared: 2 as texi2any expanded them, 2 as written, 1 as texi2any expanded them "
+        "on both sides",
+        count=("Unexpected:", 1),
+    )
+    unexplained = checker.file("unexplained.txt", f"{TAB}\n  {TAB_DIFFERENCE}\n")
+    checker.expect(
+        "comparison: a difference listed without a reason fails",
+        [*compare, unexplained, TAB],
+        False,
+        f"No reason given: {TAB}",
+    )
+    listed = f"# A reason\n{TAB}\n  {TAB_DIFFERENCE}\n"
+    gone = checker.file(
+        "gone.txt", f"{listed}\n# A reason\n{SAME}\n  line 4: ours '@x', texi2any '(nothing)'\n"
+    )
+    checker.expect(
+        "comparison: a listed difference no longer found fails",
+        [*compare, gone, TAB, SAME],
+        False,
+        f"No longer found: {SAME}: line 4",
+    )
+    checker.expect(
+        "comparison: listed differences pass",
+        [*compare, checker.file("listed.txt", listed), *COMPARED],
+        True,
+    )
+
+
+def check_snapshots(checker: Checker):
+    snapshots = checker.directory / "snapshots.txt"
+    command = ["python3", "script/tree-snapshots.py", "--snapshots", snapshots]
+    checker.expect(
+        "snapshots: a missing digest fails",
+        [*command, "--check", SAME],
+        False,
+        f"no digest: {SAME}",
+    )
+    checker.expect("snapshots: recording", [*command, "--write", SAME], True)
+    checker.expect("snapshots: an unchanged tree passes", [*command, "--check", SAME], True)
+    digest, name = snapshots.read_text().split("  ", 1)
+    snapshots.write_text(f"{'0' * len(digest)}  {name}")
+    checker.expect(
+        "snapshots: a changed tree fails",
+        [*command, "--check", SAME],
+        False,
+        f"tree changed: {SAME}",
+    )
+
+
+def check_parse_errors(checker: Checker):
+    command = ["python3", "script/parse-examples.py", "--expected"]
+    checker.expect(
+        "parse errors: a file not listed fails",
+        [*command, checker.file("no-errors.txt", ""), PARSE_ERROR, SAME],
+        False,
+        f"Parse errors: {PARSE_ERROR}",
+    )
+    checker.expect(
+        "parse errors: a file listed without a reason fails",
+        [*command, checker.file("unexplained-errors.txt", f"{PARSE_ERROR}\n"), PARSE_ERROR],
+        False,
+        f"No reason given: {PARSE_ERROR}",
+    )
+    checker.expect(
+        "parse errors: a listed file that parses fails",
+        [*command, checker.file("parses.txt", f"# A reason\n{SAME}\n"), SAME],
+        False,
+        f"No longer fails to parse: {SAME}",
+    )
+    checker.expect(
+        "parse errors: listed files pass",
+        [*command, checker.file("errors.txt", f"# A reason\n{PARSE_ERROR}\n"), PARSE_ERROR, SAME],
+        True,
+    )
+    # Of two files, the slower is slower than the median by any factor above 1.
+    plain = checker.file("plain.texi", "Plain text in a paragraph.\n\n" * 1000)
+    nested = checker.file("nested.texi", "@code{@emph{@var{x}} @strong{y}}\n" * 1000)
+    checker.expect(
+        "parse speed: a slow file fails",
+        [*command, checker.file("none-slow.txt", ""), "--slowdown", "1.0001", plain, nested],
+        False,
+        "Slow: ",
+    )
+
+
+def check_edits(checker: Checker):
+    """A mistake that changes the tree past its paragraph must be found."""
+    spec = importlib.util.spec_from_file_location("check_edits", ROOT / "script" / "check-edits.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    parser = Parser(load_language())
+    path = ROOT / CHECKS / "edits.texi"
+    tree = parser.parse(path.read_bytes())
+    first = next(p for p in module.paragraphs(tree.root_node) if p.text.startswith(b"First"))
+    local = module.check_edit(parser, path, tree, first, first.start_byte + 2, 0, b"@code{")
+    checker.report("edits: a local mistake passes", [f"found {p}" for p in local])
+    # Ending the list early changes the items after the paragraph.
+    spreading = module.check_edit(parser, path, tree, first, first.start_byte, 0, b"@end itemize\n")
+    found = any("nodes changed outside" in p for p in spreading)
+    checker.report("edits: a mistake that spreads fails", [] if found else ["found no problem"])
+
+
+def main() -> int:
+    with tempfile.TemporaryDirectory() as directory:
+        checker = Checker(Path(directory))
+        check_comparison(checker)
+        check_snapshots(checker)
+        check_parse_errors(checker)
+        check_edits(checker)
+    if checker.failures:
+        print(f"{checker.failures} checks don't work as they should")
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

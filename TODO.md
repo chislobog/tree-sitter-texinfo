@@ -225,6 +225,8 @@ Deliberate, so the tree shows the source as it is written and edited:
   misplaced `@tab` and `@headitem`, stray `@end`), `@click` (texi2any
   substitutes the `@clickstyle` symbol), and the divergences below
 - [x] Mirror `@clickstyle`/`@click` and `@alias` in the comparison
+- [x] Test the checks themselves (`script/test-checks.py`): each must fail
+  on inputs in `test/checks/` that it is meant to catch
 - [x] Compare our tree of texi2any's own expansion of each file
   (`--macro-expand`) rather than imitate the expansion: 300 fewer lines in
   the script, and the differences it caused in the macro suites are gone

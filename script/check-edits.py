@@ -35,7 +35,7 @@ from pathlib import Path
 
 from texinfo_language import dump, load_language
 
-from tree_sitter import Node, Parser, Point
+from tree_sitter import Node, Parser, Point, Tree
 
 INSERTIONS = ["{", "}", "@", "@code{", "@xref{"]
 # Blocks in which, as in texi2any, a blank line doesn't end a brace command,
@@ -172,10 +172,8 @@ def check_file(
         ).startswith(b"@")
         if rng.random() < 0.5 and not joins_command:
             removed, inserted = 1, b""
-            description = f"delete {source[offset : offset + 1]!r}"
         else:
             removed, inserted = 0, rng.choice(INSERTIONS).encode()
-            description = f"insert {inserted.decode()!r}"
         edited = source[:offset] + inserted + source[offset + removed :]
         line_start = edited.rfind(b"\n", 0, offset) + 1
         opener = LINE_COMMAND.match(edited, line_start)
@@ -186,58 +184,80 @@ def check_file(
             and (before is None or before.group(1) != opener.group(1))
         ):
             continue
-        shift = len(inserted) - removed
-        location = f"{path}:{point(source, offset).row + 1}:{point(source, offset).column + 1}"
-
-        fresh = parser.parse(edited)
-        tree = parser.parse(source)
-        tree.edit(
-            start_byte=offset,
-            old_end_byte=offset + removed,
-            new_end_byte=offset + len(inserted),
-            start_point=point(source, offset),
-            old_end_point=point(source, offset + removed),
-            new_end_point=point(edited, offset + len(inserted)),
+        problems.extend(
+            check_edit(parser, path, old_tree, paragraph, offset, removed, inserted, keep)
         )
-        incremental = parser.parse(edited, tree)
-        found = []
-        if list(dump(incremental.root_node)) != list(dump(fresh.root_node)):
-            found.append(f"{location}: {description}: incremental parse differs from a fresh one")
-
-        # The paragraph, and the next one if the edit joined them, up to the
-        # next blank line.
-        # From the start of the paragraph's line (a multitable cell starts
-        # after `@tab`).
-        start = source.rfind(b"\n", 0, paragraph.start_byte) + 1
-        block = preformatted_block(paragraph)
-        if block is not None:
-            end = block.end_byte + shift
-        else:
-            blank = BLANK_LINE.search(edited, max(offset, paragraph.end_byte + shift - 1))
-            end = blank.end() if blank else len(edited)
-            # A brace left open before a conditional can't close inside it,
-            # where texi2any, which has evaluated the conditional, closes it:
-            # it closes after the conditional (TODO.md). A raw block stays
-            # inside it, as in texi2any, whatever blank lines it holds.
-            for conditional in conditionals(old_tree.root_node, start, end - shift):
-                blank = BLANK_LINE.search(edited, conditional.end_byte + shift)
-                end = max(end, blank.end() if blank else len(edited))
-        before = outside(old_tree.root_node, start, end - shift, shift)
-        after = outside(fresh.root_node, start, end, 0)
-        if before != after:
-            changed = sum(((before - after) + (after - before)).values())
-            first = min((after - before) or (before - after), key=lambda n: n[1])
-            found.append(
-                f"{location}: {description}: {changed} nodes changed outside "
-                f"bytes {start}-{end} of the edited text, the first a {first[0]} "
-                f"at line {point(edited, first[1]).row + 1}"
-            )
-        if found and keep is not None:
-            row, column = point(source, offset)
-            copy = keep_copy(keep, path, row + 1, column + 1, edited)
-            found = [f"{problem} (edited copy: {copy})" for problem in found]
-        problems.extend(found)
     return problems
+
+
+def check_edit(
+    parser: Parser,
+    path: Path,
+    old_tree: Tree,
+    paragraph: Node,
+    offset: int,
+    removed: int,
+    inserted: bytes,
+    keep: Path | None = None,
+) -> list[str]:
+    """The problems with an edit of `path`, whose tree is `old_tree`: `removed`
+    bytes at `offset`, in `paragraph`, replaced by `inserted`."""
+    source = path.read_bytes()
+    edited = source[:offset] + inserted + source[offset + removed :]
+    description = (
+        f"insert {inserted.decode()!r}" if inserted else f"delete {source[offset : offset + 1]!r}"
+    )
+    shift = len(inserted) - removed
+    location = f"{path}:{point(source, offset).row + 1}:{point(source, offset).column + 1}"
+
+    fresh = parser.parse(edited)
+    tree = parser.parse(source)
+    tree.edit(
+        start_byte=offset,
+        old_end_byte=offset + removed,
+        new_end_byte=offset + len(inserted),
+        start_point=point(source, offset),
+        old_end_point=point(source, offset + removed),
+        new_end_point=point(edited, offset + len(inserted)),
+    )
+    incremental = parser.parse(edited, tree)
+    found = []
+    if list(dump(incremental.root_node)) != list(dump(fresh.root_node)):
+        found.append(f"{location}: {description}: incremental parse differs from a fresh one")
+
+    # The paragraph, and the next one if the edit joined them, up to the
+    # next blank line.
+    # From the start of the paragraph's line (a multitable cell starts
+    # after `@tab`).
+    start = source.rfind(b"\n", 0, paragraph.start_byte) + 1
+    block = preformatted_block(paragraph)
+    if block is not None:
+        end = block.end_byte + shift
+    else:
+        blank = BLANK_LINE.search(edited, max(offset, paragraph.end_byte + shift - 1))
+        end = blank.end() if blank else len(edited)
+        # A brace left open before a conditional can't close inside it,
+        # where texi2any, which has evaluated the conditional, closes it:
+        # it closes after the conditional (TODO.md). A raw block stays
+        # inside it, as in texi2any, whatever blank lines it holds.
+        for conditional in conditionals(old_tree.root_node, start, end - shift):
+            blank = BLANK_LINE.search(edited, conditional.end_byte + shift)
+            end = max(end, blank.end() if blank else len(edited))
+    before = outside(old_tree.root_node, start, end - shift, shift)
+    after = outside(fresh.root_node, start, end, 0)
+    if before != after:
+        changed = sum(((before - after) + (after - before)).values())
+        first = min((after - before) or (before - after), key=lambda n: n[1])
+        found.append(
+            f"{location}: {description}: {changed} nodes changed outside "
+            f"bytes {start}-{end} of the edited text, the first a {first[0]} "
+            f"at line {point(edited, first[1]).row + 1}"
+        )
+    if found and keep is not None:
+        row, column = point(source, offset)
+        copy = keep_copy(keep, path, row + 1, column + 1, edited)
+        found = [f"{problem} (edited copy: {copy})" for problem in found]
+    return found
 
 
 def keep_copy(keep: Path, path: Path, row: int, column: int, edited: bytes) -> Path:

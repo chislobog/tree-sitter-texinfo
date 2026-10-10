@@ -5,11 +5,13 @@ test/tree-snapshots.txt holds a SHA-256 digest of each file's full tree:
 every node with its field and byte range (see `dump` in texinfo_language.py).
 `--check` fails on a tree that differs from its digest, on a file without
 one, and on a digest of a file in a checked directory that no longer exists;
-`--write` records the trees of the given files. After a deliberate change,
+`--write` records the trees of the given files; `--snapshots FILE` uses
+another file of digests. After a deliberate change,
 `--diff REV` shows how the trees differ from those of the parser at git
 revision REV, to review before writing the new digests.
 
-Usage: script/tree-snapshots.py (--check | --write | --diff REV) FILE...
+Usage: script/tree-snapshots.py [--snapshots FILE] (--check | --write | --diff REV)
+       FILE...
 """
 
 import argparse
@@ -35,17 +37,17 @@ def digest(parser: Parser, path: Path) -> str:
     return lines.hexdigest()
 
 
-def read_snapshots() -> dict[str, str]:
+def read_snapshots(path: Path) -> dict[str, str]:
     snapshots = {}
-    if SNAPSHOTS.exists():
-        for line in SNAPSHOTS.read_text().splitlines():
+    if path.exists():
+        for line in path.read_text().splitlines():
             value, name = line.split("  ", 1)
             snapshots[name] = value
     return snapshots
 
 
-def write_snapshots(snapshots: dict[str, str]):
-    SNAPSHOTS.write_text("".join(f"{snapshots[name]}  {name}\n" for name in sorted(snapshots)))
+def write_snapshots(path: Path, snapshots: dict[str, str]):
+    path.write_text("".join(f"{snapshots[name]}  {name}\n" for name in sorted(snapshots)))
 
 
 def show_differences(revision: str, files: list[Path], parser: Parser):
@@ -86,6 +88,9 @@ def main() -> int:
     mode.add_argument("--check", action="store_true", help="fail on any changed tree")
     mode.add_argument("--write", action="store_true", help="record the trees")
     mode.add_argument("--diff", metavar="REV", help="show tree diffs against git revision REV")
+    arguments.add_argument(
+        "--snapshots", type=Path, default=SNAPSHOTS, help="the digests (default %(default)s)"
+    )
     arguments.add_argument("files", nargs="+", type=Path)
     options = arguments.parse_args()
 
@@ -94,11 +99,11 @@ def main() -> int:
         show_differences(options.diff, options.files, parser)
         return 0
 
-    snapshots = read_snapshots()
+    snapshots = read_snapshots(options.snapshots)
     current = {str(path): digest(parser, path) for path in options.files}
     if options.write:
         snapshots.update(current)
-        write_snapshots(snapshots)
+        write_snapshots(options.snapshots, snapshots)
         return 0
 
     changed = [name for name, value in current.items() if snapshots.get(name) != value]
@@ -115,7 +120,7 @@ def main() -> int:
         print(f"no longer checked: {name}", file=sys.stderr)
     if changed or gone:
         print(
-            f"{len(changed)} trees differ from {SNAPSHOTS.relative_to(ROOT)}. If the change "
+            f"{len(changed)} trees differ from {options.snapshots}. If the change "
             "is deliberate, review it with `script/tree-snapshots.py --diff HEAD FILE...` "
             "and record it with --write.",
             file=sys.stderr,

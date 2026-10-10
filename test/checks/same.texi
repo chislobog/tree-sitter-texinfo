@@ -1,0 +1,4 @@
+@node Top
+@top Title
+
+Some @code{x} and @emph{y}.
