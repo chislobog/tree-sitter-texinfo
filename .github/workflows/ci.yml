@@ -1,14 +1,19 @@
 name: CI
 
+# CI minutes are limited (the repository is private): changes to the
+# documentation alone aren't checked, script/check-all.sh runs these checks
+# locally before pushing, and the bindings on macOS and Windows are built by
+# platforms.yml, weekly.
 on:
   push:
+    paths-ignore: ["**.md"]
   pull_request:
+    paths-ignore: ["**.md"]
 
-# A newer push to the same branch cancels a run in progress, except on main,
-# where every commit gets a full result.
+# A newer push to the same branch cancels a run in progress.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+  cancel-in-progress: true
 
 jobs:
   check:
@@ -138,18 +143,14 @@ jobs:
           max-time: "120"
           tree-sitter-version: v0.26.11
 
-  # The scanner is compiled on users' machines by every editor, including
-  # with MSVC on Windows; the bindings are how most projects use the grammar.
+  # The bindings are how most projects use the grammar; on Linux here, and on
+  # macOS and Windows in platforms.yml.
   platforms:
-    name: Tests and bindings on ${{ matrix.os }}
+    name: Tests and bindings
     # Branches in this repository are checked on push; pull requests only
     # from forks, to avoid running twice.
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
 

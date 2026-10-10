@@ -71,8 +71,10 @@ well with incomplete input, which is normal while editing.
 
 A Claude Code hook (`.claude/hooks/check-grammar.sh`) runs `tree-sitter
 generate` and `tree-sitter test` after every edit to `grammar.js`,
-`src/scanner.c` or the corpus. Before committing grammar or scanner changes,
-also run:
+`src/scanner.c` or the corpus. Before pushing, run `script/check-all.sh`,
+which runs everything CI's check job does (about 7 minutes) and lists the
+steps that fail: CI minutes are limited, so CI should only confirm. While
+working on grammar or scanner changes, the individual checks are:
 
 ```sh
 cc -std=c11 -Wall -Wextra -Wpedantic -Wshadow -Werror -Isrc -c src/scanner.c -o /tmp/scanner.o
@@ -126,7 +128,11 @@ run to the next. The dev shell's LLVM is version 23, not nixpkgs' default
 21, whose AddressSanitizer deadlocks at startup on macOS 27. `script/fuzz-deep.py` runs `tree-sitter fuzz` on texi2any's test
 inputs and the manuals for longer than CI, on several cores.
 
-CI (`.github/workflows/ci.yml`) runs all of these on every push. The
+CI (`.github/workflows/ci.yml`) runs all of these on every push, except one
+that only changes Markdown files; a newer push cancels a run in progress. It
+builds the bindings on Linux; `.github/workflows/platforms.yml` builds them on
+macOS and Windows weekly, on `v*` tags and on demand, as their minutes count
+ten and two times. The
 comparisons pass only if the differences from texi2any are exactly those
 listed in `test/texi2any-differences.txt`, each file with a `#` comment giving
 the reason: deliberate (the Texinfo manual over texi2any's error recovery,
