@@ -8837,7 +8837,7 @@
         },
         {
           "type": "SYMBOL",
-          "name": "raw_block"
+          "name": "_line_block"
         }
       ]
     },
@@ -8905,7 +8905,7 @@
         },
         {
           "type": "SYMBOL",
-          "name": "raw_block"
+          "name": "_line_block"
         }
       ]
     },

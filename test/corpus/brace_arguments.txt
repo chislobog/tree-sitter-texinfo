@@ -373,6 +373,80 @@ b
           end: (block_end))))))
 
 ================================================================================
+Conditionals in a comma-separated argument
+================================================================================
+
+See @xref{Node,
+@ifinfo
+Info title
+@end ifinfo
+@iftex
+TeX title
+@end iftex
+}.
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (inline_command
+      name: (command_name)
+      node: (argument
+        (text))
+      label: (argument
+        (block
+          name: (command_name)
+          (paragraph
+            (text))
+          end: (block_end))
+        (block
+          name: (command_name)
+          (paragraph
+            (text))
+          end: (block_end))))
+    (text)))
+
+================================================================================
+An unclosed comma-separated argument keeps its conditionals
+================================================================================
+
+For @xref{x
+@ifinfo
+@math{1 <= u}
+@end ifinfo
+it can.
+
+@ifinfo
+Info.
+@end ifinfo
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (inline_command
+      name: (command_name)
+      node: (argument
+        (text)
+        (block
+          name: (command_name)
+          (paragraph
+            (inline_command
+              name: (command_name)
+              arguments: (brace_arguments
+                (text))))
+          end: (block_end))
+        (text))
+      (missing_brace)))
+  (block
+    name: (command_name)
+    (paragraph
+      (text))
+    end: (block_end)))
+
+================================================================================
 Spaces between a macro call and its brace
 ================================================================================
 

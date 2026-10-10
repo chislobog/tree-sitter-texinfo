@@ -929,8 +929,9 @@ export default grammar({
     // One argument of an ARGUMENT_COMMANDS command: lines without commas,
     // separated by single newlines.
     // An argument that is only a line break is kept, empty, as in texi2any.
-    // A raw block such as `@ignore` may stand on a line of its own, which
-    // texi2any keeps in the argument.
+    // A block may stand on lines of its own, as in other braces: a raw block
+    // such as `@ignore`, which texi2any keeps in the argument, or a
+    // conditional, which it evaluates first.
     // Lines may be separated by comment lines, which leave two newlines; the
     // scanner closes the command before a blank line.
     argument: $ => choice(
@@ -942,7 +943,7 @@ export default grammar({
       $._newlines,
     ),
 
-    _argument_line_item: $ => choice($._argument_line, $.raw_block),
+    _argument_line_item: $ => choice($._argument_line, $._line_block),
 
     // The last argument, which may contain commas.
     _last_argument: $ => seq(
@@ -951,7 +952,7 @@ export default grammar({
       optional($._newlines),
     ),
 
-    _last_argument_line: $ => choice($._line, $.raw_block),
+    _last_argument_line: $ => choice($._line, $._line_block),
 
     _argument_line: $ => prec.right(repeat1(choice(
       alias($._argument_text, $.text),
