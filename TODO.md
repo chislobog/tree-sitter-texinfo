@@ -225,6 +225,9 @@ Deliberate, so the tree shows the source as it is written and edited:
 - [x] Mirror `@clickstyle`/`@click` and `@alias` in the comparison
 - [x] Fuzz the manuals too (`tree-sitter fuzz`, random edits anywhere), not
   only texi2any's test inputs
+- [x] Longer fuzzing locally: `script/fuzz-deep.py` (`tree-sitter fuzz`) and
+  `script/fuzz-scanner.sh` (libFuzzer with sanitizers, on LLVM 23, as LLVM
+  21's AddressSanitizer deadlocks at startup on macOS 27)
 - [x] Test the checks themselves (`script/test-checks.py`): each must fail
   on inputs in `test/checks/` that it is meant to catch
 - [x] Compare our tree of texi2any's own expansion of each file

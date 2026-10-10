@@ -93,6 +93,12 @@
       {
         packages.examples = examples;
         packages.texinfo-tests = texinfoTests;
+        # The compiler for script/fuzz-scanner.sh (libFuzzer with
+        # AddressSanitizer): LLVM 21's ASan runtime deadlocks at startup on
+        # macOS 27, newer ones don't. A package rather than part of the dev
+        # shell, which keeps clang 21's clang-format and clangd, and which CI
+        # doesn't need to download it for.
+        packages.fuzz-cc = pkgs.llvmPackages_23.clang;
 
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
