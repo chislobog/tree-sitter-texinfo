@@ -6,6 +6,7 @@ another checkout's build/ for comparing with an earlier revision.
 
 import argparse
 import ctypes
+import re
 import subprocess
 import sys
 from collections.abc import Iterator
@@ -14,6 +15,11 @@ from pathlib import Path
 from tree_sitter import Language, Node
 
 ROOT = Path(__file__).resolve().parent.parent
+
+# Block names, from the scanner's table.
+BLOCK_NAMES = frozenset(
+    re.findall(r'\{"(\w+)", KIND_\w+(?: \+ \d+)?\}', (ROOT / "src" / "scanner.c").read_text())
+)
 
 
 def load_language(root: Path = ROOT) -> Language:

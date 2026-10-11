@@ -123,6 +123,27 @@ const command = ($, names) => {
 };
 
 /**
+ * The end of an ordinary brace command's braces: its `}`, or a zero-width
+ * `missing_brace` where texi2any closes it, at a blank line or the `@end` of
+ * an enclosing block.
+ *
+ * @param {GrammarSymbols<string>} $
+ */
+const braceClose = ($) => choice(
+  '}',
+  alias($._brace_close_at_paragraph_end, $.missing_brace),
+  alias($._brace_close_at_block_end, $.missing_brace),
+);
+
+/**
+ * The end of braces that may hold blank lines: only the `@end` of an
+ * enclosing block closes them if the `}` is missing.
+ *
+ * @param {GrammarSymbols<string>} $
+ */
+const longBraceClose = ($) => choice('}', alias($._brace_close_at_block_end, $.missing_brace));
+
+/**
  * The content of a multitable cell, which starts right after its `@item` or
  * `@tab`. Its last paragraph may end in the middle of a line, before the next
  * `@tab`.
@@ -334,21 +355,6 @@ export default grammar({
     // follow the names.
     _alias_name: _ => token(prec(1, /[^@{} \t\n\r\v\f=]+/)),
 
-    // A rule of its own, which lets the parser share its states: inline, it
-    // costs six times as many.
-    _macro_parameters: $ => seq(
-      '{',
-      optional(field('parameter', alias($._macro_parameter, $.text))),
-      repeat(seq(',', optional(field('parameter', alias($._macro_parameter, $.text))))),
-      // Without the `}` while the line is being typed.
-      optional(seq('}', optional($._macro_line_rest))),
-    ),
-
-    // A macro parameter, spaces inside included (texi2any reports them).
-    _macro_parameter: _ => /[^,}\s]([^,}\r\n]*[^,}\s])?/,
-    // What follows a macro's name or parameters other than a comment.
-    _macro_line_rest: $ => field('argument', alias(/[^@{\s][^\r\n]*/, $.raw_text)),
-
     // `@subentry` in an index entry: the rest of the line, which may hold the
     // next level's subentry, as in texi2any.
     subentry: $ => seq(
@@ -360,9 +366,6 @@ export default grammar({
     // Like texi2any, a line command's argument ends at the end of its line,
     // closing any brace command left open in it.
     line_argument: $ => repeat1($._line_argument_inline),
-
-    // All of the rest of the line, in a paragraph.
-    _rest_of_line: $ => prec.right(repeat1($._line_argument_inline)),
 
     // A brace group in a line macro's arguments may hold line breaks, as in
     // texi2any: the call ends at the end of a line outside it. A brace
@@ -694,12 +697,12 @@ export default grammar({
       field('end', $._block_end),
     ),
 
-    // `@macro`, `@rmacro` and `@linemacro`: like a raw block, but the body is
-    // Texinfo with `\param\` placeholders, parsed where the macro is used.
-    // `@macro NAME {PARAM, ...}`, also `@rmacro` and `@linemacro`. texi2any
-    // keeps the line as raw text: the parameters are what is between the
-    // first `{` and `}`, split at commas. Only a command, such as a comment,
-    // may follow; anything else, which texi2any reports, is left as raw text.
+    // `@macro NAME {PARAM, ...}`, also `@rmacro` and `@linemacro`: like a raw
+    // block, but the body is Texinfo with `\param\` placeholders, parsed
+    // where the macro is used. texi2any keeps the line as raw text: the
+    // parameters are what is between the first `{` and `}`, split at commas.
+    // Only a command, such as a comment, may follow; anything else, which
+    // texi2any reports, is left as raw text.
     macro_definition: $ => seq(
       field('name', alias($._macro_start, $.command_name)),
       optional(seq(
@@ -710,6 +713,21 @@ export default grammar({
       optional(field('body', $.raw_text)),
       field('end', $._block_end),
     ),
+
+    // A rule of its own, which lets the parser share its states: inline, it
+    // costs six times as many.
+    _macro_parameters: $ => seq(
+      '{',
+      optional(field('parameter', alias($._macro_parameter, $.text))),
+      repeat(seq(',', optional(field('parameter', alias($._macro_parameter, $.text))))),
+      // Without the `}` while the line is being typed.
+      optional(seq('}', optional($._macro_line_rest))),
+    ),
+
+    // A macro parameter, spaces inside included (texi2any reports them).
+    _macro_parameter: _ => /[^,}\s]([^,}\r\n]*[^,}\s])?/,
+    // What follows a macro's name or parameters other than a comment.
+    _macro_line_rest: $ => field('argument', alias(/[^@{\s][^\r\n]*/, $.raw_text)),
 
     // A block still open at the end of the file ends with a zero-width
     // `missing_end`, so it keeps its structure.
@@ -764,6 +782,9 @@ export default grammar({
       optional(field('argument', alias($._rest_of_line, $.line_argument))),
     )),
 
+    // All of the rest of the line, in a paragraph.
+    _rest_of_line: $ => prec.right(repeat1($._line_argument_inline)),
+
     _inline: $ => choice(
       $.text,
       $.inline_command,
@@ -779,7 +800,7 @@ export default grammar({
         optional(seq(
           '{',
           optional(field('arguments', alias($._math_content, $.brace_arguments))),
-          choice('}', alias($._brace_close_at_block_end, $.missing_brace)),
+          longBraceClose($),
         )),
       )),
       prec.right(seq(
@@ -790,11 +811,7 @@ export default grammar({
           seq(
             '{',
             optional(field('arguments', $.brace_arguments)),
-            choice(
-              '}',
-              alias($._brace_close_at_paragraph_end, $.missing_brace),
-              alias($._brace_close_at_block_end, $.missing_brace),
-            ),
+            braceClose($),
           ),
           // An accent command's argument without braces: `@'e`, `@u o`.
           field('argument', alias($._accent_argument, $.text)),
@@ -808,7 +825,7 @@ export default grammar({
         optional(seq(
           '{',
           optional(field('arguments', alias($._long_arguments, $.brace_arguments))),
-          choice('}', alias($._brace_close_at_block_end, $.missing_brace)),
+          longBraceClose($),
         )),
       )),
       // Any other command: a macro call, or a command texi2any doesn't know.
@@ -821,11 +838,7 @@ export default grammar({
         optional(seq(
           token.immediate('{'),
           optional(field('arguments', $.brace_arguments)),
-          choice(
-            '}',
-            alias($._brace_close_at_paragraph_end, $.missing_brace),
-            alias($._brace_close_at_block_end, $.missing_brace),
-          ),
+          braceClose($),
         )),
       )),
       $._argument_command,
@@ -843,7 +856,7 @@ export default grammar({
     _math_group: $ => seq(
       '{',
       optional($._math_content),
-      choice('}', alias($._brace_close_at_block_end, $.missing_brace)),
+      longBraceClose($),
     ),
 
     _math_command: $ => choice(
@@ -862,10 +875,12 @@ export default grammar({
 
     _math_brace_arguments: $ => seq(
       optional(field('arguments', alias($._math_content, $.brace_arguments))),
-      choice('}', alias($._brace_close_at_block_end, $.missing_brace)),
+      longBraceClose($),
     ),
 
-    // A built-in brace command or accent in a float's type.
+    // A built-in brace command or accent in a float's type, like one in a
+    // line argument: a rule of its own, as sharing that one costs 34 parser
+    // states.
     _float_type_command: $ => prec.right(seq(
       field('name', alias($._brace_command_name, $.command_name)),
       optional(choice(
@@ -903,7 +918,7 @@ export default grammar({
         optional(seq(
           '{',
           optional(field('arguments', alias($._context_body, $.brace_arguments))),
-          choice('}', alias($._brace_close_at_block_end, $.missing_brace)),
+          longBraceClose($),
         )),
       )),
       // `@inlinefmt{FORMAT, TEXT}`, `@inlineifset{FLAG, TEXT}`: like a
@@ -914,7 +929,7 @@ export default grammar({
           '{',
           optional(field('condition', $._condition)),
           optional(seq(',', optional(field('text', alias($._long_arguments, $.argument))))),
-          choice('}', alias($._brace_close_at_block_end, $.missing_brace)),
+          longBraceClose($),
         )),
       )),
       // `@inlinefmtifelse{FORMAT, THEN, ELSE}`: both texts may hold blank
@@ -929,7 +944,7 @@ export default grammar({
             optional(field('then', alias($._long_comma_arguments, $.argument))),
             optional(seq(',', optional(field('else', alias($._long_arguments, $.argument))))),
           )),
-          choice('}', alias($._brace_close_at_block_end, $.missing_brace)),
+          longBraceClose($),
         )),
       )),
       // `@inlineraw{FORMAT, TEXT}`: the text is raw, up to the matching brace.
@@ -939,11 +954,7 @@ export default grammar({
           '{',
           optional(field('condition', $._condition)),
           optional(seq(',', optional(field('body', alias($._inline_raw_text, $.raw_text))))),
-          choice(
-            '}',
-            alias($._brace_close_at_paragraph_end, $.missing_brace),
-            alias($._brace_close_at_block_end, $.missing_brace),
-          ),
+          braceClose($),
         )),
       )),
       ...Object.entries(ARGUMENT_COMMANDS).map(([names, commands]) => prec.right(seq(
@@ -951,11 +962,7 @@ export default grammar({
         optional(seq(
           '{',
           commaArguments(names.split(' '), $.argument, alias($._last_argument, $.argument), ','),
-          choice(
-            '}',
-            alias($._brace_close_at_paragraph_end, $.missing_brace),
-            alias($._brace_close_at_block_end, $.missing_brace),
-          ),
+          braceClose($),
         )),
       ))),
     ),
@@ -1077,11 +1084,7 @@ export default grammar({
     brace_group: $ => seq(
       '{',
       optional($._brace_content),
-      choice(
-        '}',
-        alias($._brace_close_at_paragraph_end, $.missing_brace),
-        alias($._brace_close_at_block_end, $.missing_brace),
-      ),
+      braceClose($),
     ),
 
     // As in texi2any, names may contain `-` (e.g. user-defined macros).

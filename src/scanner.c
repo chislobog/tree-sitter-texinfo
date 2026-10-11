@@ -29,11 +29,12 @@ enum TokenType {
   VERB_TEXT,
   VERB_CLOSE,
   // Zero-width closes for an unclosed brace command: before a blank line or
-  // the end of the file, and before the `@end` of the innermost open block.
+  // the end of the file, and before the `@end` of an open block.
   BRACE_CLOSE_AT_PARAGRAPH_END,
   BRACE_CLOSE_AT_BLOCK_END,
   BRACE_CLOSE_AT_LINE_END,
-  // Zero-width end of a block still open at the end of the file.
+  // Zero-width end of a block still open at the end of the file, or before
+  // an `@end` of an enclosing block or of no open block, which closes it.
   MISSING_END,
   MENU_START,
   // Openers of definition blocks, one per layout of the definition line, in
@@ -214,8 +215,8 @@ static const Block BLOCKS[] = {
 #define MAX_MACROS 64
 
 // Serialized state: the `@verb` delimiter, the accent flag, the number of
-// macros and their name hashes, then the block stack, which takes the rest
-// of tree-sitter's buffer.
+// macros, their name hashes and kinds, then the block stack, which takes the
+// rest of tree-sitter's buffer.
 #define STATE_HEADER (sizeof(int32_t) + 2)
 #define MAX_DEPTH                                         \
   (TREE_SITTER_SERIALIZATION_BUFFER_SIZE - STATE_HEADER - \
@@ -250,6 +251,13 @@ static inline void advance(TSLexer *lexer) { lexer->advance(lexer, false); }
 
 static inline void skip(TSLexer *lexer) { lexer->advance(lexer, true); }
 
+// Ends the token here, as `token`.
+static inline bool accept(TSLexer *lexer, enum TokenType token) {
+  lexer->mark_end(lexer);
+  lexer->result_symbol = token;
+  return true;
+}
+
 static inline bool is_alpha(int32_t c) {
   return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
 }
@@ -269,6 +277,11 @@ static void skip_to_next_line(TSLexer *lexer) {
   if (lexer->lookahead == '\n') advance(lexer);
 }
 
+// A character of a command, block or macro name after its first.
+static inline bool is_name_char(int32_t c) {
+  return is_alpha(c) || is_digit(c) || c == '-' || c == '_';
+}
+
 /**
  * Reads a command or block name: a letter followed by letters, digits, `-`
  * or `_` (the characters `texi2any` accepts after `@end`). Returns false if
@@ -277,8 +290,7 @@ static void skip_to_next_line(TSLexer *lexer) {
 static bool read_name(TSLexer *lexer, char *name) {
   unsigned length = 0;
   if (!is_alpha(lexer->lookahead)) return false;
-  while (is_alpha(lexer->lookahead) || is_digit(lexer->lookahead) ||
-         lexer->lookahead == '-' || lexer->lookahead == '_') {
+  while (is_name_char(lexer->lookahead)) {
     if (length < MAX_NAME) name[length] = (char)lexer->lookahead;
     length++;
     advance(lexer);
@@ -565,6 +577,11 @@ static bool scan_node_before_section(TSLexer *lexer,
   }
 }
 
+// Conditionals, which texi2any evaluates before parsing.
+static inline bool is_conditional(const char *name) {
+  return strncmp(name, "if", 2) == 0;
+}
+
 /** The name of the innermost open block; there must be one. */
 static inline const char *innermost_block(const Scanner *scanner) {
   return BLOCKS[scanner->stack[scanner->depth - 1]].name;
@@ -573,9 +590,7 @@ static inline const char *innermost_block(const Scanner *scanner) {
 /** Pops the innermost block, whose `@end NAME` has just been read. */
 static bool pop_block(Scanner *scanner, TSLexer *lexer) {
   scanner->depth--;
-  lexer->mark_end(lexer);
-  lexer->result_symbol = BLOCK_END;
-  return true;
+  return accept(lexer, BLOCK_END);
 }
 
 // Accent commands, which texi2any also accepts without braces: `@'e`,
@@ -607,9 +622,7 @@ static bool scan_accent_argument(TSLexer *lexer) {
     return false;
   }
   advance(lexer);
-  lexer->mark_end(lexer);
-  lexer->result_symbol = ACCENT_ARGUMENT;
-  return true;
+  return accept(lexer, ACCENT_ARGUMENT);
 }
 
 /**
@@ -647,7 +660,7 @@ static bool scan_inline_raw(TSLexer *lexer) {
 static const Block *innermost_structure(const Scanner *scanner) {
   for (unsigned i = scanner->depth; i > 0; i--) {
     const Block *block = &BLOCKS[scanner->stack[i - 1]];
-    if (strncmp(block->name, "if", 2) != 0) return block;
+    if (!is_conditional(block->name)) return block;
   }
   return NULL;
 }
@@ -675,11 +688,6 @@ static bool in_item_container(const Scanner *scanner) {
                            strcmp(block->name, "enumerate") == 0);
 }
 
-static bool is_macro_name_char(int32_t c) {
-  return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
-         (c >= '0' && c <= '9') || c == '-' || c == '_';
-}
-
 // FNV-1a.
 static uint32_t name_hash(const char *name) {
   uint32_t hash = 2166136261u;
@@ -704,10 +712,11 @@ static int find_macro(const Scanner *scanner, const char *name) {
  * parameters, and remembers its kind.
  */
 static void remember_macro(Scanner *scanner, TSLexer *lexer, bool line) {
-  while (is_blank(lexer->lookahead)) advance(lexer);
+  skip_blanks(lexer);
+  // Unlike other names, a macro's may start with a digit.
   char name[MAX_NAME + 1];
   unsigned length = 0;
-  while (length < MAX_NAME && is_macro_name_char(lexer->lookahead)) {
+  while (length < MAX_NAME && is_name_char(lexer->lookahead)) {
     name[length++] = (char)lexer->lookahead;
     advance(lexer);
   }
@@ -717,7 +726,7 @@ static void remember_macro(Scanner *scanner, TSLexer *lexer, bool line) {
   // The parameters are what is between the first `{` and `}`, split at
   // commas, as texi2any reads them.
   unsigned parameters = 0;
-  while (is_blank(lexer->lookahead)) advance(lexer);
+  skip_blanks(lexer);
   if (lexer->lookahead == '{') {
     advance(lexer);
     bool content = false;
@@ -756,25 +765,14 @@ static bool scan_block_start(Scanner *scanner, TSLexer *lexer,
   int index = find_block(name);
   if (index < 0) return false;
 
-  enum TokenType token;
+  // The opener's token for each kind of block, in BlockKind's order.
+  static const enum TokenType START_TOKENS[] = {
+      BLOCK_START,     LIST_START,  MULTITABLE_START, FLOAT_START,
+      RAW_BLOCK_START, MACRO_START, MENU_START};
   BlockKind kind = BLOCKS[index].kind;
-  if (kind >= KIND_DEFINITION) {
-    token = DEFINITION_START + (kind - KIND_DEFINITION);
-  } else if (kind == KIND_BLOCK) {
-    token = BLOCK_START;
-  } else if (kind == KIND_LIST) {
-    token = LIST_START;
-  } else if (kind == KIND_MULTITABLE) {
-    token = MULTITABLE_START;
-  } else if (kind == KIND_FLOAT) {
-    token = FLOAT_START;
-  } else if (kind == KIND_MENU) {
-    token = MENU_START;
-  } else if (kind == KIND_MACRO) {
-    token = MACRO_START;
-  } else {
-    token = RAW_BLOCK_START;
-  }
+  enum TokenType token = kind >= KIND_DEFINITION
+                             ? DEFINITION_START + (kind - KIND_DEFINITION)
+                             : START_TOKENS[kind];
   if (!valid_symbols[token]) return false;
   if (scanner->depth >= MAX_DEPTH) return false;
 
@@ -835,7 +833,7 @@ static bool scan_end(Scanner *scanner, TSLexer *lexer,
   // texi2any, before it is reported as unmatched; but not conditionals,
   // which texi2any has evaluated, nor for an `@end` without a name.
   if (has_name && valid_symbols[MISSING_END] && scanner->depth > 0 &&
-      strncmp(innermost_block(scanner), "if", 2) != 0) {
+      !is_conditional(innermost_block(scanner))) {
     scanner->depth--;
     lexer->result_symbol = MISSING_END;
     return true;
@@ -845,9 +843,7 @@ static bool scan_end(Scanner *scanner, TSLexer *lexer,
          lexer->lookahead != '\r') {
     advance(lexer);
   }
-  lexer->mark_end(lexer);
-  lexer->result_symbol = UNMATCHED_END;
-  return true;
+  return accept(lexer, UNMATCHED_END);
 }
 
 /**
@@ -926,9 +922,7 @@ static bool scan_verb(Scanner *scanner, TSLexer *lexer,
     if (lexer->eof(lexer)) return false;
     scanner->verb_delimiter = lexer->lookahead;
     advance(lexer);
-    lexer->mark_end(lexer);
-    lexer->result_symbol = VERB_OPEN;
-    return true;
+    return accept(lexer, VERB_OPEN);
   }
 
   bool has_text = false;
@@ -954,9 +948,7 @@ static bool scan_verb(Scanner *scanner, TSLexer *lexer,
 
   // Unclosed at end of file; the missing delimiter is a parse error.
   if (!has_text || !valid_symbols[VERB_TEXT]) return false;
-  lexer->mark_end(lexer);
-  lexer->result_symbol = VERB_TEXT;
-  return true;
+  return accept(lexer, VERB_TEXT);
 }
 
 /**
@@ -966,17 +958,16 @@ static bool scan_verb(Scanner *scanner, TSLexer *lexer,
  * command.
  */
 static bool closes_brace(const char *name) {
-  static const char *const KEPT_INSIDE[] = {"ignore", "tex", "html",
-                                            "latex",  "xml", "docbook"};
-  return find_block(name) >= 0 && strncmp(name, "if", 2) != 0 &&
-         !in_table(KEPT_INSIDE, TABLE_COUNT(KEPT_INSIDE), name);
+  int index = find_block(name);
+  if (index < 0 || is_conditional(name)) return false;
+  return BLOCKS[index].kind != KIND_RAW || strcmp(name, "verbatim") == 0;
 }
 
 /**
  * Closes an unclosed brace command before the end of the current line if
  * texi2any would close it there: the next line is blank or opens a block
  * other than a conditional (ordinary brace commands only), or it is the `@end`
- * of the innermost open block, or the file ends. The lexer is at the line
+ * of an open block, or the file ends. The lexer is at the line
  * end, after any blanks.
  */
 static bool scan_missing_brace(Scanner *scanner, TSLexer *lexer,
@@ -1174,17 +1165,13 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
         !in_preformatted(scanner) &&
         (lexer->lookahead == '\n' || lexer->lookahead == '\r')) {
       // The line is blank: the paragraph has ended.
-      lexer->mark_end(lexer);
-      lexer->result_symbol = BRACE_CLOSE_AT_PARAGRAPH_END;
-      return true;
+      return accept(lexer, BRACE_CLOSE_AT_PARAGRAPH_END);
     }
     if (lexer->eof(lexer) || lexer->lookahead == '\n' ||
         lexer->lookahead == '\r') {
       // In a line command's argument, a brace closes at the end of the line.
       if (valid_symbols[BRACE_CLOSE_AT_LINE_END]) {
-        lexer->mark_end(lexer);
-        lexer->result_symbol = BRACE_CLOSE_AT_LINE_END;
-        return true;
+        return accept(lexer, BRACE_CLOSE_AT_LINE_END);
       }
       return scan_missing_brace(scanner, lexer, valid_symbols);
     }
@@ -1240,9 +1227,7 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
   if (valid_symbols[ROW_NAME] &&
       (strcmp(name, "item") == 0 || strcmp(name, "headitem") == 0) &&
       in_multitable(scanner)) {
-    lexer->mark_end(lexer);
-    lexer->result_symbol = ROW_NAME;
-    return true;
+    return accept(lexer, ROW_NAME);
   }
   int macro = find_macro(scanner, name);
   if (macro >= 0) {
@@ -1257,7 +1242,7 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
         // Without a `{` after it on its line, the rest of the line is the
         // argument, where the grammar allows that; otherwise braces.
         if (valid_symbols[ONE_PARAMETER_MACRO_CALL_NAME]) {
-          while (is_blank(lexer->lookahead)) advance(lexer);
+          skip_blanks(lexer);
           if (lexer->lookahead != '{') {
             lexer->result_symbol = ONE_PARAMETER_MACRO_CALL_NAME;
             return true;
@@ -1276,37 +1261,25 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
     }
   }
   if (valid_symbols[MATH_NAME] && strcmp(name, "math") == 0) {
-    lexer->mark_end(lexer);
-    lexer->result_symbol = MATH_NAME;
-    return true;
+    return accept(lexer, MATH_NAME);
   }
   if (valid_symbols[CONTAINER_ITEM_NAME] && strcmp(name, "item") == 0 &&
       in_item_container(scanner)) {
-    lexer->mark_end(lexer);
-    lexer->result_symbol = CONTAINER_ITEM_NAME;
-    return true;
+    return accept(lexer, CONTAINER_ITEM_NAME);
   }
   if (valid_symbols[CONTEXT_COMMAND_NAME] &&
       (strcmp(name, "footnote") == 0 || strcmp(name, "caption") == 0 ||
        strcmp(name, "shortcaption") == 0)) {
-    lexer->mark_end(lexer);
-    lexer->result_symbol = CONTEXT_COMMAND_NAME;
-    return true;
+    return accept(lexer, CONTEXT_COMMAND_NAME);
   }
   if (valid_symbols[SUBENTRY_NAME] && strcmp(name, "subentry") == 0) {
-    lexer->mark_end(lexer);
-    lexer->result_symbol = SUBENTRY_NAME;
-    return true;
+    return accept(lexer, SUBENTRY_NAME);
   }
   if (valid_symbols[TAB] && strcmp(name, "tab") == 0) {
-    lexer->mark_end(lexer);
-    lexer->result_symbol = TAB;
-    return true;
+    return accept(lexer, TAB);
   }
   if (valid_symbols[LINE_COMMAND_NAME] && is_line_command(name)) {
-    lexer->mark_end(lexer);
-    lexer->result_symbol = LINE_COMMAND_NAME;
-    return true;
+    return accept(lexer, LINE_COMMAND_NAME);
   }
   if (valid_symbols[BRACE_COMMAND_NAME] &&
       in_table(BRACE_COMMANDS, TABLE_COUNT(BRACE_COMMANDS), name)) {

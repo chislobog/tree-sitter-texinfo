@@ -33,7 +33,7 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-from texinfo_language import add_files_argument, dump, files_argument, load_language
+from texinfo_language import BLOCK_NAMES, add_files_argument, dump, files_argument, load_language
 
 from tree_sitter import Node, Parser, Point, Tree
 
@@ -74,14 +74,6 @@ def paragraphs(node: Node) -> list[Node]:
 # Commands whose argument spans paragraphs, as in texi2any, so a brace left
 # open in it runs to its end: not checked.
 SPANNING = {b"footnote", b"caption", b"shortcaption", b"math"}
-# Block commands, from the scanner's table: an edit that makes a line start
-# with one opens a block, which runs on to its `@end` by design.
-BLOCK_NAMES = set(
-    re.findall(
-        r'\{"(\w+)", KIND_\w+(?: \+ \d+)?\}',
-        (Path(__file__).resolve().parent.parent / "src" / "scanner.c").read_text(),
-    )
-)
 LINE_COMMAND = re.compile(rb"[ \t]*@([a-zA-Z][\w-]*)")
 # Calls to a macro defined in the file may span paragraphs too.
 MACRO_DEFINITION = re.compile(rb"^@r?macro[ \t]+([\w-]+)", re.M)
@@ -180,12 +172,13 @@ def check_file(
         before = LINE_COMMAND.match(source, line_start)
         if (
             opener
+            # A block opener, which runs on to its `@end` by design.
             and opener.group(1).decode() in BLOCK_NAMES
             and (before is None or before.group(1) != opener.group(1))
         ):
             continue
         problems.extend(
-            check_edit(parser, path, old_tree, paragraph, offset, removed, inserted, keep)
+            check_edit(parser, path, source, old_tree, paragraph, offset, removed, inserted, keep)
         )
     return problems
 
@@ -193,6 +186,7 @@ def check_file(
 def check_edit(
     parser: Parser,
     path: Path,
+    source: bytes,
     old_tree: Tree,
     paragraph: Node,
     offset: int,
@@ -200,9 +194,9 @@ def check_edit(
     inserted: bytes,
     keep: Path | None = None,
 ) -> list[str]:
-    """The problems with an edit of `path`, whose tree is `old_tree`: `removed`
-    bytes at `offset`, in `paragraph`, replaced by `inserted`."""
-    source = path.read_bytes()
+    """The problems with an edit of `source`, the text of `path`, whose tree
+    is `old_tree`: `removed` bytes at `offset`, in `paragraph`, replaced by
+    `inserted`."""
     edited = source[:offset] + inserted + source[offset + removed :]
     description = (
         f"insert {inserted.decode()!r}" if inserted else f"delete {source[offset : offset + 1]!r}"

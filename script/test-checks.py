@@ -178,12 +178,15 @@ def check_edits(checker: Checker):
     spec.loader.exec_module(module)
     parser = Parser(load_language())
     path = ROOT / CHECKS / "edits.texi"
-    tree = parser.parse(path.read_bytes())
+    source = path.read_bytes()
+    tree = parser.parse(source)
     first = next(p for p in module.paragraphs(tree.root_node) if p.text.startswith(b"First"))
-    local = module.check_edit(parser, path, tree, first, first.start_byte + 2, 0, b"@code{")
+    local = module.check_edit(parser, path, source, tree, first, first.start_byte + 2, 0, b"@code{")
     checker.report("edits: a local mistake passes", [f"found {p}" for p in local])
     # Ending the list early changes the items after the paragraph.
-    spreading = module.check_edit(parser, path, tree, first, first.start_byte, 0, b"@end itemize\n")
+    spreading = module.check_edit(
+        parser, path, source, tree, first, first.start_byte, 0, b"@end itemize\n"
+    )
     found = any("nodes changed outside" in p for p in spreading)
     checker.report("edits: a mistake that spreads fails", [] if found else ["found no problem"])
 

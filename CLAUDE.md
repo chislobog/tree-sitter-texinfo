@@ -190,7 +190,7 @@ items and line commands.
   the grammar: every keyword is an entry in every parser state where a
   command can start. Moving 199 keywords to the scanner took `parser.c` from
   29 MB to 6 MB.
-- Watch `tree-sitter generate` time (normally about 5 seconds) and the
+- Watch `tree-sitter generate` time (normally about 12 seconds) and the
   parser's state count: CI (`script/check-parser-size.sh`) warns when it grows
   by 10% and fails at 50%. Nested
   optional sequences, as in `commaArguments`, multiply parser states quickly;

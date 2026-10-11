@@ -70,11 +70,10 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 
-from texinfo_language import ROOT, add_files_argument, files_argument, load_language
+from texinfo_language import BLOCK_NAMES, add_files_argument, files_argument, load_language
 
 from tree_sitter import Parser
 
-FORMATS = ("info", "plaintext", "html", "docbook", "xml", "latex", "tex")
 HEADINGS = (
     "part_heading",
     "top_heading",
@@ -83,11 +82,6 @@ HEADINGS = (
     "subsection_heading",
     "subsubsection_heading",
     "heading",
-)
-MACRO_BLOCKS = ("macro", "rmacro", "linemacro")
-# Block names, from the scanner's table.
-BLOCK_NAMES = set(
-    re.findall(r'\{"(\w+)", KIND_\w+(?: \+ \d+)?\}', (ROOT / "src" / "scanner.c").read_text())
 )
 INLINE_CONDITIONALS = (
     "@inlinefmt",
@@ -101,7 +95,7 @@ INLINE_CONDITIONALS = (
 @dataclass
 class Token:
     name: str
-    # Line in the expanded text; texi2any's dump doesn't record positions.
+    # Line in the text compared; texi2any's dump doesn't record positions.
     line: int | None = None
     # Block markers, items and line commands; the rest are inline.
     structural: bool = False
