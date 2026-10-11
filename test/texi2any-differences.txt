@@ -384,6 +384,14 @@ texinfo-tests/65linemacro/begin_conditional_in_linemacro.texi
 texinfo-tests/65linemacro/block_begin_end_in_linemacro_call.texi
   3 parse errors
 
+# Grammar: in a line macro call, a brace command's braces close at the end of the line, as in other line commands (`@lm @code{` then text on the next line); allowing line breaks there would cost 400 parser states, for an input only texi2any's tests have
+texinfo-tests/65linemacro/comment_in_linemacro_call.texi
+  1 parse errors
+
+# Grammar: in a line macro call, a brace command's braces close at the end of the line, as in other line commands (`@lm @code{` then text on the next line); allowing line breaks there would cost 400 parser states, for an input only texi2any's tests have
+texinfo-tests/65linemacro/comment_in_one_argument_linemacro_call.texi
+  1 parse errors
+
 # Macro: a line macro's braced argument spans lines holding a block's start or end, which only works after expansion; the tree keeps the call unexpanded
 texinfo-tests/65linemacro/end_conditional_in_linemacro.texi
   2 parse errors

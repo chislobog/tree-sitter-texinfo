@@ -75,6 +75,11 @@ enum TokenType {
   // Zero-width, between two parts of a definition line's word with no space
   // between them, which make one word, as in texi2any.
   WORD_GLUE,
+  // A call of a macro with exactly one parameter, with no `{` after it on
+  // its line: its argument is the rest of the line.
+  ONE_PARAMETER_MACRO_CALL_NAME,
+  // A call of a `@linemacro`, where a line can start.
+  LINE_MACRO_CALL_NAME,
   ERROR_SENTINEL,
 };
 
@@ -214,7 +219,7 @@ static const Block BLOCKS[] = {
 #define STATE_HEADER (sizeof(int32_t) + 2)
 #define MAX_DEPTH                                         \
   (TREE_SITTER_SERIALIZATION_BUFFER_SIZE - STATE_HEADER - \
-   MAX_MACROS * sizeof(uint32_t))
+   MAX_MACROS * (sizeof(uint32_t) + 1))
 
 typedef struct {
   // Indices into BLOCKS, innermost last.
@@ -224,11 +229,22 @@ typedef struct {
   int32_t verb_delimiter;
   // Whether the last token was the name of an accent command.
   bool after_accent;
-  // Hashes of the names of the macros defined so far (`@macro`, `@rmacro`):
-  // a call to one may hold blank lines, as in texi2any.
+  // Hashes of the names of the macros defined so far (`@macro`, `@rmacro`,
+  // `@linemacro`), and the kind of each: a call to one may hold blank lines,
+  // as in texi2any.
   uint32_t macros[MAX_MACROS];
+  uint8_t macro_kinds[MAX_MACROS];
   uint8_t macro_count;
 } Scanner;
+
+typedef enum {
+  // A `@macro` or `@rmacro` with no parameter or several.
+  MACRO_BRACED,
+  // One with exactly one parameter, which may be called without braces.
+  MACRO_ONE_PARAMETER,
+  // A `@linemacro`, called at the start of a line.
+  MACRO_LINE,
+} MacroKind;
 
 static inline void advance(TSLexer *lexer) { lexer->advance(lexer, false); }
 
@@ -673,19 +689,21 @@ static uint32_t name_hash(const char *name) {
   return hash;
 }
 
-static bool is_macro(const Scanner *scanner, const char *name) {
+// The index of the macro named `name` in `scanner->macros`, or -1.
+static int find_macro(const Scanner *scanner, const char *name) {
   uint32_t hash = name_hash(name);
   for (unsigned i = 0; i < scanner->macro_count; i++) {
-    if (scanner->macros[i] == hash) return true;
+    if (scanner->macros[i] == hash) return (int)i;
   }
-  return false;
+  return -1;
 }
 
 /**
- * Reads ahead the name of the macro a `@macro` line defines, after the end
- * of its token, and remembers it.
+ * Reads ahead the name of the macro a `@macro`, `@rmacro` or `@linemacro`
+ * line defines, after the end of its token, and the number of its
+ * parameters, and remembers its kind.
  */
-static void remember_macro(Scanner *scanner, TSLexer *lexer) {
+static void remember_macro(Scanner *scanner, TSLexer *lexer, bool line) {
   while (is_blank(lexer->lookahead)) advance(lexer);
   char name[MAX_NAME + 1];
   unsigned length = 0;
@@ -694,11 +712,39 @@ static void remember_macro(Scanner *scanner, TSLexer *lexer) {
     advance(lexer);
   }
   name[length] = '\0';
-  if (length == 0 || is_macro(scanner, name) ||
-      scanner->macro_count >= MAX_MACROS) {
-    return;
+  if (length == 0) return;
+
+  // The parameters are what is between the first `{` and `}`, split at
+  // commas, as texi2any reads them.
+  unsigned parameters = 0;
+  while (is_blank(lexer->lookahead)) advance(lexer);
+  if (lexer->lookahead == '{') {
+    advance(lexer);
+    bool content = false;
+    unsigned commas = 0;
+    while (!lexer->eof(lexer) && lexer->lookahead != '}' &&
+           lexer->lookahead != '\n' && lexer->lookahead != '\r') {
+      if (lexer->lookahead == ',') {
+        commas++;
+      } else if (!is_blank(lexer->lookahead)) {
+        content = true;
+      }
+      advance(lexer);
+    }
+    if (content || commas > 0) parameters = commas + 1;
   }
-  scanner->macros[scanner->macro_count++] = name_hash(name);
+  uint8_t kind = line              ? MACRO_LINE
+                 : parameters == 1 ? MACRO_ONE_PARAMETER
+                                   : MACRO_BRACED;
+
+  // A new definition of a macro replaces the old one.
+  int index = find_macro(scanner, name);
+  if (index < 0) {
+    if (scanner->macro_count >= MAX_MACROS) return;
+    index = scanner->macro_count++;
+    scanner->macros[index] = name_hash(name);
+  }
+  scanner->macro_kinds[index] = kind;
 }
 
 /**
@@ -735,8 +781,9 @@ static bool scan_block_start(Scanner *scanner, TSLexer *lexer,
   scanner->stack[scanner->depth++] = (uint8_t)index;
   lexer->mark_end(lexer);
   lexer->result_symbol = token;
-  if (strcmp(name, "macro") == 0 || strcmp(name, "rmacro") == 0) {
-    remember_macro(scanner, lexer);
+  if (strcmp(name, "macro") == 0 || strcmp(name, "rmacro") == 0 ||
+      strcmp(name, "linemacro") == 0) {
+    remember_macro(scanner, lexer, strcmp(name, "linemacro") == 0);
   }
   return true;
 }
@@ -997,6 +1044,8 @@ unsigned tree_sitter_texinfo_external_scanner_serialize(void *payload,
   memcpy(buffer + size, scanner->macros,
          scanner->macro_count * sizeof(uint32_t));
   size += scanner->macro_count * sizeof(uint32_t);
+  memcpy(buffer + size, scanner->macro_kinds, scanner->macro_count);
+  size += scanner->macro_count;
   memcpy(buffer + size, scanner->stack, scanner->depth);
   return size + scanner->depth;
 }
@@ -1018,6 +1067,8 @@ void tree_sitter_texinfo_external_scanner_deserialize(void *payload,
   memcpy(scanner->macros, buffer + size,
          scanner->macro_count * sizeof(uint32_t));
   size += scanner->macro_count * sizeof(uint32_t);
+  memcpy(scanner->macro_kinds, buffer + size, scanner->macro_count);
+  size += scanner->macro_count;
   scanner->depth = length - size;
   memcpy(scanner->stack, buffer + size, scanner->depth);
 }
@@ -1193,10 +1244,36 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
     lexer->result_symbol = ROW_NAME;
     return true;
   }
-  if (valid_symbols[MACRO_CALL_NAME] && is_macro(scanner, name)) {
+  int macro = find_macro(scanner, name);
+  if (macro >= 0) {
     lexer->mark_end(lexer);
-    lexer->result_symbol = MACRO_CALL_NAME;
-    return true;
+    switch (scanner->macro_kinds[macro]) {
+      case MACRO_LINE:
+        // Elsewhere than at the start of a line, an unknown command.
+        if (!valid_symbols[LINE_MACRO_CALL_NAME]) return false;
+        lexer->result_symbol = LINE_MACRO_CALL_NAME;
+        return true;
+      case MACRO_ONE_PARAMETER:
+        // Without a `{` after it on its line, the rest of the line is the
+        // argument, where the grammar allows that; otherwise braces.
+        if (valid_symbols[ONE_PARAMETER_MACRO_CALL_NAME]) {
+          while (is_blank(lexer->lookahead)) advance(lexer);
+          if (lexer->lookahead != '{') {
+            lexer->result_symbol = ONE_PARAMETER_MACRO_CALL_NAME;
+            return true;
+          }
+          // The lexer is past the blanks now: the checks below would end
+          // the token after them.
+          if (!valid_symbols[MACRO_CALL_NAME]) return false;
+        }
+        break;
+      default:
+        break;
+    }
+    if (valid_symbols[MACRO_CALL_NAME]) {
+      lexer->result_symbol = MACRO_CALL_NAME;
+      return true;
+    }
   }
   if (valid_symbols[MATH_NAME] && strcmp(name, "math") == 0) {
     lexer->mark_end(lexer);

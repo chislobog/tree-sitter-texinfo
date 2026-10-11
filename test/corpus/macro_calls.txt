@@ -1,0 +1,115 @@
+================================================================================
+A macro with one parameter takes the rest of the line without braces
+================================================================================
+
+@macro bar {p}
+Twice: \p\ & \p\.
+@end macro
+
+Text
+@bar aah @code{x}
+more text.
+
+@bar {braced} here.
+
+---
+
+(source_file
+  (macro_definition
+    name: (command_name)
+    macro: (text)
+    parameter: (text)
+    body: (raw_text)
+    end: (block_end))
+  (paragraph
+    (text)
+    (inline_command
+      name: (command_name)
+      argument: (line_argument
+        (text)
+        (inline_command
+          name: (command_name)
+          arguments: (brace_arguments
+            (text)))))
+    (text))
+  (paragraph
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (text)))
+    (text)))
+
+================================================================================
+Macros with other numbers of parameters take no argument without braces
+================================================================================
+
+@macro two {a, b}
+\a\\b\
+@end macro
+@macro none
+X
+@end macro
+
+@two rest @none rest
+
+---
+
+(source_file
+  (macro_definition
+    name: (command_name)
+    macro: (text)
+    parameter: (text)
+    parameter: (text)
+    body: (raw_text)
+    end: (block_end))
+  (macro_definition
+    name: (command_name)
+    macro: (text)
+    body: (raw_text)
+    end: (block_end))
+  (paragraph
+    (inline_command
+      name: (command_name))
+    (text)
+    (inline_command
+      name: (command_name))
+    (text)))
+
+================================================================================
+A line macro call takes the rest of its line and continued lines
+================================================================================
+
+@linemacro defbuiltin {name, args}
+@defline {Builtin} \name\ \args\
+@end linemacro
+
+@defblock
+@defbuiltin foo {a b} (bar) @
+baz
+Explanation.
+@end defblock
+
+---
+
+(source_file
+  (macro_definition
+    name: (command_name)
+    macro: (text)
+    parameter: (text)
+    parameter: (text)
+    body: (raw_text)
+    end: (block_end))
+  (block
+    name: (command_name)
+    (line_command
+      name: (command_name)
+      argument: (line_argument
+        (text)
+        (brace_group
+          (text))
+        (text)
+        (line_continuation)
+        (text)))
+    (paragraph
+      (text))
+    end: (block_end)))
