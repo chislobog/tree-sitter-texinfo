@@ -5,6 +5,10 @@ src/*.json linguist-generated
 src/parser.c linguist-generated
 src/tree_sitter/* linguist-generated
 
+# This repository's generated files
+editors/neovim/queries/* linguist-generated
+test/tree-snapshots.txt linguist-generated
+
 # C bindings
 bindings/c/** linguist-generated
 CMakeLists.txt linguist-generated

@@ -11,6 +11,7 @@
         "txi",
         "texinfo"
       ],
+      "first-line-regex": "^\\\\input texinfo",
       "injection-regex": "^texinfo$",
       "class-name": "TreeSitterTexinfo",
       "highlights": "queries/highlights.scm",
@@ -25,8 +26,7 @@
     "authors": [
       {
         "name": "Janko Lisica",
-        "email": "janko.lisica@gmail.com",
-        "url": ""
+        "email": "janko.lisica@gmail.com"
       }
     ],
     "links": {
