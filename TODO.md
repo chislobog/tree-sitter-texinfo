@@ -232,13 +232,12 @@ Deliberate, so the tree shows the source as it is written and edited:
 - [x] Standard tools instead of shell scripts: `nix flake check` runs every
   check (cached by Nix), `nix fmt` formats (treefmt-nix), pre-commit runs
   the git hooks (git-hooks.nix); the justfile only holds one-line aliases
-- [x] Queries for several editors: `queries/` with Helix's capture names,
-  which `.tsqueryrc.json` enforces, and `editors/neovim/queries/` generated
-  from them with Neovim's, checked against nvim-treesitter's lists
-- [x] Helix: capture names Helix's themes know (`@markup.bold`,
-  `@constant.character.escape`, `@keyword.control.conditional`), and
-  `queries/textobjects.scm`. No indent queries, deliberately: Texinfo isn't
-  indented by nesting, and Helix keeps the previous line's indentation
+- [x] Queries for several editors, favouring none: `queries/` uses the
+  plainer capture name where editors differ (`.tsqueryrc.json`
+  enforces them), and `editors/helix/queries/` and `editors/neovim/queries/`
+  are generated from them with each editor's names, checked against its
+  lists. Textobjects too. No indent queries, deliberately: Texinfo isn't
+  indented by nesting, and editors keep the previous line's indentation
   without them
 
 ## Project

@@ -4,6 +4,14 @@ The version follows [semantic versioning](https://semver.org/) as the
 tree-sitter documentation describes it for grammars: while it is 0.y.z, a
 change to node types or the tree's structure bumps the minor version.
 
+## Unreleased
+
+- `queries/` no longer follows Helix's capture names but, where editors
+  differ, uses the plainer name: `@markup.strong`, `@string.escape` and
+  `@keyword.conditional` instead of `@markup.bold`,
+  `@constant.character.escape` and `@keyword.control.conditional`. Helix's
+  queries, with its names, are now in `editors/helix/queries/`.
+
 ## 0.1.0
 
 The first release: a grammar for GNU Texinfo, for structural editing and

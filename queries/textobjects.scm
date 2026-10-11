@@ -1,9 +1,8 @@
-; Textobjects, for Helix: selecting with `ma`/`mi` and moving with `]`/`[`
-; followed by the object's key. Helix merges the nodes a match captures
-; under one name into a single range; `(_)+` takes all the siblings in one
-; match (an anchor after it would match nothing).
-; Sections are classes, as in Helix's LaTeX queries: the section, and its
-; content after the heading.
+; Textobjects, for selecting and moving by them. Editors merge the nodes a
+; match captures under one name into a single range; `(_)+` takes all the
+; siblings in one match (an anchor after it would match nothing).
+; Sections are classes, as in LaTeX's queries: the section, and its content
+; after the heading.
 [
   (part)
   (top)

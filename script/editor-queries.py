@@ -1,16 +1,22 @@
 #!/usr/bin/env python3
-"""Generate the queries for editors whose capture names differ from those
-in queries/, which follow Helix's.
+"""Generate each editor's queries from those in queries/.
 
-Each editor has a table: the capture names to rename, and the captures it
-doesn't have, whose patterns are left out (with the comment before them).
-Only captures are renamed, not text in string literals or comments. Each
-file starts with a line saying where it comes from; the files are
-committed, and `--check` fails if one isn't what this script would write.
+queries/ follows no single editor's capture names: where editors
+disagree, it takes the plainer name (`.tsqueryrc.json` lists them). Each
+editor has a table: the files it uses, the capture names to rename, and the
+captures it doesn't have, whose patterns are left out (with the comment
+before them). Only captures are renamed, not text in string
+literals or comments. Each file starts with a line saying where it comes
+from; the files are committed, checked against the editor's own capture
+names (editors/NAME/tsqueryrc.json), and `--check` fails if one isn't what
+this script would write.
 
-- Neovim (editors/neovim/queries/): nvim-treesitter's highlight names, and
-  nvim-treesitter-textobjects' `outer`/`inner` instead of `around`/`inside`,
-  without `entry`. Neovim doesn't use tags.
+- Helix (editors/helix/queries/): `markup.bold`,
+  `constant.character.escape` and `keyword.control.conditional`. Helix
+  doesn't fold.
+- Neovim (editors/neovim/queries/): nvim-treesitter-textobjects' `outer`/
+  `inner` instead of `around`/`inside`, without `entry`. Neovim doesn't use
+  tags.
 
 Usage: script/editor-queries.py [--check]
 """
@@ -24,12 +30,18 @@ ROOT = Path(__file__).resolve().parent.parent
 QUERIES = ROOT / "queries"
 
 EDITORS = {
+    "helix": {
+        "files": ["highlights.scm", "injections.scm", "textobjects.scm", "tags.scm"],
+        "rename": {
+            "markup.strong": "markup.bold",
+            "string.escape": "constant.character.escape",
+            "keyword.conditional": "keyword.control.conditional",
+        },
+        "drop": [],
+    },
     "neovim": {
         "files": ["highlights.scm", "injections.scm", "folds.scm", "textobjects.scm"],
         "rename": {
-            "markup.bold": "markup.strong",
-            "constant.character.escape": "string.escape",
-            "keyword.control.conditional": "keyword.conditional",
             r"(\w+)\.around": r"\1.outer",
             r"(\w+)\.inside": r"\1.inner",
         },

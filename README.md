@@ -73,10 +73,18 @@ is not done yet.
 
 ## Queries
 
-Editors name their captures differently. The queries in `queries/` follow
-Helix's names; `editors/neovim/queries/` has the same queries with Neovim's
-(nvim-treesitter's highlights, nvim-treesitter-textobjects' `outer` and
-`inner`), generated from them.
+Editors name their captures differently, and tree-sitter defines no standard
+names. The queries in `queries/` follow no single editor: where editors
+disagree, they use the plainer name, as Neovim's and Zed's mostly do
+(`@markup.strong` like Texinfo's `@strong`, `@string.escape`,
+`@keyword.conditional`; textobjects' `around` and `inside`, as Helix's and
+Zed's). Each editor gets
+the same queries with its own names, generated from them:
+`editors/helix/queries/` (`@markup.bold`, `@constant.character.escape`,
+`@keyword.control.conditional`) and `editors/neovim/queries/`
+(nvim-treesitter-textobjects' `outer` and `inner`). Use an editor's own
+directory when there is one; `queries/` is for the tree-sitter CLI and
+editors without one.
 
 - `queries/highlights.scm`: headings, nodes and links, definitions, blocks,
   lists, commands and inline markup.
@@ -89,14 +97,14 @@ Helix's names; `editors/neovim/queries/` has the same queries with Neovim's
 - `queries/tags.scm`: nodes, anchors, float labels, documented functions and
   variables, macros, aliases and `@set` variables as definitions;
   cross-references, menu entries and `@value` as references.
-- `queries/textobjects.scm`, for Helix's `ma`/`mi` selections and `]`/`[`
-  movements: sections as classes, definitions and macro definitions as
+- `queries/textobjects.scm`, for selecting and moving by them (Helix's
+  `ma`/`mi` and `]`/`[`, Neovim's nvim-treesitter-textobjects): sections as classes, definitions and macro definitions as
   functions, arguments as parameters, items, rows, cells and menu entries as
   entries, and comments.
 
 There are no indent queries on purpose: Texinfo isn't indented by nesting,
 and in `@example` indentation is content, so the editor should keep the
-previous line's indentation, which Helix does without them.
+previous line's indentation, which editors do without them.
 
 ## Using it in an editor
 
@@ -133,7 +141,7 @@ source = { git = "https://github.com/chislobog/tree-sitter-texinfo", rev = "main
 ```
 
 Then build the grammar with `hx --grammar fetch` and `hx --grammar build`, and
-link or copy `queries/` as Helix's `runtime/queries/texinfo/`.
+link or copy `editors/helix/queries/` as Helix's `runtime/queries/texinfo/`.
 
 ## Development
 

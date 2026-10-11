@@ -64,15 +64,19 @@ well with incomplete input, which is normal while editing.
   committed; always commit it together with the `grammar.js` change.
 - `test/corpus/*.txt`: corpus tests.
 - `script/compare-texi2any.py`: compares our trees with texi2any's.
-- `queries/`: highlights, injections, folds, tags and textobjects, with
-  Helix's capture names, which `.tsqueryrc.json` lists, so `ts_query_ls`
-  rejects any other; no indents, as Texinfo isn't indented by nesting.
-  `script/editor-queries.py` generates `editors/neovim/queries/` from them,
-  renaming captures by a table (a pre-commit hook fails if it's stale), checked against `editors/neovim/tsqueryrc.json`. The capture lists
-  come from Helix's book (`themes.md`, the textobject and injection guides)
-  and from nvim-treesitter's and nvim-treesitter-textobjects'
-  `.tsqueryrc.json`; refresh them when an editor adds names. Edit only
-  `queries/`. `tree-sitter query queries/textobjects.scm FILE` shows what a
+- `queries/`: highlights, injections, folds, tags and textobjects, editor
+  neutral: where editors' capture names differ, the plainer one (README).
+  `.tsqueryrc.json` lists the names it uses, so `ts_query_ls` rejects any
+  other; add a new one there only after checking every editor has it, or
+  map it in the generator. No indents, as Texinfo isn't indented by nesting.
+  `script/editor-queries.py` generates `editors/helix/queries/` and
+  `editors/neovim/queries/` from them, renaming captures by a table per
+  editor (a pre-commit hook fails if they're stale), each checked against
+  the editor's own names in `editors/NAME/tsqueryrc.json`. Those lists come
+  from Helix's book (`themes.md`, the textobject and injection guides) and
+  from nvim-treesitter's and nvim-treesitter-textobjects' `.tsqueryrc.json`;
+  refresh them when an editor adds names. To support another editor, add its
+  table and list. Edit only `queries/`. `tree-sitter query queries/textobjects.scm FILE` shows what a
   textobject captures; highlight and tags
   tests are in `test/highlight/` and `test/tags/` (run by `tree-sitter
   test`). `ts_query_ls format queries/` formats them; `ts_query_ls check`

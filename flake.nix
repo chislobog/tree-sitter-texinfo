@@ -190,7 +190,8 @@
               entry = "${lib.getExe pkgs.nodejs_22} ${nodeModules}/node_modules/eslint/bin/eslint.js --config ${eslintConfig}";
               files = "^grammar\\.js$";
             };
-            # The queries against each editor's capture names; ts_query_ls
+            # queries/ against its capture names, and each editor's generated
+            # queries against the editor's; ts_query_ls
             # needs the built parser, and finds the language from a
             # `tree-sitter-texinfo` directory in the path.
             queries = {
@@ -210,7 +211,9 @@
                     tree-sitter build -o "$work/texinfo.so" >/dev/null
                     cd "$work"
                     ts_query_ls check -f queries/
-                    ts_query_ls check -f -c "$(cat editors/neovim/tsqueryrc.json)" editors/neovim/queries
+                    for editor in editors/*/; do
+                      ts_query_ls check -f -c "$(cat "$editor/tsqueryrc.json")" "$editor/queries"
+                    done
                   '';
               files = "^(queries|editors)/|tsqueryrc\\.json$";
               pass_filenames = false;

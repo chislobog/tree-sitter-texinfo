@@ -4,9 +4,9 @@ code here
 @end example
 @c <- keyword
 @ifset FLAG
-@c <- keyword.control.conditional
+@c <- keyword.conditional
 @end ifset
-@c <- keyword.control.conditional
+@c <- keyword.conditional
 @verbatim
 raw @code{x}
 @end verbatim
@@ -44,8 +44,8 @@ Text @code{grep}, @emph{this} and @var{file}.
 @c                                     ^ variable.parameter
 
 Caf@'e and @u o.
-@c  ^ constant.character.escape
-@c         ^ constant.character.escape
+@c  ^ string.escape
+@c         ^ string.escape
 
 @float Figure, fig:one
 @c             ^ markup.link.label
