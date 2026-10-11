@@ -73,13 +73,13 @@ is not done yet.
 
 ## Queries
 
-The queries follow Helix's conventions.
+Editors name their captures differently. The queries in `queries/` follow
+Helix's names; `editors/neovim/queries/` has the same queries with Neovim's
+(nvim-treesitter's highlights, nvim-treesitter-textobjects' `outer` and
+`inner`), generated from them.
 
 - `queries/highlights.scm`: headings, nodes and links, definitions, blocks,
-  lists, commands and inline markup, with Helix's capture names (`@markup.*`,
-  `@keyword`, `@function`, ...). Three differ from Neovim's: `@markup.bold`
-  (`@markup.strong` there), `@constant.character.escape` (`@string.escape`)
-  and `@keyword.control.conditional` (`@keyword.conditional`).
+  lists, commands and inline markup.
 - `queries/injections.scm`: LaTeX in `@tex`, `@latex`, `@math` and
   `@displaymath`, HTML in `@html`, XML in `@xml` and `@docbook`, the
   language its format names in `@inlineraw{html, ...}`, and Texinfo in the
@@ -110,16 +110,13 @@ vim.api.nvim_create_autocmd("User", {
     require("nvim-treesitter.parsers").texinfo = {
       install_info = {
         url = "https://github.com/chislobog/tree-sitter-texinfo",
-        queries = "queries",
+        queries = "editors/neovim/queries",
       },
     }
   end,
 })
 vim.treesitter.language.register("texinfo", "texinfo")
 ```
-
-Three highlight capture names follow Helix rather than Neovim (see
-[Queries](#queries)), so those captures show unhighlighted there.
 
 Helix, in `languages.toml`:
 

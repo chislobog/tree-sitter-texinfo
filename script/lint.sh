@@ -39,6 +39,7 @@ if $fix; then
   ruff check --fix script/ && ruff format script/
   nixfmt flake.nix
   tree-sitter build >/dev/null && ts_query_ls format queries/
+  python3 script/editor-queries.py
 else
   check eslint npx eslint grammar.js
   check clang-format clang-format --dry-run --Werror src/scanner.c
@@ -47,6 +48,11 @@ else
   check shellcheck shellcheck .githooks/* .claude/hooks/*.sh script/*.sh
   check nixfmt nixfmt --check flake.nix
   check actionlint actionlint
+  # queries/ against Helix's capture names (.tsqueryrc.json); the copies
+  # generated for other editors against theirs.
   check ts_query_ls bash -c 'tree-sitter build >/dev/null && ts_query_ls check -f queries/'
+  check "editor queries" python3 script/editor-queries.py --check
+  check "ts_query_ls neovim" ts_query_ls check -f \
+    -c "$(cat editors/neovim/tsqueryrc.json)" editors/neovim/queries
 fi
 exit $status

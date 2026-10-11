@@ -65,10 +65,16 @@ well with incomplete input, which is normal while editing.
 - `test/corpus/*.txt`: corpus tests.
 - `script/compare-texi2any.py`: compares our trees with texi2any's.
 - `queries/`: highlights, injections, folds, tags and textobjects, with
-  Helix's capture names (`@markup.bold`, `@constant.character.escape`,
-  `@keyword.control.conditional`, not Neovim's); no indents, as Texinfo isn't
-  indented by nesting. `tree-sitter query queries/textobjects.scm FILE` shows
-  what a textobject captures; highlight and tags
+  Helix's capture names, which `.tsqueryrc.json` lists, so `ts_query_ls`
+  rejects any other; no indents, as Texinfo isn't indented by nesting.
+  `script/editor-queries.py` generates `editors/neovim/queries/` from them,
+  renaming captures by a table (`--check` in `script/lint.sh` fails if it's
+  stale), checked against `editors/neovim/tsqueryrc.json`. The capture lists
+  come from Helix's book (`themes.md`, the textobject and injection guides)
+  and from nvim-treesitter's and nvim-treesitter-textobjects'
+  `.tsqueryrc.json`; refresh them when an editor adds names. Edit only
+  `queries/`. `tree-sitter query queries/textobjects.scm FILE` shows what a
+  textobject captures; highlight and tags
   tests are in `test/highlight/` and `test/tags/` (run by `tree-sitter
   test`). `ts_query_ls format queries/` formats them; `ts_query_ls check`
   validates them against the grammar (built with `tree-sitter build`). Tags

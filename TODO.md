@@ -229,6 +229,9 @@ Deliberate, so the tree shows the source as it is written and edited:
 - [x] `queries/tags.scm`: nodes, anchors and documented functions and variables
   as definitions; cross-references and menu entries as references
 - [x] Register queries in `tree-sitter.json`
+- [x] Queries for several editors: `queries/` with Helix's capture names,
+  which `.tsqueryrc.json` enforces, and `editors/neovim/queries/` generated
+  from them with Neovim's, checked against nvim-treesitter's lists
 - [x] Helix: capture names Helix's themes know (`@markup.bold`,
   `@constant.character.escape`, `@keyword.control.conditional`), and
   `queries/textobjects.scm`. No indent queries, deliberately: Texinfo isn't

@@ -1,0 +1,16 @@
+; Generated from queries/folds.scm by script/editor-queries.py.
+[
+  (part)
+  (top)
+  (chapter)
+  (section)
+  (subsection)
+  (subsubsection)
+  (block)
+  (definition_block)
+  (list)
+  (item)
+  (menu)
+  (raw_block)
+  (macro_definition)
+] @fold
