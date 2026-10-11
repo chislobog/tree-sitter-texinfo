@@ -110,11 +110,11 @@
 
 ; Blocks
 ((block
-  name: (command_name) @keyword.conditional)
-  (#match? @keyword.conditional "^@if"))
+  name: (command_name) @keyword.control.conditional)
+  (#match? @keyword.control.conditional "^@if"))
 
-((block_end) @keyword.conditional
-  (#match? @keyword.conditional "^@end[ \t]+if"))
+((block_end) @keyword.control.conditional
+  (#match? @keyword.control.conditional "^@end[ \t]+if"))
 
 ((block
   name: (command_name) @keyword
@@ -212,7 +212,7 @@
 
 ((inline_command
   name: (command_name) @function
-  arguments: (brace_arguments) @markup.strong)
+  arguments: (brace_arguments) @markup.bold)
   (#any-of? @function "@strong" "@b"))
 
 ((inline_command
@@ -233,8 +233,8 @@
 
 ; Accents, like the symbol commands they mostly are: `@'e`, `@u{o}`
 ((inline_command
-  name: (command_name) @string.escape)
-  (#any-of? @string.escape
+  name: (command_name) @constant.character.escape)
+  (#any-of? @constant.character.escape
     "@'" "@\"" "@^" "@`" "@~" "@=" "@," "@H" "@dotaccent" "@dotless" "@ogonek" "@ringaccent"
     "@tieaccent" "@u" "@ubaraccent" "@udotaccent" "@v"))
 
@@ -254,7 +254,7 @@
 (ERROR
   (command_name) @function)
 
-(symbol_command) @string.escape
+(symbol_command) @constant.character.escape
 
 [
   "{"

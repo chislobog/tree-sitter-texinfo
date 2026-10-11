@@ -229,6 +229,11 @@ Deliberate, so the tree shows the source as it is written and edited:
 - [x] `queries/tags.scm`: nodes, anchors and documented functions and variables
   as definitions; cross-references and menu entries as references
 - [x] Register queries in `tree-sitter.json`
+- [x] Helix: capture names Helix's themes know (`@markup.bold`,
+  `@constant.character.escape`, `@keyword.control.conditional`), and
+  `queries/textobjects.scm`. No indent queries, deliberately: Texinfo isn't
+  indented by nesting, and Helix keeps the previous line's indentation
+  without them
 
 ## Project
 

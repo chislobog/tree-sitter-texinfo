@@ -73,9 +73,13 @@ is not done yet.
 
 ## Queries
 
+The queries follow Helix's conventions.
+
 - `queries/highlights.scm`: headings, nodes and links, definitions, blocks,
-  lists, commands and inline markup, using the common `@markup.*`,
-  `@keyword` and `@function` capture names.
+  lists, commands and inline markup, with Helix's capture names (`@markup.*`,
+  `@keyword`, `@function`, ...). Three differ from Neovim's: `@markup.bold`
+  (`@markup.strong` there), `@constant.character.escape` (`@string.escape`)
+  and `@keyword.control.conditional` (`@keyword.conditional`).
 - `queries/injections.scm`: LaTeX in `@tex`, `@latex`, `@math` and
   `@displaymath`, HTML in `@html`, XML in `@xml` and `@docbook`, the
   language its format names in `@inlineraw{html, ...}`, and Texinfo in the
@@ -85,6 +89,14 @@ is not done yet.
 - `queries/tags.scm`: nodes, anchors, float labels, documented functions and
   variables, macros, aliases and `@set` variables as definitions;
   cross-references, menu entries and `@value` as references.
+- `queries/textobjects.scm`, for Helix's `ma`/`mi` selections and `]`/`[`
+  movements: sections as classes, definitions and macro definitions as
+  functions, arguments as parameters, items, rows, cells and menu entries as
+  entries, and comments.
+
+There are no indent queries on purpose: Texinfo isn't indented by nesting,
+and in `@example` indentation is content, so the editor should keep the
+previous line's indentation, which Helix does without them.
 
 ## Using it in an editor
 
@@ -106,6 +118,9 @@ vim.api.nvim_create_autocmd("User", {
 vim.treesitter.language.register("texinfo", "texinfo")
 ```
 
+Three highlight capture names follow Helix rather than Neovim (see
+[Queries](#queries)), so those captures show unhighlighted there.
+
 Helix, in `languages.toml`:
 
 ```toml
@@ -120,7 +135,8 @@ name = "texinfo"
 source = { git = "https://github.com/chislobog/tree-sitter-texinfo", rev = "main" }
 ```
 
-Then copy the files in `queries/` to Helix's `runtime/queries/texinfo/`.
+Then build the grammar with `hx --grammar fetch` and `hx --grammar build`, and
+link or copy `queries/` as Helix's `runtime/queries/texinfo/`.
 
 ## Development
 

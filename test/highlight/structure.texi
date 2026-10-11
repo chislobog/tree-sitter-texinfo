@@ -15,7 +15,7 @@
 See @xref{Top, , Title} and @emph{this} @@.
 @c   ^ function
 @c        ^ markup.link.label
-@c                                      ^ string.escape
+@c                                      ^ constant.character.escape
 @cindex entry
 @c <- keyword
 @chapter About @code{grep}

@@ -64,7 +64,11 @@ well with incomplete input, which is normal while editing.
   committed; always commit it together with the `grammar.js` change.
 - `test/corpus/*.txt`: corpus tests.
 - `script/compare-texi2any.py`: compares our trees with texi2any's.
-- `queries/`: highlights, injections, folds and tags; highlight and tags
+- `queries/`: highlights, injections, folds, tags and textobjects, with
+  Helix's capture names (`@markup.bold`, `@constant.character.escape`,
+  `@keyword.control.conditional`, not Neovim's); no indents, as Texinfo isn't
+  indented by nesting. `tree-sitter query queries/textobjects.scm FILE` shows
+  what a textobject captures; highlight and tags
   tests are in `test/highlight/` and `test/tags/` (run by `tree-sitter
   test`). `ts_query_ls format queries/` formats them; `ts_query_ls check`
   validates them against the grammar (built with `tree-sitter build`). Tags
