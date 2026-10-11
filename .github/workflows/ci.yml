@@ -40,61 +40,43 @@ jobs:
         run: nix develop --command true
 
       - name: Generated parser is up to date
-        run: |
-          nix develop --command tree-sitter generate
-          git diff --exit-code src/
+        run: nix develop --command just generated
 
       - name: Tests
-        run: nix develop --command tree-sitter test
+        run: nix develop --command just test
 
       # ESLint, clang-format, ruff, shellcheck, nixfmt, and ts_query_ls, which
       # checks that the queries' node and field names exist in the grammar.
       - name: Lint
-        run: nix develop --command script/lint.sh
+        run: nix develop --command just lint
 
       - name: Incremental parsing
-        run: nix develop --command tree-sitter fuzz --iterations 100
+        run: nix develop --command just fuzz
 
       # Each check below must still fail on inputs it is meant to catch
       # (test/checks/), and pass on the others.
       - name: The checks catch what they should
-        run: nix develop --command python3 script/test-checks.py
+        run: nix develop --command just checks-catch
 
       # Only the manuals listed in test/parse-errors.txt, with the errors in
       # their source, may fail to parse, and none may parse ten times slower
       # than the median (script/parse-examples.py).
       - name: Parse the example manuals
-        run: |
-          nix develop --command bash -c "
-            find -L examples \( -name '*.texi' -o -name '*.texinfo' -o -name '*.txi' \) | sort |
-              python3 script/parse-examples.py"
+        run: nix develop --command just parse
 
       # Without the files texi2any itself fails on, and a fragment for
       # @include. Any difference not listed in test/texi2any-differences.txt
       # with its reason fails, as does a listed one no longer found.
       - name: Compare with texi2any on the manuals
-        run: |
-          nix develop --command bash -c "
-            find -L examples \( -name '*.texi' -o -name '*.texinfo' -o -name '*.txi' \) ! -path '*/it/*' \
-                ! -name texinfo-tex-test.texi ! -name html_default_commands_args.texi |
-              sort | python3 script/compare-texi2any.py --hunks 0 \
-                --expected test/texi2any-differences.txt"
+        run: nix develop --command just compare-manuals
 
       - name: Compare with texi2any on its test inputs
-        run: |
-          nix develop --command bash -c "
-            set -o pipefail
-            find -L texinfo-tests -name '*.texi' | sort |
-              python3 script/compare-texi2any.py --hunks 0 \
-                --expected test/texi2any-differences.txt | tail -1"
+        run: nix develop --command just compare-tests
 
       # Any change to a tree, in any manual or test input, must be deliberate
       # and recorded with `script/tree-snapshots.py --write`.
       - name: Tree snapshots
-        run: |
-          nix develop --command bash -c "
-            find -L examples texinfo-tests \( -name '*.texi' -o -name '*.texinfo' -o -name '*.txi' \) | sort |
-              python3 script/tree-snapshots.py --check"
+        run: nix develop --command just snapshots
 
       # texi2any's 1,700 small, often invalid test inputs and the manuals, as
       # a corpus that exists only here (their licences differ from this
@@ -103,24 +85,12 @@ jobs:
       # input was written whole. Each run has a random seed, which the
       # fuzzer prints.
       - name: Fuzz texi2any's test inputs and the manuals
-        run: |
-          nix develop --command bash -c "
-            set -e -o pipefail
-            { find -L texinfo-tests -name '*.texi'
-              find -L examples \( -name '*.texi' -o -name '*.texinfo' -o -name '*.txi' \); } |
-              sort | python3 script/fuzz-corpus.py
-            tree-sitter test --file-name fuzz-inputs.txt > /dev/null
-            tree-sitter fuzz --include texinfo-tests --iterations 50
-            tree-sitter fuzz --include examples --iterations 10
-            rm test/corpus/fuzz-inputs.txt"
+        run: nix develop --command just fuzz-inputs
 
       # Typing mistakes in the manuals: each must stay local, and an edited
       # tree must equal a fresh parse. A fixed seed, so a failure reproduces.
       - name: Editing simulation
-        run: |
-          nix develop --command bash -c "
-            find -L examples \( -name '*.texi' -o -name '*.texinfo' -o -name '*.txi' \) ! -path '*/it/*' | sort |
-              python3 script/check-edits.py --edits 5 --seed 0"
+        run: nix develop --command just edits
 
   # libFuzzer with address and undefined-behaviour sanitizers, looking for
   # crashes and memory errors in the scanner. Seeded with the corpus test

@@ -29,7 +29,7 @@ well with incomplete input, which is normal while editing.
   separate files. Texinfo files are `.texi`, `.texinfo` or `.txi`; the checks
   take all three. It is not committed.
 - The scripts that check many files read their names from standard input
-  when none are given, as the commands below do: with `xargs`, a long list
+  when none are given, as the justfile's recipes do: with `xargs`, a long list
   is split over several runs, and a check that compares the whole set (a
   snapshot of a file no longer checked, the median speed) goes wrong.
 - tree-sitter CLI: `tree-sitter parse` only finds the grammar when run from
@@ -88,20 +88,22 @@ well with incomplete input, which is normal while editing.
 
 A Claude Code hook (`.claude/hooks/check-grammar.sh`) runs `tree-sitter
 generate` and `tree-sitter test` after every edit to `grammar.js`,
-`src/scanner.c` or the corpus. Before pushing, run `script/check-all.sh`,
-which runs everything CI's check job does (about 7 minutes) and lists the
-steps that fail: CI minutes are limited, so CI should only confirm. While
-working on grammar or scanner changes, the individual checks are:
+`src/scanner.c` or the corpus. The checks are recipes in the `justfile`,
+defined once there and run by CI, `script/check-all.sh` and by hand; `just`
+lists them. Before pushing, run `just check` (`script/check-all.sh`), which
+runs everything CI's check job does (about 7 minutes) and lists the steps
+that fail, so CI only confirms. While working on grammar or scanner
+changes, the individual ones:
 
 ```sh
-cc -std=c11 -Wall -Wextra -Wpedantic -Wshadow -Werror -Isrc -c src/scanner.c -o /tmp/scanner.o
-script/lint.sh                           # linters, formatters, query check
-tree-sitter fuzz --iterations 100        # incremental parsing after edits
-find -L examples \( -name '*.texi' -o -name '*.texinfo' -o -name '*.txi' \) | sort | python3 script/parse-examples.py
-find -L examples \( -name '*.texi' -o -name '*.texinfo' -o -name '*.txi' \) | sort | python3 script/compare-texi2any.py
-find -L examples texinfo-tests \( -name '*.texi' -o -name '*.texinfo' -o -name '*.txi' \) | sort | python3 script/tree-snapshots.py --check
-find -L examples \( -name '*.texi' -o -name '*.texinfo' -o -name '*.txi' \) ! -path '*/it/*' | sort | python3 script/check-edits.py --edits 5
-script/test-checks.py                    # the checks above still catch what they should
+just scanner        # the scanner compiles without warnings
+just lint           # linters, formatters, query checks (`just fix` applies them)
+just fuzz           # incremental parsing after edits of the corpus tests
+just parse          # parse errors and speed of the manuals
+just compare        # differences from texi2any, on the manuals and its tests
+just snapshots      # every tree as recorded (snapshots-diff, snapshots-write)
+just edits          # typing mistakes stay local (`just edits 3` for seed 3)
+just checks-catch   # the checks above still catch what they should
 ```
 
 `script/tree-snapshots.py` checks every manual's and test input's tree
@@ -160,12 +162,8 @@ change, or a fix, run the comparison with `--write-expected
 test/texi2any-differences.txt` (on the same files as CI), check the diff of
 that file, and give each new file a reason; never list a regression.
 
-To compare with texi2any on its own test inputs (about a minute):
-
-```sh
-find -L texinfo-tests -name '*.texi' | sort |
-  python3 script/compare-texi2any.py --expected test/texi2any-differences.txt
-```
+To compare with texi2any on its own test inputs only (about a minute):
+`just compare-tests`, or `just compare-manuals` for the manuals.
 
 The comparisons skip the files texi2any itself fails on (the Italian gawk
 manuals, `texinfo-tex-test.texi`) and `html_default_commands_args.texi`, a

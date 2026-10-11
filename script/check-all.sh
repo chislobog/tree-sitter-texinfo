@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Run locally what CI's check job runs, to check before pushing (CI minutes
-# are limited). Each step's output goes to a log; all steps run, and the
+# Run locally what CI's check job runs (the justfile's recipes), to check
+# before pushing. Each step's output goes to a log; all steps run, and the
 # summary lists the ones that failed. About 7 minutes.
 #
 # Usage: script/check-all.sh [BASE]   (BASE for the parser size, default origin/main)
@@ -14,10 +14,6 @@ fi
 
 base=${1:-origin/main}
 logs=$(mktemp -d "${TMPDIR:-/tmp}/check-all.XXXXXX")
-# The manuals, sorted; arguments add tests to find, in the steps run by
-# `bash -c`, which shellcheck doesn't see.
-# shellcheck disable=SC2120
-manuals() { find -L examples \( -name '*.texi' -o -name '*.texinfo' -o -name '*.txi' \) "$@" | sort; }
 failed=()
 
 step() {
@@ -32,52 +28,22 @@ step() {
   fi
 }
 
-generated() {
-  local before
-  before=$(cat src/grammar.json src/node-types.json src/parser.c | shasum)
-  tree-sitter generate &&
-    [[ $(cat src/grammar.json src/node-types.json src/parser.c | shasum) == "$before" ]] ||
-    { echo "src/ didn't match grammar.js; it is regenerated now"; return 1; }
-}
-
-scanner() {
-  cc -std=c11 -Wall -Wextra -Wpedantic -Wshadow -Werror -Isrc -c src/scanner.c \
-    -o "$logs/scanner.o"
-}
-
-fuzz_inputs() {
-  # shellcheck disable=SC2119
-  { find -L texinfo-tests -name '*.texi'; manuals; } | python3 script/fuzz-corpus.py &&
-    tree-sitter test --file-name fuzz-inputs.txt >/dev/null &&
-    tree-sitter fuzz --include texinfo-tests --iterations 50 &&
-    tree-sitter fuzz --include examples --iterations 10
-  local status=$?
-  rm -f test/corpus/fuzz-inputs.txt
-  return $status
-}
-
 git fetch --quiet origin 2>/dev/null || true
-step "parser size" script/check-parser-size.sh "$base"
-step "generated parser" generated
-step "tests" tree-sitter test
-step "lint" script/lint.sh
-step "scanner warnings" scanner
-step "incremental parsing" tree-sitter fuzz --iterations 100
-# CI's scanner fuzzing writes its seeds with a plain python3, outside the
-# dev shell.
-step "fuzz seeds" env -i PATH=/usr/bin:/bin python3 script/corpus-inputs.py "$logs/seeds"
-step "checks catch" python3 script/test-checks.py
-step "parse manuals" bash -c "$(declare -f manuals); manuals | python3 script/parse-examples.py"
-step "compare manuals" bash -c "$(declare -f manuals); manuals ! -path '*/it/*' \
-  ! -name texinfo-tex-test.texi ! -name html_default_commands_args.texi |
-  python3 script/compare-texi2any.py --hunks 0 --expected test/texi2any-differences.txt"
-step "compare test inputs" bash -c "find -L texinfo-tests -name '*.texi' | sort |
-  python3 script/compare-texi2any.py --hunks 0 --expected test/texi2any-differences.txt"
-step "tree snapshots" bash -c "{ find -L texinfo-tests -name '*.texi'; $(declare -f manuals); manuals; } |
-  sort | python3 script/tree-snapshots.py --check"
-step "fuzz inputs" fuzz_inputs
-step "editing simulation" bash -c "$(declare -f manuals); manuals ! -path '*/it/*' |
-  python3 script/check-edits.py --edits 5 --seed 0"
+# The recipes in the justfile, as CI runs them.
+step "parser size" just parser-size "$base"
+step "generated parser" just generated
+step "tests" just test
+step "lint" just lint
+step "scanner warnings" just scanner
+step "incremental parsing" just fuzz
+step "fuzz seeds" just fuzz-seeds
+step "checks catch" just checks-catch
+step "parse manuals" just parse
+step "compare manuals" just compare-manuals
+step "compare test inputs" just compare-tests
+step "tree snapshots" just snapshots
+step "fuzz inputs" just fuzz-inputs
+step "editing simulation" just edits
 
 grep -h '::warning::' "$logs"/*.log
 if ((${#failed[@]})); then

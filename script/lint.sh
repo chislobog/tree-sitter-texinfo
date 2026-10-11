@@ -8,7 +8,7 @@ set -uo pipefail
 cd "$(git rev-parse --show-toplevel)" || exit 1
 
 # Use the dev shell's tools if this process didn't inherit them all.
-for tool in clang-format ruff shellcheck actionlint nixfmt ts_query_ls tree-sitter npx; do
+for tool in clang-format ruff shellcheck actionlint nixfmt ts_query_ls tree-sitter npx just; do
   if ! command -v "$tool" >/dev/null 2>&1; then
     if [[ -z ${LINT_IN_DEV_SHELL:-} ]]; then
       LINT_IN_DEV_SHELL=1 exec direnv exec . "$0" "$@"
@@ -38,6 +38,7 @@ if $fix; then
   clang-format -i src/scanner.c
   ruff check --fix script/ && ruff format script/
   nixfmt flake.nix
+  just --fmt --unstable
   tree-sitter build >/dev/null && ts_query_ls format queries/
   python3 script/editor-queries.py
 else
@@ -47,6 +48,7 @@ else
   check "ruff format" ruff format --check script/
   check shellcheck shellcheck .githooks/* .claude/hooks/*.sh script/*.sh
   check nixfmt nixfmt --check flake.nix
+  check "just --fmt" just --fmt --check --unstable
   check actionlint actionlint
   # queries/ against Helix's capture names (.tsqueryrc.json); the copies
   # generated for other editors against theirs.

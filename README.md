@@ -150,14 +150,9 @@ as `examples/` and `texi2any`'s test inputs as `texinfo-tests/`.
 - `script/compare-texi2any.py` compares the commands in our trees with
   `texi2any`'s.
 
-```sh
-tree-sitter generate && tree-sitter test
-tree-sitter fuzz --iterations 100
-tree-sitter parse --quiet --stat 'examples/**/*.texi' 'examples/**/*.texinfo'
-find -L examples \( -name '*.texi' -o -name '*.texinfo' -o -name '*.txi' \) | sort | python3 script/compare-texi2any.py
-```
-
-CI runs these on every push. `CLAUDE.md` describes the conventions.
+The checks are recipes in the `justfile`: `just` lists them, `just test` runs
+the tests, and `just check` runs everything CI does, with a summary. CI runs
+them on every push. `CLAUDE.md` describes the conventions.
 
 ## License
 

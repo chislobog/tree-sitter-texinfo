@@ -100,6 +100,9 @@
             tree-sitter
             nodejs_22
 
+            # The checks' runner (justfile)
+            just
+
             # Compiling the generated parser and the scanner. LLVM 23 rather
             # than the default 21, whose AddressSanitizer deadlocks at startup
             # on macOS 27 (script/fuzz-scanner.sh); its clang-format formats
