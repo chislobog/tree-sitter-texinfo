@@ -11,9 +11,7 @@ import re
 import sys
 from pathlib import Path
 
-# Not texinfo_language's ROOT: CI's scanner fuzzing runs this with a plain
-# python3, without the tree-sitter bindings that module imports.
-ROOT = Path(__file__).resolve().parent.parent
+from texinfo_language import ROOT
 
 # A test is a header (a line of `=`, the name and attributes, a line of `=`),
 # the input, a line of `-`, and the expected tree.

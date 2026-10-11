@@ -34,3 +34,6 @@ Package.resolved
 examples
 texinfo-tests
 test/corpus/fuzz-inputs.txt
+
+# Written by the dev shell (git-hooks.nix)
+.pre-commit-config.yaml

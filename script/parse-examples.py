@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Parse files with `tree-sitter parse`, and check its JSON summary.
+"""Parse files, and check which fail to parse and how fast each parses.
 
 - Parse errors: the files that fail to parse must be exactly those listed in
   test/parse-errors.txt (or the --expected FILE), each after a `#` comment with the reason (an error
@@ -8,23 +8,24 @@
 - Speed: a file of at least 20 KB that parses more than --slowdown times
   (default 10) slower, in bytes per second, than the median of those files
   fails, so a grammar change that makes some input pathologically slow
-  shows. Relative to the median, so it holds on any machine. A small file
-  parses in about a millisecond, where one hiccup can make it look ten
-  times slower, so a file that looks slow is timed again: it only fails if
-  it is still slow every time.
+  shows. Relative to the median, so it holds on any machine. The time is
+  the CPU time of the parse in this process, which other processes running
+  at once (as `nix flake check`'s other checks do) hardly affect, unlike the
+  wall-clock time `tree-sitter parse` reports. A file that looks slow is
+  timed again: it only fails if it is still slow every time.
 
 Usage: script/parse-examples.py [--slowdown N] [--expected FILE] [FILE...]
 """
 
 import argparse
-import json
 import statistics
-import subprocess
 import sys
-import tempfile
+import time
 from pathlib import Path
 
-from texinfo_language import ROOT, add_files_argument, files_argument
+from texinfo_language import ROOT, add_files_argument, files_argument, load_language
+
+from tree_sitter import Parser
 
 EXPECTED = ROOT / "test" / "parse-errors.txt"
 MIN_BYTES = 20_000
@@ -46,29 +47,33 @@ def read_expected(path: Path) -> dict[str, list[str]]:
 
 
 def parse(files: list) -> list[dict]:
-    """`tree-sitter parse`'s summary of each file."""
-    with tempfile.NamedTemporaryFile("w", suffix=".txt") as paths:
-        paths.write("".join(f"{path}\n" for path in files))
-        paths.flush()
-        result = subprocess.run(
-            ["tree-sitter", "parse", "--quiet", "--json-summary", "--paths", paths.name],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
+    """Each file's name, size, whether it parses without errors (as
+    `tree-sitter parse` counts them), and the CPU time of its parse."""
+    parser = Parser(load_language())
+    summaries = []
+    for name in files:
+        source = Path(name).read_bytes()
+        start = time.process_time()
+        tree = parser.parse(source)
+        seconds = time.process_time() - start
+        summaries.append(
+            {
+                "file": str(name),
+                "successful": not tree.root_node.has_error,
+                "bytes": len(source),
+                "seconds": seconds,
+            }
         )
-    # The summary is the JSON object in the output.
-    return json.loads(result.stdout[result.stdout.index("{") :])["parse_summaries"]
+    return summaries
 
 
 def speeds(summaries: list[dict]) -> dict[str, float]:
     """Bytes per second of the files of at least MIN_BYTES."""
-    rates = {}
-    for summary in summaries:
-        seconds = summary["duration"]["secs"] + summary["duration"]["nanos"] / 1e9
-        if summary["bytes"] >= MIN_BYTES and seconds > 0:
-            rates[summary["file"]] = summary["bytes"] / seconds
-    return rates
+    return {
+        summary["file"]: summary["bytes"] / summary["seconds"]
+        for summary in summaries
+        if summary["bytes"] >= MIN_BYTES and summary["seconds"] > 0
+    }
 
 
 def main() -> int:

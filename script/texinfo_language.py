@@ -6,6 +6,7 @@ another checkout's build/ for comparing with an earlier revision.
 
 import argparse
 import ctypes
+import os
 import re
 import subprocess
 import sys
@@ -65,21 +66,76 @@ def dump(node: Node) -> Iterator[str]:
             depth -= 1
 
 
+# Texinfo files' extensions.
+TEXINFO_SUFFIXES = (".texi", ".texinfo", ".txi")
+# Files texi2any itself fails on, or meant only for @include: left out of
+# the comparison with it.
+NOT_COMPARED = ("texinfo-tex-test.texi", "html_default_commands_args.texi")
+
+
+def _find(directory: str, suffixes: tuple[str, ...]) -> list[Path]:
+    """The files under `directory` with one of `suffixes`, following
+    symbolic links, as `find -L` does, sorted."""
+    found = []
+    for parent, _, names in os.walk(directory, followlinks=True):
+        found.extend(Path(parent, name) for name in names if name.endswith(suffixes))
+    return sorted(found)
+
+
+def manuals() -> list[Path]:
+    """The example manuals (examples/, linked by the dev shell)."""
+    return _find("examples", TEXINFO_SUFFIXES)
+
+
+def edited_manuals() -> list[Path]:
+    """The manuals without gawk's Italian ones, in another encoding."""
+    return [p for p in manuals() if "it" not in p.parts]
+
+
+def compared_manuals() -> list[Path]:
+    """The manuals compared with texi2any."""
+    return [p for p in edited_manuals() if p.name not in NOT_COMPARED]
+
+
+def test_inputs() -> list[Path]:
+    """texi2any's test inputs (texinfo-tests/, linked by the dev shell)."""
+    return _find("texinfo-tests", (".texi",))
+
+
+FILE_SETS = {
+    "manuals": manuals,
+    "edited-manuals": edited_manuals,
+    "compared-manuals": compared_manuals,
+    "test-inputs": test_inputs,
+}
+
+
 def add_files_argument(arguments: argparse.ArgumentParser):
-    """The files a script checks: given as arguments, or else one per line on
-    standard input, so that a check sees all of them at once, as `xargs`
-    wouldn't ensure."""
+    """The files a script checks: given as arguments, selected with the
+    options below, or else one per line on standard input, so that a check
+    sees all of them at once, as `xargs` wouldn't ensure."""
     arguments.add_argument(
         "files",
         nargs="*",
         type=Path,
         help="the files; read from standard input, one per line, if none are given",
     )
+    for name, function in FILE_SETS.items():
+        arguments.add_argument(
+            f"--{name}",
+            action="append_const",
+            const=function,
+            dest="file_sets",
+            help=f"also {function.__doc__.splitlines()[0][4:].rstrip('.')}",
+        )
 
 
 def files_argument(options: argparse.Namespace) -> list[Path]:
-    if options.files:
-        return options.files
+    files = list(options.files)
+    for function in options.file_sets or []:
+        files.extend(function())
+    if files:
+        return list(dict.fromkeys(files))
     files = [Path(line) for line in sys.stdin.read().splitlines() if line]
     if not files:
         raise SystemExit("no files given")

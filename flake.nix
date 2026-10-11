@@ -4,6 +4,16 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
+    # `nix fmt`: every formatter, each on its files.
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    # pre-commit: the git hooks, also run by `nix flake check`.
+    git-hooks = {
+      url = "github:cachix/git-hooks.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -11,11 +21,14 @@
       self,
       nixpkgs,
       flake-utils,
+      treefmt-nix,
+      git-hooks,
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
+        inherit (pkgs) lib;
 
         # Real-world manuals for regression parsing, pinned via flake.lock
         examples =
@@ -89,52 +102,343 @@
             '*/tta/perl/t/*.t' '*/tta/perl/t/input_files/*'
           perl ${./script/extract-texi2any-tests.pl} tests "$out"
         '';
+
+        python = pkgs.python3.withPackages (ps: [ ps.tree-sitter ]);
+        # LLVM 23 rather than the default 21, whose AddressSanitizer deadlocks
+        # at startup on macOS 27 (the scanner's fuzzing); its clang-format
+        # formats src/scanner.c the same.
+        llvm = pkgs.llvmPackages_23;
+
+        # ESLint and its tree-sitter config, from the npm lock file's hashes;
+        # without install scripts, which ESLint doesn't need.
+        nodeModules = pkgs.importNpmLock.buildNodeModules {
+          npmRoot = ./.;
+          nodejs = pkgs.nodejs_22;
+          derivationArgs.npmFlags = [ "--ignore-scripts" ];
+        };
+        eslintConfig = pkgs.writeText "eslint.config.mjs" ''
+          import treesitter from "${nodeModules}/node_modules/eslint-config-treesitter/index.js";
+          export default [...treesitter];
+        '';
+
+        # `nix fmt`. Only the files written by hand: src/ and the bindings
+        # are generated.
+        treefmt = treefmt-nix.lib.evalModule pkgs {
+          projectRootFile = "flake.nix";
+          programs.clang-format = {
+            enable = true;
+            package = llvm.clang-tools;
+            includes = [
+              "src/scanner.c"
+              "test/fuzz/*.c"
+            ];
+          };
+          programs.ruff-format = {
+            enable = true;
+            includes = [
+              "script/*.py"
+              ".claude/hooks/*.py"
+            ];
+          };
+          programs.nixfmt.enable = true;
+          programs.just.enable = true;
+          # ts_query_ls rewrites a file even when its format doesn't change,
+          # which treefmt would take for a change: only unformatted ones.
+          settings.formatter.ts_query_ls = {
+            command = lib.getExe (
+              pkgs.writeShellApplication {
+                name = "ts-query-format";
+                runtimeInputs = [ pkgs.ts_query_ls ];
+                text = ''
+                  for file in "$@"; do
+                    ts_query_ls format --check "$file" >/dev/null 2>&1 || ts_query_ls format "$file"
+                  done
+                '';
+              }
+            );
+            includes = [ "queries/*.scm" ];
+          };
+        };
+
+        # Commands that pre-commit hooks run, as programs Nix checks with
+        # shellcheck when it builds them.
+        hookProgram =
+          name: runtimeInputs: text:
+          lib.getExe (pkgs.writeShellApplication { inherit name runtimeInputs text; });
+
+        # The git hooks, installed by the dev shell and run by `nix flake
+        # check` on every file.
+        preCommit = git-hooks.lib.${system}.run {
+          src = ./.;
+          hooks = {
+            treefmt = {
+              enable = true;
+              package = treefmt.config.build.wrapper;
+            };
+            ruff = {
+              enable = true;
+              # Not the bindings, which tree-sitter generates.
+              files = "^(script|\\.claude/hooks)/.*\\.py$";
+            };
+            actionlint.enable = true;
+            shellcheck = {
+              enable = true;
+              excludes = [ "^\\.envrc$" ];
+            };
+            eslint = {
+              enable = true;
+              entry = "${lib.getExe pkgs.nodejs_22} ${nodeModules}/node_modules/eslint/bin/eslint.js --config ${eslintConfig}";
+              files = "^grammar\\.js$";
+            };
+            # The queries against each editor's capture names; ts_query_ls
+            # needs the built parser, and finds the language from a
+            # `tree-sitter-texinfo` directory in the path.
+            queries = {
+              enable = true;
+              name = "queries";
+              entry =
+                hookProgram "check-queries"
+                  [
+                    pkgs.tree-sitter
+                    llvm.clang
+                    pkgs.ts_query_ls
+                  ]
+                  ''
+                    work=$(mktemp -d)/tree-sitter-texinfo
+                    mkdir -p "$work"
+                    cp -r queries editors .tsqueryrc.json "$work"
+                    tree-sitter build -o "$work/texinfo.so" >/dev/null
+                    cd "$work"
+                    ts_query_ls check -f queries/
+                    ts_query_ls check -f -c "$(cat editors/neovim/tsqueryrc.json)" editors/neovim/queries
+                  '';
+              files = "^(queries|editors)/|tsqueryrc\\.json$";
+              pass_filenames = false;
+            };
+            editor-queries = {
+              enable = true;
+              name = "editor queries up to date";
+              entry = "${python}/bin/python3 script/editor-queries.py --check";
+              files = "^(queries|editors)/|^script/editor-queries\\.py$";
+              pass_filenames = false;
+            };
+            # Conventional Commits, with convco; but not the messages git
+            # writes itself, which convco rejects.
+            commit-message = {
+              enable = true;
+              name = "Conventional Commits";
+              entry = hookProgram "check-commit-message" [ pkgs.convco pkgs.gnugrep pkgs.coreutils ] ''
+                message=$(grep -v '^#' "$1")
+                case "$(head -n 1 <<<"$message")" in
+                  "Merge "* | "Revert \""* | "fixup! "* | "squash! "* | "amend! "*) exit 0 ;;
+                esac
+                convco check --from-stdin <<<"$message"
+              '';
+              stages = [ "commit-msg" ];
+            };
+            # Before pushing: the committed parser matches grammar.js, and
+            # the tests pass. `nix flake check` runs the rest.
+            generated = {
+              enable = true;
+              name = "src/ matches grammar.js";
+              entry = hookProgram "check-generated" [ pkgs.tree-sitter pkgs.nodejs_22 pkgs.git ] ''
+                tree-sitter generate
+                git diff --exit-code -- src/
+              '';
+              pass_filenames = false;
+              always_run = true;
+              stages = [ "pre-push" ];
+            };
+            tests = {
+              enable = true;
+              name = "tree-sitter test";
+              entry = hookProgram "run-tests" [ pkgs.tree-sitter llvm.clang ] "tree-sitter test";
+              pass_filenames = false;
+              always_run = true;
+              stages = [ "pre-push" ];
+            };
+          };
+        };
+
+        # The source the checks need, without the docs and CI config, so
+        # editing those doesn't rerun every check.
+        checkSource = lib.fileset.toSource {
+          root = ./.;
+          fileset = lib.fileset.unions [
+            ./grammar.js
+            ./tree-sitter.json
+            ./.tsqueryrc.json
+            ./src
+            ./script
+            ./test
+            ./queries
+            ./editors
+          ];
+        };
+
+        # A check: COMMAND in a writable copy of the source, with the example
+        # manuals and texi2any's test inputs linked as in the dev shell.
+        mkCheck =
+          name: command:
+          pkgs.runCommand "check-${name}"
+            {
+              nativeBuildInputs = [
+                pkgs.tree-sitter
+                pkgs.nodejs_22
+                llvm.clang
+                pkgs.texinfo
+                python
+              ];
+            }
+            ''
+              cp -r ${checkSource} source
+              chmod -R u+w source
+              cd source
+              ln -s ${examples} examples
+              ln -s ${texinfoTests} texinfo-tests
+              export HOME=$TMPDIR XDG_CACHE_HOME=$TMPDIR/cache TEXINFO_XS=omit
+              ${command}
+              touch $out
+            '';
+
+        # As tree-sitter's fuzz-action: the serializer may be called with a
+        # null buffer.
+        fuzzIgnorelist = pkgs.writeText "ignorelist.ini" ''
+          [nonnull-attribute]
+          fun:tree_sitter_*_external_scanner_serialize
+          fun:tree_sitter_*_external_scanner_deserialize
+        '';
+        # Builds the libFuzzer target for the parser and scanner, with
+        # AddressSanitizer and UndefinedBehaviorSanitizer, into OUTPUT.
+        buildFuzzer = output: ''
+          ${llvm.clang}/bin/clang -std=c11 -Og -g -Isrc -I${pkgs.tree-sitter}/include \
+            -fsanitize=fuzzer,address,undefined -fsanitize-ignorelist=${fuzzIgnorelist} \
+            test/fuzz/harness.c src/parser.c src/scanner.c \
+            -L${pkgs.tree-sitter}/lib -ltree-sitter -Wl,-rpath,${pkgs.tree-sitter}/lib -o ${output}
+        '';
       in
       {
         packages.examples = examples;
         packages.texinfo-tests = texinfoTests;
 
+        formatter = treefmt.config.build.wrapper;
+
+        checks = {
+          pre-commit = preCommit;
+          # src/ is what `tree-sitter generate` makes of grammar.js.
+          generated = mkCheck "generated" ''
+            cp -r src ../src.committed
+            tree-sitter generate
+            diff -r ../src.committed src
+          '';
+          # Corpus, highlight and tags tests.
+          tests = mkCheck "tests" "tree-sitter test";
+          scanner-warnings = mkCheck "scanner-warnings" ''
+            clang -std=c11 -Wall -Wextra -Wpedantic -Wshadow -Werror -Isrc -c src/scanner.c -o scanner.o
+          '';
+          # Incremental parsing after random edits of the corpus tests.
+          fuzz = mkCheck "fuzz" "tree-sitter fuzz --iterations 100";
+          # Each check still fails on the inputs in test/checks/ it is meant
+          # to catch.
+          checks-catch = mkCheck "checks-catch" "python3 script/test-checks.py";
+          # Only the manuals in test/parse-errors.txt fail to parse, none
+          # ten times slower than the median.
+          parse = mkCheck "parse" "python3 script/parse-examples.py --manuals";
+          # The differences from texi2any are exactly those listed.
+          compare-manuals = mkCheck "compare-manuals" ''
+            python3 script/compare-texi2any.py --hunks 0 --expected test/texi2any-differences.txt --compared-manuals
+          '';
+          compare-tests = mkCheck "compare-tests" ''
+            python3 script/compare-texi2any.py --hunks 0 --expected test/texi2any-differences.txt --test-inputs
+          '';
+          # Every tree is as recorded in test/tree-snapshots.txt.
+          snapshots = mkCheck "snapshots" ''
+            python3 script/tree-snapshots.py --check --manuals --test-inputs
+          '';
+          # Incremental parsing after random edits of texi2any's test inputs
+          # and the manuals, as corpus tests that exist only here.
+          fuzz-inputs = mkCheck "fuzz-inputs" ''
+            python3 script/fuzz-corpus.py --test-inputs --manuals
+            tree-sitter test --file-name fuzz-inputs.txt >/dev/null
+            tree-sitter fuzz --include texinfo-tests --iterations 50
+            tree-sitter fuzz --include examples --iterations 10
+          '';
+          # Typing mistakes in the manuals stay local.
+          edits = mkCheck "edits" ''
+            python3 script/check-edits.py --edits 5 --seed 0 --edited-manuals
+          '';
+          # libFuzzer with sanitizers on the parser and scanner, for two
+          # minutes, seeded with the corpus tests' inputs.
+          fuzz-scanner = mkCheck "fuzz-scanner" ''
+            ${buildFuzzer "fuzzer"}
+            python3 script/corpus-inputs.py seeds
+            python3 script/fuzz-dict.py > dict
+            ./fuzzer -dict=dict -timeout=10 -max_len=4096 -max_total_time=120 seeds
+          '';
+        };
+
+        # Longer fuzzing than the check, on several cores, keeping what it
+        # covers in build/fuzz/ between runs: `nix run .#fuzz-scanner --
+        # [SECONDS] [JOBS]`.
+        apps.fuzz-scanner = {
+          type = "app";
+          program = lib.getExe (
+            pkgs.writeShellApplication {
+              name = "fuzz-scanner";
+              runtimeInputs = [ python ];
+              text = ''
+                seconds=''${1:-600}
+                jobs=''${2:-4}
+                mkdir -p build/fuzz/artifacts build/fuzz/out
+                ${buildFuzzer "build/fuzz/fuzzer"}
+                python3 script/corpus-inputs.py build/fuzz/seeds >/dev/null
+                python3 script/fuzz-dict.py > build/fuzz/dict
+                cd build/fuzz
+                exec ./fuzzer out seeds -dict=dict -artifact_prefix=artifacts/ -timeout=10 \
+                  -max_len=4096 -max_total_time="$seconds" -fork="$jobs" -ignore_crashes=1
+              '';
+            }
+          );
+        };
+
         devShells.default = pkgs.mkShell {
-          packages = with pkgs; [
-            # Grammar authoring: `tree-sitter generate`, `test`, `parse`, `playground`
-            tree-sitter
-            nodejs_22
+          # The tools of the pre-commit hooks, to run by hand too.
+          packages =
+            preCommit.enabledPackages
+            ++ (with pkgs; [
+              # Grammar authoring: `tree-sitter generate`, `test`, `parse`, `playground`
+              tree-sitter
+              nodejs_22
 
-            # The checks' runner (justfile)
-            just
+              # Short names for the checks and tools (justfile)
+              just
 
-            # Compiling the generated parser and the scanner. LLVM 23 rather
-            # than the default 21, whose AddressSanitizer deadlocks at startup
-            # on macOS 27 (script/fuzz-scanner.sh); its clang-format formats
-            # src/scanner.c the same.
-            llvmPackages_23.clang
-            gnumake
+              # Compiling the generated parser and the scanner
+              llvm.clang
+              gnumake
 
-            # clangd language server for editing src/scanner.c, and clang-format
-            llvmPackages_23.clang-tools
+              # clangd language server for editing src/scanner.c
+              llvm.clang-tools
 
-            # Checks and formats the queries against the grammar
-            ts_query_ls
+              # Checks and formats the queries against the grammar
+              ts_query_ls
 
-            # Linters and formatters (script/lint.sh), besides clang-format
-            # and ESLint from npm
-            ruff
-            shellcheck
-            actionlint
-            nixfmt
+              # `nix fmt`
+              treefmt.config.build.wrapper
 
-            # Reference implementation and sample documents to test against
-            texinfo
+              # Reference implementation and sample documents to test against
+              texinfo
 
-            # script/compare-texi2any.py
-            (python3.withPackages (ps: [ ps.tree-sitter ]))
-          ];
+              # The Python checks
+              python
+            ]);
 
           shellHook = ''
             ln -sfn ${examples} examples
             ln -sfn ${texinfoTests} texinfo-tests
-            # Git hooks: Conventional Commits, and tests before pushing.
-            git config core.hooksPath .githooks
+            # The git hooks are pre-commit's (git-hooks.nix), not .githooks/.
+            git config --unset core.hooksPath || true
+            ${preCommit.shellHook}
             echo "tree-sitter $(tree-sitter --version | cut -d' ' -f2) | node $(node --version)"
           '';
         };

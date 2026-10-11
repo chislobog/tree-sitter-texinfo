@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-# Linters and formatter checks (a few seconds); `script/lint.sh --fix`
-# applies the fixes.
-if ! script/lint.sh; then
-  echo "pre-commit: run script/lint.sh --fix, or commit with --no-verify." >&2
-  exit 1
-fi

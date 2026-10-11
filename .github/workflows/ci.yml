@@ -1,9 +1,8 @@
 name: CI
 
-# CI minutes are limited (the repository is private): changes to the
-# documentation alone aren't checked, script/check-all.sh runs these checks
-# locally before pushing, and the bindings on macOS and Windows are built by
-# platforms.yml, weekly.
+# Changes to the documentation alone aren't checked (`nix flake check` runs
+# the same checks locally before pushing); the bindings on macOS and Windows
+# are built by platforms.yml, weekly.
 on:
   push:
     paths-ignore: ["**.md"]
@@ -24,94 +23,24 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      # Warns when the parser's state count grows by 10%, fails at 50%.
+      # Warns when the parser's state count grows by 10%, fails at 50%. Not
+      # a flake check: it compares with an earlier commit, and the source Nix
+      # checks has no git history.
       - name: Parser size
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: |
           git fetch --quiet --depth=1 origin "$BASE" || true
-          script/check-parser-size.sh "$BASE"
+          python3 script/parser-size.py "$BASE"
 
       - uses: cachix/install-nix-action@v31
 
-      # The dev shell provides the same tools as locally, and links the
-      # example manuals and texi2any's test inputs into the checkout.
-      - name: Build the dev shell
-        run: nix develop --command true
-
-      - name: Generated parser is up to date
-        run: nix develop --command just generated
-
-      - name: Tests
-        run: nix develop --command just test
-
-      # ESLint, clang-format, ruff, shellcheck, nixfmt, and ts_query_ls, which
-      # checks that the queries' node and field names exist in the grammar.
-      - name: Lint
-        run: nix develop --command just lint
-
-      - name: Incremental parsing
-        run: nix develop --command just fuzz
-
-      # Each check below must still fail on inputs it is meant to catch
-      # (test/checks/), and pass on the others.
-      - name: The checks catch what they should
-        run: nix develop --command just checks-catch
-
-      # Only the manuals listed in test/parse-errors.txt, with the errors in
-      # their source, may fail to parse, and none may parse ten times slower
-      # than the median (script/parse-examples.py).
-      - name: Parse the example manuals
-        run: nix develop --command just parse
-
-      # Without the files texi2any itself fails on, and a fragment for
-      # @include. Any difference not listed in test/texi2any-differences.txt
-      # with its reason fails, as does a listed one no longer found.
-      - name: Compare with texi2any on the manuals
-        run: nix develop --command just compare-manuals
-
-      - name: Compare with texi2any on its test inputs
-        run: nix develop --command just compare-tests
-
-      # Any change to a tree, in any manual or test input, must be deliberate
-      # and recorded with `script/tree-snapshots.py --write`.
-      - name: Tree snapshots
-        run: nix develop --command just snapshots
-
-      # texi2any's 1,700 small, often invalid test inputs and the manuals, as
-      # a corpus that exists only here (their licences differ from this
-      # repository's), so `tree-sitter fuzz` checks incremental parsing on
-      # them after random edits anywhere. The test first checks that each
-      # input was written whole. Each run has a random seed, which the
-      # fuzzer prints.
-      - name: Fuzz texi2any's test inputs and the manuals
-        run: nix develop --command just fuzz-inputs
-
-      # Typing mistakes in the manuals: each must stay local, and an edited
-      # tree must equal a fresh parse. A fixed seed, so a failure reproduces.
-      - name: Editing simulation
-        run: nix develop --command just edits
-
-  # libFuzzer with address and undefined-behaviour sanitizers, looking for
-  # crashes and memory errors in the scanner. Seeded with the corpus test
-  # inputs, so the fuzzer starts from blocks, raw text, menus and sections.
-  fuzz:
-    name: Fuzz the scanner
-    runs-on: ubuntu-latest
-    # Branches in this repository are checked on push; pull requests only
-    # from forks, to avoid running twice.
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Seed corpus
-        run: python3 script/corpus-inputs.py fuzz-seeds
-
-      - uses: tree-sitter/fuzz-action@v4
-        with:
-          corpus: fuzz-seeds
-          max-time: "120"
-          tree-sitter-version: v0.26.11
+      # Every check in flake.nix: the formatting and the linters
+      # (pre-commit), the tests, fuzzing (tree-sitter's and libFuzzer's on
+      # the scanner), the manuals, the texi2any comparisons, the snapshots
+      # and the editing simulation.
+      - name: Checks
+        run: nix flake check -L
 
   # The bindings are how most projects use the grammar; on Linux here, and on
   # macOS and Windows in platforms.yml.

@@ -68,8 +68,7 @@ well with incomplete input, which is normal while editing.
   Helix's capture names, which `.tsqueryrc.json` lists, so `ts_query_ls`
   rejects any other; no indents, as Texinfo isn't indented by nesting.
   `script/editor-queries.py` generates `editors/neovim/queries/` from them,
-  renaming captures by a table (`--check` in `script/lint.sh` fails if it's
-  stale), checked against `editors/neovim/tsqueryrc.json`. The capture lists
+  renaming captures by a table (a pre-commit hook fails if it's stale), checked against `editors/neovim/tsqueryrc.json`. The capture lists
   come from Helix's book (`themes.md`, the textobject and injection guides)
   and from nvim-treesitter's and nvim-treesitter-textobjects'
   `.tsqueryrc.json`; refresh them when an editor adds names. Edit only
@@ -86,35 +85,32 @@ well with incomplete input, which is normal while editing.
 
 ## Checks
 
-A Claude Code hook (`.claude/hooks/check-grammar.sh`) runs `tree-sitter
+A Claude Code hook (`.claude/hooks/check-grammar.py`) runs `tree-sitter
 generate` and `tree-sitter test` after every edit to `grammar.js`,
-`src/scanner.c` or the corpus. The checks are recipes in the `justfile`,
-defined once there and run by CI, `script/check-all.sh` and by hand; `just`
-lists them. Before pushing, run `just check` (`script/check-all.sh`), which
-runs everything CI's check job does (about 7 minutes) and lists the steps
-that fail, so CI only confirms. While working on grammar or scanner
-changes, the individual ones:
+`src/scanner.c` or the corpus. Every other check is declared in `flake.nix`
+and run by `nix flake check` (`just check`), locally as in CI. Nix caches
+them: a check whose inputs didn't change isn't rerun (the docs and CI
+config aren't inputs). Run it before pushing, so CI only confirms. One check
+by name: `just run NAME`, with NAME one of `pre-commit` (formatting and the
+linters), `generated`, `tests`, `scanner-warnings`, `fuzz`, `checks-catch`,
+`parse`, `compare-manuals`, `compare-tests`, `snapshots`, `fuzz-inputs`,
+`edits`, `fuzz-scanner`. `nix fmt` (`just fmt`) formats every file. The
+justfile only holds such one-line aliases; `just` lists them.
 
-```sh
-just scanner        # the scanner compiles without warnings
-just lint           # linters, formatters, query checks (`just fix` applies them)
-just fuzz           # incremental parsing after edits of the corpus tests
-just parse          # parse errors and speed of the manuals
-just compare        # differences from texi2any, on the manuals and its tests
-just snapshots      # every tree as recorded (snapshots-diff, snapshots-write)
-just edits          # typing mistakes stay local (`just edits 3` for seed 3)
-just checks-catch   # the checks above still catch what they should
-```
+The Python scripts select their own files: `--manuals`, `--edited-manuals`
+(without gawk's Italian ones), `--compared-manuals` (also without the files
+texi2any fails on), `--test-inputs`, or names given as arguments or on
+standard input.
 
 `script/tree-snapshots.py` checks every manual's and test input's tree
 against `test/tree-snapshots.txt`, digests of the full trees. After a
-deliberate change to the trees, review it with `--diff HEAD FILE...` on the
-files it names, then record it with `--write`. `script/check-edits.py`
+deliberate change to the trees, review it with `just snapshots-diff HEAD
+FILE...` on the files it names, then record it with `just snapshots-write`. `script/check-edits.py`
 simulates typing mistakes in the manuals' paragraphs: each must leave the
 tree outside its paragraph unchanged (as texi2any's error recovery does), and
-an incrementally parsed tree must equal a fresh parse. CI runs it with
-`--seed 0`; other seeds find other edits, so try a few after changing the
-scanner or error recovery. Its docstring says which edits are expected to
+an incrementally parsed tree must equal a fresh parse. The check runs it
+with `--seed 0`; other seeds find other edits (`just edits 3`), so try a few
+after changing the scanner or error recovery. Its docstring says which edits are expected to
 reach further, as in texi2any; add to them only with a reason, as to the
 lists of differences. `--keep DIR` saves the edited text of each problem, to inspect with
 `tree-sitter parse --cst` or `--debug-graph` (`tree-sitter parse --edits`
@@ -124,7 +120,8 @@ to parse, and that none parses ten times slower than the median.
 `script/fuzz-corpus.py` turns texi2any's test inputs and the manuals into a
 corpus file that git ignores, for `tree-sitter fuzz --include texinfo-tests`
 or `--include examples` (about 10 seconds an iteration for the manuals);
-delete it afterwards, as CI does, or `tree-sitter test` runs it too. It
+delete it afterwards, as the `fuzz-inputs` check's copy does, or
+`tree-sitter test` runs it too. It
 writes the expected trees itself: `tree-sitter test --update` would drop the
 delimiters' suffix, after which a line of dashes in a manual ends its input.
 `script/test-checks.py` runs these checks on small inputs in `test/checks/`
@@ -132,38 +129,40 @@ whose outcome is known, and fails if one no longer reports what it should
 (or reports something it shouldn't); add a case there when a check gains a
 way to fail.
 
-Git hooks in `.githooks/` (enabled by the dev shell through
-`core.hooksPath`): `commit-msg` checks the Conventional Commits format,
-`pre-commit` runs `script/lint.sh` (ESLint, clang-format, ruff, shellcheck,
-actionlint, nixfmt, ts_query_ls; a few seconds), and `pre-push` checks that `src/`
-matches `grammar.js` and runs `tree-sitter test`. `script/lint.sh --fix`
-applies the formatters and automatic fixes.
+The git hooks are pre-commit's, declared in `flake.nix` with git-hooks.nix
+and installed by the dev shell (which writes `.pre-commit-config.yaml`, git
+ignores it): on commit, treefmt (the formatters of `nix fmt`), ruff,
+ESLint (from `package-lock.json`, built by Nix), shellcheck, actionlint,
+the queries' capture names and the generated Neovim queries; on the commit
+message, convco (Conventional Commits); before pushing, that `src/` matches
+`grammar.js` and `tree-sitter test`. `pre-commit run --all-files` runs them
+by hand; `nix flake check` runs them as its `pre-commit` check.
 
-CI also fuzzes the scanner with libFuzzer and sanitizers
-(`tree-sitter/fuzz-action`, two minutes), seeded by `script/corpus-inputs.py`.
-`script/fuzz-scanner.sh [SECONDS] [JOBS]` does the same locally, for longer
-and on several cores, keeping what it covers in `build/fuzz/out` from one
-run to the next. The dev shell's LLVM is version 23, not nixpkgs' default
-21, whose AddressSanitizer deadlocks at startup on macOS 27. `script/fuzz-deep.py` runs `tree-sitter fuzz` on texi2any's test
-inputs and the manuals for longer than CI, on several cores.
+The `fuzz-scanner` check runs libFuzzer with sanitizers on the parser and
+scanner for two minutes (harness `test/fuzz/harness.c`, dictionary from
+`script/fuzz-dict.py`, seeds from `script/corpus-inputs.py`); `just
+fuzz-scanner [SECONDS] [JOBS]` runs it longer and on several cores, keeping
+what it covers in `build/fuzz/out`. LLVM is version 23, not nixpkgs' default
+21, whose AddressSanitizer deadlocks at startup on macOS 27. `just fuzz-deep`
+(`script/fuzz-deep.py`) runs `tree-sitter fuzz` on texi2any's test inputs
+and the manuals for longer than the checks, on several cores.
 
-CI (`.github/workflows/ci.yml`) runs all of these on every push, except one
-that only changes Markdown files; a newer push cancels a run in progress. It
-builds the bindings on Linux; `.github/workflows/platforms.yml` builds them on
-macOS and Windows weekly, on `v*` tags and on demand, as their minutes count
-ten and two times. The
+CI (`.github/workflows/ci.yml`) runs `nix flake check` and the parser-size
+check (`script/parser-size.py`, which needs git history, so it isn't a flake
+check) on every push, except one that only changes Markdown files; a newer
+push cancels a run in progress. It builds the bindings on Linux;
+`.github/workflows/platforms.yml` builds them on macOS and Windows weekly,
+on `v*` tags and on demand. The
 comparisons pass only if the differences from texi2any are exactly those
 listed in `test/texi2any-differences.txt`, each file with a `#` comment giving
 the reason: deliberate (the Texinfo manual over texi2any's error recovery,
 source kept unexpanded), invalid input (with texi2any's own error), a limit of
 the comparison, or a gap still to fix (also in `TODO.md`). A difference not
 listed fails, and so does a listed one no longer found. After a deliberate
-change, or a fix, run the comparison with `--write-expected
-test/texi2any-differences.txt` (on the same files as CI), check the diff of
-that file, and give each new file a reason; never list a regression.
-
-To compare with texi2any on its own test inputs only (about a minute):
-`just compare-tests`, or `just compare-manuals` for the manuals.
+change, or a fix, run `just compare-write`, check the diff of
+`test/texi2any-differences.txt`, and give each new file a reason; never list
+a regression. To compare by hand: `python3 script/compare-texi2any.py
+--compared-manuals` or `--test-inputs` (about a minute).
 
 The comparisons skip the files texi2any itself fails on (the Italian gawk
 manuals, `texinfo-tex-test.texi`) and `html_default_commands_args.texi`, a
@@ -212,7 +211,7 @@ from the same LLVM version as the compiler (the profile format differs).
   command can start. Moving 199 keywords to the scanner took `parser.c` from
   29 MB to 6 MB.
 - Watch `tree-sitter generate` time (normally about 12 seconds) and the
-  parser's state count: CI (`script/check-parser-size.sh`) warns when it grows
+  parser's state count: CI (`script/parser-size.py`) warns when it grows
   by 10% and fails at 50%. Nested
   optional sequences, as in `commaArguments`, multiply parser states quickly;
   a change there once made generation run for over 13 minutes.

@@ -150,9 +150,10 @@ as `examples/` and `texi2any`'s test inputs as `texinfo-tests/`.
 - `script/compare-texi2any.py` compares the commands in our trees with
   `texi2any`'s.
 
-The checks are recipes in the `justfile`: `just` lists them, `just test` runs
-the tests, and `just check` runs everything CI does, with a summary. CI runs
-them on every push. `CLAUDE.md` describes the conventions.
+The checks are declared in `flake.nix`: `nix flake check` runs them all, as
+CI does on every push, and `nix fmt` formats every file. The dev shell
+installs the git hooks (pre-commit). `just` lists short names for these and
+for the other tools. `CLAUDE.md` describes the conventions.
 
 ## License
 
