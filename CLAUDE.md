@@ -28,9 +28,9 @@ well with incomplete input, which is normal while editing.
   reference manual: about 690 files. Some are chapters of a manual, in
   separate files. Texinfo files are `.texi`, `.texinfo` or `.txi`; the checks
   take all three. It is not committed.
-- The scripts that check many files read their names from standard input
-  when none are given, as the justfile's recipes do: with `xargs`, a long list
-  is split over several runs, and a check that compares the whole set (a
+- The scripts that check many files take them all in one run (the flags
+  under Checks, or standard input), never through `xargs`: it splits a long
+  list over several runs, and a check that compares the whole set (a
   snapshot of a file no longer checked, the median speed) goes wrong.
 - tree-sitter CLI: `tree-sitter parse` only finds the grammar when run from
   the repository; `-d FILE` takes FILE as the debug level (use
