@@ -63,6 +63,9 @@ step "tests" tree-sitter test
 step "lint" script/lint.sh
 step "scanner warnings" scanner
 step "incremental parsing" tree-sitter fuzz --iterations 100
+# CI's scanner fuzzing writes its seeds with a plain python3, outside the
+# dev shell.
+step "fuzz seeds" env -i PATH=/usr/bin:/bin python3 script/corpus-inputs.py "$logs/seeds"
 step "checks catch" python3 script/test-checks.py
 step "parse manuals" bash -c "$(declare -f manuals); manuals | python3 script/parse-examples.py"
 step "compare manuals" bash -c "$(declare -f manuals); manuals ! -path '*/it/*' \
