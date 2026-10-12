@@ -19,3 +19,5 @@ Safety: \notes\
 
 Version @value{VERSION}.
 @c              ^ reference.constant
+Version @value {VERSION}.
+@c               ^ reference.constant

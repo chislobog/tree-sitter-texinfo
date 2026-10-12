@@ -2,6 +2,8 @@
 @c    ^ definition.node
 @anchor{intro}
 @c       ^ definition.anchor
+@anchor 	{spaced}
+@c          ^ definition.anchor
 See @xref{Overview} and @ref{intro}.
 @c         ^ reference.node
 @c                            ^ reference.node

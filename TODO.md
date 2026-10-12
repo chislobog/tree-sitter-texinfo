@@ -255,9 +255,8 @@ Deliberate, so the tree shows the source as it is written and edited:
 - [x] `queries/folds.scm`
 - [x] `queries/tags.scm`: nodes, anchors and documented functions and variables
   as definitions; cross-references and menu entries as references
-- [ ] Tag `@anchor {target}` and `@value {var}`, with blanks before the
-  brace (as in `info-stnd.texi`): the predicates in `queries/tags.scm`
-  require the `{` right after the command name
+- [x] Tag `@anchor {target}` and `@value {var}`, with blanks before the
+  brace (as in `info-stnd.texi`)
 - [x] Register queries in `tree-sitter.json`
 - [x] Queries for several editors, favouring none: `queries/` uses the
   plainer capture name where editors differ (`.tsqueryrc.json`

@@ -7,7 +7,7 @@
 
 ((inline_command
   arguments: (brace_arguments) @name) @definition.anchor
-  (#match? @definition.anchor "^[@]anchor[{]"))
+  (#match? @definition.anchor "^[@]anchor[ \t]*[{]"))
 
 (inline_command
   anchor: (argument) @name) @definition.anchor
@@ -47,4 +47,4 @@
 
 ((inline_command
   arguments: (brace_arguments) @name) @reference.constant
-  (#match? @reference.constant "^[@]value[{]"))
+  (#match? @reference.constant "^[@]value[ \t]*[{]"))
