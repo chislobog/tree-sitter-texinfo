@@ -284,22 +284,42 @@ static inline bool is_name_char(int32_t c) {
   return is_alpha(c) || is_digit(c) || c == '-' || c == '_';
 }
 
+// FNV-1a, one character at a time, from FNV_OFFSET.
+#define FNV_OFFSET 2166136261u
+
+static inline uint32_t hash_char(uint32_t hash, char c) {
+  return (hash ^ (uint8_t)c) * 16777619u;
+}
+
 /**
- * Reads a command or block name: a letter followed by letters, digits, `-`
- * or `_` (the characters `texi2any` accepts after `@end`). Returns false if
- * the word is empty or too long to be a known name.
+ * Reads a command, block or macro name as texi2any does: a letter or digit
+ * followed by letters, digits, `-` or `_`, of any length. Returns its length
+ * (0 if there is none) and its hash; `name` holds it if it is shorter than
+ * MAX_NAME, which only a macro's name can reach.
  */
-static bool read_name(TSLexer *lexer, char *name) {
+static unsigned read_long_name(TSLexer *lexer, char *name, uint32_t *hash) {
   unsigned length = 0;
-  if (!is_alpha(lexer->lookahead)) return false;
+  *hash = FNV_OFFSET;
+  if (!is_alpha(lexer->lookahead) && !is_digit(lexer->lookahead)) return 0;
   while (is_name_char(lexer->lookahead)) {
-    if (length < MAX_NAME) name[length] = (char)lexer->lookahead;
+    char c = (char)lexer->lookahead;
+    if (length < MAX_NAME) name[length] = c;
+    *hash = hash_char(*hash, c);
     length++;
     advance(lexer);
   }
-  if (length >= MAX_NAME) return false;
-  name[length] = '\0';
-  return true;
+  name[length < MAX_NAME ? length : MAX_NAME] = '\0';
+  return length;
+}
+
+/**
+ * Reads a command or block name. Returns false if the word is empty or too
+ * long to be a built-in name.
+ */
+static bool read_name(TSLexer *lexer, char *name) {
+  uint32_t hash;
+  unsigned length = read_long_name(lexer, name, &hash);
+  return length > 0 && length < MAX_NAME;
 }
 
 static int find_block(const char *name) {
@@ -696,18 +716,9 @@ static bool in_item_container(const Scanner *scanner) {
                            strcmp(block->name, "enumerate") == 0);
 }
 
-// FNV-1a.
-static uint32_t name_hash(const char *name) {
-  uint32_t hash = 2166136261u;
-  for (; *name; name++) {
-    hash = (hash ^ (uint8_t)*name) * 16777619u;
-  }
-  return hash;
-}
-
-// The index of the macro named `name` in `scanner->macros`, or -1.
-static int find_macro(const Scanner *scanner, const char *name) {
-  uint32_t hash = name_hash(name);
+// The index of the macro whose name has hash `hash` in `scanner->macros`, or
+// -1.
+static int find_macro(const Scanner *scanner, uint32_t hash) {
   for (unsigned i = 0; i < scanner->macro_count; i++) {
     if (scanner->macros[i] == hash) return (int)i;
   }
@@ -721,14 +732,14 @@ static int find_macro(const Scanner *scanner, const char *name) {
  */
 static void remember_macro(Scanner *scanner, TSLexer *lexer, bool line) {
   skip_blanks(lexer);
-  // Unlike other names, a macro's may start with a digit.
-  char name[MAX_NAME + 1];
+  // Read whole, as a call reads it, however long.
+  uint32_t hash = FNV_OFFSET;
   unsigned length = 0;
-  while (length < MAX_NAME && is_name_char(lexer->lookahead)) {
-    name[length++] = (char)lexer->lookahead;
+  while (is_name_char(lexer->lookahead)) {
+    hash = hash_char(hash, (char)lexer->lookahead);
+    length++;
     advance(lexer);
   }
-  name[length] = '\0';
   if (length == 0) return;
 
   // The parameters are what is between the first `{` and `}`, split at
@@ -755,11 +766,11 @@ static void remember_macro(Scanner *scanner, TSLexer *lexer, bool line) {
                                    : MACRO_BRACED;
 
   // A new definition of a macro replaces the old one.
-  int index = find_macro(scanner, name);
+  int index = find_macro(scanner, hash);
   if (index < 0) {
     if (scanner->macro_count >= MAX_MACROS) return;
     index = scanner->macro_count++;
-    scanner->macros[index] = name_hash(name);
+    scanner->macros[index] = hash;
   }
   scanner->macro_kinds[index] = kind;
 }
@@ -1210,7 +1221,11 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
   }
 
   char name[MAX_NAME + 1];
-  if (!read_name(lexer, name)) return false;
+  uint32_t hash;
+  unsigned length = read_long_name(lexer, name, &hash);
+  if (length == 0) return false;
+  // Too long for a built-in command or block: only a macro's name.
+  if (length >= MAX_NAME) name[0] = '\0';
 
   if (strcmp(name, "end") == 0) {
     return scan_end(scanner, lexer, valid_symbols, brace_at_line_start,
@@ -1237,7 +1252,7 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
       in_multitable(scanner)) {
     return accept(lexer, ROW_NAME);
   }
-  int macro = find_macro(scanner, name);
+  int macro = find_macro(scanner, hash);
   if (macro >= 0) {
     lexer->mark_end(lexer);
     switch (scanner->macro_kinds[macro]) {

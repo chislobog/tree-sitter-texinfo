@@ -324,3 +324,55 @@ A file's 65th macro is remembered
       name: (command_name)
       argument: (line_argument
         (text)))))
+
+================================================================================
+Macro and command names may start with a digit, hold `_` and be long
+================================================================================
+
+@macro 1st {p}
+@end macro
+@macro a-macro-name-longer-than-thirty-two-chars {p}
+@end macro
+
+@1st rest
+
+@a-macro-name-longer-than-thirty-two-chars rest
+
+Unknown @2nd, @c_x and @foo_bar{x}.
+
+---
+
+(source_file
+  (macro_definition
+    name: (command_name)
+    macro: (text)
+    parameter: (text)
+    end: (block_end))
+  (macro_definition
+    name: (command_name)
+    macro: (text)
+    parameter: (text)
+    end: (block_end))
+  (paragraph
+    (inline_command
+      name: (command_name)
+      argument: (line_argument
+        (text))))
+  (paragraph
+    (inline_command
+      name: (command_name)
+      argument: (line_argument
+        (text))))
+  (paragraph
+    (text)
+    (inline_command
+      name: (command_name))
+    (text)
+    (inline_command
+      name: (command_name))
+    (text)
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (text)))
+    (text)))

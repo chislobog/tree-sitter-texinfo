@@ -5407,11 +5407,11 @@
           },
           {
             "type": "PATTERN",
-            "value": "@[a-zA-Z][a-zA-Z0-9-]*"
+            "value": "@[a-zA-Z0-9][a-zA-Z0-9_-]*"
           },
           {
             "type": "PATTERN",
-            "value": "@[^a-zA-Z\\r\\n]"
+            "value": "@[^a-zA-Z0-9\\r\\n]"
           }
         ]
       }
@@ -9415,11 +9415,11 @@
     },
     "command_name": {
       "type": "PATTERN",
-      "value": "@[a-zA-Z][a-zA-Z0-9-]*"
+      "value": "@[a-zA-Z0-9][a-zA-Z0-9_-]*"
     },
     "symbol_command": {
       "type": "PATTERN",
-      "value": "@[^a-zA-Z\\r\\n]?"
+      "value": "@[^a-zA-Z0-9\\r\\n]?"
     },
     "text": {
       "type": "PATTERN",

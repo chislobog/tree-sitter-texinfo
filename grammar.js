@@ -613,7 +613,7 @@ export default grammar({
     // Raw text up to the end of the line or a comment, as in texi2any. A
     // comment lexes as the longer match at `@c note`, and `@cfoo` as the
     // longer value piece.
-    _set_value: _ => repeat1(choice(/[^@\r\n]+/, /@[a-zA-Z][a-zA-Z0-9-]*/, /@[^a-zA-Z\r\n]/)),
+    _set_value: _ => repeat1(choice(/[^@\r\n]+/, /@[a-zA-Z0-9][a-zA-Z0-9_-]*/, /@[^a-zA-Z0-9\r\n]/)),
 
     definition_arguments: $ => prec.right(repeat1(choice(
       $.text,
@@ -1087,15 +1087,16 @@ export default grammar({
       braceClose($),
     ),
 
-    // As in texi2any, names may contain `-` (e.g. user-defined macros).
-    command_name: _ => /@[a-zA-Z][a-zA-Z0-9-]*/,
+    // As in texi2any, a name starts with a letter or digit and may contain `-`
+    // and `_` (e.g. user-defined macros).
+    command_name: _ => /@[a-zA-Z0-9][a-zA-Z0-9_-]*/,
 
     // `@@`, `@{`, `@}`, accents like `@'`, spacing like `@*`, `@ ` and `@` at end of line.
     // `@` at the end of a line, like at the end of the file, is a lone `@`:
     // the newline stays outside it, so the next line still starts a line (an
     // `@end` there ends its block). Elsewhere a following command name makes
     // the longer match.
-    symbol_command: _ => /@[^a-zA-Z\r\n]?/,
+    symbol_command: _ => /@[^a-zA-Z0-9\r\n]?/,
 
     // Only ASCII spaces count, as in texi2any: a text may start with a
     // no-break space. A carriage return not before a newline is part of it.

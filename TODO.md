@@ -34,14 +34,9 @@ sources, which is what `texi2any` itself uses.
 - [x] Keep the preformatted context through blocks nested in `@example`
   and the other preformatted blocks (`@group`, `@quotation`, even `@menu`),
   where a blank line doesn't close a brace command, as in texi2any
-- [ ] Macro names starting with a digit: `@macro 1foo {x}` is remembered, but
-  `read_name` in `src/scanner.c` and the grammar's command name reject the
-  digit, so `@1foo{one}` is the symbol `@1`, text and a brace group, not a
-  call. texi2any reads command names as `[[:alnum:]][[:alnum:]_-]*`
-- [ ] Macro names of 32 characters or more: `read_name` rejects them
-  (`MAX_NAME`), and `remember_macro` cuts the name to 32 characters before
-  hashing it, so their calls aren't recognised and an argument spanning a
-  blank line gives brace errors
+- [x] Command names as texi2any reads them, `[[:alnum:]][[:alnum:]_-]*` of any
+  length, so calls of macros named `1foo` or longer than 32 characters are
+  recognised, and `@0` or `@foo_bar` is one (unknown) command
 - [ ] `@unmacro` doesn't remove the macro from the scanner's table: after
   `@linemacro code {x}` and `@unmacro code`, `@code{one}` is still a
   `line_command`, and the entry still counts towards `MAX_MACROS`
