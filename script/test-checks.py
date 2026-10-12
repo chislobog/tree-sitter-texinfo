@@ -133,6 +133,22 @@ def check_snapshots(checker: Checker):
         False,
         f"tree changed: {SAME}",
     )
+    # A digest of a file no longer checked (not in the input).
+    stale_snapshots = checker.directory / "stale.txt"
+    stale_file = checker.file("stale.texi", "Text in stale file.\n")
+    checker.expect(
+        "snapshots: recording stale file",
+        [*command, "--snapshots", stale_snapshots, "--write", stale_file],
+        True,
+    )
+    # Checking another file reports the stale file's digest.
+    other_file = checker.file("other.texi", "Other text.\n")
+    checker.expect(
+        "snapshots: a stale digest fails",
+        [*command, "--snapshots", stale_snapshots, "--check", other_file],
+        False,
+        f"no longer checked: {stale_file}",
+    )
 
 
 def check_parse_errors(checker: Checker):

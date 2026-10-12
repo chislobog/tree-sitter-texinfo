@@ -8,9 +8,10 @@ Usage: script/fuzz-dict.py > dict
 
 import json
 import sys
-from pathlib import Path
 
-GRAMMAR = Path(__file__).resolve().parent.parent / "src" / "grammar.json"
+from texinfo_language import ROOT
+
+GRAMMAR = ROOT / "src" / "grammar.json"
 
 
 def strings(node, found: set[str]):

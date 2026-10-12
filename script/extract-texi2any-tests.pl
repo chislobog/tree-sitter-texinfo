@@ -48,7 +48,7 @@ sub write_file {
 
 # Called by each test file with its list of cases.
 sub run_all {
-  my ($name, $cases) = @_;
+  my (undef, $cases) = @_;
   make_path("$output/$suite");
   foreach my $case (@$cases) {
     my ($case_name, $input, $options) = @$case;
@@ -70,7 +70,7 @@ my $cwd = getcwd();
 chdir($stubs) or die "$stubs: $!\n";
 foreach my $file (sort glob("$tests/*.t")) {
   $suite = basename($file, '.t');
-  my $result = do $file;
+  do $file;
   warn "$file: $@" if $@;
 }
 chdir($cwd);

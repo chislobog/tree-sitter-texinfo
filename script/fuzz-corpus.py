@@ -3,15 +3,16 @@
 ours: texi2any's test inputs and the example manuals.
 
 The tests go to test/corpus/fuzz-inputs.txt, which git ignores: the files
-come from other projects, under other licences, and are extracted by the dev
-shell. Delete it after fuzzing, or `tree-sitter test` runs it too. Each
-test is named by its file's path, for `tree-sitter fuzz --include`. Its
-expected tree is this parser's own (checking the trees is what
+come from other projects, under other licences, and are extracted by Nix,
+linked by the dev shell. Delete it after fuzzing, or `tree-sitter test` runs
+it too. Each test is named by its file's path, for `tree-sitter fuzz --include`.
+Its expected tree is this parser's own (checking the trees is what
 test/tree-snapshots.txt does): written here rather than by `tree-sitter test
 --update`, which rewrites the delimiters without their suffix, so that a line
 of dashes in a manual ends its input.
 
-Usage: script/fuzz-corpus.py [FILE...]
+Usage: script/fuzz-corpus.py [--manuals] [--test-inputs] [--compared-manuals]
+       [--edited-manuals] [FILE...]
 """
 
 import argparse

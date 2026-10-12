@@ -2,6 +2,10 @@
 
 The parser is built into build/ when src/ is newer than the build, or into
 another checkout's build/ for comparing with an earlier revision.
+
+Also holds BLOCK_NAMES (from the scanner's table), the file sets (manuals,
+edited-manuals, compared-manuals, test-inputs) and helpers to add them as
+arguments to argparse.
 """
 
 import argparse
@@ -17,6 +21,14 @@ from tree_sitter import Language, Node
 
 ROOT = Path(__file__).resolve().parent.parent
 
+
+def _library_extension() -> str:
+    """The dynamic library suffix for this platform."""
+    if sys.platform == "darwin":
+        return ".dylib"
+    return ".so"
+
+
 # Block names, from the scanner's table.
 BLOCK_NAMES = frozenset(
     re.findall(r'\{"(\w+)", KIND_\w+(?: \+ \d+)?\}', (ROOT / "src" / "scanner.c").read_text())
@@ -25,7 +37,7 @@ BLOCK_NAMES = frozenset(
 
 def load_language(root: Path = ROOT) -> Language:
     """The parser generated in `root`'s src/, built if needed."""
-    library = root / "build" / "texinfo.dylib"
+    library = root / "build" / f"texinfo{_library_extension()}"
     sources = [*root.glob("src/*.c"), *root.glob("src/tree_sitter/*.h")]
     newest = max(source.stat().st_mtime for source in sources)
     if not library.exists() or library.stat().st_mtime < newest:
@@ -73,22 +85,26 @@ TEXINFO_SUFFIXES = (".texi", ".texinfo", ".txi")
 NOT_COMPARED = ("texinfo-tex-test.texi", "html_default_commands_args.texi")
 
 
-def _find(directory: str, suffixes: tuple[str, ...]) -> list[Path]:
+def _find(directory: Path, suffixes: tuple[str, ...]) -> list[Path]:
     """The files under `directory` with one of `suffixes`, following
-    symbolic links, as `find -L` does, sorted."""
+    symbolic links, as `find -L` does, sorted. Relative to the current
+    directory, so that from the repository's root the names are those the
+    snapshots and the lists of differences record."""
     found = []
     for parent, _, names in os.walk(directory, followlinks=True):
-        found.extend(Path(parent, name) for name in names if name.endswith(suffixes))
+        found.extend(
+            Path(os.path.relpath(Path(parent, name))) for name in names if name.endswith(suffixes)
+        )
     return sorted(found)
 
 
 def manuals() -> list[Path]:
     """The example manuals (examples/, linked by the dev shell)."""
-    return _find("examples", TEXINFO_SUFFIXES)
+    return _find(ROOT / "examples", TEXINFO_SUFFIXES)
 
 
 def edited_manuals() -> list[Path]:
-    """The manuals without gawk's Italian ones, in another encoding."""
+    """The example manuals, except gawk's Italian ones (in another encoding)."""
     return [p for p in manuals() if "it" not in p.parts]
 
 
@@ -99,14 +115,20 @@ def compared_manuals() -> list[Path]:
 
 def test_inputs() -> list[Path]:
     """texi2any's test inputs (texinfo-tests/, linked by the dev shell)."""
-    return _find("texinfo-tests", (".texi",))
+    return _find(ROOT / "texinfo-tests", (".texi",))
 
 
 FILE_SETS = {
-    "manuals": manuals,
-    "edited-manuals": edited_manuals,
-    "compared-manuals": compared_manuals,
-    "test-inputs": test_inputs,
+    "manuals": (manuals, "example manuals (examples/, linked by the dev shell)"),
+    "edited-manuals": (
+        edited_manuals,
+        "example manuals, except gawk's Italian ones (in another encoding)",
+    ),
+    "compared-manuals": (compared_manuals, "manuals compared with texi2any"),
+    "test-inputs": (
+        test_inputs,
+        "texi2any's test inputs (texinfo-tests/, linked by the dev shell)",
+    ),
 }
 
 
@@ -120,22 +142,28 @@ def add_files_argument(arguments: argparse.ArgumentParser):
         type=Path,
         help="the files; read from standard input, one per line, if none are given",
     )
-    for name, function in FILE_SETS.items():
+    for name, (function, help_text) in FILE_SETS.items():
         arguments.add_argument(
             f"--{name}",
             action="append_const",
             const=function,
             dest="file_sets",
-            help=f"also {function.__doc__.splitlines()[0][4:].rstrip('.')}",
+            help=f"also {help_text}",
         )
 
 
 def files_argument(options: argparse.Namespace) -> list[Path]:
     files = list(options.files)
     for function in options.file_sets or []:
-        files.extend(function())
+        found = function()
+        if not found:
+            set_name = function.__name__.replace("_", "-")
+            raise SystemExit(f"no files in {set_name} (enter the dev shell, which links it)")
+        files.extend(found)
     if files:
         return list(dict.fromkeys(files))
+    if sys.stdin.isatty():
+        raise SystemExit("no files given (use arguments or --manuals/--test-inputs/...)")
     files = [Path(line) for line in sys.stdin.read().splitlines() if line]
     if not files:
         raise SystemExit("no files given")

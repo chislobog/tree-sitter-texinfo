@@ -10,11 +10,12 @@
   fails, so a grammar change that makes some input pathologically slow
   shows. Relative to the median, so it holds on any machine. The time is
   the CPU time of the parse in this process, which other processes running
-  at once (as `nix flake check`'s other checks do) hardly affect, unlike the
-  wall-clock time `tree-sitter parse` reports. A file that looks slow is
-  timed again: it only fails if it is still slow every time.
+  at once (as `nix flake check`'s other checks do) hardly affect. A file
+  that looks slow is timed again: it only fails if it is still slow every
+  time.
 
-Usage: script/parse-examples.py [--slowdown N] [--expected FILE] [FILE...]
+Usage: script/parse-examples.py [--manuals] [--test-inputs] [--compared-manuals]
+       [--edited-manuals] [--slowdown N] [--expected FILE] [FILE...]
 """
 
 import argparse
@@ -46,10 +47,9 @@ def read_expected(path: Path) -> dict[str, list[str]]:
     return expected
 
 
-def parse(files: list) -> list[dict]:
-    """Each file's name, size, whether it parses without errors (as
-    `tree-sitter parse` counts them), and the CPU time of its parse."""
-    parser = Parser(load_language())
+def parse(parser: Parser, files: list) -> list[dict]:
+    """Each file's name, size, whether it parses without errors (no ERROR or
+    MISSING nodes), and the CPU time of its parse."""
     summaries = []
     for name in files:
         source = Path(name).read_bytes()
@@ -78,13 +78,26 @@ def speeds(summaries: list[dict]) -> dict[str, float]:
 
 def main() -> int:
     arguments = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    arguments.add_argument("--slowdown", type=float, default=10.0)
-    arguments.add_argument("--expected", type=Path, default=EXPECTED, metavar="FILE")
+    arguments.add_argument(
+        "--slowdown",
+        type=float,
+        default=10.0,
+        help="slowdown factor before a file fails (default 10)",
+    )
+    arguments.add_argument(
+        "--expected",
+        type=Path,
+        default=EXPECTED,
+        metavar="FILE",
+        help="file listing expected parse errors (default %(default)s)",
+    )
     add_files_argument(arguments)
     options = arguments.parse_args()
     options.files = files_argument(options)
 
-    summaries = parse(options.files)
+    parser = Parser(load_language())
+    summaries = parse(parser, options.files)
+    checked = {s["file"] for s in summaries}
 
     failures = 0
     expected = read_expected(options.expected)
@@ -92,12 +105,11 @@ def main() -> int:
     for name in sorted(failed - expected.keys()):
         print(f"Parse errors: {name}", file=sys.stderr)
     for name in sorted(expected.keys() - failed):
-        if name in {s["file"] for s in summaries}:
+        if name in checked:
             print(f"No longer fails to parse: {name}", file=sys.stderr)
     for name in sorted(failed & expected.keys()):
         if not expected[name]:
             print(f"No reason given: {name}", file=sys.stderr)
-    checked = {s["file"] for s in summaries}
     if failed != expected.keys() & checked or any(
         not expected[n] for n in failed & expected.keys()
     ):
@@ -114,7 +126,7 @@ def main() -> int:
         for _ in range(RETRIES):
             if not slow:
                 break
-            again = speeds(parse(list(slow)))
+            again = speeds(parse(parser, list(slow)))
             for name, rate in again.items():
                 rates[name] = max(rates[name], rate)
             slow = {name: rates[name] for name in slow if rates[name] * options.slowdown < median}

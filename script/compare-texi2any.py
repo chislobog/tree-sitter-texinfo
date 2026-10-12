@@ -53,7 +53,8 @@ and on a listed one that is no longer found, and `--write-expected` updates
 the list.
 
 Usage: script/compare-texi2any.py [--structure] [--hunks N]
-       [--expected FILE] [--write-expected FILE] [FILE...]
+       [--expected FILE] [--write-expected FILE] [--manuals] [--test-inputs]
+       [--compared-manuals] [--edited-manuals] [FILE...]
 """
 
 import argparse
@@ -674,8 +675,8 @@ def main() -> int:
         if failed:
             print(
                 f"Differences from texi2any don't match {options.expected}: fix "
-                "the regression, or if the change is deliberate, rerun with "
-                "--write-expected and give each new file a `#` comment with "
+                "the regression, or if the change is deliberate, run "
+                "`just compare-write` and give each new file a `#` comment with "
                 "the reason.",
                 file=sys.stderr,
             )

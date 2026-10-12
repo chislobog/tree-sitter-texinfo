@@ -11,7 +11,7 @@ another file of digests. After a deliberate change,
 revision REV, to review before writing the new digests.
 
 Usage: script/tree-snapshots.py [--snapshots FILE] (--check | --write | --diff REV)
-       [FILE...]
+       [--manuals] [--test-inputs] [--compared-manuals] [--edited-manuals] [FILE...]
 """
 
 import argparse
@@ -122,8 +122,8 @@ def main() -> int:
     if changed or gone:
         print(
             f"{len(changed)} trees differ from {options.snapshots}. If the change "
-            "is deliberate, review it with `script/tree-snapshots.py --diff HEAD FILE...` "
-            "and record it with --write.",
+            "is deliberate, review it with `just snapshots-diff HEAD FILE...` "
+            "and record it with `just snapshots-write`.",
             file=sys.stderr,
         )
         return 1

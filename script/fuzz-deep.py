@@ -21,16 +21,14 @@ import tempfile
 import time
 from pathlib import Path
 
-from texinfo_language import ROOT
+from texinfo_language import ROOT, manuals, test_inputs
 
 CORPUS = ROOT / "test" / "corpus" / "fuzz-inputs.txt"
-MANUALS = ("*.texi", "*.texinfo", "*.txi")
 
 
 def inputs() -> list[Path]:
-    tests = sorted(Path("texinfo-tests").glob("**/*.texi"))
-    manuals = sorted({p for pattern in MANUALS for p in Path("examples").glob(f"**/{pattern}")})
-    return tests + manuals
+    """texi2any's test inputs, then the manuals."""
+    return test_inputs() + manuals()
 
 
 def groups(paths: list[Path], count: int) -> list[list[Path]]:
@@ -56,9 +54,7 @@ def main() -> int:
 
     paths = inputs()
     subprocess.run(
-        ["python3", "script/fuzz-corpus.py"],
-        input="".join(f"{p}\n" for p in paths),
-        text=True,
+        [sys.executable, "script/fuzz-corpus.py", "--test-inputs", "--manuals"],
         cwd=ROOT,
         check=True,
     )

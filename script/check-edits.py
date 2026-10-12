@@ -23,7 +23,8 @@ The edits are the same on every run for a given --seed.
 With --keep DIR, the edited text of each problem is saved there, with the
 original, to inspect with `tree-sitter parse --cst` or `--debug-graph`.
 
-Usage: script/check-edits.py [--edits N] [--seed N] [--keep DIR] [FILE...]
+Usage: script/check-edits.py [--manuals] [--test-inputs] [--compared-manuals]
+       [--edited-manuals] [--edits N] [--seed N] [--keep DIR] [FILE...]
 """
 
 import argparse
@@ -205,7 +206,7 @@ def check_edit(
     location = f"{path}:{point(source, offset).row + 1}:{point(source, offset).column + 1}"
 
     fresh = parser.parse(edited)
-    tree = parser.parse(source)
+    tree = old_tree.copy()
     tree.edit(
         start_byte=offset,
         old_end_byte=offset + removed,
