@@ -59,7 +59,6 @@ Usage: script/compare-texi2any.py [--structure] [--hunks N]
 
 import argparse
 import difflib
-import itertools
 import os
 import re
 import shutil
@@ -315,14 +314,20 @@ def _move_end_comments(node: DumpNode):
         _move_end_comments(child)
 
 
+# A command name as texi2any reads it, such as `@foo-barindex` after
+# `@defindex foo-bar`.
+COMMAND_NAME = re.compile(r"@[A-Za-z0-9][A-Za-z0-9_-]*")
+
+
 def command_name(label: str) -> str | None:
     if not label.startswith("@"):
         return None
-    rest = label[1:]
-    if rest[:1].isalpha():
-        return "@" + "".join(itertools.takewhile(str.isalnum, rest))
-    # A single non-letter, including the newline of `@` at the end of a line.
-    return "@" + rest[:1]
+    name = COMMAND_NAME.match(label)
+    if name:
+        return name.group()
+    # A single other character, including the newline of `@` at the end of a
+    # line.
+    return label[:2]
 
 
 def dump_text(node: DumpNode) -> str:

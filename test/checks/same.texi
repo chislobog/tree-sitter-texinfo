@@ -2,3 +2,6 @@
 @top Title
 
 Some @code{x} and @emph{y}.
+
+@defindex foo-bar
+@foo-barindex term

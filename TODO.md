@@ -331,9 +331,8 @@ Deliberate, so the tree shows the source as it is written and edited:
 - [x] The generated Neovim queries run in Neovim, by a check: its regexes
   are Vim's, which no other check reads, and every pattern starting `^@`
   had made Neovim reject the highlights
-- [ ] The comparison reads texi2any's command names only up to the first
-  character that isn't a letter or digit, so `@foo-barindex` (after
-  `@defindex foo-bar`) is `@foo` and `@1foo` is `@1`: a false difference
+- [x] The comparison reads texi2any's command names whole, as texi2any does:
+  `@foo-barindex` (after `@defindex foo-bar`) was `@foo`, a false difference
 - [ ] Python source distributions lack `src/scanner.c`: `setup.py`, as
   tree-sitter 0.26's template writes it, adds it to the extension only while
   compiling, so a wheel built from the sdist has no scanner
