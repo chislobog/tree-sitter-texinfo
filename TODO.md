@@ -31,12 +31,9 @@ sources, which is what `texi2any` itself uses.
 - [x] `@verb{xTEXTx}` with an arbitrary delimiter character
 - [x] A stray `@end` that ends no open block is an `unmatched_end` node, to
   the end of its line, which editors should report
-- [ ] Keep the preformatted context through blocks nested in `@example`
-  and the other preformatted blocks: `in_preformatted` in `src/scanner.c`
-  looks only at the innermost block, so in `@group`, `@quotation`,
-  `@cartouche`, `@itemize` and the like a blank line closes a brace command
-  (`@code{one`, a blank line, `two}`) with `missing_brace` and leaves the `}`
-  an `ERROR`. texi2any accepts it, as directly in `@example`
+- [x] Keep the preformatted context through blocks nested in `@example`
+  and the other preformatted blocks (`@group`, `@quotation`, even `@menu`),
+  where a blank line doesn't close a brace command, as in texi2any
 - [ ] Macro names starting with a digit: `@macro 1foo {x}` is remembered, but
   `read_name` in `src/scanner.c` and the grammar's command name reject the
   digit, so `@1foo{one}` is the symbol `@1`, text and a brace group, not a

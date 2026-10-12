@@ -672,14 +672,20 @@ static bool in_multitable(const Scanner *scanner) {
   return block != NULL && block->kind == KIND_MULTITABLE;
 }
 
-// Preformatted blocks, where a blank line doesn't end a brace command.
+// Inside a preformatted block, where a blank line doesn't end a brace
+// command. Every block nested in one, such as `@group` or `@quotation`, keeps
+// it preformatted, as in texi2any.
 static bool in_preformatted(const Scanner *scanner) {
   static const char *const PREFORMATTED[] = {
       "example", "smallexample", "lisp",   "smalllisp",
       "display", "smalldisplay", "format", "smallformat"};
-  const Block *block = innermost_structure(scanner);
-  return block != NULL &&
-         in_table(PREFORMATTED, TABLE_COUNT(PREFORMATTED), block->name);
+  for (unsigned i = 0; i < scanner->depth; i++) {
+    if (in_table(PREFORMATTED, TABLE_COUNT(PREFORMATTED),
+                 BLOCKS[scanner->stack[i]].name)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 // `@itemize` and `@enumerate`, where the text after `@item` is a paragraph,
