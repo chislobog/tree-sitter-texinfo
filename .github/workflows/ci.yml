@@ -1,8 +1,7 @@
 name: CI
 
 # Changes to the documentation alone aren't checked (`nix flake check` runs
-# the same checks locally before pushing); the bindings on macOS and Windows
-# are built by platforms.yml, weekly.
+# the same checks locally before pushing).
 on:
   push:
     paths-ignore: ["**.md"]
@@ -35,6 +34,19 @@ jobs:
 
       - uses: cachix/install-nix-action@v31
 
+      # The Nix store from the last run, so the checks whose inputs didn't
+      # change aren't built again. Keyed by those inputs, so a run that
+      # changes them saves its own; only the newest is kept.
+      - uses: nix-community/cache-nix-action@v7
+        with:
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('flake.lock', 'flake.nix', 'grammar.js', 'src/**', 'script/**', 'test/**', 'queries/**', 'editors/**', 'eslint.config.mjs', 'package-lock.json') }}
+          restore-prefixes-first-match: nix-${{ runner.os }}-
+          gc-max-store-size-linux: 6G
+          purge: true
+          purge-prefixes: nix-${{ runner.os }}-
+          purge-created: 0
+          purge-primary-key: never
+
       # Every check in flake.nix: the formatting and the linters
       # (pre-commit), the tests, fuzzing (tree-sitter's and libFuzzer's on
       # the scanner), the manuals, the texi2any comparisons, the snapshots
@@ -42,23 +54,32 @@ jobs:
       - name: Checks
         run: nix flake check -L
 
-  # The bindings are how most projects use the grammar; on Linux here, and on
-  # macOS and Windows in platforms.yml.
-  platforms:
-    name: Tests and bindings
+  # The scanner is compiled on users' machines by every editor, including
+  # with MSVC on Windows, and the bindings are how most projects use the
+  # grammar. On Linux, `nix flake check` already generates and tests the
+  # parser.
+  bindings:
+    name: Bindings on ${{ matrix.os }}
     # Branches in this repository are checked on push; pull requests only
     # from forks, to avoid running twice.
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@v7
 
+      # The version nixpkgs has (`tree-sitter --version` in the dev shell).
       - uses: tree-sitter/setup-action/cli@v2
         with:
           tree-sitter-ref: v0.26.11
 
       - uses: tree-sitter/parser-test-action@v3
         with:
+          generate: false
+          test-parser: ${{ matrix.os != 'ubuntu-latest' }}
           test-rust: true
           test-node: true
           test-python: true

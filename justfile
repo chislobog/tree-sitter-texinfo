@@ -13,7 +13,7 @@ check:
 
 # One check of `nix flake check`, by name (`just run compare-manuals`).
 run name:
-    nix build --no-link -L ".#checks.$(nix eval --raw --impure --expr builtins.currentSystem).{{ name }}"
+    nix build --no-link -L ".#checks.$(nix config show system).{{ name }}"
 
 # Format every file.
 fmt:

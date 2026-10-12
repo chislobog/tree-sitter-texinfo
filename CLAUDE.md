@@ -92,14 +92,17 @@ well with incomplete input, which is normal while editing.
 A Claude Code hook (`.claude/hooks/check-grammar.py`) runs `tree-sitter
 generate` and `tree-sitter test` after every edit to `grammar.js`,
 `src/scanner.c` or the corpus. Every other check is declared in `flake.nix`
-and run by `nix flake check` (`just check`), locally as in CI. Nix caches
-them: a check whose inputs didn't change isn't rerun (the docs and CI
-config aren't inputs). Run it before pushing, so CI only confirms. One check
-by name: `just run NAME`, with NAME one of `pre-commit` (formatting and the
+(with flake-parts, and treefmt-nix's and git-hooks.nix's modules) and run
+by `nix flake check` (`just check`), locally as in CI. Nix caches them: a
+check whose inputs didn't change isn't rerun (the docs and CI config aren't
+inputs, except to `pre-commit`, which reads every file); CI keeps the store
+between runs too. Run it before pushing, so CI only confirms. One check by
+name: `just run NAME`, with NAME one of `pre-commit` (formatting and the
 linters), `generated`, `tests`, `scanner-warnings`, `fuzz`, `checks-catch`,
 `parse`, `compare-manuals`, `compare-tests`, `snapshots`, `fuzz-inputs`,
-`edits`, `fuzz-scanner`. `nix fmt` (`just fmt`) formats every file. The
-justfile only holds such one-line aliases; `just` lists them.
+`edits`, `neovim-queries`, `fuzz-scanner`. `nix fmt` (`just fmt`) formats
+every file. The justfile only holds such one-line aliases; `just` lists
+them.
 
 The Python scripts select their own files: `--manuals`, `--edited-manuals`
 (without gawk's Italian ones), `--compared-manuals` (also without the files
@@ -124,8 +127,8 @@ to parse, and that none parses ten times slower than the median.
 `script/fuzz-corpus.py` turns texi2any's test inputs and the manuals into a
 corpus file that git ignores, for `tree-sitter fuzz --include texinfo-tests`
 or `--include examples` (about 10 seconds an iteration for the manuals);
-delete it afterwards, as the `fuzz-inputs` check's copy does, or
-`tree-sitter test` runs it too. It
+delete it afterwards (`script/fuzz-deep.py` does), or `tree-sitter test`
+runs it too. It
 writes the expected trees itself: `tree-sitter test --update` would drop the
 delimiters' suffix, after which a line of dashes in a manual ends its input.
 `script/test-checks.py` runs these checks on small inputs in `test/checks/`
@@ -136,8 +139,9 @@ way to fail.
 The git hooks are pre-commit's, declared in `flake.nix` with git-hooks.nix
 and installed by the dev shell (which writes `.pre-commit-config.yaml`, git
 ignores it): on commit, treefmt (the formatters of `nix fmt`), ruff,
-ESLint (from `package-lock.json`, built by Nix), shellcheck, actionlint,
-the queries' capture names and the generated Neovim queries; on the commit
+ESLint (as `package-lock.json` pins it, built by Nix), shellcheck,
+actionlint, the queries' capture names, and that each editor's generated
+queries are up to date; on the commit
 message, convco (Conventional Commits); before pushing, that `src/` matches
 `grammar.js` and `tree-sitter test`. `pre-commit run --all-files` runs them
 by hand; `nix flake check` runs them as its `pre-commit` check.
@@ -154,9 +158,8 @@ and the manuals for longer than the checks, on several cores.
 CI (`.github/workflows/ci.yml`) runs `nix flake check` and the parser-size
 check (`script/parser-size.py`, which needs git history, so it isn't a flake
 check) on every push, except one that only changes Markdown files; a newer
-push cancels a run in progress. It builds the bindings on Linux;
-`.github/workflows/platforms.yml` builds them on macOS and Windows weekly,
-on `v*` tags and on demand. The
+push cancels a run in progress. It also builds and tests the bindings on
+Linux, macOS and Windows (where MSVC compiles the scanner). The
 comparisons pass only if the differences from texi2any are exactly those
 listed in `test/texi2any-differences.txt`, each file with a `#` comment giving
 the reason: deliberate (the Texinfo manual over texi2any's error recovery,
@@ -166,7 +169,7 @@ listed fails, and so does a listed one no longer found. After a deliberate
 change, or a fix, run `just compare-write`, check the diff of
 `test/texi2any-differences.txt`, and give each new file a reason; never list
 a regression. To compare by hand: `python3 script/compare-texi2any.py
---compared-manuals` or `--test-inputs` (about a minute).
+--compared-manuals` or `--test-inputs` (a minute or two each).
 
 The comparisons skip the files texi2any itself fails on (the Italian gawk
 manuals, `texinfo-tex-test.texi`) and `html_default_commands_args.texi`, a
@@ -203,13 +206,16 @@ from the same LLVM version as the compiler (the profile format differs).
   braces took the newline. `script/check-edits.py` checks that incremental
   parsing still matches a fresh parse.
 - Update `TODO.md` in the same commit as the work it tracks.
-- In `highlights.scm`, each node is highlighted by only one match: the one
-  that finishes matching first, not the first in the file, and the
-  highlighter then drops every other match that captures that node,
-  together with all its other captures. It also drops the rest of a match
-  after a private capture like `@_name`. So keep patterns from overlapping
-  (use predicates to make them exclusive) and capture predicate nodes with
-  a real highlight.
+- Neovim reads `#match?` regexes as Vim's "very magic" ones, where `@` is
+  an operator: write `[@]`, or use `#any-of?`. The `neovim-queries` check
+  runs the generated Neovim queries in Neovim.
+- In `highlights.scm`, editors resolve overlapping patterns differently:
+  the tree-sitter CLI (and so the highlight tests) keeps the match that
+  finishes first, dropping every other match that captures that node with
+  all its other captures, and the rest of a match after a private capture
+  like `@_name`; Neovim and Helix let the last pattern in the file win. So
+  keep patterns from overlapping (use predicates to make them exclusive)
+  and capture predicate nodes with a real highlight.
 - Recognise long lists of command names in the scanner, not with keywords in
   the grammar: every keyword is an entry in every parser state where a
   command can start. Moving 199 keywords to the scanner took `parser.c` from

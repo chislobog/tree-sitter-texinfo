@@ -9,7 +9,7 @@ sources, which is what `texi2any` itself uses.
 - [x] `\input texinfo` first line
 - [x] Comments: `@c`, `@comment`, including at end of line
 - [x] Line commands with the rest of the line as argument
-- [x] Sectioning and heading commands, all levels (flat, not nested)
+- [x] Sectioning and heading commands, all levels
 - [x] Paragraphs separated by blank lines
 - [x] Brace commands, nested, with arguments spanning lines
 - [x] Symbol commands: `@@`, `@{`, `@}`, `@*`, `@.`, `@ `, accents like `@'`
@@ -127,8 +127,8 @@ block commands only start a line (texi2any also accepts `text @html` and
 of a line.
 
 - [x] An unclosed brace in a line command's argument (`@chapter A @code{x`)
-  closes at the end of that line, as in texi2any. Not yet in `@node` lines
-  or in the commands with named arguments (`@xref{` in a heading)
+  closes at the end of that line, as in texi2any, also in the commands with
+  named arguments (`@xref{` in a heading). Not yet in `@node` lines
 - [x] A block right after `@footnote{` (`@footnote{@quotation`)
 
 - [x] `@itemx` after index entries or comments that follow an `@item`
@@ -174,8 +174,10 @@ of a line.
 
 ## Differences from texi2any
 
-From comparing with texi2any on its own test inputs (118 of 1,755 differ, all listed with their reasons in `test/texi2any-differences.txt`;
-the manuals match but for three binutils fragments meant for `@include`).
+From comparing with texi2any on its own test inputs (96 of 1,755 differ, all
+listed with their reasons in `test/texi2any-differences.txt`; the manuals
+match but for three binutils fragments meant for `@include`, and the parse
+errors in Calc's, Gnus's and gawk's `@iftex` blocks).
 
 Gaps, where we give a parse error and texi2any recovers:
 
@@ -229,9 +231,6 @@ Deliberate, so the tree shows the source as it is written and edited:
 - [x] `queries/tags.scm`: nodes, anchors and documented functions and variables
   as definitions; cross-references and menu entries as references
 - [x] Register queries in `tree-sitter.json`
-- [x] Standard tools instead of shell scripts: `nix flake check` runs every
-  check (cached by Nix), `nix fmt` formats (treefmt-nix), pre-commit runs
-  the git hooks (git-hooks.nix); the justfile only holds one-line aliases
 - [x] Queries for several editors, favouring none: `queries/` uses the
   plainer capture name where editors differ (`.tsqueryrc.json`
   enforces them), and `editors/helix/queries/` and `editors/neovim/queries/`
@@ -251,7 +250,7 @@ Deliberate, so the tree shows the source as it is written and edited:
 - [x] `script/compare-texi2any.py`: compare trees with texi2any's
 - [x] Run the comparison on the inputs of texi2any's own parser tests
   (`texinfo-tests/`): 1,446 of 1,755 match exactly
-- [x] Triage the test inputs that differ: 1,579 of 1,755 now match exactly.
+- [x] Triage the test inputs that differ: 1,579 of 1,755 then matched exactly.
   The remaining 176 are the macro and value suites (the script's simple
   macro expansion), invalid input that texi2any discards (unknown commands,
   misplaced `@tab` and `@headitem`, stray `@end`), `@click` (texi2any
@@ -259,20 +258,24 @@ Deliberate, so the tree shows the source as it is written and edited:
 - [x] Mirror `@clickstyle`/`@click` and `@alias` in the comparison
 - [x] Fuzz the manuals too (`tree-sitter fuzz`, random edits anywhere), not
   only texi2any's test inputs
-- [x] Spend fewer CI minutes: `script/check-all.sh` runs CI's checks
-  locally before pushing; macOS and Windows bindings weekly
-  (`platforms.yml`); no CI for Markdown-only changes
-- [x] Longer fuzzing locally: `script/fuzz-deep.py` (`tree-sitter fuzz`) and
-  `script/fuzz-scanner.sh` (libFuzzer with sanitizers; the dev shell's LLVM
-  is now 23, as LLVM 21's AddressSanitizer deadlocks at startup on macOS 27)
+- [x] CI time: no CI for Markdown-only changes; `nix flake check` runs the
+  same checks locally before pushing, and CI keeps the Nix store between
+  runs, so only the checks whose inputs changed run again. The bindings on
+  Linux, macOS and Windows on every push
+- [x] Standard tools instead of shell scripts: `nix flake check` runs every
+  check (cached by Nix), `nix fmt` formats (treefmt-nix), pre-commit runs
+  the git hooks (git-hooks.nix), all declared with flake-parts; the justfile only holds
+  one-line aliases
+- [x] Longer fuzzing locally: `just fuzz-deep` (`tree-sitter fuzz`) and
+  `just fuzz-scanner` (libFuzzer with sanitizers; LLVM is 23, as LLVM 21's AddressSanitizer deadlocks at startup on macOS 27)
 - [x] Test the checks themselves (`script/test-checks.py`): each must fail
   on inputs in `test/checks/` that it is meant to catch
 - [x] Compare our tree of texi2any's own expansion of each file
   (`--macro-expand`) rather than imitate the expansion: 300 fewer lines in
   the script, and the differences it caused in the macro suites are gone
 - [x] CI (`.github/workflows/ci.yml`): generated `src/` up to date, tests,
-  fuzzing, parsing the manuals, and both texi2any comparisons with minimum
-  match rates (`--fail-under`)
+  fuzzing, parsing the manuals, and both texi2any comparisons, which must
+  find exactly the differences listed in `test/texi2any-differences.txt`
 - [x] README: supported features, editor setup, development with Nix
 - [x] `CLAUDE.md` with project conventions
 - [x] Expand `@linemacro` calls in the texi2any comparison
@@ -288,13 +291,17 @@ Deliberate, so the tree shows the source as it is written and edited:
   `.txi` files are checked too
 - [x] Reduce the parser's size: `src/parser.c` was 29 MB. The line and brace
   command keywords, now recognised by the scanner, made each parser state
-  where a command can start carry about 200 entries; it is now 6 MB, with
+  where a command can start carry about 200 entries; it went to 6 MB, with
   the same tree
 - [x] Tree snapshots of every manual and test input
   (`script/tree-snapshots.py`), and a simulation of typing mistakes in the
   manuals that checks error locality and incremental parsing
   (`script/check-edits.py`), both in CI
-- [x] Parse errors and parse speed of the manuals checked from `tree-sitter
-  parse --json-summary`; texi2any's test inputs fuzzed with `tree-sitter fuzz`
-  in CI, from a corpus generated there
+- [x] Parse errors and parse speed of the manuals checked
+  (`script/parse-examples.py`, timing each parse's CPU time); texi2any's
+  test inputs and the manuals fuzzed with `tree-sitter fuzz`, from a corpus
+  generated by the check
+- [x] The generated Neovim queries run in Neovim, by a check: its regexes
+  are Vim's, which no other check reads, and every pattern starting `^@`
+  had made Neovim reject the highlights
 - [ ] Release automation (npm, crates.io, PyPI)
