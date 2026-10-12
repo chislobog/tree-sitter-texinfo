@@ -212,7 +212,9 @@ static const Block BLOCKS[] = {
 #define MAX_RAW_DEPTH 64
 
 // Macros whose names are remembered; later ones count as unknown commands.
-#define MAX_MACROS 64
+// Manuals define up to about 60 (glibc's macros.texi); with 128, the block
+// stack still has room for 378 levels. `macro_count` is a byte.
+#define MAX_MACROS 128
 
 // Serialized state: the `@verb` delimiter, the accent flag, the number of
 // macros, their name hashes and kinds, then the block stack, which takes the

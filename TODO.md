@@ -47,15 +47,13 @@ sources, which is what `texi2any` itself uses.
   blank line gives brace errors
 - [ ] `@unmacro` doesn't remove the macro from the scanner's table: after
   `@linemacro code {x}` and `@unmacro code`, `@code{one}` is still a
-  `line_command`, and the entry still counts towards the limit below
-- [ ] Only the first 64 macros of a file are remembered (`MAX_MACROS`); later
-  definitions are silently ignored, and their calls with an argument spanning
-  a blank line give brace errors. glibc's `manual/macros.texi` already
-  defines 59
+  `line_command`, and the entry still counts towards `MAX_MACROS`
+- [x] Remember a file's first 128 macros (`MAX_MACROS`), not 64: glibc's
+  `manual/macros.texi` defines 59
 - Known limitation: the scanner remembers macros by a 32-bit FNV-1a hash of
   their name, as their names don't fit in tree-sitter's 1 KB of serialized
   state, so two names with the same hash (`mjkmtxnhps` and `mjbmpqijuu`) are
-  one macro to it. For 64 macros, the chance of that is about 5 in 10 million
+  one macro to it. For 128 macros, the chance of that is about 2 in a million
 
 ## Commands and arguments
 
