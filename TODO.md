@@ -164,10 +164,8 @@ of a line.
   A section inside a conditional ends at its `@end`; the Top node in
   `@ifnottex` and alternative headings per output format therefore don't
   contain the content after the conditional
-- [ ] `@anchor {old}`, with a blank before the brace, between `@node` and
-  its section leaves the node line outside the section:
-  `scan_node_before_section` in `src/scanner.c` wants the `{` right after
-  the name. texi2any takes both forms alike
+- [x] `@anchor {old}`, with blanks before the brace, between `@node` and its
+  section, as texi2any takes it: the node line still starts the section
 - [x] `@majorheading`, `@chapheading`, `@heading`, `@subheading` and
   `@subsubheading` are `heading` nodes, not sections
 - [x] Every command node names its command field `name` (headings used

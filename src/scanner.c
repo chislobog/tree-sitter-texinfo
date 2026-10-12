@@ -564,8 +564,11 @@ static bool scan_node_before_section(TSLexer *lexer,
       continue;
     }
 
-    // `@anchor{Old name}` lines keep old node names working.
-    if (strcmp(name, "anchor") == 0 && lexer->lookahead == '{') {
+    // `@anchor{Old name}` lines keep old node names working. Blanks may come
+    // before the brace, as in texi2any.
+    if (strcmp(name, "anchor") == 0) {
+      skip_blanks(lexer);
+      if (lexer->lookahead != '{') return false;
       skip_to_next_line(lexer);
       continue;
     }

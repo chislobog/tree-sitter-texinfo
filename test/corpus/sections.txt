@@ -288,6 +288,32 @@ An anchor between a node and its heading
         (text)))))
 
 ================================================================================
+An anchor with blanks before its brace between a node and its heading
+================================================================================
+
+@node New name
+@anchor 	{Old name}
+@section New name
+
+---
+
+(source_file
+  (section
+    node: (node_line
+      name: (command_name)
+      node: (argument
+        (text)))
+    (paragraph
+      (inline_command
+        name: (command_name)
+        arguments: (brace_arguments
+          (text))))
+    heading: (section_heading
+      name: (command_name)
+      title: (line_argument
+        (text)))))
+
+================================================================================
 @part contains the chapters after it
 ================================================================================
 
