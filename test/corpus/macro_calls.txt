@@ -376,3 +376,47 @@ Unknown @2nd, @c_x and @foo_bar{x}.
       arguments: (brace_arguments
         (text)))
     (text)))
+
+================================================================================
+@unmacro forgets a macro, giving back the built-in command it shadowed
+================================================================================
+
+@linemacro code {x}
+\x\
+@end linemacro
+@macro first {p}
+@end macro
+
+@unmacro code
+
+@code{one}
+
+@first rest
+
+---
+
+(source_file
+  (macro_definition
+    name: (command_name)
+    macro: (text)
+    parameter: (text)
+    body: (raw_text)
+    end: (block_end))
+  (macro_definition
+    name: (command_name)
+    macro: (text)
+    parameter: (text)
+    end: (block_end))
+  (line_command
+    name: (command_name)
+    argument: (raw_text))
+  (paragraph
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (text))))
+  (paragraph
+    (inline_command
+      name: (command_name)
+      argument: (line_argument
+        (text)))))

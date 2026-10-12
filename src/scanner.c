@@ -81,6 +81,8 @@ enum TokenType {
   ONE_PARAMETER_MACRO_CALL_NAME,
   // A call of a `@linemacro`, where a line can start.
   LINE_MACRO_CALL_NAME,
+  // `@unmacro`, which forgets the macro named after it.
+  UNMACRO_NAME,
   ERROR_SENTINEL,
 };
 
@@ -726,21 +728,29 @@ static int find_macro(const Scanner *scanner, uint32_t hash) {
 }
 
 /**
- * Reads ahead the name of the macro a `@macro`, `@rmacro` or `@linemacro`
- * line defines, after the end of its token, and the number of its
- * parameters, and remembers its kind.
+ * Reads ahead, after the end of its token, the name of the macro a line
+ * defines or `@unmacro` removes, whole, as a call reads it, however long.
+ * Returns false if there is none.
  */
-static void remember_macro(Scanner *scanner, TSLexer *lexer, bool line) {
+static bool read_macro_name(TSLexer *lexer, uint32_t *hash) {
   skip_blanks(lexer);
-  // Read whole, as a call reads it, however long.
-  uint32_t hash = FNV_OFFSET;
+  *hash = FNV_OFFSET;
   unsigned length = 0;
   while (is_name_char(lexer->lookahead)) {
-    hash = hash_char(hash, (char)lexer->lookahead);
+    *hash = hash_char(*hash, (char)lexer->lookahead);
     length++;
     advance(lexer);
   }
-  if (length == 0) return;
+  return length > 0;
+}
+
+/**
+ * Reads ahead the name of the macro a `@macro`, `@rmacro` or `@linemacro`
+ * line defines and the number of its parameters, and remembers its kind.
+ */
+static void remember_macro(Scanner *scanner, TSLexer *lexer, bool line) {
+  uint32_t hash;
+  if (!read_macro_name(lexer, &hash)) return;
 
   // The parameters are what is between the first `{` and `}`, split at
   // commas, as texi2any reads them.
@@ -773,6 +783,19 @@ static void remember_macro(Scanner *scanner, TSLexer *lexer, bool line) {
     scanner->macros[index] = hash;
   }
   scanner->macro_kinds[index] = kind;
+}
+
+// Reads ahead the name after `@unmacro` and forgets that macro: its name is
+// a built-in command's again, or unknown.
+static void forget_macro(Scanner *scanner, TSLexer *lexer) {
+  uint32_t hash;
+  if (!read_macro_name(lexer, &hash)) return;
+  int index = find_macro(scanner, hash);
+  if (index < 0) return;
+  // The last macro takes its place.
+  unsigned last = --scanner->macro_count;
+  scanner->macros[index] = scanner->macros[last];
+  scanner->macro_kinds[index] = scanner->macro_kinds[last];
 }
 
 /**
@@ -1300,6 +1323,11 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
   }
   if (valid_symbols[TAB] && strcmp(name, "tab") == 0) {
     return accept(lexer, TAB);
+  }
+  if (valid_symbols[UNMACRO_NAME] && strcmp(name, "unmacro") == 0) {
+    accept(lexer, UNMACRO_NAME);
+    forget_macro(scanner, lexer);
+    return true;
   }
   if (valid_symbols[LINE_COMMAND_NAME] && is_line_command(name)) {
     return accept(lexer, LINE_COMMAND_NAME);

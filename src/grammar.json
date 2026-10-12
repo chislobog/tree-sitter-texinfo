@@ -2399,22 +2399,27 @@
               "type": "FIELD",
               "name": "name",
               "content": {
-                "type": "ALIAS",
-                "content": {
-                  "type": "CHOICE",
-                  "members": [
-                    {
+                "type": "CHOICE",
+                "members": [
+                  {
+                    "type": "ALIAS",
+                    "content": {
                       "type": "STRING",
                       "value": "@clickstyle"
                     },
-                    {
-                      "type": "STRING",
-                      "value": "@unmacro"
-                    }
-                  ]
-                },
-                "named": true,
-                "value": "command_name"
+                    "named": true,
+                    "value": "command_name"
+                  },
+                  {
+                    "type": "ALIAS",
+                    "content": {
+                      "type": "SYMBOL",
+                      "name": "_unmacro_name"
+                    },
+                    "named": true,
+                    "value": "command_name"
+                  }
+                ]
               }
             },
             {
@@ -9643,6 +9648,10 @@
     {
       "type": "SYMBOL",
       "name": "_line_macro_call_name"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_unmacro_name"
     },
     {
       "type": "SYMBOL",

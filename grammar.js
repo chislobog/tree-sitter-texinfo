@@ -204,6 +204,8 @@ export default grammar({
     $._word_glue,
     $._one_parameter_macro_call_name,
     $._line_macro_call_name,
+    // `@unmacro`, after which the scanner forgets the macro it names.
+    $._unmacro_name,
     $._error_sentinel,
   ],
 
@@ -331,7 +333,10 @@ export default grammar({
         $._line_end,
       ),
       seq(
-        field('name', command($, ['clickstyle', 'unmacro'])),
+        field('name', choice(
+          command($, ['clickstyle']),
+          alias($._unmacro_name, $.command_name),
+        )),
         optional(field('argument', alias($._set_value, $.raw_text))),
         $._line_end,
       ),

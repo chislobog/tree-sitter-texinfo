@@ -37,9 +37,8 @@ sources, which is what `texi2any` itself uses.
 - [x] Command names as texi2any reads them, `[[:alnum:]][[:alnum:]_-]*` of any
   length, so calls of macros named `1foo` or longer than 32 characters are
   recognised, and `@0` or `@foo_bar` is one (unknown) command
-- [ ] `@unmacro` doesn't remove the macro from the scanner's table: after
-  `@linemacro code {x}` and `@unmacro code`, `@code{one}` is still a
-  `line_command`, and the entry still counts towards `MAX_MACROS`
+- [x] `@unmacro` makes the scanner forget the macro, so a built-in command
+  it shadowed (`@linemacro code`) is built-in again
 - [x] Remember a file's first 128 macros (`MAX_MACROS`), not 64: glibc's
   `manual/macros.texi` defines 59
 - Known limitation: the scanner remembers macros by a 32-bit FNV-1a hash of
