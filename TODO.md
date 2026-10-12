@@ -154,11 +154,20 @@ of a line.
   An entry still being typed (`* Name` with no separator) has only a label
 - [x] A menu entry's description may start on the line after the entry, as
   in texi2any; a bare `*` there is description text, not an entry
+- [ ] A menu node ending in a run of dots before whitespace keeps all but
+  the last, as in texi2any: `* Label: foo... desc` is node `foo..` and
+  description `desc`, not `foo` and `.. desc`. texi2any's test
+  `10menu/menu_entry_name.texi` has it (`(f)b1.. `); the comparison doesn't
+  check node text
 - [x] Sections nest by level (`part`, `top`, `chapter`, `section`,
   `subsection`, `subsubsection`), each with its `node` line and `heading`.
   A section inside a conditional ends at its `@end`; the Top node in
   `@ifnottex` and alternative headings per output format therefore don't
   contain the content after the conditional
+- [ ] `@anchor {old}`, with a blank before the brace, between `@node` and
+  its section leaves the node line outside the section:
+  `scan_node_before_section` in `src/scanner.c` wants the `{` right after
+  the name. texi2any takes both forms alike
 - [x] `@majorheading`, `@chapheading`, `@heading`, `@subheading` and
   `@subsubheading` are `heading` nodes, not sections
 - [x] Every command node names its command field `name` (headings used
@@ -209,6 +218,10 @@ Gaps, where we give a parse error and texi2any recovers:
   arguments; lone carriage returns in text; an empty menu entry name;
   `@footnote`, `@caption`, `@inlineraw`, the inline conditionals and
   `@verb` without braces
+- [ ] A lone carriage return at the start or end of a text (`\rHello`,
+  `Hello\r@code{x}`, `Hello\r` at the end of the file) is a parse error;
+  texi2any takes a leading one as space before the paragraph and keeps a
+  trailing one in the text. Inside a text it already parses
 - [ ] Files not in UTF-8 (`@documentencoding ISO-8859-1`, Shift-JIS): the
   editor has to convert them, as tree-sitter reads UTF-8
 
@@ -320,4 +333,10 @@ Deliberate, so the tree shows the source as it is written and edited:
 - [x] The generated Neovim queries run in Neovim, by a check: its regexes
   are Vim's, which no other check reads, and every pattern starting `^@`
   had made Neovim reject the highlights
+- [ ] The comparison reads texi2any's command names only up to the first
+  character that isn't a letter or digit, so `@foo-barindex` (after
+  `@defindex foo-bar`) is `@foo` and `@1foo` is `@1`: a false difference
+- [ ] Python source distributions lack `src/scanner.c`: `setup.py`, as
+  tree-sitter 0.26's template writes it, adds it to the extension only while
+  compiling, so a wheel built from the sdist has no scanner
 - [ ] Release automation (npm, crates.io, PyPI)
