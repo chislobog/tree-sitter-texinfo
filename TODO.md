@@ -31,6 +31,31 @@ sources, which is what `texi2any` itself uses.
 - [x] `@verb{xTEXTx}` with an arbitrary delimiter character
 - [x] A stray `@end` that ends no open block is an `unmatched_end` node, to
   the end of its line, which editors should report
+- [ ] Keep the preformatted context through blocks nested in `@example`
+  and the other preformatted blocks: `in_preformatted` in `src/scanner.c`
+  looks only at the innermost block, so in `@group`, `@quotation`,
+  `@cartouche`, `@itemize` and the like a blank line closes a brace command
+  (`@code{one`, a blank line, `two}`) with `missing_brace` and leaves the `}`
+  an `ERROR`. texi2any accepts it, as directly in `@example`
+- [ ] Macro names starting with a digit: `@macro 1foo {x}` is remembered, but
+  `read_name` in `src/scanner.c` and the grammar's command name reject the
+  digit, so `@1foo{one}` is the symbol `@1`, text and a brace group, not a
+  call. texi2any reads command names as `[[:alnum:]][[:alnum:]_-]*`
+- [ ] Macro names of 32 characters or more: `read_name` rejects them
+  (`MAX_NAME`), and `remember_macro` cuts the name to 32 characters before
+  hashing it, so their calls aren't recognised and an argument spanning a
+  blank line gives brace errors
+- [ ] `@unmacro` doesn't remove the macro from the scanner's table: after
+  `@linemacro code {x}` and `@unmacro code`, `@code{one}` is still a
+  `line_command`, and the entry still counts towards the limit below
+- [ ] Only the first 64 macros of a file are remembered (`MAX_MACROS`); later
+  definitions are silently ignored, and their calls with an argument spanning
+  a blank line give brace errors. glibc's `manual/macros.texi` already
+  defines 59
+- Known limitation: the scanner remembers macros by a 32-bit FNV-1a hash of
+  their name, as their names don't fit in tree-sitter's 1 KB of serialized
+  state, so two names with the same hash (`mjkmtxnhps` and `mjbmpqijuu`) are
+  one macro to it. For 64 macros, the chance of that is about 5 in 10 million
 
 ## Commands and arguments
 
@@ -230,6 +255,9 @@ Deliberate, so the tree shows the source as it is written and edited:
 - [x] `queries/folds.scm`
 - [x] `queries/tags.scm`: nodes, anchors and documented functions and variables
   as definitions; cross-references and menu entries as references
+- [ ] Tag `@anchor {target}` and `@value {var}`, with blanks before the
+  brace (as in `info-stnd.texi`): the predicates in `queries/tags.scm`
+  require the `{` right after the command name
 - [x] Register queries in `tree-sitter.json`
 - [x] Queries for several editors, favouring none: `queries/` uses the
   plainer capture name where editors differ (`.tsqueryrc.json`
