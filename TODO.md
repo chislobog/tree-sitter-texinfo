@@ -333,7 +333,7 @@ Deliberate, so the tree shows the source as it is written and edited:
   had made Neovim reject the highlights
 - [x] The comparison reads texi2any's command names whole, as texi2any does:
   `@foo-barindex` (after `@defindex foo-bar`) was `@foo`, a false difference
-- [ ] Python source distributions lack `src/scanner.c`: `setup.py`, as
-  tree-sitter 0.26's template writes it, adds it to the extension only while
-  compiling, so a wheel built from the sdist has no scanner
+- [x] Python source distributions include `src/scanner.c`: `setup.py`, as
+  tree-sitter 0.26's template writes it, added it only while compiling, so a
+  wheel built from the sdist failed to import
 - [ ] Release automation (npm, crates.io, PyPI)

@@ -42,6 +42,9 @@ class EggInfo(egg_info):
         super().find_sources()
         self.filelist.recursive_include("queries", "*.scm")
         self.filelist.include("src/tree_sitter/*.h")
+        # BuildExt adds it to the sources only when compiling, too late for the
+        # source distribution to take it.
+        self.filelist.include("src/scanner.c")
 
 
 setup(
