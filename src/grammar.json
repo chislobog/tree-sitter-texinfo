@@ -3512,6 +3512,15 @@
             "value": "text"
           },
           {
+            "type": "ALIAS",
+            "content": {
+              "type": "SYMBOL",
+              "name": "_menu_node_dots"
+            },
+            "named": true,
+            "value": "text"
+          },
+          {
             "type": "SYMBOL",
             "name": "inline_command"
           },
@@ -9652,6 +9661,10 @@
     {
       "type": "SYMBOL",
       "name": "_unmacro_name"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_menu_node_dots"
     },
     {
       "type": "SYMBOL",

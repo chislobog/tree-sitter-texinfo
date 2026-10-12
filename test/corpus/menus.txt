@@ -75,6 +75,61 @@ Dots inside a menu node name
     end: (block_end)))
 
 ================================================================================
+Dots at the end of a menu node name, but for the last one before whitespace
+================================================================================
+
+@menu
+* A: foo... desc
+* B: (f)b1..
+* C: foo..., desc
+* D: .. desc
+* E: a.b. desc
+@end menu
+
+---
+
+(source_file
+  (menu
+    name: (command_name)
+    (menu_entry
+      label: (menu_label
+        (text))
+      node: (menu_node
+        (text)
+        (text))
+      description: (menu_description
+        (text)))
+    (menu_entry
+      label: (menu_label
+        (text))
+      node: (menu_node
+        (text)
+        (text)))
+    (menu_entry
+      label: (menu_label
+        (text))
+      node: (menu_node
+        (text)
+        (text))
+      description: (menu_description
+        (text)))
+    (menu_entry
+      label: (menu_label
+        (text))
+      node: (menu_node
+        (text))
+      description: (menu_description
+        (text)))
+    (menu_entry
+      label: (menu_label
+        (text))
+      node: (menu_node
+        (text))
+      description: (menu_description
+        (text)))
+    end: (block_end)))
+
+================================================================================
 Menu comments, descriptions over several lines and a detailmenu
 ================================================================================
 

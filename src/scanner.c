@@ -83,6 +83,9 @@ enum TokenType {
   LINE_MACRO_CALL_NAME,
   // `@unmacro`, which forgets the macro named after it.
   UNMACRO_NAME,
+  // A run of dots in a menu node, but for the last one before whitespace,
+  // which ends the node.
+  MENU_NODE_DOTS,
   ERROR_SENTINEL,
 };
 
@@ -1015,6 +1018,32 @@ static bool closes_brace(const char *name) {
  * of an open block, or the file ends. The lexer is at the line
  * end, after any blanks.
  */
+/**
+ * Scans a run of dots in a menu node, as texi2any reads it: before `,`, `@`
+ * or `{` the node takes all of it; before whitespace or the end of the line,
+ * all but the last, which ends the node. Otherwise, as in `foo.bar`, the
+ * node's text takes the dots.
+ */
+static bool scan_menu_node_dots(TSLexer *lexer) {
+  unsigned count = 0;
+  while (lexer->lookahead == '.') {
+    // Up to here, the run without its last dot.
+    if (count > 0) lexer->mark_end(lexer);
+    advance(lexer);
+    count++;
+  }
+  int32_t next = lexer->lookahead;
+  lexer->result_symbol = MENU_NODE_DOTS;
+  if (next == ',' || next == '@' || next == '{') {
+    lexer->mark_end(lexer);
+    return true;
+  }
+  if (lexer->eof(lexer) || is_blank(next) || next == '\n' || next == '\r') {
+    return count > 1;
+  }
+  return false;
+}
+
 static bool scan_missing_brace(Scanner *scanner, TSLexer *lexer,
                                const bool *valid_symbols) {
   bool paragraph_end = valid_symbols[BRACE_CLOSE_AT_PARAGRAPH_END];
@@ -1161,6 +1190,13 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
   }
 
   if (valid_symbols[WORD_GLUE] && scan_word_glue(lexer)) return true;
+
+  // Valid only in a menu node, after the entry's `:`, never at column 0, so
+  // skipping blanks here changes nothing below.
+  if (valid_symbols[MENU_NODE_DOTS]) {
+    while (is_blank(lexer->lookahead)) skip(lexer);
+    if (lexer->lookahead == '.') return scan_menu_node_dots(lexer);
+  }
 
   // Before raw text: a raw block opened on the last line has none.
   if (valid_symbols[MISSING_END] && lexer->eof(lexer) && scanner->depth > 0) {

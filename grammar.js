@@ -206,6 +206,9 @@ export default grammar({
     $._line_macro_call_name,
     // `@unmacro`, after which the scanner forgets the macro it names.
     $._unmacro_name,
+    // A run of dots in a menu node, but for the last one before whitespace,
+    // which ends the node.
+    $._menu_node_dots,
     $._error_sentinel,
   ],
 
@@ -515,6 +518,7 @@ export default grammar({
 
     menu_node: $ => repeat1(choice(
       alias($._menu_node_text, $.text),
+      alias($._menu_node_dots, $.text),
       $.inline_command,
       $.symbol_command,
       $.brace_group,

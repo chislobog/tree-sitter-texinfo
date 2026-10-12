@@ -154,11 +154,10 @@ of a line.
   An entry still being typed (`* Name` with no separator) has only a label
 - [x] A menu entry's description may start on the line after the entry, as
   in texi2any; a bare `*` there is description text, not an entry
-- [ ] A menu node ending in a run of dots before whitespace keeps all but
+- [x] A menu node ending in a run of dots before whitespace keeps all but
   the last, as in texi2any: `* Label: foo... desc` is node `foo..` and
-  description `desc`, not `foo` and `.. desc`. texi2any's test
-  `10menu/menu_entry_name.texi` has it (`(f)b1.. `); the comparison doesn't
-  check node text
+  description `desc`, not `foo` and `.. desc`; before `,` or a command it
+  keeps them all
 - [x] Sections nest by level (`part`, `top`, `chapter`, `section`,
   `subsection`, `subsubsection`), each with its `node` line and `heading`.
   A section inside a conditional ends at its `@end`; the Top node in
