@@ -1,9 +1,12 @@
 ; Generated from queries/highlights.scm by script/editor-queries.py.
-; When patterns overlap, the one that finishes matching first takes
-; precedence, so avoid overlapping a specific pattern with a generic one.
-; Capture nodes used in predicates with a real highlight, not a private
-; `@_name`: the highlighter drops the rest of a match after a capture that
-; isn't a highlight.
+; Editors resolve overlapping patterns differently: the tree-sitter CLI
+; keeps the match that finishes first, Neovim and Helix the last one in the
+; file. So keep patterns exclusive, with predicates. Capture nodes used in
+; predicates with a real highlight, not a private `@_name`: the CLI drops
+; the rest of a match after a capture that isn't a highlight.
+; Regexes must mean the same in Rust's syntax (the CLI, Helix) and Vim's
+; "very magic" one (Neovim), where `@`, `<`, `>`, `=` and `{` are operators:
+; write `[@]`, not `@`.
 (comment) @comment
 
 (input_line) @keyword.directive
@@ -11,46 +14,46 @@
 ; Headings
 (part_heading
   name: (command_name) @keyword
-  title: (line_argument) @markup.heading.1)
+  title: (line_argument)? @markup.heading.1)
 
 (top_heading
   name: (command_name) @keyword
-  title: (line_argument) @markup.heading.1)
+  title: (line_argument)? @markup.heading.1)
 
 (chapter_heading
   name: (command_name) @keyword
-  title: (line_argument) @markup.heading.1)
+  title: (line_argument)? @markup.heading.1)
 
 (section_heading
   name: (command_name) @keyword
-  title: (line_argument) @markup.heading.2)
+  title: (line_argument)? @markup.heading.2)
 
 (subsection_heading
   name: (command_name) @keyword
-  title: (line_argument) @markup.heading.3)
+  title: (line_argument)? @markup.heading.3)
 
 (subsubsection_heading
   name: (command_name) @keyword
-  title: (line_argument) @markup.heading.4)
+  title: (line_argument)? @markup.heading.4)
 
 ((heading
   name: (command_name) @keyword
-  title: (line_argument) @markup.heading.1)
+  title: (line_argument)? @markup.heading.1)
   (#any-of? @keyword "@majorheading" "@chapheading"))
 
 ((heading
   name: (command_name) @keyword
-  title: (line_argument) @markup.heading.2)
+  title: (line_argument)? @markup.heading.2)
   (#eq? @keyword "@heading"))
 
 ((heading
   name: (command_name) @keyword
-  title: (line_argument) @markup.heading.3)
+  title: (line_argument)? @markup.heading.3)
   (#eq? @keyword "@subheading"))
 
 ((heading
   name: (command_name) @keyword
-  title: (line_argument) @markup.heading.4)
+  title: (line_argument)? @markup.heading.4)
   (#eq? @keyword "@subsubheading"))
 
 ; Nodes, cross-references and menus
@@ -66,7 +69,15 @@
   ] @markup.link)
 
 (inline_command
-  node: (argument) @markup.link.label)
+  [
+    node: (argument)
+    anchor: (argument)
+  ] @markup.link.label)
+
+((inline_command
+  name: (command_name) @function
+  arguments: (brace_arguments)? @markup.link.label)
+  (#eq? @function "@anchor"))
 
 (inline_command
   [
@@ -85,16 +96,27 @@
   label: (menu_label) @markup.link)
 
 ; Definitions
-; Two exclusive patterns, as each node can only be highlighted by one match.
+; Three exclusive patterns, as each node can only be highlighted by one match.
 ((definition_line
   name: (command_name) @keyword
   entity: (_)? @variable)
-  (#match? @keyword "^@def(type)?(vr|var|opt|cv|ivar)x?$"))
+  (#any-of? @keyword
+    "@defvr" "@defvrx" "@defvar" "@defvarx" "@defopt" "@defoptx" "@defcv" "@defcvx" "@defivar"
+    "@defivarx" "@deftypevr" "@deftypevrx" "@deftypevar" "@deftypevarx" "@deftypecv" "@deftypecvx"
+    "@deftypeivar" "@deftypeivarx"))
+
+((definition_line
+  name: (command_name) @keyword
+  entity: (_)? @type)
+  (#any-of? @keyword "@deftp" "@deftpx"))
 
 ((definition_line
   name: (command_name) @keyword
   entity: (_)? @function)
-  (#not-match? @keyword "^@def(type)?(vr|var|opt|cv|ivar)x?$"))
+  (#not-any-of? @keyword
+    "@defvr" "@defvrx" "@defvar" "@defvarx" "@defopt" "@defoptx" "@defcv" "@defcvx" "@defivar"
+    "@defivarx" "@deftypevr" "@deftypevrx" "@deftypevar" "@deftypevarx" "@deftypecv" "@deftypecvx"
+    "@deftypeivar" "@deftypeivarx" "@deftp" "@deftpx"))
 
 (definition_line
   [
@@ -112,32 +134,33 @@
 ; Blocks
 ((block
   name: (command_name) @keyword.conditional)
-  (#match? @keyword.conditional "^@if"))
+  (#match? @keyword.conditional "^[@]if"))
 
 ((block_end) @keyword.conditional
-  (#match? @keyword.conditional "^@end[ \t]+if"))
+  (#match? @keyword.conditional "^[@]end[ \t]*if"))
 
+; The whole block, so every paragraph and nested block in it is raw or
+; quoted, around their own highlights.
 ((block
-  name: (command_name) @keyword
-  (paragraph) @markup.raw.block)
+  name: (command_name) @keyword) @markup.raw.block
   (#any-of? @keyword
     "@example" "@smallexample" "@lisp" "@smalllisp" "@display" "@smalldisplay" "@format"
     "@smallformat"))
 
 ((block
-  name: (command_name) @keyword
-  (paragraph) @markup.quote)
+  name: (command_name) @keyword) @markup.quote
   (#any-of? @keyword "@quotation" "@smallquotation"))
 
 (raw_block
   body: (raw_text) @markup.raw.block)
 
-; Not the blocks matched above: the highlighter drops a match whose node
-; another match has already highlighted, with all its other captures.
+; Not the blocks matched above.
 ((block
   name: (command_name) @keyword)
-  (#not-match? @keyword
-    "^@(if.*|example|smallexample|lisp|smalllisp|display|smalldisplay|format|smallformat|quotation|smallquotation)$"))
+  (#not-match? @keyword "^[@]if")
+  (#not-any-of? @keyword
+    "@example" "@smallexample" "@lisp" "@smalllisp" "@display" "@smalldisplay" "@format"
+    "@smallformat" "@quotation" "@smallquotation"))
 
 (list
   name: (command_name) @keyword)
@@ -150,13 +173,13 @@
 
 (macro_definition
   name: (command_name) @keyword
-  macro: (text) @function)
+  macro: (text)? @function)
 
 (macro_definition
   parameter: (text) @variable.parameter)
 
 ((block_end) @keyword
-  (#not-match? @keyword "^@end[ \t]+if"))
+  (#not-match? @keyword "^[@]end[ \t]*if"))
 
 (unmatched_end) @keyword
 
@@ -171,14 +194,14 @@
   name: (command_name) @markup.list)
 
 ; Line commands. The generic pattern excludes the commands with their own
-; pattern, which it would otherwise beat to the name.
+; pattern.
 ((line_command
   name: (command_name) @keyword)
   (#not-any-of? @keyword "@include" "@verbatiminclude" "@setfilename"))
 
 ((line_command
   name: (command_name) @keyword
-  argument: (line_argument) @string.special.path)
+  argument: (line_argument)? @string.special.path)
   (#any-of? @keyword "@include" "@verbatiminclude" "@setfilename"))
 
 (subentry
@@ -199,7 +222,7 @@
 ; Inline markup
 ((inline_command
   name: (command_name) @function
-  arguments: (brace_arguments) @markup.raw)
+  arguments: (brace_arguments)? @markup.raw)
   (#any-of? @function
     "@code" "@samp" "@kbd" "@key" "@file" "@command" "@option" "@env" "@t" "@indicateurl"))
 
@@ -208,17 +231,17 @@
 
 ((inline_command
   name: (command_name) @function
-  arguments: (brace_arguments) @markup.italic)
+  arguments: (brace_arguments)? @markup.italic)
   (#any-of? @function "@emph" "@i" "@dfn" "@cite" "@slanted"))
 
 ((inline_command
   name: (command_name) @function
-  arguments: (brace_arguments) @markup.strong)
+  arguments: (brace_arguments)? @markup.strong)
   (#any-of? @function "@strong" "@b"))
 
 ((inline_command
   name: (command_name) @function
-  arguments: (brace_arguments) @variable.parameter)
+  arguments: (brace_arguments)? @variable.parameter)
   (#eq? @function "@var"))
 
 ; Commands without braces that start a paragraph.
@@ -229,7 +252,7 @@
 ; `@value{NAME}` refers to a variable set by `@set NAME`.
 ((inline_command
   name: (command_name) @function
-  arguments: (brace_arguments) @variable)
+  arguments: (brace_arguments)? @variable)
   (#eq? @function "@value"))
 
 ; Accents, like the symbol commands they mostly are: `@'e`, `@u{o}`
@@ -239,19 +262,17 @@
     "@'" "@\"" "@^" "@`" "@~" "@=" "@," "@H" "@dotaccent" "@dotless" "@ogonek" "@ringaccent"
     "@tieaccent" "@u" "@ubaraccent" "@udotaccent" "@v"))
 
-; Everything else. Excludes the commands above: this pattern finishes
-; matching first, so it would claim their names and drop their matches.
+; Everything else, except the commands above.
 ((inline_command
   name: (command_name) @function)
   (#not-any-of? @function
     "@code" "@samp" "@kbd" "@key" "@file" "@command" "@option" "@env" "@t" "@indicateurl" "@emph"
-    "@i" "@dfn" "@cite" "@slanted" "@strong" "@b" "@var" "@value" "@noindent" "@indent" "@'" "@\""
-    "@^" "@`" "@~" "@=" "@," "@H" "@dotaccent" "@dotless" "@ogonek" "@ringaccent" "@tieaccent" "@u"
-    "@ubaraccent" "@udotaccent" "@v"))
+    "@i" "@dfn" "@cite" "@slanted" "@strong" "@b" "@var" "@value" "@anchor" "@noindent" "@indent"
+    "@'" "@\"" "@^" "@`" "@~" "@=" "@," "@H" "@dotaccent" "@dotless" "@ogonek" "@ringaccent"
+    "@tieaccent" "@u" "@ubaraccent" "@udotaccent" "@v"))
 
-; Commands that error recovery left without their usual parent. A generic
-; (command_name) pattern would win over the specific ones above, since a
-; pattern's captures apply as soon as it finishes matching.
+; Commands that error recovery left without their usual parent; not a
+; generic (command_name) pattern, which would overlap the ones above.
 (ERROR
   (command_name) @function)
 

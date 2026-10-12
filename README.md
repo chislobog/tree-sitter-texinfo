@@ -75,10 +75,9 @@ is not done yet.
 
 Editors name their captures differently, and tree-sitter defines no standard
 names. The queries in `queries/` follow no single editor: where editors
-disagree, they use the plainer name, as Neovim's and Zed's mostly do
-(`@markup.strong` like Texinfo's `@strong`, `@string.escape`,
-`@keyword.conditional`; textobjects' `around` and `inside`, as Helix's and
-Zed's). Each editor gets
+disagree, they use the plainer name (`@markup.strong`, like Texinfo's
+`@strong`, `@string.escape` and `@keyword.conditional`, as Neovim's do;
+textobjects' `around` and `inside`, as Helix's and Zed's). Each editor gets
 the same queries with its own names, generated from them:
 `editors/helix/queries/` (`@markup.bold`, `@constant.character.escape`,
 `@keyword.control.conditional`) and `editors/neovim/queries/`

@@ -1,0 +1,52 @@
+@subsection Details
+@c <- keyword
+@c          ^ markup.heading.3
+@subsubheading Fine print
+@c             ^ markup.heading.4
+
+@example
+first paragraph
+@c <- markup.raw.block
+
+second paragraph
+@c <- markup.raw.block
+@end example
+
+@example
+@c <- keyword
+@group
+@c <- keyword
+grouped
+@c <- markup.raw.block
+@end group
+@end example
+
+@quotation
+quoted text
+@c <- markup.quote
+@end quotation
+
+Very @strong{bold} and @uref{https://gnu.org, GNU}.
+@c           ^ markup.strong
+@c                           ^ markup.link.url
+
+@anchor{here} and @namedanchor{there, Text}.
+@c      ^ markup.link.label
+@c                             ^ markup.link.label
+
+@deftp {Data type} pair car cdr
+@c                 ^ type
+@end deftp
+
+@c Commands being typed keep their highlight before their argument.
+@section
+@c <- keyword
+@include
+@c <- keyword
+Typing @code or @code{} or @emph.
+@c     ^ function
+@c              ^ function
+@c                         ^ function
+@macro
+@c <- keyword
+@end macro

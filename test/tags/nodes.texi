@@ -22,3 +22,11 @@ See @xref{Overview} and @ref{intro}.
 @float Figure, fig:one
 @c             ^ definition.anchor
 @end float
+@namedanchor{summary, A summary}
+@c            ^ definition.anchor
+@deftypevr {Variable} int max_size
+@c                        ^ definition.variable
+@end deftypevr
+@deftp {Data type} pair car cdr
+@c                 ^ definition.type
+@end deftp

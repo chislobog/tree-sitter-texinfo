@@ -7,7 +7,7 @@
 
 ((inline_command
   arguments: (brace_arguments) @name) @definition.anchor
-  (#match? @definition.anchor "^@anchor[{]"))
+  (#match? @definition.anchor "^[@]anchor[{]"))
 
 (inline_command
   anchor: (argument) @name) @definition.anchor
@@ -21,14 +21,18 @@
 (menu_entry
   node: (menu_node) @name) @reference.node
 
-; Documented functions and variables
+; Documented functions, variables and data types.
 ((definition_line
   entity: (_) @name) @definition.variable
-  (#match? @definition.variable "^@def(type)?(vr|var|opt|cv|ivar)x?[ \t]"))
+  (#match? @definition.variable "^[@]def(type)?(vr|var|opt|cv|ivar)x?[ \t]"))
+
+((definition_line
+  entity: (_) @name) @definition.type
+  (#match? @definition.type "^[@]deftpx?[ \t]"))
 
 ((definition_line
   entity: (_) @name) @definition.function
-  (#not-match? @definition.function "^@def(type)?(vr|var|opt|cv|ivar)x?[ \t]"))
+  (#not-match? @definition.function "^[@]def(type)?(vr|var|opt|cv|ivar|tp)x?[ \t]"))
 
 ; Macros, aliases and variables, and uses of a variable
 (macro_definition
@@ -39,8 +43,8 @@
 
 ((line_command
   variable: (text) @name) @definition.constant
-  (#match? @definition.constant "^@set[ \t]"))
+  (#match? @definition.constant "^[@]set[ \t]"))
 
 ((inline_command
   arguments: (brace_arguments) @name) @reference.constant
-  (#match? @reference.constant "^@value[{]"))
+  (#match? @reference.constant "^[@]value[{]"))

@@ -239,6 +239,12 @@ Deliberate, so the tree shows the source as it is written and edited:
   lists. Textobjects too. No indent queries, deliberately: Texinfo isn't
   indented by nesting, and editors keep the previous line's indentation
   without them
+- [ ] Textobjects: a definition's `@function.inside` includes its `@deffnx`
+  lines, and a table item's `@entry.inside` its `@itemx` lines: they are
+  siblings of the body, and a query can't start after the last of them.
+  Needs the extra lines grouped in the tree. Also, `.` skips anonymous nodes,
+  so in `@xref{a, b, , d}` the empty argument's comma joins `b`'s
+  `@parameter.around`
 
 ## Project
 
