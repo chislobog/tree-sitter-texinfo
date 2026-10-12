@@ -159,7 +159,9 @@ export default grammar({
   name: 'texinfo',
 
   // Spaces as texi2any has them: space, tab, vertical tab and form feed.
-  extras: $ => [/[ \t\v\f]/, $.comment],
+  // A carriage return is a blank, also before the `\n` of a line end, as no
+  // token starts with one: one that did would take a lone `\r` before it.
+  extras: $ => [/[ \t\v\f\r]/, $.comment],
 
   // Block openers are recognised by the scanner, which keeps a stack of open
   // blocks so that `@end NAME` must match. The block names live in
@@ -1111,7 +1113,8 @@ export default grammar({
     // no-break space. A carriage return not before a newline is part of it.
     text: _ => /[^@{} \t\n\r\v\f]([^@{}\n]*[^@{} \t\n\r\v\f])?/,
 
-    _newline: _ => /\r?\n/,
+    // The `\r` of a `\r\n` is a blank before it (`extras`).
+    _newline: _ => /\n/,
 
     // A newline, or the end of a file that doesn't end in one.
     _line_end: $ => choice($._newline, $._eof),

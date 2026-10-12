@@ -1,0 +1,24 @@
+================================================================================
+Lone carriage returns before and after texts
+================================================================================
+Hello@code{x}World
+---
+
+(source_file
+  (paragraph
+    (text)
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (text)))
+    (text)))
+
+================================================================================
+A lone carriage return at the end of the file
+================================================================================
+Hello
+---
+
+(source_file
+  (paragraph
+    (text)))

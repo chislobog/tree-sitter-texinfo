@@ -1050,8 +1050,15 @@ static bool scan_missing_brace(Scanner *scanner, TSLexer *lexer,
   bool block_end = valid_symbols[BRACE_CLOSE_AT_BLOCK_END];
 
   lexer->mark_end(lexer);
+  if (lexer->lookahead == '\r') {
+    advance(lexer);
+    if (lexer->lookahead != '\n') {
+      // Lone carriage returns are blanks, at the end of the file too.
+      while (lexer->lookahead == '\r') advance(lexer);
+      if (!lexer->eof(lexer)) return false;
+    }
+  }
   if (!lexer->eof(lexer)) {
-    if (lexer->lookahead == '\r') advance(lexer);
     if (lexer->lookahead != '\n') return false;
     advance(lexer);
     skip_blanks(lexer);
@@ -1264,9 +1271,17 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
   // to re-scan a token when text before it on the same line changes.
   while (is_blank(lexer->lookahead)) skip(lexer);
 
-  if (valid_symbols[END_OF_FILE] && lexer->eof(lexer)) {
-    lexer->result_symbol = END_OF_FILE;
-    return true;
+  if (valid_symbols[END_OF_FILE]) {
+    // A lone carriage return is a blank too (see `extras` in grammar.js).
+    // Only a command can start past here, so skipping the `\r` of a line
+    // end changes nothing.
+    while (is_blank(lexer->lookahead) || lexer->lookahead == '\r') {
+      skip(lexer);
+    }
+    if (lexer->eof(lexer)) {
+      lexer->result_symbol = END_OF_FILE;
+      return true;
+    }
   }
 
   if (lexer->lookahead != '@') return false;

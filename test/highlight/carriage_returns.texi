@@ -1,0 +1,4 @@
+@c A lone carriage return is a blank, not part of the command after it.
+@code{x}
+@c  ^ function
+@c        ^ markup.raw

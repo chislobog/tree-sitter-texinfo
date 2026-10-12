@@ -9441,7 +9441,7 @@
     },
     "_newline": {
       "type": "PATTERN",
-      "value": "\\r?\\n"
+      "value": "\\n"
     },
     "_line_end": {
       "type": "CHOICE",
@@ -9460,7 +9460,7 @@
   "extras": [
     {
       "type": "PATTERN",
-      "value": "[ \\t\\v\\f]"
+      "value": "[ \\t\\v\\f\\r]"
     },
     {
       "type": "SYMBOL",

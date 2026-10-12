@@ -166,26 +166,6 @@ texinfo-tests/21multitable/not_letters_in_prototype.texi
 texinfo-tests/22xtable/headitem_in_table.texi
   line 2: ours '@headitem', texi2any '(nothing)'
 
-# Invalid input; texi2any reports at line 5: empty node name in menu entry
-texinfo-tests/30sectioning/in_menu_only_special_ascii_spaces_node.texi
-  2 parse errors
-
-# Invalid input; texi2any reports at line 5: empty node name in menu entry
-texinfo-tests/30sectioning/in_menu_only_special_ascii_spaces_node_menu.texi
-  2 parse errors
-
-# Invalid input; texi2any reports at line 8: empty node name in menu entry
-texinfo-tests/30sectioning/in_menu_only_special_spaces_node.texi
-  2 parse errors
-
-# Invalid input; texi2any reports at line 8: empty node name in menu entry
-texinfo-tests/30sectioning/in_menu_only_special_spaces_node_menu.texi
-  2 parse errors
-
-# Invalid input; texi2any reports at line 8: empty node name in menu entry
-texinfo-tests/30sectioning/in_menu_only_special_spaces_node_menu_transliterate.texi
-  2 parse errors
-
 # Invalid input; texi2any reports at line 13: bad syntax for @value
 texinfo-tests/50value/bad_syntax.texi
   1 parse errors

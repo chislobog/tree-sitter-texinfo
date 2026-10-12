@@ -1,5 +1,9 @@
 * text=auto eol=lf
 
+# Carriage returns in the inputs, which must stay as written: the last test
+# ends in `\r\r\n` before its `---`, so its input ends in a lone `\r`.
+test/corpus/carriage_returns.txt -text
+
 # Generated source files
 src/*.json linguist-generated
 src/parser.c linguist-generated

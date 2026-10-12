@@ -215,10 +215,13 @@ Gaps, where we give a parse error and texi2any recovers:
   arguments; lone carriage returns in text; an empty menu entry name;
   `@footnote`, `@caption`, `@inlineraw`, the inline conditionals and
   `@verb` without braces
-- [ ] A lone carriage return at the start or end of a text (`\rHello`,
-  `Hello\r@code{x}`, `Hello\r` at the end of the file) is a parse error;
-  texi2any takes a leading one as space before the paragraph and keeps a
-  trailing one in the text. Inside a text it already parses
+- [x] A lone carriage return at the start or end of a text (`\rHello`,
+  `Hello\r@code{x}`, `Hello\r` at the end of the file) is a blank, as
+  texi2any takes it, and so is the `\r` of a `\r\n`: no token starts with
+  one, or it would take a lone one before it (`\r@code`)
+- [ ] A blank at the end of a file that leaves a block open
+  (`@quotation`, a line `x`, then a last line of only a space) gives a
+  `MISSING block_end` instead of `missing_end`
 - [ ] Files not in UTF-8 (`@documentencoding ISO-8859-1`, Shift-JIS): the
   editor has to convert them, as tree-sitter reads UTF-8
 
