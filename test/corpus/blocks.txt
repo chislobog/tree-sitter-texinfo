@@ -251,6 +251,22 @@ Nested unclosed blocks at end of file
     (missing_end)))
 
 ================================================================================
+A block left open ends at the end of the file after a line of blanks
+================================================================================
+
+@quotation
+x
+ 	
+---
+
+(source_file
+  (block
+    (command_name)
+    (paragraph
+      (text))
+    (missing_end)))
+
+================================================================================
 Float type and label
 ================================================================================
 

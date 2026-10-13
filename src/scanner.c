@@ -1183,7 +1183,8 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
   // start of its line (CLAUDE.md).
   while (is_blank(lexer->lookahead)) skip(lexer);
 
-  if (valid_symbols[END_OF_FILE]) {
+  bool missing_end = valid_symbols[MISSING_END] && scanner->depth > 0;
+  if (valid_symbols[END_OF_FILE] || missing_end) {
     // A lone carriage return is a blank too (see `extras` in grammar.js).
     // Only a command can start past here, so skipping the `\r` of a line
     // end changes nothing.
@@ -1191,7 +1192,9 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
       skip(lexer);
     }
     if (lexer->eof(lexer)) {
-      lexer->result_symbol = END_OF_FILE;
+      // Blocks still open end first, also after a last line of blanks.
+      if (missing_end) scanner->depth--;
+      lexer->result_symbol = missing_end ? MISSING_END : END_OF_FILE;
       return true;
     }
   }

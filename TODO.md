@@ -210,8 +210,8 @@ Gaps, where we give a parse error and texi2any recovers:
   `Hello\r@code{x}`, `Hello\r` at the end of the file) is a blank, as
   texi2any takes it, and so is the `\r` of a `\r\n`: no token starts with
   one, or it would take a lone one before it (`\r@code`)
-- [ ] A blank at the end of a file that leaves a block open
-  (`@quotation`, a line `x`, then a last line of only a space) gives a
+- [x] A blank at the end of a file that leaves a block open
+  (`@quotation`, a line `x`, then a last line of only a space) gave a
   `MISSING block_end` instead of `missing_end`
 - [ ] Files not in UTF-8 (`@documentencoding ISO-8859-1`, Shift-JIS): the
   editor has to convert them, as tree-sitter reads UTF-8
