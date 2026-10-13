@@ -247,6 +247,44 @@ n
       end: (missing_end))))
 
 ================================================================================
+Comment lines inside a paragraph don't end it
+================================================================================
+
+First line
+@c a comment line
+  @comment another, after blanks
+second line.
+
+Before a comment line
+@c and a blank line
+
+After.
+@c a comment line
+@cindex entry
+More.
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (comment)
+    (comment)
+    (text))
+  (paragraph
+    (text))
+  (comment)
+  (paragraph
+    (text)
+    (comment))
+  (line_command
+    name: (command_name)
+    argument: (line_argument
+      (text)))
+  (paragraph
+    (text)))
+
+================================================================================
 A lone @ at the end of a file
 ================================================================================
 

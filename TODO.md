@@ -240,9 +240,15 @@ comparing arguments:
 - [ ] A DEL character is text; the Texinfo manual makes it a comment
   character to the end of the line, which also merges the next line into
   it, as texi2any does (`delcomment_on_comment.texi`)
-- [ ] A comment line ends a paragraph, which texi2any goes on with after it,
-  also in the manuals (seen while comparing; paragraphs aren't compared, as
-  they aren't commands)
+- [x] A comment line ended a paragraph, which texi2any goes on with after it
+  (760 paragraphs in 156 of the manuals and test inputs; seen while
+  comparing, as paragraphs aren't compared). Comment lines followed by a
+  line that isn't blank now stay in the paragraph, or a multitable cell's
+  (89 parser states); not yet in a menu entry's description, which would
+  cost 400, or in a paragraph inside braces
+- [ ] texi2any also keeps index entries and the other line commands that
+  don't close a paragraph (`@set`, `@include`, ...) inside one; here they
+  end it (in 2,851 places in the manuals)
 
 Deliberate, so the tree shows the source as it is written and edited:
 

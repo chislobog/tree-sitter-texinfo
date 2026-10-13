@@ -73,6 +73,9 @@ enum TokenType {
   // `@end` or a block), after a line command inside a brace command took the
   // newline before it.
   PARAGRAPH_END_AT_LINE_START,
+  // A paragraph's newline when comment lines follow it, then a line that
+  // isn't blank: as in texi2any, they don't end the paragraph.
+  NEWLINE_BEFORE_COMMENTS,
   // Zero-width, between two parts of a definition line's word with no space
   // between them, which make one word, as in texi2any.
   WORD_GLUE,
@@ -588,6 +591,37 @@ static const char *const LETTER_ACCENTS[] = {
 static bool is_symbol_accent(int32_t c) {
   return c == '\'' || c == '"' || c == '^' || c == '`' || c == '~' ||
          c == '=' || c == ',';
+}
+
+/**
+ * Scans a paragraph's newline when comment lines follow it, then a line that
+ * isn't blank, which goes on with the paragraph or ends it; with a blank
+ * line or the end of the file after them, the newline ends the paragraph,
+ * and the comment lines are outside it.
+ */
+static bool scan_newline_before_comments(TSLexer *lexer) {
+  advance(lexer);
+  lexer->mark_end(lexer);
+  bool comment_lines = false;
+  for (;;) {
+    while (is_blank(lexer->lookahead) || lexer->lookahead == '\r') {
+      advance(lexer);
+    }
+    if (lexer->lookahead != '@') break;
+    advance(lexer);
+    char name[MAX_NAME + 1];
+    if (!read_name(lexer, name) ||
+        (strcmp(name, "c") != 0 && strcmp(name, "comment") != 0)) {
+      break;
+    }
+    skip_to_next_line(lexer);
+    comment_lines = true;
+  }
+  if (!comment_lines || lexer->eof(lexer) || lexer->lookahead == '\n') {
+    return false;
+  }
+  lexer->result_symbol = NEWLINE_BEFORE_COMMENTS;
+  return true;
 }
 
 /**
@@ -1152,6 +1186,17 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
       lexer->result_symbol = PARAGRAPH_END_AT_LINE_START;
       return true;
     }
+  }
+
+  // Not inside braces, where the newline may close one instead.
+  if (valid_symbols[NEWLINE_BEFORE_COMMENTS] &&
+      !valid_symbols[BRACE_CLOSE_AT_PARAGRAPH_END] &&
+      !valid_symbols[BRACE_CLOSE_AT_BLOCK_END] &&
+      !valid_symbols[BRACE_CLOSE_AT_LINE_END]) {
+    while (is_blank(lexer->lookahead) || lexer->lookahead == '\r') {
+      skip(lexer);
+    }
+    if (lexer->lookahead == '\n') return scan_newline_before_comments(lexer);
   }
 
   // A brace still open at the start of a line, where a line command inside

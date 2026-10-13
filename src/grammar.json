@@ -5835,8 +5835,17 @@
                 "type": "SEQ",
                 "members": [
                   {
-                    "type": "SYMBOL",
-                    "name": "_newline"
+                    "type": "CHOICE",
+                    "members": [
+                      {
+                        "type": "SYMBOL",
+                        "name": "_newline"
+                      },
+                      {
+                        "type": "SYMBOL",
+                        "name": "_comment_lines"
+                      }
+                    ]
                   },
                   {
                     "type": "SYMBOL",
@@ -6380,8 +6389,17 @@
               "type": "SEQ",
               "members": [
                 {
-                  "type": "SYMBOL",
-                  "name": "_newline"
+                  "type": "CHOICE",
+                  "members": [
+                    {
+                      "type": "SYMBOL",
+                      "name": "_newline"
+                    },
+                    {
+                      "type": "SYMBOL",
+                      "name": "_comment_lines"
+                    }
+                  ]
                 },
                 {
                   "type": "SYMBOL",
@@ -6401,10 +6419,34 @@
             {
               "type": "SYMBOL",
               "name": "_paragraph_end_at_line_start"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "_comment_lines"
             }
           ]
         }
       ]
+    },
+    "_comment_lines": {
+      "type": "PREC_RIGHT",
+      "value": 0,
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "SYMBOL",
+            "name": "_newline_before_comments"
+          },
+          {
+            "type": "REPEAT1",
+            "content": {
+              "type": "SYMBOL",
+              "name": "_newline"
+            }
+          }
+        ]
+      }
     },
     "_line": {
       "type": "PREC_RIGHT",
@@ -9608,6 +9650,10 @@
     {
       "type": "SYMBOL",
       "name": "_paragraph_end_at_line_start"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_newline_before_comments"
     },
     {
       "type": "SYMBOL",

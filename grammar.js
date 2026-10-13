@@ -214,6 +214,8 @@ export default grammar({
     $._macro_start,
     $._math_name,
     $._paragraph_end_at_line_start,
+    // A paragraph's newline before comment lines, which don't end it.
+    $._newline_before_comments,
     $._word_glue,
     // A run of dots in a menu node, but for the last one before whitespace,
     // which ends the node.
@@ -695,7 +697,7 @@ export default grammar({
     // A newline after the paragraph's text always belongs to the paragraph.
     _cell_paragraph: $ => prec.right(seq(
       $._line,
-      repeat(prec(1, seq($._newline, $._line))),
+      repeat(prec(1, seq(choice($._newline, $._comment_lines), $._line))),
     )),
 
     // `@verbatim`, `@ignore`, `@macro`, `@tex`, `@html`, ...: the body is
@@ -779,13 +781,22 @@ export default grammar({
 
     paragraph: $ => seq(
       $._line,
-      // A newline followed by more inline content continues the paragraph.
-      repeat(prec(1, seq($._newline, $._line))),
+      // A newline followed by more inline content continues the paragraph,
+      // also past comment lines, as in texi2any.
+      repeat(prec(1, seq(choice($._newline, $._comment_lines), $._line))),
       // Or zero-width at the start of a line that ends it (blank, an `@end`
       // or a block), when a line command inside a brace command took the
-      // newline before it.
-      choice($._line_end, $._paragraph_end_at_line_start),
+      // newline before it. Comment lines before a line that ends it, but not
+      // a blank one, stay in it.
+      choice($._line_end, $._paragraph_end_at_line_start, $._comment_lines),
     ),
+
+    // The newline before comment lines that a line other than a blank one
+    // follows, then the comment lines' newlines. texi2any also keeps them in a
+    // menu entry's description, which here would cost 400 parser states, and
+    // in a paragraph inside braces, where the scanner doesn't look past a
+    // newline that may close the braces.
+    _comment_lines: $ => prec.right(seq($._newline_before_comments, repeat1($._newline))),
 
     // A line of a paragraph or of a last argument.
     _line: $ => prec.right(repeat1($._inline)),
