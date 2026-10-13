@@ -241,26 +241,27 @@ comparing arguments:
   texi2any's expansion, where the conditional is gone. The scanner now
   allows an entry in a block whose innermost enclosing block other than a
   conditional is a menu (45 parser states)
-- [ ] Other blocks and comment lines still end a menu entry's description
-  (only in texi2any's test inputs, `html_tests/menu.texi`). A conditional
-  must: it holds the next entries, which texi2any only sees after
-  evaluating it. Comment lines there would cost 400 parser states
+- [ ] Other blocks still end a menu entry's description (only in texi2any's
+  test inputs, `html_tests/menu.texi`). A conditional must: it holds the
+  next entries, which texi2any only sees after evaluating it
 - [x] A menu entry may start after spaces; the Texinfo manual and texi2any
   only start one with `* ` at the beginning of a line
   (`leading_space_before_menu_star.texi`). The star is an immediate token
   now, which blanks before it rule out
-- [ ] A DEL character is text; the Texinfo manual makes it a comment
-  character to the end of the line, which also merges the next line into
-  it, as texi2any does (`delcomment_on_comment.texi`)
 - [x] A comment line ended a paragraph, which texi2any goes on with after it
   (760 paragraphs in 156 of the manuals and test inputs; seen while
   comparing, as paragraphs aren't compared). Comment lines followed by a
   line that isn't blank now stay in the paragraph, or a multitable cell's
-  (89 parser states); not yet in a menu entry's description, which would
-  cost 400, or in a paragraph inside braces
+  (89 parser states)
 - [ ] texi2any also keeps index entries and the other line commands that
   don't close a paragraph (`@set`, `@include`, ...) inside one; here they
-  end it (in 2,851 places in the manuals)
+  end it (in 2,851 places in the manuals). Index entries alone would cost
+  239 parser states, to 12,180 of the budget of 12,200, for paragraph
+  boundaries that no query uses
+- [ ] Comment lines still end a paragraph inside braces (4 in the manuals),
+  where the scanner can't look past the newline, which may close the
+  braces, and a menu entry's description (1 in the manuals; 400 parser
+  states)
 
 Deliberate, so the tree shows the source as it is written and edited:
 
@@ -296,6 +297,10 @@ Deliberate, so the tree shows the source as it is written and edited:
   line": the brace starts a group
 - Commands inside a malformed `@end` line (`@end @code{quotation}`) are part
   of the `unmatched_end` node, not parsed
+- A DEL character is text. The Texinfo manual makes it a comment character
+  for TeX, up to the end of the line, merging the next line into it; texi2any
+  deletes that text before parsing, which a tree of the source as written
+  can't show. No manual among the examples has one
 - An `@itemx` or `@deffnx` after text, which texi2any reports, stays in the
   body as written; texi2any moves what comes before it out of the body. So
   does one after a paragraph holding only an `@anchor`, which texi2any

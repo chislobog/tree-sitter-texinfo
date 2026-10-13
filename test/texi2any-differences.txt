@@ -23,7 +23,7 @@ texinfo-tests/02coverage/command_in_end.texi
   line 25: ours '(nothing)', texi2any '-qu @asis'
   line 29: ours '(nothing)', texi2any '-quot @asis'
 
-# Gap: a DEL character is text here; the Texinfo manual makes it a comment character to the end of the line, which merges the next line into it, as texi2any does
+# Deliberate: a DEL character is text; the Texinfo manual makes it a comment character to the end of the line, merging the next line into it, which texi2any deletes before parsing and a tree of the source as written can't show
 texinfo-tests/02coverage/delcomment_on_comment.texi
   line 3: @c arguments: ours 'a comment with del after del', texi2any 'a comment with del next line'
 
