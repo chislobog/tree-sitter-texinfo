@@ -103,11 +103,11 @@ Line command inside a caption
         (command_name)
         (brace_arguments
           (paragraph
-            (text))
-          (line_command
-            (command_name)
-            (line_argument
-              (text))))))
+            (text)
+            (line_command
+              (command_name)
+              (line_argument
+                (text)))))))
     (block_end)))
 
 ================================================================================

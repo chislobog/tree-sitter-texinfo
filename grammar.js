@@ -216,6 +216,8 @@ export default grammar({
     $._paragraph_end_at_line_start,
     // A paragraph's newline before comment lines, which don't end it.
     $._newline_before_comments,
+    // A line command that doesn't end a paragraph, inside one.
+    $._paragraph_line_command_name,
     $._word_glue,
     // A run of dots in a menu node, but for the last one before whitespace,
     // which ends the node.
@@ -366,6 +368,33 @@ export default grammar({
         optional(field('argument', $.line_argument)),
         $._line_end,
       ),
+    ),
+
+    // Line commands inside a paragraph, which they don't end, as in texi2any:
+    // index entries, `@include`, `@settitle`, ... The scanner gives the others
+    // their usual token, as they end it, and so do `@set`, `@clear`, `@alias`
+    // and the commands with a raw argument here (4 in the manuals). Comment
+    // lines after one, the paragraph's, start with its newline.
+    _paragraph_line_commands: $ => prec.right(repeat1(choice(
+      alias($._paragraph_line_command, $.line_command),
+      prec.right(seq(
+        alias($._paragraph_line_command_before_comments, $.line_command),
+        repeat1($._newline),
+      )),
+    ))),
+
+    _paragraph_line_command: $ => seq(
+      field('name', alias($._paragraph_line_command_name, $.command_name)),
+      optional(field('argument', $.line_argument)),
+      optional($.subentry),
+      $._line_end,
+    ),
+
+    _paragraph_line_command_before_comments: $ => seq(
+      field('name', alias($._paragraph_line_command_name, $.command_name)),
+      optional(field('argument', $.line_argument)),
+      optional($.subentry),
+      $._newline_before_comments,
     ),
 
     // Takes precedence over the longer text of an argument, which may only
@@ -716,7 +745,11 @@ export default grammar({
     // A newline after the paragraph's text always belongs to the paragraph.
     _cell_paragraph: $ => prec.right(seq(
       $._line,
-      repeat(prec(1, seq(choice($._newline, $._comment_lines), $._line))),
+      repeat(prec(1, seq(
+        choice($._newline, $._comment_lines),
+        optional($._paragraph_line_commands),
+        $._line,
+      ))),
     )),
 
     // `@verbatim`, `@ignore`, `@macro`, `@tex`, `@html`, ...: the body is
@@ -801,13 +834,23 @@ export default grammar({
     paragraph: $ => seq(
       $._line,
       // A newline followed by more inline content continues the paragraph,
-      // also past comment lines, as in texi2any.
-      repeat(prec(1, seq(choice($._newline, $._comment_lines), $._line))),
+      // also past comment lines and the line commands that don't end it, as
+      // in texi2any.
+      repeat(prec(1, seq(
+        choice($._newline, $._comment_lines),
+        optional($._paragraph_line_commands),
+        $._line,
+      ))),
       // Or zero-width at the start of a line that ends it (blank, an `@end`
       // or a block), when a line command inside a brace command took the
-      // newline before it. Comment lines before a line that ends it, but not
-      // a blank one, stay in it.
-      choice($._line_end, $._paragraph_end_at_line_start, $._comment_lines),
+      // newline before it. Comment lines and line commands before a line that
+      // ends it, but not a blank one, stay in it.
+      choice(
+        $._line_end,
+        $._paragraph_end_at_line_start,
+        $._comment_lines,
+        seq(choice($._newline, $._comment_lines), $._paragraph_line_commands),
+      ),
     ),
 
     // The newline before comment lines that a line other than a blank one

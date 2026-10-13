@@ -276,11 +276,66 @@ More.
   (comment)
   (paragraph
     (text)
-    (comment))
+    (comment)
+    (line_command
+      name: (command_name)
+      argument: (line_argument
+        (text)))
+    (text)))
+
+================================================================================
+Line commands that don't end a paragraph stay in it, as in texi2any
+================================================================================
+
+Text
+@cindex entry
+@vindex other
+more text.
+
+Before
+@center Centered
+After.
+
+Last line
+@findex last
+@c a comment line
+@kindex key
+
+Next.
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (line_command
+      name: (command_name)
+      argument: (line_argument
+        (text)))
+    (line_command
+      name: (command_name)
+      argument: (line_argument
+        (text)))
+    (text))
+  (paragraph
+    (text))
   (line_command
     name: (command_name)
     argument: (line_argument
       (text)))
+  (paragraph
+    (text))
+  (paragraph
+    (text)
+    (line_command
+      name: (command_name)
+      argument: (line_argument
+        (text)))
+    (comment)
+    (line_command
+      name: (command_name)
+      argument: (line_argument
+        (text))))
   (paragraph
     (text)))
 

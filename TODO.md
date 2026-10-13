@@ -253,11 +253,13 @@ comparing arguments:
   comparing, as paragraphs aren't compared). Comment lines followed by a
   line that isn't blank now stay in the paragraph, or a multitable cell's
   (89 parser states)
-- [ ] texi2any also keeps index entries and the other line commands that
-  don't close a paragraph (`@set`, `@include`, ...) inside one; here they
-  end it (in 2,851 places in the manuals). Index entries alone would cost
-  239 parser states, to 12,180 of the budget of 12,200, for paragraph
-  boundaries that no query uses
+- [x] texi2any also keeps index entries and the other line commands that
+  don't close a paragraph (`@include`, `@author`, ...) inside one; here they
+  ended it. Now 4,089 of them in the manuals are inside their paragraph,
+  745 paragraphs fewer (688 parser states; the budget went to 13,300).
+  `@set`, `@clear`, `@alias`, `@vskip`, `@clickstyle` and `@unmacro`, which
+  have rules of their own, still end one (4 in the manuals): in a paragraph
+  they would cost 800 more
 - [ ] Comment lines still end a paragraph inside braces (4 in the manuals),
   where the scanner can't look past the newline, which may close the
   braces, and a menu entry's description (1 in the manuals; 400 parser

@@ -251,7 +251,7 @@ def check_scanner(checker: Checker):
         ),
         (
             "a name in two tables",
-            ('"printindex", "include"', '"printindex", "code", "include"'),
+            ('"include",', '"include", "code",'),
             "@code is in both LINE_COMMANDS and BRACE_COMMANDS",
         ),
         (

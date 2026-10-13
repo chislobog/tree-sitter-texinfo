@@ -52,7 +52,9 @@ well with incomplete input, which is normal while editing.
   `SECTIONING` in the scanner) and the commands whose arguments split at
   commas into named fields (`ARGUMENT_COMMANDS`) are listed here.
 - `src/scanner.c`: external scanner. Holds the tables of line commands
-  (`LINE_COMMANDS`) and built-in brace commands (`BRACE_COMMANDS`, from
+  (`LINE_COMMANDS`, and `PARAGRAPH_ENDING_LINE_COMMANDS` for those that end
+  a paragraph, as texi2any's close_paragraph_commands; the others may be
+  inside one) and built-in brace commands (`BRACE_COMMANDS`, from
   texi2any's command table), and the table of block names and kinds
   (block, list, multitable, float, raw, macro (a `macro_definition`), menu,
   definition with its layout, whose numbers

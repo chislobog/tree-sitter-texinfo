@@ -1802,6 +1802,10 @@
           "named": true
         },
         {
+          "type": "line_command",
+          "named": true
+        },
+        {
           "type": "symbol_command",
           "named": true
         },

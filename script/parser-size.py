@@ -20,7 +20,7 @@ from pathlib import Path
 
 # About 5% over the state count. Raise it with the grammar change that needs
 # it, after measuring what makes the change cost what it does (CLAUDE.md).
-BUDGET = 12_200
+BUDGET = 13_300
 
 STATE_COUNT = re.compile(r"^#define STATE_COUNT (\d+)", re.M)
 

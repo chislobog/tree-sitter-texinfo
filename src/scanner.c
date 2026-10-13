@@ -76,6 +76,8 @@ enum TokenType {
   // A paragraph's newline when comment lines follow it, then a line that
   // isn't blank: as in texi2any, they don't end the paragraph.
   NEWLINE_BEFORE_COMMENTS,
+  // A line command that doesn't end a paragraph, inside one.
+  PARAGRAPH_LINE_COMMAND_NAME,
   // Zero-width, between two parts of a definition line's word with no space
   // between them, which make one word, as in texi2any.
   WORD_GLUE,
@@ -302,33 +304,43 @@ static bool read_end_name(TSLexer *lexer, char *name) {
 
 // Commands whose argument is the rest of the line.
 static const char *const LINE_COMMANDS[] = {
-    // Structure and cross-referencing
-    "printindex", "include", "insertcopying", "contents", "shortcontents",
-    "summarycontents", "listoffloats", "nodedescription",
+    // Structure
+    "include",
     // Indices
     "cindex", "findex", "kindex", "pindex", "tindex", "vindex", "defindex",
     "defcodeindex", "synindex", "syncodeindex",
     // Header and title page
-    "setfilename", "settitle", "title", "subtitle", "author", "shorttitlepage",
-    "dircategory", "documentencoding", "documentlanguage", "setchapternewpage",
-    "headings", "evenheading", "oddheading", "everyheading", "evenfooting",
-    "oddfooting", "everyfooting",
+    "settitle", "title", "subtitle", "author", "shorttitlepage",
+    "documentencoding", "documentlanguage", "setchapternewpage", "headings",
+    "evenheading", "oddheading", "everyheading", "evenfooting", "oddfooting",
+    "everyfooting",
     // Variables and macros
     "definfoenclose",
     // Layout
-    "page", "need", "sp", "center", "exdent", "finalout", "smallbook",
-    "afourpaper", "afivepaper", "afourlatex", "afourwide", "pagesizes",
-    "paragraphindent", "firstparagraphindent", "exampleindent", "footnotestyle",
-    "frenchspacing", "allowcodebreaks", "kbdinputstyle", "codequoteundirected",
-    "codequotebacktick", "deftypefnnewline", "urefbreakstyle",
-    "xrefautomaticsectiontitle", "setcontentsaftertitlepage",
-    "setshortcontentsaftertitlepage", "novalidate", "raisesections",
-    "lowersections",
-    // Less common: two-letter index names, page layout, cross-reference names
+    "finalout", "smallbook", "afourpaper", "afivepaper", "afourlatex",
+    "afourwide", "pagesizes", "paragraphindent", "firstparagraphindent",
+    "exampleindent", "footnotestyle", "frenchspacing", "allowcodebreaks",
+    "kbdinputstyle", "codequoteundirected", "codequotebacktick",
+    "deftypefnnewline", "urefbreakstyle", "xrefautomaticsectiontitle",
+    "setcontentsaftertitlepage", "setshortcontentsaftertitlepage", "novalidate",
+    "raisesections", "lowersections",
+    // Less common: two-letter index names, page layout
     "cpindex", "fnindex", "kyindex", "pgindex", "tpindex", "vrindex",
-    "bsixpaper", "fonttextsize", "microtype", "maketitle", "verbatiminclude",
-    "xrefname", "evenfootingmarks", "evenheadingmarks", "everyfootingmarks",
-    "everyheadingmarks", "oddfootingmarks", "oddheadingmarks"};
+    "bsixpaper", "fonttextsize", "microtype", "evenfootingmarks",
+    "evenheadingmarks", "everyfootingmarks", "everyheadingmarks",
+    "oddfootingmarks", "oddheadingmarks"};
+
+// Line commands that end a paragraph, as texi2any's close_paragraph_commands:
+// the others may be inside one.
+static const char *const PARAGRAPH_ENDING_LINE_COMMANDS[] = {
+    // Structure and cross-referencing
+    "printindex", "insertcopying", "contents", "shortcontents",
+    "summarycontents", "listoffloats", "nodedescription", "verbatiminclude",
+    "xrefname",
+    // Header and title page
+    "setfilename", "dircategory", "maketitle",
+    // Layout
+    "page", "need", "sp", "center", "exdent"};
 
 // Built-in brace commands whose argument ends at a blank line, as in texi2any:
 // all of them except @verb, the "context" commands @footnote, @caption,
@@ -460,9 +472,15 @@ static bool in_table(const char *const *table, size_t count, const char *name) {
  * in `index` count, including user-defined index commands (`@defindex op`
  * makes `@opindex`), as texi2any treats them as index entries.
  */
+static bool ends_paragraph(const char *name) {
+  return in_table(PARAGRAPH_ENDING_LINE_COMMANDS,
+                  TABLE_COUNT(PARAGRAPH_ENDING_LINE_COMMANDS), name);
+}
+
 static bool is_line_command(const char *name) {
   size_t length = strlen(name);
   return in_table(LINE_COMMANDS, TABLE_COUNT(LINE_COMMANDS), name) ||
+         ends_paragraph(name) ||
          (length > 5 && strcmp(name + length - 5, "index") == 0);
 }
 
@@ -1111,6 +1129,10 @@ static int command_token(const Scanner *scanner, const bool *valid_symbols,
     return SUBENTRY_NAME;
   }
   if (valid_symbols[TAB] && strcmp(name, "tab") == 0) return TAB;
+  if (valid_symbols[PARAGRAPH_LINE_COMMAND_NAME] && is_line_command(name) &&
+      !ends_paragraph(name)) {
+    return PARAGRAPH_LINE_COMMAND_NAME;
+  }
   if (valid_symbols[LINE_COMMAND_NAME] && is_line_command(name)) {
     return LINE_COMMAND_NAME;
   }

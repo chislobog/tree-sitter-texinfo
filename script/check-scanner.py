@@ -150,6 +150,7 @@ def check_sections(source: str, grammar: dict) -> list[str]:
 def check_names(source: str) -> list[str]:
     tables = {
         "LINE_COMMANDS": set(c_strings(source, "LINE_COMMANDS")),
+        "PARAGRAPH_ENDING_LINE_COMMANDS": set(c_strings(source, "PARAGRAPH_ENDING_LINE_COMMANDS")),
         "BRACE_COMMANDS": set(c_strings(source, "BRACE_COMMANDS")),
         "BLOCKS": set(re.findall(r'\{"(\w+)", KIND_\w+(?: \+ \d+)?\}', source)),
         "SECTIONING": set(re.findall(r'\{"(\w+)", \d+\}', source)),
@@ -162,7 +163,7 @@ def check_names(source: str) -> list[str]:
         for second in names[i + 1 :]:
             for name in sorted(tables[first] & tables[second]):
                 problems.append(f"@{name} is in both {first} and {second}")
-        if first != "LINE_COMMANDS":
+        if first not in ("LINE_COMMANDS", "PARAGRAPH_ENDING_LINE_COMMANDS"):
             for name in sorted(n for n in tables[first] if len(n) > 5 and n.endswith("index")):
                 problems.append(f"@{name} in {first} ends in `index`, which makes a line command")
     for name in sorted(set(c_strings(source, "LETTER_ACCENTS")) - tables["BRACE_COMMANDS"]):
