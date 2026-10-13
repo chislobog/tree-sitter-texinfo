@@ -233,9 +233,10 @@ comparing arguments:
 - [ ] A block ends a menu entry's description, and so does a comment line;
   the Texinfo manual only ends one at an empty line or the next entry, and
   texi2any goes on with it after them (`html_tests/menu.texi`)
-- [ ] A menu entry may start after spaces; the Texinfo manual and texi2any
+- [x] A menu entry may start after spaces; the Texinfo manual and texi2any
   only start one with `* ` at the beginning of a line
-  (`leading_space_before_menu_star.texi`)
+  (`leading_space_before_menu_star.texi`). The star is an immediate token
+  now, which blanks before it rule out
 - [ ] A DEL character is text; the Texinfo manual makes it a comment
   character to the end of the line, which also merges the next line into
   it, as texi2any does (`delcomment_on_comment.texi`)

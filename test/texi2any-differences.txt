@@ -188,10 +188,6 @@ texinfo-tests/10menu/bad_beginning.texi
 texinfo-tests/10menu/formats_in_menu.texi
   line 15: * arguments: ours ' | manual2', texi2any ' | manual2 | html i i end html Log'
 
-# Gap: a menu entry may start after spaces here; the Texinfo manual and texi2any start one with `* ` at the beginning of a line
-texinfo-tests/10menu/leading_space_before_menu_star.texi
-  line 4: ours '*', texi2any '(nothing)'
-
 # Deliberate: a menu line starting with `*` is an entry, maybe still being typed, without a node yet; texi2any reads it as text
 texinfo-tests/10menu/menu_entry_no_entry.texi
   line 2: ours '* * *', texi2any '(nothing)'

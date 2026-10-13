@@ -495,8 +495,10 @@ export default grammar({
     _menu_entry_end: $ => choice($._line_end, field('description', $.menu_description)),
 
     // `*` and whitespace at the start of a line in a menu; it takes precedence
-    // over text there, which would otherwise match the whole line.
-    _menu_star: _ => token(prec(2, /\*[ \t\v\f]+/)),
+    // over text there, which would otherwise match the whole line. Right
+    // after the line end before it: after blanks, a `*` is text, as in
+    // texi2any.
+    _menu_star: _ => token.immediate(prec(2, /\*[ \t\v\f]+/)),
 
     _menu_name: $ => repeat1(choice(
       alias($._menu_name_text, $.text),

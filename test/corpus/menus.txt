@@ -301,3 +301,28 @@ Menu entries with an empty name
       node: (menu_node
         (text)))
     end: (block_end)))
+
+================================================================================
+A star after spaces in a menu starts no entry
+================================================================================
+
+@menu
+  * a::
+
+* b::
+  * c::
+@end menu
+
+---
+
+(source_file
+  (menu
+    name: (command_name)
+    (paragraph
+      (text))
+    (menu_entry
+      node: (menu_node
+        (text))
+      description: (menu_description
+        (text)))
+    end: (block_end)))
