@@ -428,3 +428,54 @@ then text.
           end: (block_end))
         (text)))
     end: (block_end)))
+
+================================================================================
+Menu entries inside a conditional in a menu, but not elsewhere
+================================================================================
+
+@menu
+* a::
+@ifset flag
+* b::  Description.
+@end ifset
+@end menu
+
+@quotation
+* not an entry::
+@end quotation
+
+@ifset flag
+* not one either::
+@end ifset
+
+---
+
+(source_file
+  (menu
+    name: (command_name)
+    (menu_entry
+      node: (menu_node
+        (text)))
+    (block
+      name: (command_name)
+      argument: (line_argument
+        (text))
+      (menu_entry
+        node: (menu_node
+          (text))
+        description: (menu_description
+          (text)))
+      end: (block_end))
+    end: (block_end))
+  (block
+    name: (command_name)
+    (paragraph
+      (text))
+    end: (block_end))
+  (block
+    name: (command_name)
+    argument: (line_argument
+      (text))
+    (paragraph
+      (text))
+    end: (block_end)))

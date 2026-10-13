@@ -235,6 +235,12 @@ comparing arguments:
   after it: the Texinfo manual only ends one at an empty line or the next
   entry, as texi2any does (in gdb's, gas's and Semantic's manuals; 31
   parser states)
+- [x] A menu entry inside a conditional in a menu (`@ifset` around some of
+  the entries) was text in a paragraph: 235 entries in 18 manuals (ld,
+  gas, Emacs, gdb, ...). The comparison couldn't see it, as it compares
+  texi2any's expansion, where the conditional is gone. The scanner now
+  allows an entry in a block whose innermost enclosing block other than a
+  conditional is a menu (45 parser states)
 - [ ] Other blocks and comment lines still end a menu entry's description
   (only in texi2any's test inputs, `html_tests/menu.texi`). A conditional
   must: it holds the next entries, which texi2any only sees after

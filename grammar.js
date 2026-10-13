@@ -220,6 +220,9 @@ export default grammar({
     // A run of dots in a menu node, but for the last one before whitespace,
     // which ends the node.
     $._menu_node_dots,
+    // Zero-width before a menu entry in a block, such as a conditional,
+    // inside a menu.
+    $._menu_entry_start,
     $._error_sentinel,
   ],
 
@@ -443,11 +446,13 @@ export default grammar({
       ),
       $._line_end,
       // Items and multitable rows, for conditionals that wrap some of a
-      // list's items, and sections, for conditionals that wrap whole sections.
+      // list's items, menu entries, for those that wrap a menu's, and
+      // sections, for conditionals that wrap whole sections.
       repeat(choice(
         $._content,
         $.item,
         alias($._container_item, $.item),
+        alias($._menu_entry_in_block, $.menu_entry),
         alias($._row, $.item),
         $._section,
       )),
@@ -466,27 +471,30 @@ export default grammar({
 
     // `* Node::  Description` or `* Label: Node.  Description`. As in texi2any,
     // a `.` only ends the node when whitespace follows it.
-    menu_entry: $ => seq(
-      $._menu_star,
-      choice(
-        seq(
-          field('node', alias($._menu_name, $.menu_node)),
-          '::',
-          $._menu_entry_end,
-        ),
-        // An entry still being typed: no separator yet.
-        seq(optional(field('label', alias($._menu_name, $.menu_label))), $._line_end),
-        // Without a separator, the node runs to the end of the line. The
-        // label may be empty, as texi2any accepts with a warning.
-        seq(
-          optional(field('label', alias($._menu_name, $.menu_label))),
-          ':',
-          choice(
-            $._line_end,
-            seq(
-              field('node', $.menu_node),
-              choice($._line_end, seq(choice('.', ','), $._menu_entry_end)),
-            ),
+    menu_entry: $ => seq($._menu_star, $._menu_entry_rest),
+
+    // In a block, such as a conditional, the scanner only allows an entry
+    // where the innermost block other than a conditional is a menu.
+    _menu_entry_in_block: $ => seq($._menu_entry_start, $._menu_star, $._menu_entry_rest),
+
+    _menu_entry_rest: $ => choice(
+      seq(
+        field('node', alias($._menu_name, $.menu_node)),
+        '::',
+        $._menu_entry_end,
+      ),
+      // An entry still being typed: no separator yet.
+      seq(optional(field('label', alias($._menu_name, $.menu_label))), $._line_end),
+      // Without a separator, the node runs to the end of the line. The
+      // label may be empty, as texi2any accepts with a warning.
+      seq(
+        optional(field('label', alias($._menu_name, $.menu_label))),
+        ':',
+        choice(
+          $._line_end,
+          seq(
+            field('node', $.menu_node),
+            choice($._line_end, seq(choice('.', ','), $._menu_entry_end)),
           ),
         ),
       ),

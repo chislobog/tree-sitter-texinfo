@@ -162,6 +162,10 @@
           "named": true
         },
         {
+          "type": "menu_entry",
+          "named": true
+        },
+        {
           "type": "node_line",
           "named": true
         },

@@ -82,6 +82,9 @@ enum TokenType {
   // A run of dots in a menu node, but for the last one before whitespace,
   // which ends the node.
   MENU_NODE_DOTS,
+  // Zero-width before a menu entry in a block, such as a conditional, whose
+  // innermost enclosing block other than a conditional is a menu.
+  MENU_ENTRY_START,
   ERROR_SENTINEL,
 };
 
@@ -1149,6 +1152,20 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
   }
 
   if (valid_symbols[WORD_GLUE] && scan_word_glue(lexer)) return true;
+
+  // A menu entry inside a conditional in a menu, which texi2any sees once it
+  // has evaluated the conditional. At the start of the line, where the scan
+  // starts; the grammar then reads the `*` as in a menu.
+  if (valid_symbols[MENU_ENTRY_START] && lexer->lookahead == '*') {
+    const Block *block = innermost_structure(scanner);
+    if (block != NULL && block->kind == KIND_MENU) {
+      lexer->mark_end(lexer);
+      advance(lexer);
+      if (!is_blank(lexer->lookahead)) return false;
+      lexer->result_symbol = MENU_ENTRY_START;
+      return true;
+    }
+  }
 
   // Valid only in a menu node, after the entry's `:`, never at column 0, so
   // skipping blanks here changes nothing below.
