@@ -230,10 +230,14 @@ def check_edit(
         # A brace left open before a conditional can't close inside it,
         # where texi2any, which has evaluated the conditional, closes it:
         # it closes after the conditional (TODO.md). A raw block stays
-        # inside it, as in texi2any, whatever blank lines it holds.
-        for conditional in conditionals(old_tree.root_node, start, end - shift):
-            blank = BLANK_LINE.search(edited, conditional.end_byte + shift)
-            end = max(end, blank.end() if blank else len(edited))
+        # inside it, as in texi2any, whatever blank lines it holds. Up to
+        # the next blank line after them, which may be after more of them.
+        previous = None
+        while end != previous:
+            previous = end
+            for conditional in conditionals(old_tree.root_node, start, end - shift):
+                blank = BLANK_LINE.search(edited, conditional.end_byte + shift)
+                end = max(end, blank.end() if blank else len(edited))
     before = outside(old_tree.root_node, start, end - shift, shift)
     after = outside(fresh.root_node, start, end, 0)
     if before != after:
