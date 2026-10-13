@@ -196,13 +196,18 @@ from the same LLVM version as the compiler (the profile format differs).
 - A corpus test's input starts right after the header line, so a blank line
   there is part of the input.
 - Mark tests that must produce a parse error with `:error` under the title.
-- Don't check the column in the scanner: tree-sitter does not re-scan a token
-  when text before it on the same line changes. Keep line-start rules in the
-  grammar (every line-level rule ends in `_line_end`). The one exception is
-  column 0, where nothing comes before a token on its line: the scanner uses
-  it to close a brace and end a paragraph after a line command inside the
-  braces took the newline. `script/check-edits.py` checks that incremental
-  parsing still matches a fresh parse.
+- Keep line-start rules in the grammar (every line-level rule ends in
+  `_line_end`), not column checks in the scanner. tree-sitter (since 0.19.5)
+  re-lexes an external token whose scan called `get_column` when an edit
+  moves it along its line, but before 0.27.1 (October 2026; editors bundle
+  older runtimes) it doesn't record the call in a scan that returns false:
+  the token the internal lexer reads instead is reused after an edit that
+  would make the scan succeed. So a column check may only choose between
+  the scanner's own tokens, or apply where an edit that changes its outcome
+  touches the token. The scanner checks only column 0, where nothing comes
+  before a token on its line, to close a brace and end a paragraph after a
+  line command inside the braces took the newline. `script/check-edits.py`
+  checks that incremental parsing still matches a fresh parse.
 - Update `TODO.md` in the same commit as the work it tracks.
 - Neovim reads `#match?` regexes as Vim's "very magic" ones, where `@` is
   an operator: write `[@]`, or use `#any-of?`. The `neovim-queries` check

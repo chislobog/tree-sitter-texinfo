@@ -1133,8 +1133,10 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
 
   // Leading blanks are left out of the token. The grammar only allows block
   // openers and `@end` at the start of a line; checking the column here
-  // instead would break incremental parsing, since tree-sitter doesn't know
-  // to re-scan a token when text before it on the same line changes.
+  // instead would break incremental parsing with tree-sitter before 0.27.1,
+  // which doesn't record a column check in a scan that returns false, so the
+  // internal lexer's `@end` would be kept after an edit that moves it to the
+  // start of its line (CLAUDE.md).
   while (is_blank(lexer->lookahead)) skip(lexer);
 
   if (valid_symbols[END_OF_FILE]) {
