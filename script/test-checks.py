@@ -264,6 +264,22 @@ def check_scanner(checker: Checker):
         checker.expect(f"scanner: {title} fails", [*command, path], False, message)
 
 
+def check_parser_size(checker: Checker):
+    """A parser over its budget fails, and so does one well under it."""
+    command = ["python3", "script/parser-size.py", "--budget", "10000", "--parser"]
+    for states, succeeds, message in (
+        (10000, True, "within its budget of 10000"),
+        (10001, False, "The parser has 10001 states, over its budget of 10000"),
+        (9000, True, "within its budget of 10000"),
+        (8999, False, "lower BUDGET in script/parser-size.py to 9500"),
+    ):
+        path = checker.file("parser.c", f"#define STATE_COUNT {states}\n")
+        outcome = "passes" if succeeds else "fails"
+        checker.expect(
+            f"parser size: {states} states of 10000 {outcome}", [*command, path], succeeds, message
+        )
+
+
 def main() -> int:
     with tempfile.TemporaryDirectory() as directory:
         checker = Checker(Path(directory))
@@ -272,6 +288,7 @@ def main() -> int:
         check_parse_errors(checker)
         check_edits(checker)
         check_scanner(checker)
+        check_parser_size(checker)
     if checker.failures:
         print(f"{checker.failures} checks don't work as they should")
         return 1

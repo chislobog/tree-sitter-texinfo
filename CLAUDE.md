@@ -101,8 +101,9 @@ inputs, except to `pre-commit`, which reads every file); CI keeps the store
 between runs too. Run it before pushing, so CI only confirms. One check by
 name: `just run NAME`, with NAME one of `pre-commit` (formatting and the
 linters), `generated`, `tests`, `scanner-warnings`, `scanner-tables`,
-`fuzz`, `checks-catch`, `parse`, `compare-manuals`, `compare-tests`,
-`snapshots`, `fuzz-inputs`, `edits`, `neovim-queries`, `fuzz-scanner`.
+`parser-size`, `fuzz`, `checks-catch`, `parse`, `compare-manuals`,
+`compare-tests`, `snapshots`, `fuzz-inputs`, `edits`, `neovim-queries`,
+`fuzz-scanner`.
 `nix fmt` (`just fmt`) formats every file. The justfile only holds such
 one-line aliases; `just` lists them.
 
@@ -157,10 +158,9 @@ what it covers in `build/fuzz/out`. LLVM is version 23, not nixpkgs' default
 (`script/fuzz-deep.py`) runs `tree-sitter fuzz` on texi2any's test inputs
 and the manuals for longer than the checks, on several cores.
 
-CI (`.github/workflows/ci.yml`) runs `nix flake check` and the parser-size
-check (`script/parser-size.py`, which needs git history, so it isn't a flake
-check) on every push, except one that only changes Markdown files; a newer
-push cancels a run in progress. It also builds and tests the bindings on
+CI (`.github/workflows/ci.yml`) runs `nix flake check` on every push, except
+one that only changes Markdown files; a newer push cancels a run in
+progress. It also builds and tests the bindings on
 Linux, macOS and Windows (where MSVC compiles the scanner). The
 comparisons pass only if the differences from texi2any are exactly those
 listed in `test/texi2any-differences.txt`, each file with a `#` comment giving
@@ -228,8 +228,11 @@ from the same LLVM version as the compiler (the profile format differs).
   command can start. Moving 199 keywords to the scanner took `parser.c` from
   29 MB to 6 MB.
 - Watch `tree-sitter generate` time (normally about 12 seconds) and the
-  parser's state count: CI (`script/parser-size.py`) warns when it grows
-  by 10% and fails at 50%. Nested
+  parser's state count, which has a budget: the `parser-size` check
+  (`script/parser-size.py`) fails above it, and more than 10% under it.
+  Raise `BUDGET` only with the change that needs it, after measuring why it
+  costs what it does; each feature's few percent went unnoticed, until the
+  parser had twice the states. Nested
   optional sequences, as in `commaArguments`, multiply parser states quickly;
   a change there once made generation run for over 13 minutes.
 - Measure a grammar change's cost before implementing it: generate in a

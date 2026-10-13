@@ -22,16 +22,6 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      # Warns when the parser's state count grows by 10%, fails at 50%. Not
-      # a flake check: it compares with an earlier commit, and the source Nix
-      # checks has no git history.
-      - name: Parser size
-        env:
-          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
-        run: |
-          git fetch --quiet --depth=1 origin "$BASE" || true
-          python3 script/parser-size.py "$BASE"
-
       - uses: cachix/install-nix-action@v31
 
       # The Nix store from the last run, so the checks whose inputs didn't
@@ -48,9 +38,9 @@ jobs:
           purge-primary-key: never
 
       # Every check in flake.nix: the formatting and the linters
-      # (pre-commit), the tests, fuzzing (tree-sitter's and libFuzzer's on
-      # the scanner), the manuals, the texi2any comparisons, the snapshots
-      # and the editing simulation.
+      # (pre-commit), the tests, the parser's size, fuzzing (tree-sitter's
+      # and libFuzzer's on the scanner), the manuals, the texi2any
+      # comparisons, the snapshots and the editing simulation.
       - name: Checks
         run: nix flake check -L
 

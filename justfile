@@ -47,10 +47,6 @@ fuzz-deep *args:
 fuzz-scanner seconds="600" jobs="4":
     nix run .#fuzz-scanner -- {{ seconds }} {{ jobs }}
 
-# The parser's state count against an earlier commit.
-parser-size base="origin/main":
-    python3 script/parser-size.py {{ base }}
-
 # Regenerate the queries for other editors from queries/.
 editor-queries:
     python3 script/editor-queries.py

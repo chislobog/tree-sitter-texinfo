@@ -358,6 +358,8 @@
             '';
             # The scanner's tokens and tables agree with the grammar's.
             scanner-tables = mkCheck "scanner-tables" "python3 script/check-scanner.py";
+            # The parser's state count is within its budget.
+            parser-size = mkCheck "parser-size" "python3 script/parser-size.py";
             # Incremental parsing after random edits of the corpus tests.
             fuzz = mkCheck "fuzz" "tree-sitter fuzz --iterations 100";
             # Each check still fails on the inputs in test/checks/ it is meant

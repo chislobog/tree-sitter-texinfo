@@ -1,55 +1,59 @@
 #!/usr/bin/env python3
-"""Compare the parser's state count with an earlier commit's: warn when it
-grows by 10% or more, fail at 50% or more. Each feature so far added 20-35%,
-while splitting arguments into fields multiplied it by 8.6, so large jumps
-deserve a look before they land.
+"""Check the parser's state count against its budget, BUDGET below.
 
-Only the standard library: CI runs this before the dev shell is set up. It
-can't be a flake check, as the source Nix checks has no git history. The
-`::warning::` and `::error::` lines are GitHub Actions annotations.
+Each grammar feature adds a few percent of states, too little to notice one
+at a time: the parser went from 5,623 states to 12,387 in steps of 1-8%,
+none of which a check against the previous commit would flag. So the budget
+is fixed, and raised only on purpose, in the commit that needs it: the check
+fails when the parser has more states. It also fails when the parser has
+more than 10% fewer, so that the budget follows a reduction down rather than
+leaving room to grow back unnoticed.
 
-Usage: script/parser-size.py BASE_COMMIT
+Usage: script/parser-size.py [--parser FILE] [--budget STATES]
 """
 
+import argparse
+import math
 import re
-import subprocess
 import sys
 from pathlib import Path
+
+# About 5% over the state count. Raise it with the grammar change that needs
+# it, after measuring what makes the change cost what it does (CLAUDE.md).
+BUDGET = 12_200
 
 STATE_COUNT = re.compile(r"^#define STATE_COUNT (\d+)", re.M)
 
 
-def state_count(text: str) -> int | None:
-    match = STATE_COUNT.search(text)
-    return int(match.group(1)) if match else None
-
-
 def main() -> int:
-    if len(sys.argv) != 2:
-        print(__doc__.strip().splitlines()[-1], file=sys.stderr)
-        return 2
-    base = sys.argv[1]
-    old_parser = subprocess.run(
-        ["git", "show", f"{base}:src/parser.c"], capture_output=True, text=True, check=False
+    arguments = argparse.ArgumentParser(description=__doc__.strip().splitlines()[0])
+    arguments.add_argument(
+        "--parser", type=Path, default=Path(__file__).resolve().parent.parent / "src" / "parser.c"
     )
-    old = state_count(old_parser.stdout) if old_parser.returncode == 0 else None
-    if not old:
-        print(f"No parser at {base} to compare with.")
-        return 0
-    parser = Path(__file__).resolve().parent.parent / "src" / "parser.c"
-    text = parser.read_text()
-    new = state_count(text) or 0
-    change = int((new - old) * 100 / old)
-    size = len(text.encode()) // 1048576
-    print(f"Parser states: {old} -> {new} ({change}%), parser.c {size} MB")
-    if change >= 50:
+    arguments.add_argument("--budget", type=int, default=BUDGET)
+    options = arguments.parse_args()
+    text = options.parser.read_text()
+    match = STATE_COUNT.search(text)
+    if not match:
+        print(f"{options.parser} has no STATE_COUNT")
+        return 1
+    states = int(match.group(1))
+    budget = options.budget
+    size = f"{options.parser.name} is {len(text.encode()) / 1048576:.1f} MB"
+    if states > budget:
         print(
-            f"::error::The parser's state count grew by {change}%. Check the grammar "
-            "change for a combinatorial blowup."
+            f"The parser has {states} states, over its budget of {budget} ({size}). If the "
+            "grammar change is worth it, raise BUDGET in script/parser-size.py with it."
         )
         return 1
-    if change >= 10:
-        print(f"::warning::The parser's state count grew by {change}% (parser.c is {size} MB).")
+    if states < budget * 0.9:
+        lower = math.ceil(states * 1.05 / 100) * 100
+        print(
+            f"The parser has {states} states, more than 10% under its budget of {budget}: lower "
+            f"BUDGET in script/parser-size.py to {lower}."
+        )
+        return 1
+    print(f"The parser has {states} states, within its budget of {budget} ({size}).")
     return 0
 
 

@@ -342,4 +342,8 @@ Deliberate, so the tree shows the source as it is written and edited:
   section levels agree with the grammar, and that its tables of names don't
   overlap (`script/check-scanner.py`), so the order in which the scanner
   tries them doesn't matter
+- [x] A budget for the parser's state count (`script/parser-size.py`, a
+  flake check), raised only on purpose: features added 1-8% each, which
+  the check against the previous push didn't flag, until the parser had
+  twice the states it had once the scanner recognised the command names
 - [ ] Release automation (npm, crates.io, PyPI)
