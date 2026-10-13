@@ -227,6 +227,10 @@ texinfo-tests/57invalid_nestings/flushright_in_style_command.texi
 texinfo-tests/57invalid_nestings/in_errormsg.texi
   1 parse errors
 
+# Invalid input; texi2any reports at line 6: misplaced }
+texinfo-tests/57invalid_nestings/item_in_ref.texi
+  1 parse errors
+
 # Invalid input; texi2any reports at line 2: @headitem outside of table or list
 texinfo-tests/57invalid_nestings/item_tab_outside_of_table_lists.texi
   line 2: ours '@headitem @tab', texi2any '(nothing)'

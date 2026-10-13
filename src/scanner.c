@@ -724,6 +724,19 @@ static bool in_item_container(const Scanner *scanner) {
                            strcmp(block->name, "enumerate") == 0);
 }
 
+// Whether `@name` starts a list's next item or a multitable's next cell,
+// which ends a paragraph and an ordinary brace command left open before it,
+// as in texi2any.
+static bool starts_item(const Scanner *scanner, const char *name) {
+  const Block *block = innermost_structure(scanner);
+  if (block == NULL ||
+      (block->kind != KIND_LIST && block->kind != KIND_MULTITABLE)) {
+    return false;
+  }
+  return strcmp(name, "item") == 0 || strcmp(name, "itemx") == 0 ||
+         strcmp(name, "headitem") == 0 || strcmp(name, "tab") == 0;
+}
+
 // The index of the macro whose name has hash `hash` in `scanner->macros`, or
 // -1.
 static int find_macro(const Scanner *scanner, uint32_t hash) {
@@ -1308,14 +1321,16 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
     return scan_end(scanner, lexer, valid_symbols, brace_at_line_start,
                     paragraph_at_line_start);
   }
-  if (paragraph_at_line_start && find_block(name) >= 0) {
+  if (paragraph_at_line_start &&
+      (find_block(name) >= 0 || starts_item(scanner, name))) {
     lexer->result_symbol = PARAGRAPH_END_AT_LINE_START;
     return true;
   }
   // A block other than a conditional, or a raw block texi2any keeps inside,
-  // closes an ordinary brace command at the start of its line too.
+  // closes an ordinary brace command at the start of its line too, and so
+  // does a list's next item.
   if (brace_at_line_start && valid_symbols[BRACE_CLOSE_AT_PARAGRAPH_END] &&
-      closes_brace(name)) {
+      (closes_brace(name) || starts_item(scanner, name))) {
     lexer->result_symbol = BRACE_CLOSE_AT_PARAGRAPH_END;
     return true;
   }

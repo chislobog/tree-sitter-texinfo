@@ -347,6 +347,101 @@ Multitable rows inside conditionals
     end: (block_end)))
 
 ================================================================================
+An item at the start of a line closes a brace left open before it
+================================================================================
+
+@table @asis
+@item a
+Text @code{x
+@itemx b
+Turn.
+@end table
+
+@itemize
+@item a @code{x
+@item b
+@end itemize
+
+@multitable {a} {b}
+@item a @code{x
+@tab b @code{y
+@headitem c
+@end multitable
+
+---
+
+(source_file
+  (list
+    (command_name)
+    (line_argument
+      (inline_command
+        (command_name)))
+    (item
+      (command_name)
+      (line_argument
+        (text))
+      (paragraph
+        (text)
+        (inline_command
+          (command_name)
+          (brace_arguments
+            (text))
+          (missing_brace)))
+      (itemx
+        (command_name)
+        (line_argument
+          (text)))
+      (paragraph
+        (text)))
+    (block_end))
+  (list
+    (command_name)
+    (item
+      (command_name)
+      (paragraph
+        (text)
+        (inline_command
+          (command_name)
+          (brace_arguments
+            (text))
+          (missing_brace))))
+    (item
+      (command_name)
+      (paragraph
+        (text)))
+    (block_end))
+  (list
+    (command_name)
+    (line_argument
+      (brace_group
+        (text))
+      (brace_group
+        (text)))
+    (item
+      (command_name)
+      (paragraph
+        (text)
+        (inline_command
+          (command_name)
+          (brace_arguments
+            (text))
+          (missing_brace)))
+      (tab
+        (command_name)
+        (paragraph
+          (text)
+          (inline_command
+            (command_name)
+            (brace_arguments
+              (text))
+            (missing_brace)))))
+    (item
+      (command_name)
+      (paragraph
+        (text)))
+    (block_end)))
+
+================================================================================
 An enumerate item's text is a paragraph that may span lines
 ================================================================================
 

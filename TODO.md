@@ -71,6 +71,12 @@ sources, which is what `texi2any` itself uses.
   aren't allowed in the type
 - [x] A block at the start of a line closes an ordinary brace command, as in
   texi2any (conditionals don't)
+- [x] So does a list's next item at the start of a line (`@item`, `@itemx`,
+  `@headitem`, `@tab` in a list or multitable), which also ends the
+  paragraph, as in texi2any; an `@item` line swallowed by an unclosed
+  `@code{` in a table moved the rest of the item out of it. texi2any also
+  closes the brace at one in the middle of a line, which the manual
+  doesn't allow
 - [x] Accent commands without braces: `@'e`, `@"u`, and letter accents with
   a space: `@u o`, `@v c`; the character is the command's `argument`
 - [x] `@value{name}`: an inline command whose name is highlighted as a
