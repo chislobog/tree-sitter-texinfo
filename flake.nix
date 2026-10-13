@@ -3,6 +3,11 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    # texi2any, the reference, and the manuals compared with it, pinned
+    # apart from the tools by a fixed revision, which `nix flake update`
+    # leaves: moving it changes many listed differences and snapshots at
+    # once, so it moves on purpose, in a commit of its own (CLAUDE.md).
+    reference.url = "github:NixOS/nixpkgs/39ad350a0602fa0a58a544344e3e9187526ea45c";
     flake-parts = {
       url = "github:hercules-ci/flake-parts";
       inputs.nixpkgs-lib.follows = "nixpkgs";
@@ -37,16 +42,19 @@
       perSystem =
         {
           config,
+          inputs',
           pkgs,
           lib,
           ...
         }:
         let
-          # Real-world manuals for regression parsing, pinned via flake.lock
+          reference = inputs'.reference.legacyPackages;
+
+          # Real-world manuals for regression parsing, pinned by `reference`
           examples =
             pkgs.runCommand "texinfo-examples"
               {
-                srcs = with pkgs; [
+                srcs = with reference; [
                   texinfo.src
                   gnumake.src
                   gnused.src
@@ -75,42 +83,42 @@
                 # glibc's many custom definition macros, autoconf's and
                 # automake's m4 examples full of braces, gdb's and binutils'
                 # conditionals per target, bash's and coreutils' variables.
-                extract ${pkgs.glibc.src} 1 '*/manual/*'
-                extract ${pkgs.autoconf.src} 1 '*/doc/*'
-                extract ${pkgs.automake.src} 1 '*/doc/*'
-                extract ${pkgs.gdb.src} 1 '*/gdb/doc/*'
-                extract ${pkgs.binutils-unwrapped.src} 1 \
+                extract ${reference.glibc.src} 1 '*/manual/*'
+                extract ${reference.autoconf.src} 1 '*/doc/*'
+                extract ${reference.automake.src} 1 '*/doc/*'
+                extract ${reference.gdb.src} 1 '*/gdb/doc/*'
+                extract ${reference.binutils-unwrapped.src} 1 \
                   '*/binutils/doc/*' '*/ld/*.texi' '*/gas/doc/*'
-                extract ${pkgs.bash.src} 1 '*/doc/*'
-                extract ${pkgs.coreutils.src} 1 '*/doc/*'
+                extract ${reference.bash.src} 1 '*/doc/*'
+                extract ${reference.coreutils.src} 1 '*/doc/*'
 
                 # Emacs: its user manual, Lisp reference and other manuals
                 # (Gnus, Calc, TRAMP, ...), the largest and most varied here.
                 # Its source is a directory, not a tarball.
-                dir="$out/emacs-${pkgs.emacs.version}"
+                dir="$out/emacs-${reference.emacs.version}"
                 mkdir -p "$dir/lispref" "$dir/emacs" "$dir/misc"
-                cp ${pkgs.emacs.src}/doc/lispref/*.texi "$dir/lispref"
-                cp ${pkgs.emacs.src}/doc/emacs/*.texi "$dir/emacs"
-                cp ${pkgs.emacs.src}/doc/misc/*.texi "$dir/misc"
+                cp ${reference.emacs.src}/doc/lispref/*.texi "$dir/lispref"
+                cp ${reference.emacs.src}/doc/emacs/*.texi "$dir/emacs"
+                cp ${reference.emacs.src}/doc/misc/*.texi "$dir/misc"
 
                 # Manuals by other authors, in other styles: SBCL's, with its
                 # contribs (ASDF's among them); Maxima's, in English and
                 # Japanese; GNU Parallel's, generated from Perl's POD by
                 # pod2texi; Stow's; and the LaTeX2e reference manual.
-                extract ${pkgs.sbcl.src} 1 '*/doc/manual/*' '*/doc/internals/*' '*/contrib/*.texinfo'
-                extract ${pkgs.maxima.src} 1 '*/doc/info/*' \
+                extract ${reference.sbcl.src} 1 '*/doc/manual/*' '*/doc/internals/*' '*/contrib/*.texinfo'
+                extract ${reference.maxima.src} 1 '*/doc/info/*' \
                   --exclude='*/doc/info/'{de,es,pt,pt_BR,ru}'/*'
-                extract ${pkgs.parallel.src} 1 '*/src/*.texi'
-                extract ${pkgs.stow.src} 1 '*/doc/*'
+                extract ${reference.parallel.src} 1 '*/src/*.texi'
+                extract ${reference.stow.src} 1 '*/doc/*'
                 dir="$out/latex2e-help-texinfo"
                 mkdir -p "$dir"
-                cp ${pkgs.texlive.pkgs.latex2e-help-texinfo.texdoc}/doc/latex/latex2e-help-texinfo/*.texi "$dir"
+                cp ${reference.texlive.pkgs.latex2e-help-texinfo.texdoc}/doc/latex/latex2e-help-texinfo/*.texi "$dir"
               '';
 
           # The inputs of texi2any's own parser tests, one file per test case
           texinfoTests = pkgs.runCommand "texinfo-tests" { nativeBuildInputs = [ pkgs.perl ]; } ''
             mkdir tests
-            tar -xf ${pkgs.texinfo.src} -C tests --strip-components=4 --wildcards \
+            tar -xf ${reference.texinfo.src} -C tests --strip-components=4 --wildcards \
               '*/tta/perl/t/*.t' '*/tta/perl/t/input_files/*'
             perl ${./script/extract-texi2any-tests.pl} tests "$out"
           '';
@@ -176,7 +184,7 @@
                   pkgs.tree-sitter
                   pkgs.nodejs_22
                   llvm.clang
-                  pkgs.texinfo
+                  reference.texinfo
                   python
                 ];
               }
@@ -454,7 +462,7 @@
               ts_query_ls
 
               # Reference implementation and sample documents to test against
-              texinfo
+              reference.texinfo
 
               # The Python checks
               python

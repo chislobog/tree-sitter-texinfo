@@ -21,7 +21,8 @@ well with incomplete input, which is normal while editing.
 - GNU coreutils and sed are on the path, not the macOS ones: use `sed -i`, not
   `sed -i ''`.
 - `examples/` is a symlink, created by the dev shell, to real manuals pinned by
-  `flake.lock`: texinfo, make, sed, gawk, glibc, gdb, binutils, bash,
+  the `reference` input in `flake.nix`, with texi2any itself and apart from
+  the tools: texinfo, make, sed, gawk, glibc, gdb, binutils, bash,
   coreutils, autoconf, automake and Emacs's manuals, and by other authors
   SBCL's (`.texinfo` files, ASDF's among them), Maxima's (in English and
   Japanese), GNU Parallel's (made by pod2texi), Stow's and the LaTeX2e
@@ -185,6 +186,14 @@ expansion of the file (`--macro-expand`), after checking that texi2any finds
 the same document in it; for invalid input it often doesn't, and the script's
 docstring says what it does then. Use `--structure` to compare only blocks,
 items and line commands.
+
+`nix flake update` moves the tools but not the `reference` input, a fixed
+nixpkgs revision for texi2any and the manuals: a new texi2any or manual
+changes many listed differences and snapshots at once. Move it in a commit of
+its own, changing only the revision in `flake.nix`: run `just compare-write`
+and give each changed difference its reason, review the trees with `just
+snapshots-diff`, then `just snapshots-write`; a manual's new version is a new
+path, so its old snapshots go and new ones come.
 
 The comparison only checks which commands appear, in order, not argument
 structure: a missing argument or field shows up only in corpus tests. To

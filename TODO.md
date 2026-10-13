@@ -347,4 +347,8 @@ Deliberate, so the tree shows the source as it is written and edited:
   flake check), raised only on purpose: features added 1-8% each, which
   the check against the previous push didn't flag, until the parser had
   twice the states it had once the scanner recognised the command names
+- [x] texi2any and the manuals pinned apart from the tools (the `reference`
+  input in `flake.nix`, a fixed nixpkgs revision): `nix flake update` for a
+  newer tree-sitter or LLVM no longer brings a new texi2any and new manuals
+  with it, which change many listed differences and snapshots at once
 - [ ] Release automation (npm, crates.io, PyPI)
