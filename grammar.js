@@ -267,7 +267,8 @@ export default grammar({
     $._macro_start,
     $._math_name,
     $._paragraph_end_at_line_start,
-    // A paragraph's newline before comment lines, which don't end it.
+    // Zero-width before a paragraph's newline that comment lines follow,
+    // which don't end it.
     $._newline_before_comments,
     // A line command that doesn't end a paragraph, inside one.
     $._paragraph_line_command_name,
@@ -395,7 +396,7 @@ export default grammar({
     _paragraph_line_command: $ => lineCommand($, $._paragraph_line_command_name, $._line_end),
 
     _paragraph_line_command_before_comments: $ => lineCommand(
-      $, $._paragraph_line_command_name, $._newline_before_comments,
+      $, $._paragraph_line_command_name, seq($._newline_before_comments, $._newline),
     ),
 
     // Takes precedence over the longer text of an argument, which may only
@@ -862,11 +863,9 @@ export default grammar({
       ),
     ),
 
-    // The newline before comment lines that a line other than a blank one
-    // follows, then the comment lines' newlines, in a paragraph or a menu
-    // entry's description. texi2any also keeps them in a paragraph inside
-    // braces, where the scanner doesn't look past a newline that may close
-    // the braces.
+    // Zero-width before the newline that comment lines and then a line other
+    // than a blank one follow, the newline, then the comment lines' newlines,
+    // in a paragraph or a menu entry's description.
     _comment_lines: $ => prec.right(seq($._newline_before_comments, repeat1($._newline))),
 
     // A line of a paragraph or of a last argument.

@@ -2952,8 +2952,17 @@
               ]
             },
             {
-              "type": "SYMBOL",
-              "name": "_newline_before_comments"
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "SYMBOL",
+                  "name": "_newline_before_comments"
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "_newline"
+                }
+              ]
             }
           ]
         },
@@ -3030,8 +3039,17 @@
               ]
             },
             {
-              "type": "SYMBOL",
-              "name": "_newline_before_comments"
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "SYMBOL",
+                  "name": "_newline_before_comments"
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "_newline"
+                }
+              ]
             }
           ]
         },
@@ -3073,8 +3091,17 @@
               ]
             },
             {
-              "type": "SYMBOL",
-              "name": "_newline_before_comments"
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "SYMBOL",
+                  "name": "_newline_before_comments"
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "_newline"
+                }
+              ]
             }
           ]
         },
@@ -3125,8 +3152,17 @@
               ]
             },
             {
-              "type": "SYMBOL",
-              "name": "_newline_before_comments"
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "SYMBOL",
+                  "name": "_newline_before_comments"
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "_newline"
+                }
+              ]
             }
           ]
         },
@@ -3234,8 +3270,17 @@
               ]
             },
             {
-              "type": "SYMBOL",
-              "name": "_newline_before_comments"
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "SYMBOL",
+                  "name": "_newline_before_comments"
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "_newline"
+                }
+              ]
             }
           ]
         }

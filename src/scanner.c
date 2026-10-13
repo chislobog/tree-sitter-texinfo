@@ -74,7 +74,8 @@ enum TokenType {
   // newline before it.
   PARAGRAPH_END_AT_LINE_START,
   // A paragraph's newline when comment lines follow it, then a line that
-  // isn't blank: as in texi2any, they don't end the paragraph.
+  // isn't blank, zero-width before it: as in texi2any, they don't end the
+  // paragraph.
   NEWLINE_BEFORE_COMMENTS,
   // A line command that doesn't end a paragraph, inside one.
   PARAGRAPH_LINE_COMMAND_NAME,
@@ -615,15 +616,10 @@ static bool is_symbol_accent(int32_t c) {
 }
 
 /**
- * Scans a paragraph's newline when comment lines follow it, then a line that
- * isn't blank, which goes on with the paragraph or ends it; with a blank
- * line or the end of the file after them, the newline ends the paragraph,
- * and the comment lines are outside it.
+ * Whether, after a comment line already read, more comment lines and then a
+ * line that isn't blank follow, which goes on with the paragraph or ends it.
  */
-static bool scan_newline_before_comments(TSLexer *lexer) {
-  advance(lexer);
-  lexer->mark_end(lexer);
-  bool comment_lines = false;
+static bool more_comment_lines(TSLexer *lexer) {
   for (;;) {
     while (is_blank(lexer->lookahead) || lexer->lookahead == '\r') {
       advance(lexer);
@@ -633,14 +629,34 @@ static bool scan_newline_before_comments(TSLexer *lexer) {
     char name[MAX_NAME + 1];
     if (!read_name(lexer, name) ||
         (strcmp(name, "c") != 0 && strcmp(name, "comment") != 0)) {
-      break;
+      return true;
     }
     skip_to_next_line(lexer);
-    comment_lines = true;
   }
-  if (!comment_lines || lexer->eof(lexer) || lexer->lookahead == '\n') {
+  return !lexer->eof(lexer) && lexer->lookahead != '\n';
+}
+
+/**
+ * Scans the zero-width token before a paragraph's newline when comment lines
+ * follow it, then a line that isn't blank: as in texi2any, they don't end
+ * the paragraph. With a blank line or the end of the file after them, the
+ * newline ends the paragraph, and the comment lines are outside it.
+ */
+static bool scan_newline_before_comments(TSLexer *lexer) {
+  lexer->mark_end(lexer);
+  advance(lexer);
+  while (is_blank(lexer->lookahead) || lexer->lookahead == '\r') {
+    advance(lexer);
+  }
+  if (lexer->lookahead != '@') return false;
+  advance(lexer);
+  char name[MAX_NAME + 1];
+  if (!read_name(lexer, name) ||
+      (strcmp(name, "c") != 0 && strcmp(name, "comment") != 0)) {
     return false;
   }
+  skip_to_next_line(lexer);
+  if (!more_comment_lines(lexer)) return false;
   lexer->result_symbol = NEWLINE_BEFORE_COMMENTS;
   return true;
 }
@@ -1022,6 +1038,15 @@ static bool scan_missing_brace(Scanner *scanner, TSLexer *lexer,
   advance(lexer);
   if (!read_name(lexer, name)) return false;
 
+  // Comment lines inside a paragraph, which don't close the brace there.
+  if (strcmp(name, "c") == 0 || strcmp(name, "comment") == 0) {
+    if (!valid_symbols[NEWLINE_BEFORE_COMMENTS]) return false;
+    skip_to_next_line(lexer);
+    if (!more_comment_lines(lexer)) return false;
+    lexer->result_symbol = NEWLINE_BEFORE_COMMENTS;
+    return true;
+  }
+
   if (strcmp(name, "end") == 0) {
     char end_name[MAX_NAME + 1];
     // The end of the innermost block, or of an enclosing one, which closes
@@ -1227,7 +1252,8 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
     }
   }
 
-  // Not inside braces, where the newline may close one instead.
+  // Inside braces, where the newline may close one instead, the scan of a
+  // missing brace looks for comment lines too.
   if (valid_symbols[NEWLINE_BEFORE_COMMENTS] &&
       !valid_symbols[BRACE_CLOSE_AT_PARAGRAPH_END] &&
       !valid_symbols[BRACE_CLOSE_AT_BLOCK_END] &&

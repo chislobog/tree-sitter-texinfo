@@ -261,9 +261,11 @@ comparing arguments:
   have rules of their own, for 4 in the manuals; the budget went to 14,200)
 - [x] Comment lines followed by a line that isn't blank stay in a menu
   entry's description too (4 manuals; 413 parser states)
-- [ ] Comment lines still end a paragraph inside braces (4 in the manuals),
-  where the scanner can't look past the newline, which may close the
-  braces
+- [x] Comment lines inside a paragraph in braces (`@footnote`) too: the
+  token before them is zero-width now, so the scan of a brace that the
+  newline may close can return it as well. Comment lines before a line
+  holding only a command (`@item`) had been taken for ones before a blank
+  line (53 files)
 
 Deliberate, so the tree shows the source as it is written and edited:
 

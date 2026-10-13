@@ -82,6 +82,33 @@ More.}
           (text))))))
 
 ================================================================================
+Comment lines inside a footnote's paragraph don't end it
+================================================================================
+
+A@footnote{First line
+@c a comment line
+second line.
+@c then a blank line
+
+Next paragraph.}
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (inline_command
+      (command_name)
+      (brace_arguments
+        (paragraph
+          (text)
+          (comment)
+          (text))
+        (comment)
+        (paragraph
+          (text))))))
+
+================================================================================
 Line command inside a caption
 ================================================================================
 
