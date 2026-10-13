@@ -1696,7 +1696,7 @@
     },
     "comment": {
       "type": "PATTERN",
-      "value": "@c(omment)?([ \\t\\v\\f][^\\r\\n]*)?"
+      "value": "@c(omment)?([^a-zA-Z0-9_\\-\\r\\n][^\\r\\n]*)?"
     },
     "input_line": {
       "type": "SEQ",

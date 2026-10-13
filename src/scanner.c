@@ -507,8 +507,12 @@ static bool scan_node_before_section(TSLexer *lexer,
     char name[MAX_NAME + 1];
     if (!read_name(lexer, name)) return false;
 
-    if (strcmp(name, "c") == 0 || strcmp(name, "comment") == 0 ||
-        strcmp(name, "nodedescription") == 0) {
+    // A comment, whatever follows its name, as in texi2any.
+    if (strcmp(name, "c") == 0 || strcmp(name, "comment") == 0) {
+      skip_to_next_line(lexer);
+      continue;
+    }
+    if (strcmp(name, "nodedescription") == 0) {
       if (!is_blank(lexer->lookahead) && lexer->lookahead != '\n' &&
           lexer->lookahead != '\r' && !lexer->eof(lexer)) {
         return false;
@@ -1030,9 +1034,7 @@ static bool scan_word_glue(TSLexer *lexer) {
     if (lexer->eof(lexer) || c == '\n' || c == '\r') return false;
     char name[MAX_NAME + 1];
     if (read_name(lexer, name) &&
-        (strcmp(name, "c") == 0 || strcmp(name, "comment") == 0) &&
-        (lexer->eof(lexer) || is_blank(lexer->lookahead) ||
-         lexer->lookahead == '\n' || lexer->lookahead == '\r')) {
+        (strcmp(name, "c") == 0 || strcmp(name, "comment") == 0)) {
       return false;
     }
   }

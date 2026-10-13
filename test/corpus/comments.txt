@@ -44,3 +44,68 @@ Commands starting with c are not comments
       (command_name)
       (brace_arguments
         (text)))))
+
+================================================================================
+A comment's name may be followed by any character that can't continue it
+================================================================================
+
+@c| a table in a comment
+@comment@x
+@c{x} b
+Text @c.q
+@set t a vv @comment@ggg
+
+---
+
+(source_file
+  (comment)
+  (comment)
+  (comment)
+  (paragraph
+    (text)
+    (comment))
+  (line_command
+    (command_name)
+    (text)
+    (raw_text)
+    (comment)))
+
+================================================================================
+A comment line without a space after its name between a node and its section
+================================================================================
+
+@node Top
+@c|x
+@top Title
+
+---
+
+(source_file
+  (top
+    (node_line
+      (command_name)
+      (argument
+        (text)))
+    (comment)
+    (top_heading
+      (command_name)
+      (line_argument
+        (text)))))
+
+================================================================================
+A comment without a space after its name ends a definition line's word
+================================================================================
+
+@deffn Command foo@c|x
+@end deffn
+
+---
+
+(source_file
+  (definition_block
+    (definition_line
+      (command_name)
+      (text)
+      (text)
+      (comment))
+    (block_end)))

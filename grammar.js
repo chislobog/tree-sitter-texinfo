@@ -259,8 +259,9 @@ export default grammar({
       $ => nodeLine($, alias($[`_node_before_${name}`], $.command_name)),
     ])),
 
-    // Listed before `command_name` so that a bare `@c` lexes as a comment.
-    comment: _ => /@c(omment)?([ \t\v\f][^\r\n]*)?/,
+    // Listed before `command_name` so that a bare `@c` lexes as a comment. As
+    // in texi2any, whatever follows the name is the comment's (`@c|`).
+    comment: _ => /@c(omment)?([^a-zA-Z0-9_\-\r\n][^\r\n]*)?/,
 
     // `\input texinfo` on the first line, for TeX.
     input_line: $ => seq(token(prec(1, /\\input[ \t\v\f]+[^ \t\n\r\v\f@]+/)), $._newline),

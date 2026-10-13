@@ -234,7 +234,9 @@ class OurWalker:
             return
 
         if kind == "comment":
-            self.emit(text(node).split()[0], node, True)
+            # `@c` or `@comment`, which anything but a name's characters
+            # may follow.
+            self.emit(re.match(r"@c(?:omment)?", text(node)).group(), node, True)
             return
 
         if kind == "input_line":

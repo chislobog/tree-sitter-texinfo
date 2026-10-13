@@ -7,7 +7,9 @@ sources, which is what `texi2any` itself uses.
 ## Done
 
 - [x] `\input texinfo` first line
-- [x] Comments: `@c`, `@comment`, including at end of line
+- [x] Comments: `@c`, `@comment`, including at end of line, and followed by
+  any character that can't continue a name (`@c|`, `@comment@x`), which
+  texi2any also reads as a comment (found by comparing arguments)
 - [x] Line commands with the rest of the line as argument
 - [x] Sectioning and heading commands, all levels
 - [x] Paragraphs separated by blank lines
