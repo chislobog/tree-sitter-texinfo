@@ -49,7 +49,9 @@ sources, which is what `texi2any` itself uses.
 ## Commands and arguments
 
 - [x] Blocks and line commands at the start of a line inside brace commands
-  such as `@footnote` and `@caption` (found by the texi2any comparison)
+  such as `@footnote` and `@caption` (found by the texi2any comparison), and
+  headings such as `@heading` (found by comparing arguments; +12 parser
+  states)
 - [x] Paragraphs inside `@footnote`, `@caption` and `@shortcaption`, with
   blocks and line commands
 - [x] In `@itemize` and `@enumerate`, the text after `@item` starts the item's

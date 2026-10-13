@@ -5200,6 +5200,10 @@
           "name": "line_command"
         },
         {
+          "type": "SYMBOL",
+          "name": "heading"
+        },
+        {
           "type": "ALIAS",
           "content": {
             "type": "SYMBOL",

@@ -57,6 +57,31 @@ Note.
           (block_end))))))
 
 ================================================================================
+A heading inside a footnote
+================================================================================
+
+A@footnote{Text
+@heading Heading
+More.}
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (inline_command
+      (command_name)
+      (brace_arguments
+        (paragraph
+          (text))
+        (heading
+          (command_name)
+          (line_argument
+            (text)))
+        (paragraph
+          (text))))))
+
+================================================================================
 Line command inside a caption
 ================================================================================
 

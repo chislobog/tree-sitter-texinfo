@@ -24,6 +24,10 @@
           "named": true
         },
         {
+          "type": "heading",
+          "named": true
+        },
+        {
           "type": "inline_command",
           "named": true
         },
@@ -221,6 +225,10 @@
           "named": true
         },
         {
+          "type": "heading",
+          "named": true
+        },
+        {
           "type": "inline_command",
           "named": true
         },
@@ -277,6 +285,10 @@
         },
         {
           "type": "definition_line",
+          "named": true
+        },
+        {
+          "type": "heading",
           "named": true
         },
         {

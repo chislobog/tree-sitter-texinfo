@@ -562,9 +562,11 @@ export default grammar({
       $.macro_definition,
     ),
 
+    // Headings too, which texi2any allows in a footnote or caption.
     _line_item: $ => choice(
       $._line_block,
       $.line_command,
+      $.heading,
       alias($._definition_continuation, $.definition_line),
     ),
 
