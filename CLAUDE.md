@@ -35,7 +35,11 @@ well with incomplete input, which is normal while editing.
 - tree-sitter CLI: `tree-sitter parse` only finds the grammar when run from
   the repository; `-d FILE` takes FILE as the debug level (use
   `--debug=normal`); `tree-sitter fuzz --include` matches names like
-  `texinfo - corpus - FILE - NAME`, so `^` never matches.
+  `texinfo - corpus - FILE - NAME`, so `^` never matches. `tree-sitter test`
+  or `parse` in a scratch copy of the repository builds its parser into the
+  same cache (`~/.cache/tree-sitter/lib/texinfo.dylib`), which the
+  repository's then uses until its own `src/` changes: pass `--rebuild`
+  after one.
 - `texinfo-tests/` is a symlink to the inputs of texi2any's own parser tests,
   one file per test case (about 1,750), extracted by
   `script/extract-texi2any-tests.pl`. Many are deliberately invalid, so parse
