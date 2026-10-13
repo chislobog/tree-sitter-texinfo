@@ -28,10 +28,12 @@ mostly deliberately invalid input and macro expansion.
   (`@macro`, `@rmacro`, `@linemacro`), whose bodies are kept raw too and
   highlighted as Texinfo by injection.
 - `@set` with `variable` and `value`, `@alias` with `alias` and `target`.
-- Lists and tables with `@item`, `@itemx`, `@headitem`.
+- Lists and tables with `@item`, `@itemx`, `@headitem`: an item's `body`
+  (an `item_body`) is what follows its `@itemx` lines, as in texi2any.
 - Menus: `menu_entry` with `label`, `node` and `description` fields.
 - Definitions: `@deffn` and friends, with `category`, `class`, `type`,
-  `entity` (the defined name) and `arguments` fields.
+  `entity` (the defined name) and `arguments` fields, and a `body` (a
+  `definition_body`) after the `@deffnx` lines.
 - Arguments of cross-references and other multi-argument commands, in fields
   named by position: `@xref{Top, , Title}` gives `node` and `title` fields.
 

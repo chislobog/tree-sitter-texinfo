@@ -165,6 +165,13 @@ export default grammar({
   // ignores it.
   extras: $ => [/[ \t\v\f\r]/, $.comment, $.unmatched_brace],
 
+  // A line command, blank line or block after an item's or a definition's
+  // first line comes before the next `@itemx` or `@deffnx`, if one follows,
+  // and starts the body otherwise: only the lines after it tell.
+  conflicts: $ => [
+    [$._body_start, $._between_lines],
+  ],
+
   // Block openers are recognised by the scanner, which keeps a stack of open
   // blocks so that `@end NAME` must match. The block names live in
   // src/scanner.c. Openers are only valid at the start of a line because
@@ -267,12 +274,19 @@ export default grammar({
     ),
 
     _content: $ => choice(
+      $._body_start,
+      alias($._definition_continuation, $.definition_line),
+    ),
+
+    // Content but an `@deffnx` line, which a definition's or an item's body
+    // doesn't start with: one right after the first line, or after another,
+    // is part of the head.
+    _body_start: $ => choice(
       $._newline,
       // An `@end` that ends no open block, which texi2any reports and ignores.
       seq($.unmatched_end, $._line_end),
       $.paragraph,
       $.node_line,
-      alias($._definition_continuation, $.definition_line),
       $.line_command,
       $.heading,
       $.block,
@@ -511,11 +525,18 @@ export default grammar({
     ),
 
     // `@deffn` and friends: the definition line, then the body.
+    // The body starts after the last `@deffnx` line, as an item's does.
     definition_block: $ => seq(
       alias($._definition_opener, $.definition_line),
-      repeat($._content),
+      repeat(prec.dynamic(1, seq(
+        repeat($._between_lines),
+        alias($._definition_continuation, $.definition_line),
+      ))),
+      optional(field('body', alias($._definition_body, $.definition_body))),
       field('end', $._block_end),
     ),
+
+    _definition_body: $ => seq($._body_start, repeat($._content)),
 
     _definition_opener: $ => choice(...DEFINITION_LAYOUTS.map(({fields}, i) => seq(
       field('name', alias($[`_definition_start_${i}`], $.command_name)),
@@ -715,20 +736,32 @@ export default grammar({
     // `missing_end`, so it keeps its structure.
     _block_end: $ => choice($.block_end, alias($._missing_end, $.missing_end)),
 
+    // As in texi2any, the body starts after the last `@itemx` line; an
+    // `@itemx` after the body's text, which texi2any reports, stays in it.
+    // Where both would do, the `@itemx` is the head's.
     item: $ => prec.right(seq(
       field('name', command($, ['item', 'headitem'])),
       optional(field('argument', $.line_argument)),
       $._line_end,
-      // texi2any allows index entries and comments before an `@itemx`.
-      repeat(choice($.itemx, $._content)),
+      repeat(prec.dynamic(1, seq(repeat($._between_lines), $.itemx))),
+      optional(field('body', alias($._item_body, $.item_body))),
     )),
+
+    // What may come between an item's or a definition's first line and its
+    // next `@itemx` or `@deffnx` line, besides comments: index entries, blank
+    // lines, and blocks such as a conditional holding an index entry.
+    _between_lines: $ => choice($.line_command, $._newline, $.block),
+
+    _item_body: $ => prec.right(seq($._body_start, repeat(choice($.itemx, $._content)))),
 
     // `@item` in `@itemize` or `@enumerate`: as in texi2any, the text after it
     // starts the item's first paragraph, which may continue on the next lines.
     _container_item: $ => prec.right(seq(
       field('name', alias($._container_item_name, $.command_name)),
-      repeat($._content),
+      optional(field('body', alias($._container_item_body, $.item_body))),
     )),
+
+    _container_item_body: $ => prec.right(repeat1($._content)),
 
     itemx: $ => seq(
       field('name', command($, ['itemx'])),

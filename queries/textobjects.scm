@@ -22,11 +22,7 @@
 (definition_block) @function.around
 
 (definition_block
-  (definition_line)
-  .
-  (_)+ @function.inside
-  .
-  end: (_))
+  body: (_) @function.inside)
 
 (macro_definition) @function.around
 
@@ -56,7 +52,8 @@
   parameter: (text) @parameter.inside @parameter.around)
 
 ; Entries: list and table items, multitable rows and their cells, and menu
-; entries; inside an item or a cell, its content after the command.
+; entries; inside an item, its body after the `@itemx` lines, and inside a
+; row or a cell, its content after the command.
 [
   (item)
   (tab)
@@ -64,6 +61,10 @@
 ] @entry.around
 
 (item
+  body: (_) @entry.inside)
+
+(item
+  !body
   name: (_)
   .
   (_)+ @entry.inside)

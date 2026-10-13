@@ -245,8 +245,9 @@ Nested unclosed blocks at end of file
       (command_name)
       (item
         (command_name)
-        (paragraph
-          (text)))
+        (item_body
+          (paragraph
+            (text))))
       (missing_end))
     (missing_end)))
 
@@ -430,11 +431,12 @@ After.
         name: (command_name)
         argument: (line_argument
           (text))
-        (block
-          name: (command_name)
-          (paragraph
-            (text))
-          end: (missing_end)))
+        body: (item_body
+          (block
+            name: (command_name)
+            (paragraph
+              (text))
+            end: (missing_end))))
       end: (missing_end))
     end: (block_end))
   (paragraph

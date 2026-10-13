@@ -20,13 +20,15 @@ continues.
         (command_name)))
     (item
       (command_name)
-      (paragraph
-        (text)))
+      (item_body
+        (paragraph
+          (text))))
     (item
       (command_name)
-      (paragraph
-        (text)
-        (text)))
+      (item_body
+        (paragraph
+          (text)
+          (text))))
     (block_end)))
 
 ================================================================================
@@ -55,9 +57,77 @@ Description.
         (command_name)
         (line_argument
           (text)))
-      (paragraph
-        (text)))
+      (item_body
+        (paragraph
+          (text))))
     (block_end)))
+
+================================================================================
+A table item's body follows its @itemx lines and the index entries between them
+================================================================================
+
+@table @code
+@item a
+@cindex one
+@itemx b
+@cindex two
+Text.
+@end table
+
+---
+
+(source_file
+  (list
+    name: (command_name)
+    argument: (line_argument
+      (inline_command
+        name: (command_name)))
+    (item
+      name: (command_name)
+      argument: (line_argument
+        (text))
+      (line_command
+        name: (command_name)
+        argument: (line_argument
+          (text)))
+      (itemx
+        name: (command_name)
+        argument: (line_argument
+          (text)))
+      body: (item_body
+        (line_command
+          name: (command_name)
+          argument: (line_argument
+            (text)))
+        (paragraph
+          (text))))
+    end: (block_end)))
+
+================================================================================
+An itemize item's body is its content after @item
+================================================================================
+
+@itemize
+@item First
+line.
+
+Second.
+@end itemize
+
+---
+
+(source_file
+  (list
+    name: (command_name)
+    (item
+      name: (command_name)
+      body: (item_body
+        (paragraph
+          (text)
+          (text))
+        (paragraph
+          (text))))
+    end: (block_end)))
 
 ================================================================================
 Content before the first item
@@ -111,19 +181,22 @@ Nested lists
     (command_name)
     (item
       (command_name)
-      (paragraph
-        (text))
-      (list
-        (command_name)
-        (item
+      (item_body
+        (paragraph
+          (text))
+        (list
           (command_name)
-          (paragraph
-            (text)))
-        (block_end)))
+          (item
+            (command_name)
+            (item_body
+              (paragraph
+                (text))))
+          (block_end))))
     (item
       (command_name)
-      (paragraph
-        (text)))
+      (item_body
+        (paragraph
+          (text))))
     (block_end)))
 
 ================================================================================
@@ -260,8 +333,9 @@ Description.
         (command_name)
         (line_argument
           (text)))
-      (paragraph
-        (text)))
+      (item_body
+        (paragraph
+          (text))))
     (block_end)))
 
 ================================================================================
@@ -289,19 +363,21 @@ Second.
       (command_name)
       (line_argument
         (text))
-      (paragraph
-        (text))
-      (block
-        (command_name)
-        (line_argument
+      (item_body
+        (paragraph
           (text))
-        (item
+        (block
           (command_name)
           (line_argument
             (text))
-          (paragraph
-            (text)))
-        (block_end)))
+          (item
+            (command_name)
+            (line_argument
+              (text))
+            (item_body
+              (paragraph
+                (text))))
+          (block_end))))
     (block_end)))
 
 ================================================================================
@@ -380,35 +456,38 @@ Turn.
       (command_name)
       (line_argument
         (text))
-      (paragraph
-        (text)
-        (inline_command
+      (item_body
+        (paragraph
+          (text)
+          (inline_command
+            (command_name)
+            (brace_arguments
+              (text))
+            (missing_brace)))
+        (itemx
           (command_name)
-          (brace_arguments
-            (text))
-          (missing_brace)))
-      (itemx
-        (command_name)
-        (line_argument
-          (text)))
-      (paragraph
-        (text)))
+          (line_argument
+            (text)))
+        (paragraph
+          (text))))
     (block_end))
   (list
     (command_name)
     (item
       (command_name)
-      (paragraph
-        (text)
-        (inline_command
-          (command_name)
-          (brace_arguments
-            (text))
-          (missing_brace))))
+      (item_body
+        (paragraph
+          (text)
+          (inline_command
+            (command_name)
+            (brace_arguments
+              (text))
+            (missing_brace)))))
     (item
       (command_name)
-      (paragraph
-        (text)))
+      (item_body
+        (paragraph
+          (text))))
     (block_end))
   (list
     (command_name)
@@ -461,18 +540,20 @@ Second.
     name: (command_name)
     (item
       name: (command_name)
-      (paragraph
-        (inline_command
-          name: (command_name)
-          arguments: (brace_arguments
-            (text)
-            (text))))
-      (paragraph
-        (text)))
+      body: (item_body
+        (paragraph
+          (inline_command
+            name: (command_name)
+            arguments: (brace_arguments
+              (text)
+              (text))))
+        (paragraph
+          (text))))
     (item
       name: (command_name)
-      (paragraph
-        (text)))
+      body: (item_body
+        (paragraph
+          (text))))
     end: (block_end)))
 
 ================================================================================
@@ -501,8 +582,9 @@ Brace commands without braces as a list's argument
         name: (command_name)))
     (item
       name: (command_name)
-      (paragraph
-        (text)))
+      body: (item_body
+        (paragraph
+          (text))))
     end: (block_end))
   (list
     name: (command_name)
@@ -521,8 +603,9 @@ Brace commands without braces as a list's argument
         name: (command_name)))
     (item
       name: (command_name)
-      (paragraph
-        (text)))
+      body: (item_body
+        (paragraph
+          (text))))
     end: (block_end)))
 
 ================================================================================

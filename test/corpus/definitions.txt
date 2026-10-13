@@ -16,8 +16,9 @@ Move forward.
       entity: (text)
       arguments: (definition_arguments
         (text)))
-    (paragraph
-      (text))
+    body: (definition_body
+      (paragraph
+        (text)))
     end: (block_end)))
 
 ================================================================================
@@ -115,8 +116,111 @@ Move.
       entity: (text)
       arguments: (definition_arguments
         (text)))
-    (paragraph
-      (text))
+    body: (definition_body
+      (paragraph
+        (text)))
+    end: (block_end)))
+
+================================================================================
+The body of a definition follows its x lines and the index entries between them
+================================================================================
+
+@deffn Command foo
+@findex f1
+@deffnx Command bar
+@findex f2
+Body.
+@end deffn
+
+---
+
+(source_file
+  (definition_block
+    (definition_line
+      name: (command_name)
+      category: (text)
+      entity: (text))
+    (line_command
+      name: (command_name)
+      argument: (line_argument
+        (text)))
+    (definition_line
+      name: (command_name)
+      category: (text)
+      entity: (text))
+    body: (definition_body
+      (line_command
+        name: (command_name)
+        argument: (line_argument
+          (text)))
+      (paragraph
+        (text)))
+    end: (block_end)))
+
+================================================================================
+A conditional and a blank line may come between a definition's lines
+================================================================================
+
+@deffn Operator <
+@ifinfo
+@findex less than
+@end ifinfo
+
+@deffnx Operator <=
+Compare.
+@end deffn
+
+---
+
+(source_file
+  (definition_block
+    (definition_line
+      name: (command_name)
+      category: (text)
+      entity: (text))
+    (block
+      name: (command_name)
+      (line_command
+        name: (command_name)
+        argument: (line_argument
+          (text)))
+      end: (block_end))
+    (definition_line
+      name: (command_name)
+      category: (text)
+      entity: (text))
+    body: (definition_body
+      (paragraph
+        (text)))
+    end: (block_end)))
+
+================================================================================
+A definition line after the body's text stays in the body
+================================================================================
+
+@deffn Command foo
+Text.
+@deffnx Command bar
+More.
+@end deffn
+
+---
+
+(source_file
+  (definition_block
+    (definition_line
+      name: (command_name)
+      category: (text)
+      entity: (text))
+    body: (definition_body
+      (paragraph
+        (text))
+      (definition_line
+        name: (command_name)
+        category: (text)
+        entity: (text))
+      (paragraph
+        (text)))
     end: (block_end)))
 
 ================================================================================
@@ -166,8 +270,9 @@ Text.
             name: (command_name)
             category: (text)
             entity: (text))
-          (paragraph
-            (text))
+          body: (definition_body
+            (paragraph
+              (text)))
           end: (block_end))))))
 
 ================================================================================
@@ -242,8 +347,9 @@ Body.
         (brace_group
           (text)
           (missing_brace))))
-    (paragraph
-      (text))
+    body: (definition_body
+      (paragraph
+        (text)))
     end: (block_end)))
 
 ================================================================================
@@ -279,8 +385,9 @@ deffn
         (line_continuation)
         (brace_group
           (text))))
-    (paragraph
-      (text))
+    body: (definition_body
+      (paragraph
+        (text)))
     end: (block_end)))
 
 ================================================================================

@@ -871,17 +871,18 @@ After.
       name: (command_name)
       argument: (line_argument
         (text))
-      (paragraph
-        (text)
-        (inline_command
-          name: (command_name)
-          arguments: (brace_arguments
-            (text)
-            (line_command
-              name: (command_name)
-              argument: (line_argument
-                (text))))
-          (missing_brace))))
+      body: (item_body
+        (paragraph
+          (text)
+          (inline_command
+            name: (command_name)
+            arguments: (brace_arguments
+              (text)
+              (line_command
+                name: (command_name)
+                argument: (line_argument
+                  (text))))
+            (missing_brace)))))
     end: (block_end))
   (paragraph
     (text)))
@@ -911,22 +912,23 @@ code
       (command_name)
       (line_argument
         (text))
-      (paragraph
-        (text)
-        (inline_command
-          (command_name)
-          (brace_arguments
-            (text)
-            (line_command
-              (command_name)
-              (line_argument
-                (text))))
-          (missing_brace)))
-      (block
-        (command_name)
+      (item_body
         (paragraph
-          (text))
-        (block_end)))
+          (text)
+          (inline_command
+            (command_name)
+            (brace_arguments
+              (text)
+              (line_command
+                (command_name)
+                (line_argument
+                  (text))))
+            (missing_brace)))
+        (block
+          (command_name)
+          (paragraph
+            (text))
+          (block_end))))
     (block_end)))
 
 ================================================================================

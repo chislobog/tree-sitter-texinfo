@@ -247,6 +247,10 @@ Deliberate, so the tree shows the source as it is written and edited:
   line": the brace starts a group
 - Commands inside a malformed `@end` line (`@end @code{quotation}`) are part
   of the `unmatched_end` node, not parsed
+- An `@itemx` or `@deffnx` after text, which texi2any reports, stays in the
+  body as written; texi2any moves what comes before it out of the body. So
+  does one after a paragraph holding only an `@anchor`, which texi2any
+  accepts (Maxima's `trigtools.texi`)
 
 ## Queries
 
@@ -268,12 +272,15 @@ Deliberate, so the tree shows the source as it is written and edited:
   lists. Textobjects too. No indent queries, deliberately: Texinfo isn't
   indented by nesting, and editors keep the previous line's indentation
   without them
-- [ ] Textobjects: a definition's `@function.inside` includes its `@deffnx`
-  lines, and a table item's `@entry.inside` its `@itemx` lines: they are
-  siblings of the body, and a query can't start after the last of them.
-  Needs the extra lines grouped in the tree. Also, `.` skips anonymous nodes,
-  so in `@xref{a, b, , d}` the empty argument's comma joins `b`'s
-  `@parameter.around`
+- [x] Textobjects: a definition's `@function.inside` included its `@deffnx`
+  lines, and a table item's `@entry.inside` its `@itemx` lines, siblings of
+  the body that a query can't start after. Now the body is a node, as in
+  texi2any (`def_item`, `table_definition`): a `definition_body` or an
+  `item_body`, in the `body` field, after the last `@deffnx` or `@itemx`
+  line and the index entries, blank lines and blocks (a conditional holding
+  an index entry) before it (+164 parser states, no slower)
+- [ ] Textobjects: `.` skips anonymous nodes, so in `@xref{a, b, , d}` the
+  empty argument's comma joins `b`'s `@parameter.around`
 
 ## Project
 

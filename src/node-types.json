@@ -502,6 +502,16 @@
     "type": "definition_block",
     "named": true,
     "fields": {
+      "body": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "definition_body",
+            "named": true
+          }
+        ]
+      },
       "end": {
         "multiple": false,
         "required": true,
@@ -520,6 +530,29 @@
     "children": {
       "multiple": true,
       "required": true,
+      "types": [
+        {
+          "type": "block",
+          "named": true
+        },
+        {
+          "type": "definition_line",
+          "named": true
+        },
+        {
+          "type": "line_command",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "definition_body",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
       "types": [
         {
           "type": "block",
@@ -1013,6 +1046,16 @@
           }
         ]
       },
+      "body": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "item_body",
+            "named": true
+          }
+        ]
+      },
       "name": {
         "multiple": false,
         "required": true,
@@ -1078,6 +1121,69 @@
         },
         {
           "type": "tab",
+          "named": true
+        },
+        {
+          "type": "unmatched_end",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "item_body",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "block",
+          "named": true
+        },
+        {
+          "type": "definition_block",
+          "named": true
+        },
+        {
+          "type": "definition_line",
+          "named": true
+        },
+        {
+          "type": "heading",
+          "named": true
+        },
+        {
+          "type": "itemx",
+          "named": true
+        },
+        {
+          "type": "line_command",
+          "named": true
+        },
+        {
+          "type": "list",
+          "named": true
+        },
+        {
+          "type": "macro_definition",
+          "named": true
+        },
+        {
+          "type": "menu",
+          "named": true
+        },
+        {
+          "type": "node_line",
+          "named": true
+        },
+        {
+          "type": "paragraph",
+          "named": true
+        },
+        {
+          "type": "raw_block",
           "named": true
         },
         {

@@ -23,11 +23,7 @@
 (definition_block) @function.outer
 
 (definition_block
-  (definition_line)
-  .
-  (_)+ @function.inner
-  .
-  end: (_))
+  body: (_) @function.inner)
 
 (macro_definition) @function.outer
 
