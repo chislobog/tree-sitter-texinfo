@@ -524,13 +524,24 @@ export default grammar({
     _menu_node_text: _ => /([^@{}., \t\n\r\v\f]|\.+[^@{}., \t\n\r\v\f])(([^@{}.,\n]|\.+[^@{}., \t\n\r\v\f])*([^@{}., \t\n\r\v\f]|\.+[^@{}., \t\n\r\v\f]))?/,
 
     // The rest of the line, and following lines up to a blank line or the
-    // next entry.
-    menu_description: $ => seq(
-      // As in texi2any, the description may start on the next line.
-      choice($._line, prec(1, seq($._newline, $._line))),
-      repeat(prec(1, seq($._newline, $._line))),
-      $._line_end,
+    // next entry, as in the Texinfo manual and texi2any, raw blocks such as
+    // `@ignore` among them. Not the other blocks: a conditional holds the
+    // next entries, which texi2any only sees after evaluating it.
+    menu_description: $ => choice(
+      seq(
+        // As in texi2any, the description may start on the next line.
+        choice(
+          $._line,
+          prec(1, seq($._newline, optional($._description_blocks), $._line)),
+        ),
+        repeat(prec(1, seq($._newline, optional($._description_blocks), $._line))),
+        choice($._line_end, seq($._newline, $._description_blocks)),
+      ),
+      // Or only blocks, which a line after them would go on with.
+      prec.right(1, seq($._newline, $._description_blocks)),
     ),
+
+    _description_blocks: $ => prec.right(repeat1(seq($.raw_block, $._line_end))),
 
     // `@deffn` and friends: the definition line, then the body.
     // The body starts after the last `@deffnx` line, as an item's does.

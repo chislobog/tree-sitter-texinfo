@@ -12,8 +12,7 @@ line into its category, class, type, name and arguments, a menu entry into
 its name, node and description), as one otherwise. Of an argument, only its
 ASCII letters and digits count, with the names of the commands in it but not
 its comments: what both trees keep of it, whatever each makes of its spaces,
-braces and comments. texi2any's tree has the blocks at the end of a menu
-entry's description in it, which here follow it; they are left out.
+braces and comments.
 
 texi2any expands macros, line macros, `@value` and aliases, and evaluates
 conditionals, before or while it parses; a tree-sitter grammar keeps them as
@@ -540,25 +539,9 @@ def menu_entry_words(node: DumpNode) -> list[str]:
     found = ["", "", ""]
     for child in node.children:
         kind = label_type(child.label)
-        if kind == "menu_entry_description":
-            found[2] = description_words(child)
-        elif kind in MENU_ENTRY_PARTS:
+        if kind in MENU_ENTRY_PARTS:
             found[MENU_ENTRY_PARTS[kind]] = dump_words(child)
     return found
-
-
-def description_words(node: DumpNode) -> str:
-    """The words of a menu entry's description, without the blocks after its
-    text, which texi2any's tree has in it but this grammar after it."""
-    parts = []
-    for child in node.children:
-        parts.extend(child.children if label_type(child.label) == "preformatted" else [child])
-    while parts and (
-        not dump_words(parts[-1])
-        or any(command_name(c.label) == "@end" for c in parts[-1].children)
-    ):
-        parts.pop()
-    return words(" ".join(dump_words(part) for part in parts))
 
 
 def dump_text(node: DumpNode) -> str:

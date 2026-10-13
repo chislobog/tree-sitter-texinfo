@@ -28,7 +28,7 @@ fa15dc48f44ce05247acc49745d9666ab41566f34dfff6d4955aa87ff50de777  examples/binut
 98796213da8327869f7df818422758e4e2adbadd0f194fac9fe057a188b7fdbf  examples/binutils-with-gold-2.46/binutils/doc/fdl.texi
 6a890e4a78cf69eaa1710c21f1f30858601278b59617f8905b7e4f6dad7accfa  examples/binutils-with-gold-2.46/binutils/doc/sframe.options.texi
 2c591fe09274e93770322508eace70394745451dba39e255a679c51227587388  examples/binutils-with-gold-2.46/gas/doc/all.texi
-2cbd5ee5d2da54ff25198c1229e66f73fb02b663eda0a00eb3c54e72b19afa5f  examples/binutils-with-gold-2.46/gas/doc/as.texi
+dc7ee5cdcff56a8be65df0806b04eec2895e0add5888d8c4f2a7aad053888437  examples/binutils-with-gold-2.46/gas/doc/as.texi
 2c591fe09274e93770322508eace70394745451dba39e255a679c51227587388  examples/binutils-with-gold-2.46/gas/doc/asconfig.texi
 edfb326d55da46cac4ea75471ff65e1c6720c9071f3425a927cf6533a84f497d  examples/binutils-with-gold-2.46/gas/doc/c-aarch64.texi
 0e9cb543bbd5332928f7fa944576f547cddc2c7997ea6b03030930b0bda30e8d  examples/binutils-with-gold-2.46/gas/doc/c-alpha.texi
@@ -271,7 +271,7 @@ af4e62e5ae6b2dbdf684d37b175590c173e1ada4a849ec0a1d052910ed106ca7  examples/emacs
 63a00a9f2f57c69614d4e0a90a346379b6709490f8bd71e912e481f1b464423b  examples/emacs-31.1/misc/sasl.texi
 bbfe3685be655d336d9b05c54e227aa41eba4aedf2947e7dd28d64b1c3902ba7  examples/emacs-31.1/misc/sc.texi
 07a712093a15021f3b08bb0377358d0ff190720172fb3ab5e361e853c4e88a0a  examples/emacs-31.1/misc/sem-user.texi
-bd2b4d5266dfa6b1574423622913740aa995f3b9ede07673bb71b89ac9f39c09  examples/emacs-31.1/misc/semantic.texi
+82e4c6f858a490cad17afb68b4e53b5be0e28687a5c8ff31e7620fa8cf5f8b2d  examples/emacs-31.1/misc/semantic.texi
 5de43d6dedad88b58e96433f1568b92c3a56fca218f053d013bb7f4024b919a0  examples/emacs-31.1/misc/ses.texi
 059ea09ebf732a7998715fc9a2754be36da0961f8de77de0b6001b49a627e707  examples/emacs-31.1/misc/sieve.texi
 fa0aa9fd8941a3cef327cc1ba1d1d1030a58abed134eae4d27dfce7384a181da  examples/emacs-31.1/misc/smtpmail.texi
@@ -302,7 +302,7 @@ a4ce2ca9ff9fb00687d1e590d9c24d803eb2517c5cc664f4596f4c1abaec3deb  examples/gdb-1
 8972a927967652122705bf64605e4ad59c381f3580d4385694935a3b669960ad  examples/gdb-17.2/gdb/doc/all-cfg.texi
 d5bdd487562774867090bdc1da64978e44a4720c221179952649ea369efa368c  examples/gdb-17.2/gdb/doc/annotate.texinfo
 e2dcdda4c0ee6ecf8da056f46fcbfdc0527728911cc38a861deb6aa100c60baa  examples/gdb-17.2/gdb/doc/fdl.texi
-f9fd861f20dbd42e3d7c44501c8dd21d32c362577fdf55b579e0ae4c661db04c  examples/gdb-17.2/gdb/doc/gdb.texinfo
+68112aca164e4bb084a87cdb4b6140c1f346e56c5049a6ca98114376a16fa04f  examples/gdb-17.2/gdb/doc/gdb.texinfo
 a7ea35e1b5e164a3469c0f198b3bfe4caa8ca3b8925814d20187086baf43fbab  examples/gdb-17.2/gdb/doc/gpl.texi
 6d126d6630d8d1fa5d522ce1ded7a1e1f0b734340c6ab4bc1808d7a746cee778  examples/gdb-17.2/gdb/doc/guile.texi
 6a6b2db4d6841c38f806d5a50096a56b4b4bfe491a6905d2edb187c44428e70d  examples/gdb-17.2/gdb/doc/python.texi
@@ -1048,7 +1048,7 @@ e484091bd85047bdf63e4c1ace394dbeda8411040361c76fac66fd677e5aa760  texinfo-tests/
 03136f4406ddbdfadad639067e5115049d960ff1fd4f711b44af307d560f9fdb  texinfo-tests/10menu/example_in_menu_comment.texi
 5f3f6848229e45f41e62d7798704486e27e93d81bfaba717f0a040bacec8bbd0  texinfo-tests/10menu/example_in_menu_description.texi
 a6794aa17087584ec04dfa5e8f1bc6d0d8a20bc6bb9653887e4a55e9874ad7ad  texinfo-tests/10menu/format_menu_undef.texi
-67197faadd971984c8af06f81b9a0a3a1fbe1f0f1c7b4c6677f3424b38353a33  texinfo-tests/10menu/formats_in_menu.texi
+ce24edbb710436898e1e0a90eec5822995fa5f688025ed67b709d1bb4aa66d64  texinfo-tests/10menu/formats_in_menu.texi
 33cbbf192025ab2267dbe934b88f731fb29a29db0b41c5bf2c17ac4548167ff4  texinfo-tests/10menu/inlineraw_in_menu_description.texi
 fcb30b00ddf3872848e3b5b7d081e79fe97afd8c905652dde7f50d37735368b6  texinfo-tests/10menu/invalid_info_menu_entry.texi
 01e434b22377177f06af6efa53c7434667b203ecda6fd33101fd509384de2051  texinfo-tests/10menu/leading_space_before_menu_star.texi

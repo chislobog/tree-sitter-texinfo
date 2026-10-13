@@ -326,3 +326,105 @@ A star after spaces in a menu starts no entry
       description: (menu_description
         (text)))
     end: (block_end)))
+
+================================================================================
+Raw blocks inside a menu entry's description, but not conditionals
+================================================================================
+
+@menu
+* a::  Description
+@ignore
+ignored
+@end ignore
+goes on.
+* b::  Description
+@ignore
+x
+@end ignore
+
+Menu comment.
+* c::  Description
+@ifset flag
+Conditional text.
+@end ifset
+@end menu
+
+---
+
+(source_file
+  (menu
+    name: (command_name)
+    (menu_entry
+      node: (menu_node
+        (text))
+      description: (menu_description
+        (text)
+        (raw_block
+          name: (command_name)
+          body: (raw_text)
+          end: (block_end))
+        (text)))
+    (menu_entry
+      node: (menu_node
+        (text))
+      description: (menu_description
+        (text)
+        (raw_block
+          name: (command_name)
+          body: (raw_text)
+          end: (block_end))))
+    (paragraph
+      (text))
+    (menu_entry
+      node: (menu_node
+        (text))
+      description: (menu_description
+        (text)))
+    (block
+      name: (command_name)
+      argument: (line_argument
+        (text))
+      (paragraph
+        (text))
+      end: (block_end))
+    end: (block_end)))
+
+================================================================================
+A description may start with raw blocks on the lines after its entry
+================================================================================
+
+@menu
+* a::
+@ignore
+* old::
+@end ignore
+* b::
+@ignore
+x
+@end ignore
+then text.
+@end menu
+
+---
+
+(source_file
+  (menu
+    name: (command_name)
+    (menu_entry
+      node: (menu_node
+        (text))
+      description: (menu_description
+        (raw_block
+          name: (command_name)
+          body: (raw_text)
+          end: (block_end))))
+    (menu_entry
+      node: (menu_node
+        (text))
+      description: (menu_description
+        (raw_block
+          name: (command_name)
+          body: (raw_text)
+          end: (block_end))
+        (text)))
+    end: (block_end)))

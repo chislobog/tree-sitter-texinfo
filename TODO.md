@@ -230,9 +230,15 @@ Gaps, where we give a parse error and texi2any recovers:
 Gaps where the tree differs from texi2any's and the Texinfo manual, found by
 comparing arguments:
 
-- [ ] A block ends a menu entry's description, and so does a comment line;
-  the Texinfo manual only ends one at an empty line or the next entry, and
-  texi2any goes on with it after them (`html_tests/menu.texi`)
+- [x] A raw block (`@ignore`, `@html`, ...) after a menu entry's description
+  line, or right after the entry, is part of the description, which goes on
+  after it: the Texinfo manual only ends one at an empty line or the next
+  entry, as texi2any does (in gdb's, gas's and Semantic's manuals; 31
+  parser states)
+- [ ] Other blocks and comment lines still end a menu entry's description
+  (only in texi2any's test inputs, `html_tests/menu.texi`). A conditional
+  must: it holds the next entries, which texi2any only sees after
+  evaluating it. Comment lines there would cost 400 parser states
 - [x] A menu entry may start after spaces; the Texinfo manual and texi2any
   only start one with `* ` at the beginning of a line
   (`leading_space_before_menu_star.texi`). The star is an immediate token
