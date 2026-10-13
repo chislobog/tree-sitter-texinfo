@@ -3867,6 +3867,15 @@
           "name": "_line_end"
         },
         {
+          "type": "SYMBOL",
+          "name": "_block_rest"
+        }
+      ]
+    },
+    "_block_rest": {
+      "type": "SEQ",
+      "members": [
+        {
           "type": "REPEAT",
           "content": {
             "type": "CHOICE",
@@ -3920,6 +3929,48 @@
             "type": "SYMBOL",
             "name": "_block_end"
           }
+        }
+      ]
+    },
+    "_description_block": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "FIELD",
+          "name": "name",
+          "content": {
+            "type": "ALIAS",
+            "content": {
+              "type": "SYMBOL",
+              "name": "_description_block_start"
+            },
+            "named": true,
+            "value": "command_name"
+          }
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "FIELD",
+              "name": "argument",
+              "content": {
+                "type": "SYMBOL",
+                "name": "line_argument"
+              }
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_line_end"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_block_rest"
         }
       ]
     },
@@ -4412,8 +4463,30 @@
           "type": "SEQ",
           "members": [
             {
-              "type": "SYMBOL",
-              "name": "raw_block"
+              "type": "CHOICE",
+              "members": [
+                {
+                  "type": "SYMBOL",
+                  "name": "raw_block"
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "list"
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "definition_block"
+                },
+                {
+                  "type": "ALIAS",
+                  "content": {
+                    "type": "SYMBOL",
+                    "name": "_description_block"
+                  },
+                  "named": true,
+                  "value": "block"
+                }
+              ]
             },
             {
               "type": "SYMBOL",
@@ -10617,6 +10690,10 @@
     {
       "type": "SYMBOL",
       "name": "_menu_entry_start"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_description_block_start"
     },
     {
       "type": "SYMBOL",

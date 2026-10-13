@@ -88,6 +88,8 @@ enum TokenType {
   // Zero-width before a menu entry in a block, such as a conditional, whose
   // innermost enclosing block other than a conditional is a menu.
   MENU_ENTRY_START,
+  // A block other than a conditional in a menu entry's description.
+  DESCRIPTION_BLOCK_START,
   ERROR_SENTINEL,
 };
 
@@ -784,6 +786,12 @@ static bool scan_block_start(Scanner *scanner, TSLexer *lexer,
   enum TokenType token = kind >= KIND_DEFINITION
                              ? DEFINITION_START + (kind - KIND_DEFINITION)
                              : START_TOKENS[kind];
+  // In a menu entry's description, which goes on past a block, but not past
+  // a conditional, which holds the next entries.
+  if (kind == KIND_BLOCK && valid_symbols[DESCRIPTION_BLOCK_START] &&
+      !is_conditional(name)) {
+    token = DESCRIPTION_BLOCK_START;
+  }
   if (!valid_symbols[token]) return false;
   if (scanner->depth >= MAX_DEPTH) return false;
 

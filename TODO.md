@@ -241,9 +241,12 @@ comparing arguments:
   texi2any's expansion, where the conditional is gone. The scanner now
   allows an entry in a block whose innermost enclosing block other than a
   conditional is a menu (45 parser states)
-- [ ] Other blocks still end a menu entry's description (only in texi2any's
-  test inputs, `html_tests/menu.texi`). A conditional must: it holds the
-  next entries, which texi2any only sees after evaluating it
+- [x] Other blocks (`@example`, lists, definitions) are part of a menu
+  entry's description too; the scanner gives a conditional its usual token
+  there, which ends the description, as a conditional holds the next
+  entries, which texi2any only sees after evaluating it (6 of texi2any's
+  test inputs; the block rule's content, now a rule of its own, saved 158
+  parser states)
 - [x] A menu entry may start after spaces; the Texinfo manual and texi2any
   only start one with `* ` at the beginning of a line
   (`leading_space_before_menu_star.texi`). The star is an immediate token

@@ -515,3 +515,61 @@ goes on.
       node: (menu_node
         (text)))
     end: (block_end)))
+
+================================================================================
+Blocks other than conditionals inside a menu entry's description
+================================================================================
+
+@menu
+* a::  Description
+@example
+in example
+@end example
+@itemize
+@item item
+@end itemize
+goes on.
+* b::  Description
+@ifset flag
+* c::
+@end ifset
+@end menu
+
+---
+
+(source_file
+  (menu
+    name: (command_name)
+    (menu_entry
+      node: (menu_node
+        (text))
+      description: (menu_description
+        (text)
+        (block
+          name: (command_name)
+          (paragraph
+            (text))
+          end: (block_end))
+        (list
+          name: (command_name)
+          (item
+            name: (command_name)
+            body: (item_body
+              (paragraph
+                (text))))
+          end: (block_end))
+        (text)))
+    (menu_entry
+      node: (menu_node
+        (text))
+      description: (menu_description
+        (text)))
+    (block
+      name: (command_name)
+      argument: (line_argument
+        (text))
+      (menu_entry
+        node: (menu_node
+          (text)))
+      end: (block_end))
+    end: (block_end)))

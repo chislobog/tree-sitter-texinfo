@@ -184,18 +184,6 @@ texinfo-tests/08misc_commands/text_before_line_command.texi
 texinfo-tests/10menu/bad_beginning.texi
   line 2: ours '*', texi2any '(nothing)'
 
-# Gap: a block other than a raw one (`@ignore`, `@html`, ...) ends a menu entry's description here; the Texinfo manual only ends one at an empty line or the next entry, so texi2any goes on with it after the block
-texinfo-tests/10menu/block_commands_in_menu_description.texi
-  line 5: * arguments: ours ' | manual', texi2any ' | manual | itemize item in item end itemize table asis item table item Text end table html b in html b end html verbatim end verbatim'
-
-# Gap: a block other than a raw one (`@ignore`, `@html`, ...) ends a menu entry's description here; the Texinfo manual only ends one at an empty line or the next entry, so texi2any goes on with it after the block
-texinfo-tests/10menu/example_in_menu_description.texi
-  line 5: * arguments: ours ' | manual', texi2any ' | manual | example in example end example'
-
-# Gap: a block other than a raw one (`@ignore`, `@html`, ...) ends a menu entry's description here; the Texinfo manual only ends one at an empty line or the next entry, so texi2any goes on with it after the block
-texinfo-tests/10menu/formats_in_menu.texi
-  line 4: * arguments: ours ' | gcc | text', texi2any ' | gcc | text table asis item item table line end table'
-
 # Deliberate: a menu line starting with `*` is an entry, maybe still being typed, without a node yet; texi2any reads it as text
 texinfo-tests/10menu/menu_entry_no_entry.texi
   line 2: ours '* * *', texi2any '(nothing)'
@@ -209,10 +197,6 @@ texinfo-tests/10menu/menu_entry_no_entry_location.texi
   line 3: * arguments: ours 'not an entry', texi2any ' | manual | an entry in description and here with text'
   line 4: * arguments: ours ' | manual | an entry in description', texi2any ' | last manual'
   line 6: ours '* *', texi2any '(nothing)'
-
-# Gap: a block other than a raw one (`@ignore`, `@html`, ...) ends a menu entry's description here; the Texinfo manual only ends one at an empty line or the next entry, so texi2any goes on with it after the block
-texinfo-tests/10menu/menu_in_example.texi
-  line 5: * arguments: ours ' | entry', texi2any ' | entry | cartouche in cartouche in description in menu in example end cartouche'
 
 # Deliberate: a menu line starting with `*` is an entry, maybe still being typed, without a node yet; texi2any reads it as text
 texinfo-tests/10menu/menu_no_closed_entry_beginning.texi
@@ -647,15 +631,6 @@ texinfo-tests/epub_tests/setfilename_on_top_and_after_node_epub.texi
 texinfo-tests/formats_encodings/japanese_shift_jis.texi
   line 19: ours '@�', texi2any '(nothing)'
   line 33: ours '@�', texi2any '(nothing)'
-
-# Gap: a block other than a raw one (`@ignore`, `@html`, ...) ends a menu entry's description here; the Texinfo manual only ends one at an empty line or the next entry, so texi2any goes on with it after the block
-texinfo-tests/html_tests/menu.texi
-  line 6: * arguments: ours ' | ggg | description', texi2any ' | ggg | description itemize item idescr end itemize html in html end html AAA'
-  line 39: * arguments: ours ' | detailggg | detaildescription', texi2any ' | detailggg | detaildescription itemize item idetaildescr end itemize html detailin detailhtml end html detailAAA'
-
-# Gap: a block other than a raw one (`@ignore`, `@html`, ...) ends a menu entry's description here; the Texinfo manual only ends one at an empty line or the next entry, so texi2any goes on with it after the block
-texinfo-tests/html_tests/menu_in_example.texi
-  line 5: * arguments: ours ' | entry', texi2any ' | entry | cartouche in cartouche in description in menu in example end cartouche'
 
 # Deliberate: a line command in the middle of a line; line commands occupy a whole line, as the Texinfo manual requires (texi2any accepts it with a warning, taking the rest of the line as its argument)
 texinfo-tests/plaintext_tests/at_commands_glued_in_example.texi

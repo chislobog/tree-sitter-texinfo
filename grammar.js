@@ -279,6 +279,8 @@ export default grammar({
     // Zero-width before a menu entry in a block, such as a conditional,
     // inside a menu.
     $._menu_entry_start,
+    // A block other than a conditional in a menu entry's description.
+    $._description_block_start,
     $._error_sentinel,
   ],
 
@@ -476,9 +478,13 @@ export default grammar({
         ),
       ),
       $._line_end,
-      // Items and multitable rows, for conditionals that wrap some of a
-      // list's items, menu entries, for those that wrap a menu's, and
-      // sections, for conditionals that wrap whole sections.
+      $._block_rest,
+    ),
+
+    // Items and multitable rows, for conditionals that wrap some of a list's
+    // items, menu entries, for those that wrap a menu's, and sections, for
+    // conditionals that wrap whole sections.
+    _block_rest: $ => seq(
       repeat(choice(
         $._content,
         $.item,
@@ -488,6 +494,15 @@ export default grammar({
         $._section,
       )),
       field('end', $._block_end),
+    ),
+
+    // A block in a menu entry's description, such as `@example`, which the
+    // scanner tells apart from a conditional, which ends the description.
+    _description_block: $ => seq(
+      field('name', alias($._description_block_start, $.command_name)),
+      optional(field('argument', $.line_argument)),
+      $._line_end,
+      $._block_rest,
     ),
 
     // `@menu`, `@detailmenu` and `@direntry`: menu entries, and other content
@@ -563,9 +578,9 @@ export default grammar({
     _menu_node_text: _ => /([^@{}., \t\n\r\v\f]|\.+[^@{}., \t\n\r\v\f])(([^@{}.,\n]|\.+[^@{}., \t\n\r\v\f])*([^@{}., \t\n\r\v\f]|\.+[^@{}., \t\n\r\v\f]))?/,
 
     // The rest of the line, and following lines up to a blank line or the
-    // next entry, as in the Texinfo manual and texi2any, raw blocks such as
-    // `@ignore` among them. Not the other blocks: a conditional holds the
-    // next entries, which texi2any only sees after evaluating it.
+    // next entry, as in the Texinfo manual and texi2any, blocks among them.
+    // Not a conditional, which holds the next entries, which texi2any only
+    // sees after evaluating it, nor a menu.
     menu_description: $ => choice(
       seq(
         // As in texi2any, the description may start on the next line.
@@ -588,7 +603,15 @@ export default grammar({
       prec.right(1, seq($._newline, $._description_blocks)),
     ),
 
-    _description_blocks: $ => prec.right(repeat1(seq($.raw_block, $._line_end))),
+    _description_blocks: $ => prec.right(repeat1(seq(
+      choice(
+        $.raw_block,
+        $.list,
+        $.definition_block,
+        alias($._description_block, $.block),
+      ),
+      $._line_end,
+    ))),
 
     // `@deffn` and friends: the definition line, then the body.
     // The body starts after the last `@deffnx` line, as an item's does.

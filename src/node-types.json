@@ -1617,11 +1617,23 @@
       "required": false,
       "types": [
         {
+          "type": "block",
+          "named": true
+        },
+        {
           "type": "brace_group",
           "named": true
         },
         {
+          "type": "definition_block",
+          "named": true
+        },
+        {
           "type": "inline_command",
+          "named": true
+        },
+        {
+          "type": "list",
           "named": true
         },
         {
