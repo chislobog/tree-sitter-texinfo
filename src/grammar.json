@@ -2698,7 +2698,7 @@
                           "type": "ALIAS",
                           "content": {
                             "type": "SYMBOL",
-                            "name": "_accent_argument"
+                            "name": "_line_accent_argument"
                           },
                           "named": true,
                           "value": "text"
@@ -5350,7 +5350,7 @@
                 "type": "ALIAS",
                 "content": {
                   "type": "SYMBOL",
-                  "name": "_accent_argument"
+                  "name": "_line_accent_argument"
                 },
                 "named": true,
                 "value": "text"
@@ -6982,7 +6982,7 @@
                       "type": "ALIAS",
                       "content": {
                         "type": "SYMBOL",
-                        "name": "_accent_argument"
+                        "name": "_line_accent_argument"
                       },
                       "named": true,
                       "value": "text"
@@ -9572,6 +9572,10 @@
     {
       "type": "SYMBOL",
       "name": "_accent_argument"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_line_accent_argument"
     },
     {
       "type": "SYMBOL",

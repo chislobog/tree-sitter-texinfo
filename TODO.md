@@ -127,6 +127,10 @@ sources, which is what `texi2any` itself uses.
   `@...index` at the start of a line is an index line command
 - [x] Missing blocks: `@documentinfo`, `@publication`
 - [x] Fix typo: `codequoteundirective` should be `codequoteundirected`
+- [x] An accent without braces at the end of a line command's line
+  (`@chapter Caf@'`) has no argument, as in texi2any: it took the first
+  character of the next line, and the heading the rest of that line (found
+  by comparing arguments)
 - [x] No-brace commands: `@refill`, `@thischapter`, `@thisfile`, ... parse as
   inline commands without arguments, as in texi2any
 

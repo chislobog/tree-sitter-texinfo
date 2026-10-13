@@ -213,6 +213,40 @@ e
       argument: (text))))
 
 ================================================================================
+An accent at the end of a line command's line has no argument
+================================================================================
+
+@chapter Caf@'
+e
+@deffn Command foo@~
+n
+
+---
+
+(source_file
+  (chapter
+    heading: (chapter_heading
+      name: (command_name)
+      title: (line_argument
+        (text)
+        (inline_command
+          name: (command_name))))
+    (paragraph
+      (text))
+    (definition_block
+      (definition_line
+        name: (command_name)
+        category: (text)
+        entity: (word
+          (text)
+          (inline_command
+            name: (command_name))))
+      body: (definition_body
+        (paragraph
+          (text)))
+      end: (missing_end))))
+
+================================================================================
 A lone @ at the end of a file
 ================================================================================
 

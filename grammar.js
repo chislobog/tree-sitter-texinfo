@@ -203,6 +203,9 @@ export default grammar({
     $._row_name,
     $._subentry_name,
     $._accent_argument,
+    // An accent's argument in a line command's line, which can't go on to
+    // the next line.
+    $._line_accent_argument,
     $._float_start,
     $.unmatched_end,
     $._inline_raw_text,
@@ -396,7 +399,7 @@ export default grammar({
         field('name', alias($._brace_command_name, $.command_name)),
         optional(choice(
           seq('{', $._line_brace_arguments),
-          field('argument', alias($._accent_argument, $.text)),
+          field('argument', alias($._line_accent_argument, $.text)),
         )),
       )),
       prec.right(seq(
@@ -603,7 +606,7 @@ export default grammar({
       field('name', alias($._brace_command_name, $.command_name)),
       choice(
         seq('{', $._line_brace_arguments),
-        field('argument', alias($._accent_argument, $.text)),
+        field('argument', alias($._line_accent_argument, $.text)),
       ),
     ),
 
@@ -877,7 +880,7 @@ export default grammar({
       field('name', alias($._brace_command_name, $.command_name)),
       optional(choice(
         seq('{', $._line_brace_arguments),
-        field('argument', alias($._accent_argument, $.text)),
+        field('argument', alias($._line_accent_argument, $.text)),
       )),
     )),
 

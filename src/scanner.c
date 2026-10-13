@@ -54,6 +54,8 @@ enum TokenType {
   SUBENTRY_NAME,
   // The one-character argument of an accent command without braces.
   ACCENT_ARGUMENT,
+  // The same in a line command's line, which can't go on to the next line.
+  LINE_ACCENT_ARGUMENT,
   FLOAT_START,
   // `@end` that doesn't end the innermost open block, to the end of its line.
   UNMATCHED_END,
@@ -590,13 +592,16 @@ static bool is_symbol_accent(int32_t c) {
 
 /**
  * Scans the argument of an accent command without braces: one character
- * after any blanks and at most one newline, as in texi2any. Not `@`, a brace
- * or a blank line.
+ * after any blanks and at most one newline, as in texi2any, but none in a
+ * line command's line, which the newline ends. Not `@`, a brace or a blank
+ * line.
  */
-static bool scan_accent_argument(TSLexer *lexer) {
+static bool scan_accent_argument(TSLexer *lexer, const bool *valid_symbols) {
+  bool across_lines = valid_symbols[ACCENT_ARGUMENT];
   while (is_blank(lexer->lookahead)) skip(lexer);
   if (lexer->lookahead == '\r') skip(lexer);
   if (lexer->lookahead == '\n') {
+    if (!across_lines) return false;
     skip(lexer);
     while (is_blank(lexer->lookahead)) skip(lexer);
   }
@@ -606,7 +611,7 @@ static bool scan_accent_argument(TSLexer *lexer) {
     return false;
   }
   advance(lexer);
-  return accept(lexer, ACCENT_ARGUMENT);
+  return accept(lexer, across_lines ? ACCENT_ARGUMENT : LINE_ACCENT_ARGUMENT);
 }
 
 /**
@@ -1098,8 +1103,9 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
   // before each scan, so this is only set right after an accent's name.
   bool after_accent = scanner->after_accent;
   scanner->after_accent = false;
-  if (after_accent && valid_symbols[ACCENT_ARGUMENT] &&
-      scan_accent_argument(lexer)) {
+  if (after_accent &&
+      (valid_symbols[ACCENT_ARGUMENT] || valid_symbols[LINE_ACCENT_ARGUMENT]) &&
+      scan_accent_argument(lexer, valid_symbols)) {
     return true;
   }
 
