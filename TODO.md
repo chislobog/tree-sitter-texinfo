@@ -36,9 +36,8 @@ sources, which is what `texi2any` itself uses.
 - [x] Keep the preformatted context through blocks nested in `@example`
   and the other preformatted blocks (`@group`, `@quotation`, even `@menu`),
   where a blank line doesn't close a brace command, as in texi2any
-- [x] Command names as texi2any reads them, `[[:alnum:]][[:alnum:]_-]*` of any
-  length, so `@0`, `@foo_bar` or a name longer than 32 characters is one
-  (unknown) command
+- [x] Command names of any length, as texi2any reads them, so `@0` or a name
+  longer than 32 characters is one (unknown) command; but see `_` below
 - [x] No table of the file's macros in the scanner: it made every token
   after a definition carry the table in its state, so adding or renaming a
   macro reparsed the rest of the file (76 ms for gawk's manual, against
@@ -195,9 +194,10 @@ of a line.
 
 ## Differences from texi2any
 
-From comparing with texi2any on its own test inputs (55 of 1,755 differ, all
-listed with their reasons in `test/texi2any-differences.txt`; the manuals
-match but for three binutils fragments meant for `@include`).
+From comparing with texi2any on its own test inputs (121 of 1,755 differ, in
+their commands or the commands' arguments, all listed with their reasons in
+`test/texi2any-differences.txt`; the manuals match but for three binutils
+fragments meant for `@include`).
 
 Gaps, where we give a parse error and texi2any recovers:
 
@@ -225,6 +225,25 @@ Gaps, where we give a parse error and texi2any recovers:
 - [ ] Files not in UTF-8 (`@documentencoding ISO-8859-1`, Shift-JIS): the
   editor has to convert them, as tree-sitter reads UTF-8
 
+Gaps where the tree differs from texi2any's and the Texinfo manual, found by
+comparing arguments:
+
+- [ ] A block ends a menu entry's description, and so does a comment line;
+  the Texinfo manual only ends one at an empty line or the next entry, and
+  texi2any goes on with it after them (`html_tests/menu.texi`)
+- [ ] A menu entry may start after spaces; the Texinfo manual and texi2any
+  only start one with `* ` at the beginning of a line
+  (`leading_space_before_menu_star.texi`)
+- [ ] A DEL character is text; the Texinfo manual makes it a comment
+  character to the end of the line, which also merges the next line into
+  it, as texi2any does (`delcomment_on_comment.texi`)
+- [ ] A comment line ends a paragraph, which texi2any goes on with after it,
+  also in the manuals (seen while comparing; paragraphs aren't compared, as
+  they aren't commands)
+- [ ] `_` continues a command name here (`@foo_bar`), but not in texi2any,
+  whose command names are `[[:alnum:]][[:alnum:]-]*` (`@code_x` is `@code`,
+  then `_x`); only its macro names may hold one
+
 Deliberate, so the tree shows the source as it is written and edited:
 
 - Macros, `@value`, `@alias`, `@linemacro` and conditionals aren't expanded or
@@ -245,6 +264,10 @@ Deliberate, so the tree shows the source as it is written and edited:
   recovery also accepts them in the middle of one, with a warning
   (`@group x @end group`, `@table` on an `@item` line); no manual among the
   examples does that
+- So do line commands, which "occupy an entire line" in the Texinfo manual:
+  one in the middle of a line (`text @sp 2`) is a command without argument
+  followed by text, where texi2any takes the rest of the line as its
+  argument, with a warning
 - Content texi2any reports and drops is kept as written: `@tab` cells beyond
   the multitable's columns, `@tab` before the first `@item`, `@headitem` or
   `@itemx` in `@itemize`, `@item` outside a list, a recursive
@@ -362,6 +385,13 @@ Deliberate, so the tree shows the source as it is written and edited:
   flake check), raised only on purpose: features added 1-8% each, which
   the check against the previous push didn't flag, until the parser had
   twice the states it had once the scanner recognised the command names
+- [x] The comparison checks each command's arguments too, field by field
+  where the grammar splits them as texi2any does (cross-references, `@node`,
+  `@float`, definition lines, menu entries) and as one elsewhere, by their
+  letters and digits; menu entries are compared as commands. It found three
+  bugs: `@c|` wasn't a comment, a heading wasn't one inside `@footnote`,
+  and an accent at the end of a heading took the next line's first
+  character; and the gaps above
 - [x] texi2any and the manuals pinned apart from the tools (the `reference`
   input in `flake.nix`, a fixed nixpkgs revision): `nix flake update` for a
   newer tree-sitter or LLVM no longer brings a new texi2any and new manuals

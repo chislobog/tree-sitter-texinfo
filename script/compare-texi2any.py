@@ -3,7 +3,17 @@ r"""Compare this grammar's parse trees with texi2any's, the reference parser.
 
 For each file, both trees are flattened into the sequence of @-commands they
 contain, in document order: `+name` and `-name` for the start and end of a
-block, `@name` for every other command. The two sequences are then diffed.
+block, `*` for a menu entry, `@name` for every other command. The two
+sequences are then diffed.
+
+Then the arguments of each command found on both sides are compared: one by
+one where this grammar splits them as texi2any does (at commas, a definition
+line into its category, class, type, name and arguments, a menu entry into
+its name, node and description), as one otherwise. Of an argument, only its
+ASCII letters and digits count, with the names of the commands in it but not
+its comments: what both trees keep of it, whatever each makes of its spaces,
+braces and comments. texi2any's tree has the blocks at the end of a menu
+entry's description in it, which here follow it; they are left out.
 
 texi2any expands macros, line macros, `@value` and aliases, and evaluates
 conditionals, before or while it parses; a tree-sitter grammar keeps them as
@@ -28,8 +38,9 @@ input it is often not the same document. Then:
 
 The summary counts the files compared each way. In the last two, the
 commands texi2any reports it doesn't know in the text compared are left out
-on our side. Line numbers in the differences are those of the text
-compared. The parse errors are always counted in the file as written.
+on our side, also from the arguments they are in. Line numbers in the
+differences are those of the text compared. The parse errors are always
+counted in the file as written.
 
 What is left to mirror on this side:
 
@@ -70,7 +81,13 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 
-from texinfo_language import BLOCK_NAMES, add_files_argument, files_argument, load_language
+from texinfo_language import (
+    ARGUMENT_FIELDS,
+    BLOCK_NAMES,
+    add_files_argument,
+    files_argument,
+    load_language,
+)
 
 from tree_sitter import Parser
 
@@ -99,6 +116,23 @@ class Token:
     line: int | None = None
     # Block markers, items and line commands; the rest are inline.
     structural: bool = False
+    # The words of each argument (see `words`), or None where they aren't
+    # compared.
+    arguments: tuple[str, ...] | None = None
+    # Whether this grammar splits the arguments as texi2any does, so that they
+    # are compared one by one; otherwise they are compared as one.
+    split: bool = False
+
+
+WORD = re.compile(r"[A-Za-z0-9]+")
+
+
+def words(argument: str) -> str:
+    """The ASCII letters and digits of an argument, in runs separated by a
+    space: what both trees keep of it, whatever each makes of its spaces,
+    braces and commands. texi2any's dump writes a newline as `\\n`, so a
+    written `\\n` is a space too."""
+    return " ".join(WORD.findall(re.sub(r"\\[nfr]", " ", argument)))
 
 
 # Our tree ---------------------------------------------------------------
@@ -109,19 +143,93 @@ def text(node) -> str:
 
 
 def first_word(node) -> str:
-    words = text(node).split() if node is not None else []
-    return words[0] if words else ""
+    found = text(node).split() if node is not None else []
+    return found[0] if found else ""
+
+
+# The fields of the arguments that this grammar splits as texi2any does, by
+# position: at commas, and a definition line into its words.
+NODE_FIELDS = ("node", "next", "previous", "up")
+FLOAT_FIELDS = ("type", "label")
+MENU_ENTRY_FIELDS = ("label", "node", "description")
+DEFINITION_FIELDS = ("category", "class", "type", "entity", "arguments")
+SPLIT_FIELDS = {
+    **{"@" + name: fields for name, fields in ARGUMENT_FIELDS.items()},
+    "@inlinefmt": ("condition", "text"),
+    "@inlineifset": ("condition", "text"),
+    "@inlineifclear": ("condition", "text"),
+    "@inlineraw": ("condition", "body"),
+    "@inlinefmtifelse": ("condition", "then", "else"),
+}
+
+
+def known_text(node, unknown: set[tuple[int, str]]) -> str:
+    """The text of `node` without its comments, which this grammar has
+    wherever they are but texi2any's tree may have in another argument or
+    after it, and without the names of the commands in it that texi2any
+    doesn't know: its tree keeps only their braces' content."""
+    source = node.text
+    cuts = []
+    nodes = [node]
+    while nodes:
+        current = nodes.pop()
+        line = current.start_point.row + 1
+        if current.type == "comment" or (
+            current.type in ("command_name", "symbol_command")
+            and is_unknown(Token(text(current), line), unknown)
+        ):
+            cuts.append((current.start_byte - node.start_byte, current.end_byte - node.start_byte))
+        else:
+            nodes.extend(current.children)
+    for start, end in sorted(cuts, reverse=True):
+        source = source[:start] + b" " + source[end:]
+    return source.decode("utf-8", "replace")
+
+
+def our_arguments(
+    node,
+    unknown: set[tuple[int, str]],
+    fields: tuple[str, ...] | None = None,
+    skip: tuple[str, ...] = ("name", "end", "body"),
+) -> tuple[tuple[str, ...], bool]:
+    """The words of `node`'s arguments: of each of `fields`, by position, or
+    else of all its fields but `skip`, and its subentries, as one."""
+    if fields is not None:
+        found = [""] * len(fields)
+        for index, child in enumerate(node.children):
+            field = node.field_name_for_child(index)
+            if field in fields:
+                found[fields.index(field)] = words(known_text(child, unknown))
+        return tuple(found), True
+    parts = []
+    for index, child in enumerate(node.children):
+        field = node.field_name_for_child(index)
+        if (field is not None and field not in skip) or child.type == "subentry":
+            parts.append(known_text(child, unknown))
+    return (words(" ".join(parts)),), False
 
 
 class OurWalker:
-    def __init__(self):
+    def __init__(self, unknown: set[tuple[int, str]]):
         self.tokens: list[Token] = []
+        # The commands texi2any doesn't know, left out of arguments.
+        self.unknown = unknown
         # The flags set, for `@inlineifset` and `@inlineifclear`.
         self.flags: set[str] = {"txicommandconditionals"}
         self.in_definition_line = False
 
-    def emit(self, name: str, node, structural: bool):
-        self.tokens.append(Token(name, node.start_point.row + 1, structural))
+    def emit(
+        self,
+        name: str,
+        node,
+        structural: bool,
+        arguments: tuple[tuple[str, ...], bool] | None = None,
+    ):
+        found, split = arguments if arguments is not None else (None, False)
+        self.tokens.append(Token(name, node.start_point.row + 1, structural, found, split))
+
+    def arguments(self, node, fields=None, skip=("name", "end", "body")):
+        return our_arguments(node, self.unknown, fields, skip)
 
     def children(self, node, *skip):
         """Walks the children of `node`, except the `skip` nodes."""
@@ -164,7 +272,9 @@ class OurWalker:
             line = node.children[0]
             name_node = line.child_by_field_name("name")
             end = node.child_by_field_name("end")
-            self.emit("+" + text(name_node)[1:], node, True)
+            self.emit(
+                "+" + text(name_node)[1:], node, True, self.arguments(line, DEFINITION_FIELDS)
+            )
             self.walk_definition_line(line, name_node)
             self.children(node, line, end)
             if end.end_byte > end.start_byte:
@@ -176,7 +286,8 @@ class OurWalker:
             argument = node.child_by_field_name("argument")
             end = node.child_by_field_name("end")
             name = text(name_node)[1:]
-            self.emit("+" + name, node, True)
+            fields = FLOAT_FIELDS if name == "float" else None
+            self.emit("+" + name, node, True, self.arguments(node, fields))
             if argument is not None and name.startswith("def"):
                 self.walk_definition_line(argument)
                 self.children(node, name_node, argument, end)
@@ -188,7 +299,7 @@ class OurWalker:
 
         if kind == "definition_line":
             name_node = node.child_by_field_name("name")
-            self.emit(text(name_node), node, True)
+            self.emit(text(name_node), node, True, self.arguments(node, DEFINITION_FIELDS))
             self.walk_definition_line(node, name_node)
             return
 
@@ -197,7 +308,8 @@ class OurWalker:
         ):
             name_node = node.child_by_field_name("name")
             name = text(name_node)
-            self.emit(name, node, True)
+            fields = NODE_FIELDS if kind == "node_line" else None
+            self.emit(name, node, True, self.arguments(node, fields))
             if name in ("@set", "@clear"):
                 variable = node.child_by_field_name("variable")
                 if name == "@set":
@@ -217,8 +329,13 @@ class OurWalker:
             name_node = node.child_by_field_name("name")
             name = text(name_node)
             # texi2any has `@columnfractions` as a line command inside the
-            # multitable's argument.
-            self.emit(name, node, name == "@columnfractions")
+            # multitable's argument. `@verb`'s text is its `body`.
+            self.emit(
+                name,
+                node,
+                name == "@columnfractions",
+                self.arguments(node, SPLIT_FIELDS.get(name), skip=("name",)),
+            )
             if name in INLINE_CONDITIONALS:
                 self.walk_expanded_arguments(name, node)
             else:
@@ -230,13 +347,19 @@ class OurWalker:
             # end-of-line command, which keeps the newline in its name.
             name = "@\n" if text(node) == "@" else text(node)
             if not (self.in_definition_line and name == "@\n"):
-                self.emit(name, node, False)
+                self.emit(name, node, False, ((), False))
             return
 
         if kind == "comment":
             # `@c` or `@comment`, which anything but a name's characters
             # may follow.
-            self.emit(re.match(r"@c(?:omment)?", text(node)).group(), node, True)
+            name = re.match(r"@c(?:omment)?", text(node)).group()
+            self.emit(name, node, True, ((words(text(node)[len(name) :]),), False))
+            return
+
+        if kind == "menu_entry":
+            self.emit("*", node, True, self.arguments(node, MENU_ENTRY_FIELDS))
+            self.children(node)
             return
 
         if kind == "input_line":
@@ -251,10 +374,11 @@ class OurWalker:
         self.children(node)
 
 
-def our_tokens(parser: Parser, source: bytes) -> list[Token]:
-    walker = OurWalker()
+def our_tokens(parser: Parser, source: bytes, unknown: set[tuple[int, str]]) -> list[Token]:
+    """Our tokens for `source`, without the commands texi2any doesn't know."""
+    walker = OurWalker(unknown)
     walker.walk(parser.parse(source).root_node)
-    return walker.tokens
+    return [t for t in walker.tokens if not is_unknown(t, unknown)]
 
 
 def parse_errors(parser: Parser, source: bytes) -> int:
@@ -330,6 +454,111 @@ def command_name(label: str) -> str | None:
     # A single other character, including the newline of `@` at the end of a
     # line.
     return label[:2]
+
+
+# A label in the dump: the command, the type, then the text between bars,
+# then the spaces before and after an argument.
+LABEL = re.compile(r"(?s)(?:@(?:\n|.[^ ]*) )?([a-z_]+ )?(?:\|(.*)\|)?(?: [ab]/[^/]*/)*")
+
+
+def label_type(label: str) -> str:
+    match = LABEL.fullmatch(label)
+    return match.group(1).strip() if match and match.group(1) else ""
+
+
+COMMENTS = ("@c", "@comment")
+
+
+def dump_words(node: DumpNode) -> str:
+    """The words (see `words`) of the text and the command names in `node`,
+    without its comments (see `known_text`)."""
+    parts = []
+
+    def walk(node: DumpNode):
+        name = command_name(node.label)
+        if node.label.startswith("/comment_at_end/") or name in COMMENTS:
+            return
+        if name is not None:
+            parts.append(name[1:])
+        match = LABEL.fullmatch(node.label)
+        if match and match.group(2):
+            parts.append(match.group(2))
+        for child in node.children:
+            walk(child)
+
+    walk(node)
+    return words(" ".join(parts))
+
+
+# The elements of texi2any's tree that hold a command's arguments, one each.
+ARGUMENT_TYPES = (
+    "line_arg",
+    "block_line_arg",
+    "rawline_arg",
+    "macro_line",
+    "brace_arg",
+    "brace_container",
+    "brace_command_context",
+    "following_arg",
+    "elided_brace_command_arg",
+)
+# A definition line's words, by position in DEFINITION_FIELDS; the rest are
+# its arguments.
+DEFINITION_PARTS = {"def_category": 0, "def_class": 1, "def_type": 2, "def_name": 3}
+MENU_ENTRY_PARTS = {"menu_entry_name": 0, "menu_entry_node": 1, "menu_entry_description": 2}
+
+
+def definition_words(node: DumpNode) -> list[str]:
+    found = ["", "", "", "", ""]
+    rest = []
+    for child in node.children:
+        kind = label_type(child.label)
+        if kind in DEFINITION_PARTS:
+            found[DEFINITION_PARTS[kind]] = dump_words(child)
+        else:
+            rest.append(dump_words(child))
+    found[-1] = words(" ".join(rest))
+    return found
+
+
+def dump_arguments(node: DumpNode) -> list[str]:
+    """The words of each argument of the command `node`."""
+    found = []
+    for child in node.children:
+        kind = label_type(child.label)
+        if kind in ("arguments_line", "def_line"):
+            found.extend(dump_arguments(child))
+        elif kind in ARGUMENT_TYPES:
+            if any(label_type(c.label) in DEFINITION_PARTS for c in child.children):
+                found.extend(definition_words(child))
+            else:
+                found.append(dump_words(child))
+    return found
+
+
+def menu_entry_words(node: DumpNode) -> list[str]:
+    found = ["", "", ""]
+    for child in node.children:
+        kind = label_type(child.label)
+        if kind == "menu_entry_description":
+            found[2] = description_words(child)
+        elif kind in MENU_ENTRY_PARTS:
+            found[MENU_ENTRY_PARTS[kind]] = dump_words(child)
+    return found
+
+
+def description_words(node: DumpNode) -> str:
+    """The words of a menu entry's description, without the blocks after its
+    text, which texi2any's tree has in it but this grammar after it."""
+    parts = []
+    for child in node.children:
+        parts.extend(child.children if label_type(child.label) == "preformatted" else [child])
+    while parts and (
+        not dump_words(parts[-1])
+        or any(command_name(c.label) == "@end" for c in parts[-1].children)
+    ):
+        parts.pop()
+    return words(" ".join(dump_words(part) for part in parts))
 
 
 def dump_text(node: DumpNode) -> str:
@@ -484,10 +713,36 @@ def texi2any_line_commands() -> set[str]:
     return set(re.findall(r'"([^"]+)"\s*=>', line_commands.group(1))) | {"item", "headitem"}
 
 
+def texi2any_definition_shortcuts() -> set[str]:
+    """The definition commands for which texi2any's tree has a category that
+    isn't written (`Function` for `@defun`), from its own table."""
+    commands = Path(shutil.which("texi2any") or "texi2any").resolve().parent.parent
+    common = (commands / "share" / "texi2any" / "Texinfo" / "Common.pm").read_text()
+    table = re.search(r"our %def_map = \((.*?)\n\);", common, re.S)
+    if table is None:
+        raise SystemExit("texi2any's Common.pm has no %def_map table")
+    shortcuts = set(re.findall(r"'(\w+)',\s*\{", table.group(1)))
+    return shortcuts | {name + "x" for name in shortcuts}
+
+
+DEFINITION_SHORTCUTS = texi2any_definition_shortcuts()
+
+
 def texi2any_tokens(dump: str, line_commands: set[str]) -> list[Token]:
     tokens: list[Token] = []
 
+    def arguments(node: DumpNode, name: str) -> tuple[str, ...]:
+        found = dump_arguments(node)
+        if name[1:] in DEFINITION_SHORTCUTS and len(found) == len(DEFINITION_FIELDS):
+            found[0] = ""
+        return tuple(found)
+
     def walk(node: DumpNode):
+        if label_type(node.label) == "menu_entry":
+            tokens.append(Token("*", structural=True, arguments=tuple(menu_entry_words(node))))
+            for child in node.children:
+                walk(child)
+            return
         name = command_name(node.label)
         if name is None or name == "@end":
             for child in node.children:
@@ -497,7 +752,7 @@ def texi2any_tokens(dump: str, line_commands: set[str]) -> list[Token]:
         closed = bool(children) and command_name(children[-1].label) == "@end"
         if closed or name[1:] in BLOCK_NAMES:
             # An unclosed block has no `@end` child.
-            tokens.append(Token("+" + name[1:], structural=True))
+            tokens.append(Token("+" + name[1:], structural=True, arguments=arguments(node, name)))
             for child in children[:-1] if closed else children:
                 walk(child)
             if closed:
@@ -509,7 +764,7 @@ def texi2any_tokens(dump: str, line_commands: set[str]) -> list[Token]:
             return
         # User-defined index commands (`@defindex op` makes `@opindex`).
         structural = name[1:] in line_commands or "index_entry_command" in node.label
-        tokens.append(Token(name, structural=structural))
+        tokens.append(Token(name, structural=structural, arguments=arguments(node, name)))
         for child in children:
             walk(child)
 
@@ -520,25 +775,64 @@ def texi2any_tokens(dump: str, line_commands: set[str]) -> list[Token]:
 # Comparison ------------------------------------------------------------
 
 
-def differences(ours: list[Token], theirs: list[Token]) -> tuple[list[str], int]:
-    """The differences between the two command sequences, one line each, and
-    the number of commands that match."""
+def shown(arguments: tuple[str, ...]) -> str:
+    """Arguments without the empty ones at the end, separated by bars."""
+    found = list(arguments)
+    while found and not found[-1]:
+        found.pop()
+    return " | ".join(found) or "(none)"
+
+
+def argument_difference(ours: Token, theirs: Token) -> str | None:
+    """The difference between the arguments of a command found on both sides,
+    if any, compared without spaces."""
+    mine, reference = ours.arguments, theirs.arguments
+    if mine is None or reference is None:
+        return None
+    if not ours.split:
+        mine, reference = (words(" ".join(mine)),), (words(" ".join(reference)),)
+    if shown(mine).replace(" ", "") == shown(reference).replace(" ", ""):
+        return None
+    return (
+        f"line {ours.line}: {ours.name} arguments: ours {shown(mine)!r}, "
+        f"texi2any {shown(reference)!r}"
+    )
+
+
+@dataclass
+class Differences:
+    found: list[str]
+    # The commands found on both sides.
+    matched: int
+    # Of those, the ones whose arguments are the same.
+    same_arguments: int
+
+
+def differences(ours: list[Token], theirs: list[Token]) -> Differences:
+    """The differences between the two command sequences, and between the
+    arguments of each command found on both sides, one line each."""
     matcher = difflib.SequenceMatcher(
         a=[t.name for t in ours],
         b=[t.name for t in theirs],
         autojunk=False,
     )
     found = []
-    matched = 0
+    matched = same_arguments = 0
     for tag, a1, a2, b1, b2 in matcher.get_opcodes():
         if tag == "equal":
             matched += a2 - a1
+            for mine, reference in zip(ours[a1:a2], theirs[b1:b2], strict=True):
+                difference = argument_difference(mine, reference)
+                if difference is None:
+                    same_arguments += 1
+                else:
+                    found.append(difference)
             continue
         line = ours[a1].line if a1 < len(ours) else ours[-1].line if ours else "?"
         mine = " ".join(t.name for t in ours[a1:a2]) or "(nothing)"
         reference = " ".join(t.name for t in theirs[b1:b2]) or "(nothing)"
         found.append(f"line {line}: ours {mine!r}, texi2any {reference!r}")
-    return found, matched
+    return Differences(found, matched, same_arguments)
 
 
 @dataclass
@@ -584,7 +878,9 @@ def main() -> int:
     arguments = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     add_files_argument(arguments)
     arguments.add_argument(
-        "--structure", action="store_true", help="compare only blocks, items and line commands"
+        "--structure",
+        action="store_true",
+        help="compare only blocks, items, line commands and menu entries",
     )
     arguments.add_argument(
         "--hunks", type=int, default=5, help="differences to show per file (default 5)"
@@ -608,7 +904,7 @@ def main() -> int:
 
     parser = Parser(load_language())
     line_commands = texi2any_line_commands()
-    total_ours = total_matched = total_differences = 0
+    total_ours = total_matched = total_same = total_differences = 0
     found: dict[str, list[str]] = {}
     how_compared: Counter[str] = Counter()
     # texi2any is the slow part: run it for all files in parallel, and report
@@ -619,33 +915,35 @@ def main() -> int:
             texi2any = side.result()
             theirs = texi2any.tokens
             how_compared[texi2any.how] += 1
-            ours = [
-                t for t in our_tokens(parser, texi2any.text) if not is_unknown(t, texi2any.unknown)
-            ]
+            ours = our_tokens(parser, texi2any.text, texi2any.unknown)
             if options.structure:
                 ours = [t for t in ours if t.structural]
                 theirs = [t for t in theirs if t.structural]
-            file_differences, matched = differences(ours, theirs)
+            compared = differences(ours, theirs)
+            file_differences = compared.found
             errors = parse_errors(parser, path.read_bytes())
             if errors:
                 file_differences.append(f"{errors} parse errors")
             found[str(path)] = file_differences
             print(
-                f"{path}: {len(file_differences)} differences, {matched} of "
-                f"{len(ours)} vs {len(theirs)} commands match"
+                f"{path}: {len(file_differences)} differences, {compared.matched} of "
+                f"{len(ours)} vs {len(theirs)} commands match, {compared.same_arguments} "
+                "with the same arguments"
             )
             for difference in file_differences[: options.hunks]:
                 print(f"  {difference}")
             if len(file_differences) > options.hunks:
                 print(f"  ... {len(file_differences) - options.hunks} more")
             total_ours += len(ours)
-            total_matched += matched
+            total_matched += compared.matched
+            total_same += compared.same_arguments
             total_differences += len(file_differences)
     if len(options.files) > 1:
         differing = sum(1 for d in found.values() if d)
         print(
             f"\nOverall: {total_differences} differences in {differing} of "
-            f"{len(found)} files; {total_matched} of {total_ours} commands match"
+            f"{len(found)} files; {total_matched} of {total_ours} commands match, "
+            f"{total_same} with the same arguments"
         )
         print(
             f"Compared: {how_compared['expanded']} as texi2any expanded them, "

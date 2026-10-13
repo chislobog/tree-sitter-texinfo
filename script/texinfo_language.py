@@ -3,7 +3,8 @@
 The parser is built into build/ when src/ is newer than the build, or into
 another checkout's build/ for comparing with an earlier revision.
 
-Also holds BLOCK_NAMES (from the scanner's table), the file sets (manuals,
+Also holds BLOCK_NAMES (from the scanner's table), ARGUMENT_FIELDS (from the
+grammar's), the file sets (manuals,
 edited-manuals, compared-manuals, test-inputs) and helpers to add them as
 arguments to argparse.
 """
@@ -33,6 +34,24 @@ def _library_extension() -> str:
 BLOCK_NAMES = frozenset(
     re.findall(r'\{"(\w+)", KIND_\w+(?: \+ \d+)?\}', (ROOT / "src" / "scanner.c").read_text())
 )
+
+
+def _argument_fields() -> dict[str, tuple[str, ...]]:
+    table = re.search(
+        r"^const ARGUMENT_COMMANDS = \{\n(.*?)^\};", (ROOT / "grammar.js").read_text(), re.M | re.S
+    )
+    if table is None:
+        raise SystemExit("grammar.js has no ARGUMENT_COMMANDS table")
+    return {
+        command: tuple(fields.split())
+        for fields, commands in re.findall(r"'([\w ]+)': \[([^\]]*)\]", table.group(1))
+        for command in re.findall(r"'(\w+)'", commands)
+    }
+
+
+# The brace commands whose arguments split at commas, with the field of each
+# argument by position, from the grammar's ARGUMENT_COMMANDS.
+ARGUMENT_FIELDS = _argument_fields()
 
 
 def load_language(root: Path = ROOT) -> Language:

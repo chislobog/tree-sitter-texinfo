@@ -185,7 +185,7 @@ fragment for `@include`. The script doesn't imitate what texi2any expands
 expansion of the file (`--macro-expand`), after checking that texi2any finds
 the same document in it; for invalid input it often doesn't, and the script's
 docstring says what it does then. Use `--structure` to compare only blocks,
-items and line commands.
+items, line commands and menu entries.
 
 `nix flake update` moves the tools but not the `reference` input, a fixed
 nixpkgs revision for texi2any and the manuals: a new texi2any or manual
@@ -195,8 +195,16 @@ and give each changed difference its reason, review the trees with `just
 snapshots-diff`, then `just snapshots-write`; a manual's new version is a new
 path, so its old snapshots go and new ones come.
 
-The comparison only checks which commands appear, in order, not argument
-structure: a missing argument or field shows up only in corpus tests. To
+The comparison checks which commands appear, in order (a menu entry is
+`*`), then the arguments of each command found on both sides: field by field
+where the grammar splits them as texi2any does (at commas, a definition line
+into its words, a menu entry into its parts; the positions are the grammar's
+`ARGUMENT_COMMANDS` and the script's tables), as one otherwise. Only an
+argument's ASCII letters and digits count, with the names of the commands in
+it but not its comments, so a difference in spaces or punctuation alone, or
+in a field's node type, shows up only in corpus tests. A difference in
+arguments is listed as `line N: @xref arguments: ours 'a | b', texi2any
+'a b'`, the fields separated by `|`. To
 find scanner code no corpus test reaches, build a small harness with
 `-fprofile-instr-generate -fcoverage-mapping` and read it with `llvm-cov`
 from the same LLVM version as the compiler (the profile format differs).

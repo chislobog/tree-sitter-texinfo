@@ -33,6 +33,10 @@ COMPARED = [
     CHECKS / "both-expanded.texi",
 ]
 TAB_DIFFERENCE = "line 3: ours '@tab', texi2any '(nothing)'"
+# A line command in the middle of a line, which is one only for texi2any: the
+# same command on both sides, with different arguments.
+ARGUMENTS = CHECKS / "line-command-in-text.texi"
+ARGUMENTS_DIFFERENCE = "line 1: @sp arguments: ours '(none)', texi2any '2'"
 
 
 class Checker:
@@ -91,6 +95,13 @@ def check_comparison(checker: Checker):
         "on both sides",
         count=("Unexpected:", 1),
     )
+    checker.expect(
+        "comparison: a difference in a command's arguments not listed fails",
+        [*compare, none, ARGUMENTS],
+        False,
+        f"Unexpected: {ARGUMENTS}: {ARGUMENTS_DIFFERENCE}",
+        count=("Unexpected:", 1),
+    )
     unexplained = checker.file("unexplained.txt", f"{TAB}\n  {TAB_DIFFERENCE}\n")
     checker.expect(
         "comparison: a difference listed without a reason fails",
@@ -98,7 +109,10 @@ def check_comparison(checker: Checker):
         False,
         f"No reason given: {TAB}",
     )
-    listed = f"# A reason\n{TAB}\n  {TAB_DIFFERENCE}\n"
+    listed = (
+        f"# A reason\n{TAB}\n  {TAB_DIFFERENCE}\n\n"
+        f"# A reason\n{ARGUMENTS}\n  {ARGUMENTS_DIFFERENCE}\n"
+    )
     gone = checker.file(
         "gone.txt", f"{listed}\n# A reason\n{SAME}\n  line 4: ours '@x', texi2any '(nothing)'\n"
     )
@@ -110,7 +124,7 @@ def check_comparison(checker: Checker):
     )
     checker.expect(
         "comparison: listed differences pass",
-        [*compare, checker.file("listed.txt", listed), *COMPARED],
+        [*compare, checker.file("listed.txt", listed), *COMPARED, ARGUMENTS],
         True,
     )
 
