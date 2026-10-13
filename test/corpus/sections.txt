@@ -708,3 +708,42 @@ Text @footnote{y
         name: (command_name)
         title: (line_argument
           (text))))))
+
+================================================================================
+An unclosed brace in a node line closes at the end of the line
+================================================================================
+
+@node A @code{x
+@chapter A
+
+@node B, , A
+@chapter B
+
+---
+
+(source_file
+  (chapter
+    node: (node_line
+      name: (command_name)
+      node: (argument
+        (text)
+        (inline_command
+          name: (command_name)
+          arguments: (brace_arguments
+            (text))
+          (missing_brace))))
+    heading: (chapter_heading
+      name: (command_name)
+      title: (line_argument
+        (text))))
+  (chapter
+    node: (node_line
+      name: (command_name)
+      node: (argument
+        (text))
+      previous: (argument
+        (text)))
+    heading: (chapter_heading
+      name: (command_name)
+      title: (line_argument
+        (text)))))

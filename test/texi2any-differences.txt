@@ -159,11 +159,6 @@ texinfo-tests/08misc_commands/many_lines.texi
   line 34: @fonttextsize arguments: ours '(none)', texi2any '10'
   line 35: @everyheadingmarks arguments: ours '(none)', texi2any 'bottom on line following everyheadingmarks'
 
-# Invalid input; texi2any reports at line 9: @ref missing closing brace
-texinfo-tests/08misc_commands/ref_in_center.texi
-  line 9: @center arguments: ours 'ref Top title very long', texi2any 'ref Top title'
-  line 9: @ref arguments: ours 'Top |  | title very long', texi2any 'Top |  | title'
-
 # Deliberate: a line command in the middle of a line; line commands occupy a whole line, as the Texinfo manual requires (texi2any accepts it with a warning, taking the rest of the line as its argument)
 texinfo-tests/08misc_commands/sp.texi
   line 2: @sp arguments: ours '(none)', texi2any '1'
@@ -359,8 +354,6 @@ texinfo-tests/57invalid_nestings/def_not_closed_in_menu_description.texi
 # Deliberate: line commands in the middle of a line; line commands occupy a whole line, as the Texinfo manual requires (texi2any accepts them with a warning); and invalid input: texi2any reports at line 11: @ref missing closing brace
 texinfo-tests/57invalid_nestings/in_table.texi
   line 9: @exdent arguments: ours '(none)', texi2any 'exdent'
-  line 11: @item arguments: ours 'ref Top title long title', texi2any 'ref Top title'
-  line 11: @ref arguments: ours 'Top |  | title long title', texi2any 'Top |  | title'
   line 13: @center arguments: ours '(none)', texi2any 'centered text in item'
   line 14: @cindex arguments: ours '(none)', texi2any 'index'
   line 18: @cindex arguments: ours '(none)', texi2any 'index'

@@ -40,8 +40,8 @@ const nodeLine = ($, name) => seq(
   field('name', name),
   optional(commaArguments(
     ['node', 'next', 'previous', 'up'],
-    alias($._argument_line, $.argument),
-    alias($._line, $.argument),
+    alias($._line_comma_argument, $.argument),
+    alias($._line_last_argument, $.argument),
     ',',
   )),
   $._line_end,
@@ -444,7 +444,8 @@ export default grammar({
         field('name', $.command_name),
         optional(seq(token.immediate('{'), $._line_brace_arguments)),
       )),
-      $._argument_command,
+      $._context_or_inline_command,
+      $._line_fields_command,
       $._verb_command,
     ),
 
@@ -1012,6 +1013,47 @@ export default grammar({
 
     // Commands whose arguments split at commas into named fields.
     _argument_command: $ => choice(
+      $._context_or_inline_command,
+      ...Object.entries(ARGUMENT_COMMANDS).map(([names, commands]) => prec.right(seq(
+        field('name', command($, commands)),
+        optional(seq(
+          '{',
+          commaArguments(names.split(' '), $.argument, alias($._last_argument, $.argument), ','),
+          braceClose($),
+        )),
+      ))),
+    ),
+
+    // In a line argument, the commands with named arguments close at the end
+    // of the line, as in texi2any, like the line's other brace commands.
+    _line_fields_command: $ => choice(
+      ...Object.entries(ARGUMENT_COMMANDS).map(([names, commands]) => prec.right(seq(
+        field('name', command($, commands)),
+        optional(seq(
+          '{',
+          commaArguments(
+            names.split(' '),
+            alias($._line_comma_argument, $.argument),
+            alias($._line_last_argument, $.argument),
+            ',',
+          ),
+          choice('}', alias($._brace_close_at_line_end, $.missing_brace)),
+        )),
+      ))),
+    ),
+
+    // An argument other than the last in a line, which a comma ends.
+    _line_comma_argument: $ => prec.right(repeat1(choice(
+      alias($._argument_text, $.text),
+      alias($._line_argument_command, $.inline_command),
+      $.symbol_command,
+      alias($._line_brace_group, $.brace_group),
+    ))),
+
+    // The last argument in a line, which may hold commas.
+    _line_last_argument: $ => repeat1($._line_argument_inline),
+
+    _context_or_inline_command: $ => choice(
       // `@footnote`, `@caption`, `@shortcaption`: like texi2any, the text is
       // paragraphs and blocks, and its last paragraph may end at the `}`.
       prec.right(seq(
@@ -1058,14 +1100,6 @@ export default grammar({
           braceClose($),
         )),
       )),
-      ...Object.entries(ARGUMENT_COMMANDS).map(([names, commands]) => prec.right(seq(
-        field('name', command($, commands)),
-        optional(seq(
-          '{',
-          commaArguments(names.split(' '), $.argument, alias($._last_argument, $.argument), ','),
-          braceClose($),
-        )),
-      ))),
     ),
 
     // `@verb{xTEXTx}`: the scanner reads the delimiter `x` and the raw text.

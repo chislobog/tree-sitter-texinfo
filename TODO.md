@@ -144,7 +144,9 @@ of a line.
 
 - [x] An unclosed brace in a line command's argument (`@chapter A @code{x`)
   closes at the end of that line, as in texi2any, also in the commands with
-  named arguments (`@xref{` in a heading). Not yet in `@node` lines
+  named arguments (`@xref{` in a heading, which had gone on to the next
+  line) and in `@node` lines, where it had taken the section's heading and
+  paired every later node with the heading after it (+103 parser states)
 - [x] A block right after `@footnote{` (`@footnote{@quotation`)
 
 - [x] `@itemx` after index entries or comments that follow an `@item`
@@ -202,7 +204,7 @@ of a line.
 
 ## Differences from texi2any
 
-From comparing with texi2any on its own test inputs (114 of 1,755 differ, in
+From comparing with texi2any on its own test inputs (113 of 1,755 differ, in
 their commands or the commands' arguments, all listed with their reasons in
 `test/texi2any-differences.txt`; the manuals match but for three binutils
 fragments meant for `@include`).

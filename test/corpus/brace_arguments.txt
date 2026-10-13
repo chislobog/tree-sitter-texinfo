@@ -597,6 +597,31 @@ Para.
       (text))))
 
 ================================================================================
+An unclosed cross-reference in a line argument closes at the end of the line
+================================================================================
+
+@chapter A @xref{x, y
+Next line.
+
+---
+
+(source_file
+  (chapter
+    heading: (chapter_heading
+      name: (command_name)
+      title: (line_argument
+        (text)
+        (inline_command
+          name: (command_name)
+          node: (argument
+            (text))
+          label: (argument
+            (text))
+          (missing_brace))))
+    (paragraph
+      (text))))
+
+================================================================================
 Paragraphs in a footnote
 ================================================================================
 
