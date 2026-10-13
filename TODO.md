@@ -196,7 +196,7 @@ of a line.
 
 ## Differences from texi2any
 
-From comparing with texi2any on its own test inputs (124 of 1,755 differ, in
+From comparing with texi2any on its own test inputs (118 of 1,755 differ, in
 their commands or the commands' arguments, all listed with their reasons in
 `test/texi2any-differences.txt`; the manuals match but for three binutils
 fragments meant for `@include`).
