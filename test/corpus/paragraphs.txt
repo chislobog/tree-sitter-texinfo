@@ -289,7 +289,7 @@ Line commands that don't end a paragraph stay in it, as in texi2any
 
 Text
 @cindex entry
-@vindex other
+@set flag value
 more text.
 
 Before
@@ -299,7 +299,7 @@ After.
 Last line
 @findex last
 @c a comment line
-@kindex key
+@clear flag
 
 Next.
 
@@ -314,8 +314,8 @@ Next.
         (text)))
     (line_command
       name: (command_name)
-      argument: (line_argument
-        (text)))
+      variable: (text)
+      value: (raw_text))
     (text))
   (paragraph
     (text))
@@ -334,8 +334,7 @@ Next.
     (comment)
     (line_command
       name: (command_name)
-      argument: (line_argument
-        (text))))
+      variable: (text)))
   (paragraph
     (text)))
 

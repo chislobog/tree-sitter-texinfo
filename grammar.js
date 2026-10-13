@@ -123,6 +123,59 @@ const command = ($, names) => {
 };
 
 /**
+ * A line command, `name` being the scanner's token for the commands it
+ * recognises by name, then `end`.
+ *
+ * @param {GrammarSymbols<string>} $
+ * @param {RuleOrLiteral} name
+ * @param {RuleOrLiteral} end
+ */
+const lineCommand = ($, name, end) => choice(
+  seq(
+    field('name', alias(name, $.command_name)),
+    optional(field('argument', $.line_argument)),
+    optional($.subentry),
+    end,
+  ),
+  // `@set NAME VALUE` and `@clear NAME`. As in texi2any, the value is raw
+  // text; commands in it are only parsed where `@value{NAME}` uses it.
+  seq(
+    field('name', command($, ['set', 'clear'])),
+    optional(seq(
+      field('variable', alias($._word_text, $.text)),
+      optional(field('value', alias($._set_value, $.raw_text))),
+    )),
+    end,
+  ),
+  // Commands whose argument texi2any keeps as raw text: all of the line
+  // for `@vskip`, up to a comment for `@clickstyle` and `@unmacro`.
+  seq(
+    field('name', command($, ['vskip'])),
+    optional(field('argument', alias(/[^\r\n]+/, $.raw_text))),
+    end,
+  ),
+  seq(
+    field('name', command($, ['clickstyle', 'unmacro'])),
+    optional(field('argument', alias($._set_value, $.raw_text))),
+    end,
+  ),
+  // `@alias NEW = EXISTING`; the spaces are optional. Anything else on the
+  // line, which texi2any reports, is left as an argument.
+  seq(
+    field('name', command($, ['alias'])),
+    optional(seq(
+      field('alias', alias($._alias_name, $.text)),
+      optional(seq(
+        token(prec(1, '=')),
+        optional(field('target', alias($._alias_name, $.text))),
+      )),
+    )),
+    optional(field('argument', $.line_argument)),
+    end,
+  ),
+);
+
+/**
  * The end of an ordinary brace command's braces: its `}`, or a zero-width
  * `missing_brace` where texi2any closes it, at a blank line or the `@end` of
  * an enclosing block.
@@ -323,58 +376,14 @@ export default grammar({
       $._line_end,
     ),
 
-    line_command: $ => choice(
-      seq(
-        // The scanner recognises line commands by name (LINE_COMMANDS in
-        // src/scanner.c), including user-defined index commands.
-        field('name', alias($._line_command_name, $.command_name)),
-        optional(field('argument', $.line_argument)),
-        optional($.subentry),
-        $._line_end,
-      ),
-      // `@set NAME VALUE` and `@clear NAME`. As in texi2any, the value is raw
-      // text; commands in it are only parsed where `@value{NAME}` uses it.
-      seq(
-        field('name', command($, ['set', 'clear'])),
-        optional(seq(
-          field('variable', alias($._word_text, $.text)),
-          optional(field('value', alias($._set_value, $.raw_text))),
-        )),
-        $._line_end,
-      ),
-      // Commands whose argument texi2any keeps as raw text: all of the line
-      // for `@vskip`, up to a comment for `@clickstyle` and `@unmacro`.
-      seq(
-        field('name', command($, ['vskip'])),
-        optional(field('argument', alias(/[^\r\n]+/, $.raw_text))),
-        $._line_end,
-      ),
-      seq(
-        field('name', command($, ['clickstyle', 'unmacro'])),
-        optional(field('argument', alias($._set_value, $.raw_text))),
-        $._line_end,
-      ),
-      // `@alias NEW = EXISTING`; the spaces are optional. Anything else on the
-      // line, which texi2any reports, is left as an argument.
-      seq(
-        field('name', command($, ['alias'])),
-        optional(seq(
-          field('alias', alias($._alias_name, $.text)),
-          optional(seq(
-            token(prec(1, '=')),
-            optional(field('target', alias($._alias_name, $.text))),
-          )),
-        )),
-        optional(field('argument', $.line_argument)),
-        $._line_end,
-      ),
-    ),
+    // The scanner recognises line commands by name (LINE_COMMANDS in
+    // src/scanner.c), including user-defined index commands.
+    line_command: $ => lineCommand($, $._line_command_name, $._line_end),
 
     // Line commands inside a paragraph, which they don't end, as in texi2any:
-    // index entries, `@include`, `@settitle`, ... The scanner gives the others
-    // their usual token, as they end it, and so do `@set`, `@clear`, `@alias`
-    // and the commands with a raw argument here (4 in the manuals). Comment
-    // lines after one, the paragraph's, start with its newline.
+    // index entries, `@include`, `@set`, ... The scanner gives the others
+    // their usual token, as they end it. Comment lines after one, the
+    // paragraph's, start with its newline.
     _paragraph_line_commands: $ => prec.right(repeat1(choice(
       alias($._paragraph_line_command, $.line_command),
       prec.right(seq(
@@ -383,18 +392,10 @@ export default grammar({
       )),
     ))),
 
-    _paragraph_line_command: $ => seq(
-      field('name', alias($._paragraph_line_command_name, $.command_name)),
-      optional(field('argument', $.line_argument)),
-      optional($.subentry),
-      $._line_end,
-    ),
+    _paragraph_line_command: $ => lineCommand($, $._paragraph_line_command_name, $._line_end),
 
-    _paragraph_line_command_before_comments: $ => seq(
-      field('name', alias($._paragraph_line_command_name, $.command_name)),
-      optional(field('argument', $.line_argument)),
-      optional($.subentry),
-      $._newline_before_comments,
+    _paragraph_line_command_before_comments: $ => lineCommand(
+      $, $._paragraph_line_command_name, $._newline_before_comments,
     ),
 
     // Takes precedence over the longer text of an argument, which may only

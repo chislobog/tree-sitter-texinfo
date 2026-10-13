@@ -63,12 +63,12 @@ Text @c.q
   (comment)
   (paragraph
     (text)
-    (comment))
-  (line_command
-    (command_name)
-    (text)
-    (raw_text)
-    (comment)))
+    (comment)
+    (line_command
+      (command_name)
+      (text)
+      (raw_text)
+      (comment))))
 
 ================================================================================
 A comment line without a space after its name between a node and its section
