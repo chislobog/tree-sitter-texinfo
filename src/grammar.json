@@ -9200,6 +9200,17 @@
         }
       ]
     },
+    "unmatched_brace": {
+      "type": "TOKEN",
+      "content": {
+        "type": "PREC",
+        "value": -1,
+        "content": {
+          "type": "STRING",
+          "value": "}"
+        }
+      }
+    },
     "command_name": {
       "type": "PATTERN",
       "value": "@[a-zA-Z0-9][a-zA-Z0-9_-]*"
@@ -9238,6 +9249,10 @@
     {
       "type": "SYMBOL",
       "name": "comment"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "unmatched_brace"
     }
   ],
   "conflicts": [],

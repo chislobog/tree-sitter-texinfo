@@ -2598,6 +2598,11 @@
     "named": true
   },
   {
+    "type": "unmatched_brace",
+    "named": true,
+    "extra": true
+  },
+  {
     "type": "unmatched_end",
     "named": true
   },

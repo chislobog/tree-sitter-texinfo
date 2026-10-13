@@ -63,8 +63,11 @@ zero-width `missing_brace` node; a block still open at the end of the file
 ends with a zero-width `missing_end` node. An `@end` of an enclosing block
 closes the blocks inside it with `missing_end`, as in `texi2any`; one of a
 block that isn't open closes the open blocks (but not conditionals), and is
-then an `unmatched_end` node, which `texi2any` reports and ignores. Editors that
-report tree-sitter errors should also report these three nodes.
+then an `unmatched_end` node, which `texi2any` reports and ignores. So is a
+`}` that closes nothing, an `unmatched_brace` node: after a brace command
+closed at a blank line, or at the end of a conditional it crossed (as TeX
+braces in Calc's and Gnus's `@iftex` blocks do), or typed by mistake. Editors
+that report tree-sitter errors should also report these four nodes.
 
 A section inside a conditional ends at the conditional's `@end`, so when only
 the heading is conditional (as for the Top node, often inside `@ifnottex`), the

@@ -1,1 +1,1 @@
-A stray brace }.
+A verb that is never closed: @verb{*text

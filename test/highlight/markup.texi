@@ -38,6 +38,9 @@ Very @strong{bold} and @uref{https://gnu.org, GNU}.
 @c                 ^ type
 @end deftp
 
+A brace that closes nothing} is still a bracket.
+@c                         ^ punctuation.bracket
+
 @c Commands being typed keep their highlight before their argument.
 @section
 @c <- keyword

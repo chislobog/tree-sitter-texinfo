@@ -173,10 +173,12 @@ of a line.
   (`@code{` in an `@example` inside a `@quotation`, then `@end quotation`),
   which closes the blocks inside it, as in texi2any; the rest of the file
   stayed inside the brace
-- [ ] A brace argument crossing a conditional's boundary (e.g. `@footnote{`
+- [x] A brace argument crossing a conditional's boundary (e.g. `@footnote{`
   inside `@ifnottex`, closed after its `@end`, or TeX braces in Calc's and
   Gnus's `@iftex` blocks) can't be represented: the brace closes at the
-  conditional's end, and the later `}` is a one-character error
+  conditional's end, and the later `}` is an `unmatched_brace` node, as is
+  any `}` that closes nothing, which texi2any reports and ignores. It was a
+  one-character parse error, the last in the manuals
 - [x] TeX lines before `\input texinfo` (e.g. gawk's Italian manual): text,
   as in texi2any, which only recognises `\input` on the first line
 - [x] The `@macro` line has `macro` and `parameter` fields, as texi2any
@@ -185,10 +187,9 @@ of a line.
 
 ## Differences from texi2any
 
-From comparing with texi2any on its own test inputs (93 of 1,755 differ, all
+From comparing with texi2any on its own test inputs (55 of 1,755 differ, all
 listed with their reasons in `test/texi2any-differences.txt`; the manuals
-match but for three binutils fragments meant for `@include`, and the parse
-errors in Calc's, Gnus's and gawk's `@iftex` blocks).
+match but for three binutils fragments meant for `@include`).
 
 Gaps, where we give a parse error and texi2any recovers:
 

@@ -161,7 +161,9 @@ export default grammar({
   // Spaces as texi2any has them: space, tab, vertical tab and form feed.
   // A carriage return is a blank, also before the `\n` of a line end, as no
   // token starts with one: one that did would take a lone `\r` before it.
-  extras: $ => [/[ \t\v\f\r]/, $.comment],
+  // A `}` that closes nothing may be anywhere, as texi2any reports and
+  // ignores it.
+  extras: $ => [/[ \t\v\f\r]/, $.comment, $.unmatched_brace],
 
   // Block openers are recognised by the scanner, which keeps a stack of open
   // blocks so that `@end NAME` must match. The block names live in
@@ -1040,6 +1042,11 @@ export default grammar({
       optional($._brace_content),
       braceClose($),
     ),
+
+    // A `}` where none closes a brace: after a brace command closed at a
+    // blank line or at its block's end (as one crossing a conditional's end
+    // is), or a mistake. Where a `}` closes one, that one wins.
+    unmatched_brace: _ => token(prec(-1, '}')),
 
     // As in texi2any, a name starts with a letter or digit and may contain `-`
     // and `_` (e.g. user-defined macros).

@@ -283,6 +283,9 @@
   "}"
 ] @punctuation.bracket
 
+; A `}` that closes nothing, which editors should report too (README).
+(unmatched_brace) @punctuation.bracket
+
 [
   ","
   ":"

@@ -13,18 +13,6 @@ examples/binutils-with-gold-2.46/binutils/doc/debug.options.texi
 examples/binutils-with-gold-2.46/binutils/doc/sframe.options.texi
   line 4: ours '@item', texi2any '(nothing)'
 
-# Parse errors inside @iftex blocks, listed with their reasons in test/parse-errors.txt (calc, gnus and gawk)
-examples/emacs-31.1/misc/calc.texi
-  2 parse errors
-
-# Parse errors inside @iftex blocks, listed with their reasons in test/parse-errors.txt (calc, gnus and gawk)
-examples/emacs-31.1/misc/gnus.texi
-  1 parse errors
-
-# Parse errors inside @iftex blocks, listed with their reasons in test/parse-errors.txt (calc, gnus and gawk)
-examples/gawk-5.4.1/gawk.texi
-  1 parse errors
-
 # Invalid input; texi2any reports at line 5: no matching `@end quotation'
 texinfo-tests/02coverage/command_in_end.texi
   line 5: ours '(nothing)', texi2any '@code'
@@ -42,26 +30,6 @@ texinfo-tests/02coverage/end_bad_end_argument_and_superfluous_arg.texi
 # Deliberate: a block command in the middle of a line; blocks start and end at the beginning of a line, as the Texinfo manual requires (texi2any accepts it with an error)
 texinfo-tests/02coverage/group_beginning_and_end_on_line.texi
   line 1: ours '@end', texi2any '-group'
-
-# Invalid input; texi2any reports at line 6: misplaced }
-texinfo-tests/02coverage/indicateurl_end_lines.texi
-  1 parse errors
-
-# Invalid input; texi2any reports at line 3: misplaced }
-texinfo-tests/03coverage_braces/empty_line_in_anchor.texi
-  1 parse errors
-
-# Invalid input; texi2any reports at line 6: misplaced }
-texinfo-tests/03coverage_braces/empty_line_in_email.texi
-  1 parse errors
-
-# Invalid input; texi2any reports at line 5: misplaced } (the { after an unknown command, which closes here at the blank line)
-texinfo-tests/03coverage_braces/unknown_command_with_braces.texi
-  2 parse errors
-
-# Invalid input; texi2any reports at line 1: misplaced }
-texinfo-tests/03coverage_braces/unmatched_brace.texi
-  1 parse errors
 
 # Invalid input; texi2any reports at line 1: @verb without associated character
 texinfo-tests/04verb/end_of_line.texi
@@ -83,22 +51,10 @@ texinfo-tests/04verb/verb_not_closed.texi
 texinfo-tests/04verb/verb_not_closed_with_char.texi
   1 parse errors
 
-# Invalid input; texi2any reports at line 5: misplaced }
-texinfo-tests/05paragraph/double_style_paragraph.texi
-  2 parse errors
-
-# Invalid input; texi2any reports at line 3: misplaced }
-texinfo-tests/05paragraph/paragraph_in_style_command.texi
-  2 parse errors
-
 # Deliberate: texi2any takes an @comment right after @clickstyle (obsolete) as its argument; here a comment is a comment
 texinfo-tests/08misc_commands/clickstyle_and_comments.texi
   line 1: ours '(nothing)', texi2any '@clickstyle @clickstyle @clickstyle @clickstyle'
   line 3: ours '@comment @clickstyle @comment @clickstyle @comment @clickstyle @comment @clickstyle @comment', texi2any '(nothing)'
-
-# Invalid input; texi2any reports at line 2: misplaced }
-texinfo-tests/08misc_commands/command_not_closed_on_center_line.texi
-  1 parse errors
 
 # Deliberate: a block command in the middle of a line; blocks start and end at the beginning of a line, as the Texinfo manual requires (texi2any accepts it with an error)
 texinfo-tests/16raw/beginning_and_end_on_line.texi
@@ -109,10 +65,6 @@ texinfo-tests/16raw/raw_commands_and_end_of_lines.texi
   line 13: ours '@html @html @html @html', texi2any '+html -html +html -html +html -html +html -html'
   line 41: ours '@tex @tex @tex @tex', texi2any '+tex -tex +tex -tex +tex -tex +tex -tex'
   line 69: ours '@verbatim @verbatim @verbatim @verbatim', texi2any '+verbatim -verbatim +verbatim -verbatim +verbatim -verbatim +verbatim -verbatim'
-
-# Invalid input; texi2any reports at line 5: misplaced }
-texinfo-tests/16raw/verbatim_in_brace_command.texi
-  1 parse errors
 
 # Deliberate: a block command in the middle of a line; blocks start and end at the beginning of a line, as the Texinfo manual requires (texi2any accepts it with an error)
 texinfo-tests/181quotation/quotation_beginning_and_end_on_line.texi
@@ -129,14 +81,6 @@ texinfo-tests/18itemize/headitem_itemx_in_itemize.texi
 # Deliberate: a block command in the middle of a line; blocks start and end at the beginning of a line, as the Texinfo manual requires (texi2any accepts it with an error)
 texinfo-tests/19def/double_command.texi
   line 5: ours '@defvr', texi2any '+defvr'
-
-# Invalid input; texi2any reports at line 1: misplaced }
-texinfo-tests/19def/wrong_braces_simple.texi
-  4 parse errors
-
-# Invalid input; texi2any reports at line 6: misplaced }
-texinfo-tests/19def/wrong_braces_with_end_of_lines.texi
-  1 parse errors
 
 # Deliberate: multitable cells texi2any drops with a warning are kept as written
 texinfo-tests/21multitable/empty_multitable_with_cells.texi
@@ -166,10 +110,6 @@ texinfo-tests/21multitable/not_letters_in_prototype.texi
 texinfo-tests/22xtable/headitem_in_table.texi
   line 2: ours '@headitem', texi2any '(nothing)'
 
-# Invalid input; texi2any reports at line 13: bad syntax for @value
-texinfo-tests/50value/bad_syntax.texi
-  1 parse errors
-
 # Invalid input; texi2any reports: bad name for @clear, and drops the comments on those lines; the tree keeps them
 texinfo-tests/50value/comment_on_clear_line.texi
   line 8: ours '@c', texi2any '(nothing)'
@@ -180,14 +120,6 @@ texinfo-tests/50value/value_in_misc_commands.texi
   line 112: ours '@@ @value @@ @value', texi2any '(nothing)'
   line 122: ours '@@ @value @@ @value', texi2any '(nothing)'
 
-# Invalid input; texi2any reports at line 3: misplaced }
-texinfo-tests/57invalid_nestings/bad_style_nesting.texi
-  1 parse errors
-
-# Invalid input; texi2any reports at line 5: misplaced }
-texinfo-tests/57invalid_nestings/cartouche_in_style_command.texi
-  1 parse errors
-
 # Deliberate: a block command in the middle of a line; blocks start and end at the beginning of a line, as the Texinfo manual requires (texi2any accepts it with an error)
 texinfo-tests/57invalid_nestings/center.texi
   line 5: ours '@quotation', texi2any '+quotation'
@@ -197,51 +129,14 @@ texinfo-tests/57invalid_nestings/center.texi
   line 42: ours '@item', texi2any '(nothing)'
   line 45: ours '@table', texi2any '+table'
   line 46: ours '@item @item', texi2any '(nothing)'
-  3 parse errors
-
-# Invalid input; texi2any reports at line 5: misplaced }
-texinfo-tests/57invalid_nestings/def_in_style_command.texi
-  1 parse errors
 
 # Deliberate: a block command in the middle of a line; blocks start and end at the beginning of a line, as the Texinfo manual requires (texi2any accepts it with an error)
 texinfo-tests/57invalid_nestings/def_not_closed_in_menu_description.texi
   line 2: ours '@deffn', texi2any '+deffn'
 
-# Invalid input; texi2any reports at line 5: misplaced }
-texinfo-tests/57invalid_nestings/enumerate_in_style_command.texi
-  1 parse errors
-
-# Invalid input; texi2any reports at line 5: misplaced }
-texinfo-tests/57invalid_nestings/example_in_style_command.texi
-  1 parse errors
-
-# Invalid input; texi2any reports at line 6: misplaced }
-texinfo-tests/57invalid_nestings/float_in_style_command.texi
-  1 parse errors
-
-# Invalid input; texi2any reports at line 5: misplaced }
-texinfo-tests/57invalid_nestings/flushright_in_style_command.texi
-  1 parse errors
-
-# Invalid input; texi2any reports at line 9: misplaced }
-texinfo-tests/57invalid_nestings/in_errormsg.texi
-  1 parse errors
-
-# Invalid input; texi2any reports at line 6: misplaced }
-texinfo-tests/57invalid_nestings/item_in_ref.texi
-  1 parse errors
-
 # Invalid input; texi2any reports at line 2: @headitem outside of table or list
 texinfo-tests/57invalid_nestings/item_tab_outside_of_table_lists.texi
   line 2: ours '@headitem @tab', texi2any '(nothing)'
-
-# Invalid input; texi2any reports at line 7: misplaced }
-texinfo-tests/57invalid_nestings/menu_in_style_command.texi
-  1 parse errors
-
-# Invalid input; texi2any reports at line 6: misplaced }
-texinfo-tests/57invalid_nestings/multitable_in_style_command.texi
-  1 parse errors
 
 # Invalid input; texi2any reports at line 2: @item outside of table or list
 texinfo-tests/57invalid_nestings/multitable_item_in_index.texi
@@ -254,14 +149,6 @@ texinfo-tests/57invalid_nestings/node_in_copying.texi
 # Invalid input; texi2any reports at line 5: @item outside of table or list
 texinfo-tests/57invalid_nestings/on_itemize_line.texi
   line 5: ours '@item', texi2any '(nothing)'
-
-# Invalid input; texi2any reports at line 7: misplaced }
-texinfo-tests/57invalid_nestings/quotation_in_ref.texi
-  1 parse errors
-
-# Invalid input; texi2any reports at line 5: misplaced }
-texinfo-tests/57invalid_nestings/quotation_in_style_command.texi
-  1 parse errors
 
 # Deliberate: a block command in the middle of a line; blocks start and end at the beginning of a line, as the Texinfo manual requires (texi2any accepts it with an error)
 texinfo-tests/57invalid_nestings/raw_block_on_line.texi
@@ -287,10 +174,6 @@ texinfo-tests/57invalid_nestings/section_on_defx_line.texi
 texinfo-tests/57invalid_nestings/tab_in_index.texi
   line 3: ours '@tab', texi2any '(nothing)'
 
-# Invalid input; texi2any reports at line 7: misplaced }
-texinfo-tests/57invalid_nestings/table_in_code.texi
-  1 parse errors
-
 # Deliberate: a block command in the middle of a line; blocks start and end at the beginning of a line, as the Texinfo manual requires (texi2any accepts it with an error)
 texinfo-tests/57invalid_nestings/table_not_closed_in_menu_description.texi
   line 2: ours '@table', texi2any '+table'
@@ -311,10 +194,6 @@ texinfo-tests/57invalid_nestings/unclosed_verb_on_misc_line.texi
 texinfo-tests/57invalid_nestings/unclosed_verb_on_section_line.texi
   1 parse errors
 
-# Invalid input; texi2any reports at line 8: misplaced }
-texinfo-tests/57invalid_nestings/verbatim_in_ref.texi
-  1 parse errors
-
 # Comparison: texi2any's expansion of this file isn't the same document, so both sides parse the expansion, whose @alias lines texi2any then applies a second time to the already resolved names
 texinfo-tests/58alias/recursive_alias.texi
   line 7: ours '@strong', texi2any '(nothing)'
@@ -323,77 +202,29 @@ texinfo-tests/58alias/recursive_alias.texi
 texinfo-tests/58alias/texinfo_command_alias_indirect_before.texi
   line 9: ours '@strong', texi2any '(nothing)'
 
-# Deliberate: the parser doesn't track which commands are macros, so a macro call ends where an unknown command does, at a blank line or a block, which texi2any allows in a call's argument (TODO.md)
-texinfo-tests/60macro/complex_argument.texi
-  1 parse errors
-
-# Deliberate: the parser doesn't track which commands are macros, so a macro call ends where an unknown command does, at a blank line or a block, which texi2any allows in a call's argument (TODO.md)
-texinfo-tests/60macro/cpp_directives_in_macro.texi
-  1 parse errors
-
 # Comparison: the tree keeps macros, aliases and @value unexpanded; here a macro call inside an inline conditional's condition, a plain word in the grammar, which only makes sense after expansion
 texinfo-tests/60macro/macro_call_in_inlinefmtifelse_format.texi
-  2 parse errors
-
-# Macro: its body opens an inline conditional's brace that the text after the call closes, which only works after expansion; the tree keeps the call unexpanded
-texinfo-tests/60macro/macro_end_call_in_ignored_inlinefmt.texi
-  1 parse errors
-
-# Macro: its body opens an inline conditional's brace that the text after the call closes, which only works after expansion; the tree keeps the call unexpanded
-texinfo-tests/60macro/macro_end_call_in_ignored_inlinefmtifelse.texi
-  1 parse errors
-
-# Macro: its body opens an inline conditional's brace that the text after the call closes, which only works after expansion; the tree keeps the call unexpanded
-texinfo-tests/60macro/macro_end_call_in_ignored_inlineraw.texi
-  1 parse errors
-
-# Deliberate: the parser doesn't track which commands are macros, so a macro call ends where an unknown command does, at a blank line or a block, which texi2any allows in a call's argument (TODO.md)
-texinfo-tests/60macro/macro_expansion.texi
-  1 parse errors
-
-# Invalid input; texi2any reports at line 8: misplaced }
-texinfo-tests/60macro/macro_in_ifset_end_in_arg.texi
   1 parse errors
 
 # Macro: a call inside an inline conditional's condition supplies its comma, which only works after expansion; the tree keeps the call unexpanded
 texinfo-tests/60macro/macro_inlineifcond_end_in_empty_ignored.texi
-  4 parse errors
+  2 parse errors
 
 # Macro: a call inside an inline conditional's condition supplies its comma, which only works after expansion; the tree keeps the call unexpanded
 texinfo-tests/60macro/macro_inlineifcond_end_in_empty_set.texi
-  4 parse errors
+  2 parse errors
 
 # Deliberate: a block command in the middle of a line; blocks start and end at the beginning of a line, as the Texinfo manual requires (texi2any accepts it with an error)
 texinfo-tests/60macro/text_before_after.texi
   line 1: ours '@macro', texi2any '+macro -macro'
-
-# Deliberate: the parser doesn't track which commands are macros, so a macro call ends where an unknown command does, at a blank line or a block, which texi2any allows in a call's argument (TODO.md)
-texinfo-tests/60macro/two_macros_on_a_line.texi
-  1 parse errors
 
 # Deliberate: a comment after a macro's name or parameters is a comment, which texi2any accepts there but keeps in the macro line's raw text
 texinfo-tests/60macro/zero_argument_comment.texi
   line 1: ours '@c', texi2any '(nothing)'
   line 5: ours '@comment', texi2any '(nothing)'
 
-# Macro: a line macro's braced argument spans lines holding a block's start or end, which only works after expansion; the tree keeps the call unexpanded
-texinfo-tests/65linemacro/begin_conditional_in_linemacro.texi
-  2 parse errors
-
-# Macro: a line macro's braced argument spans lines holding a block's start or end, which only works after expansion; the tree keeps the call unexpanded
-texinfo-tests/65linemacro/block_begin_end_in_linemacro_call.texi
-  3 parse errors
-
-# Macro: a line macro's braced argument spans lines holding a block's start or end, which only works after expansion; the tree keeps the call unexpanded
-texinfo-tests/65linemacro/end_conditional_in_linemacro.texi
-  2 parse errors
-
 # Invalid input; texi2any reports at line 6: @mycommand missing closing brace
 texinfo-tests/65linemacro/verb_not_closed.texi
-  1 parse errors
-
-# Invalid input; texi2any reports at line 74: @include: could not find file_with_cpp_lines.texi
-texinfo-tests/80include/cpp_lines.texi
   1 parse errors
 
 # Invalid input; texi2any reports at line 5: too many columns in multitable item (max 3)
@@ -404,7 +235,6 @@ texinfo-tests/converters_tests/multitable_prototypes.texi
 texinfo-tests/formats_encodings/japanese_shift_jis.texi
   line 19: ours '@�', texi2any '(nothing)'
   line 33: ours '@�', texi2any '(nothing)'
-  1 parse errors
 
 # Invalid input; texi2any reports at line 3: @headitem not meaningful inside `@itemize' block
 texinfo-tests/plaintext_tests/itemize_in_headitem_in_example.texi

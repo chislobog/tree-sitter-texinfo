@@ -1,17 +1,2 @@
-# A TeX brace opened in one @iftex block and closed in another, which a
-# tree-sitter tree can't represent (TODO.md); texi2any never sees either
-examples/emacs-31.1/misc/calc.texi
-
-# TeX braces opened and closed in different @iflatex blocks
-examples/emacs-31.1/misc/gnus.texi
-
-# A brace crossing a line in an @center argument, which texi2any reports too
-examples/gawk-5.4.1/gawk.texi
-
-# A footnote crossing a conditional, which a tree-sitter tree can't represent
-# (TODO.md)
-examples/gawk-5.4.1/it/gawk.texi
-
-# A macro call whose argument spans paragraphs, which texi2any allows; without
-# its definitions the parser ends every call at a blank line (TODO.md)
-examples/texinfo-7.3/texinfo-tex-test.texi
+# The manuals expected to fail to parse, each after a comment giving the
+# reason: script/parse-examples.py checks that exactly these fail. None does.

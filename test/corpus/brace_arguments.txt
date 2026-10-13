@@ -928,3 +928,77 @@ code
           (text))
         (block_end)))
     (block_end)))
+
+================================================================================
+A brace that closes nothing is unmatched, as texi2any reports and ignores it
+================================================================================
+
+Text} and @code{x}}.
+
+@center a}b
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (unmatched_brace)
+    (text)
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (text)))
+    (unmatched_brace)
+    (text))
+  (line_command
+    name: (command_name)
+    argument: (line_argument
+      (text)
+      (unmatched_brace)
+      (text))))
+
+================================================================================
+The brace of a command closed at a blank line is unmatched
+================================================================================
+
+@code{a
+
+b}
+
+---
+
+(source_file
+  (paragraph
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (text))
+      (missing_brace)))
+  (paragraph
+    (text)
+    (unmatched_brace)))
+
+================================================================================
+A brace crossing the end of a conditional closes there, and its brace is unmatched
+================================================================================
+
+@iftex
+@code{a
+@end iftex
+b}
+
+---
+
+(source_file
+  (block
+    name: (command_name)
+    (paragraph
+      (inline_command
+        name: (command_name)
+        arguments: (brace_arguments
+          (text))
+        (missing_brace)))
+    end: (block_end))
+  (paragraph
+    (text)
+    (unmatched_brace)))
