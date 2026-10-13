@@ -381,10 +381,6 @@ texinfo-tests/57invalid_nestings/multitable_item_in_index.texi
   line 2: @vindex arguments: ours 'item on item line', texi2any 'on item line'
   line 2: ours '@item', texi2any '(nothing)'
 
-# Invalid input; texi2any reports at line 4: unmatched `@end copying'
-texinfo-tests/57invalid_nestings/node_in_copying.texi
-  line 4: ours '-copying', texi2any '(nothing)'
-
 # Deliberate: a line command in the middle of a line; line commands occupy a whole line, as the Texinfo manual requires (texi2any accepts it with a warning, taking the rest of the line as its argument)
 texinfo-tests/57invalid_nestings/node_on_index_entry_line.texi
   line 2: @cindex arguments: ours 'entry node a m b m c h d', texi2any 'entry'
@@ -429,22 +425,9 @@ texinfo-tests/57invalid_nestings/raw_block_on_line.texi
 texinfo-tests/57invalid_nestings/recursive_copying.texi
   line 5: ours '@insertcopying', texi2any '(nothing)'
 
-# Invalid input; texi2any reports at line 2: @section seen before @footnote closing brace
-texinfo-tests/57invalid_nestings/section_in_footnote.texi
-  line 2: @footnote arguments: ours 'section a section', texi2any '(none)'
-  line 4: @section arguments: ours '(none)', texi2any 'a section'
-
-# Invalid input; texi2any reports at line 2: @section seen before @math closing brace
-texinfo-tests/57invalid_nestings/section_in_math.texi
-  line 2: @math arguments: ours 'aa x 2 section sec1 More math in math section sec2', texi2any 'aa x 2'
-  line 4: @section arguments: ours '(none)', texi2any 'sec1'
-  line 6: @math arguments: ours 'in math section sec2', texi2any 'in math'
-  line 8: @section arguments: ours '(none)', texi2any 'sec2'
-
-# Invalid input; texi2any reports at line 4: @section seen before @end table, and at line 6: @item outside of table or list
+# Invalid input; texi2any reports at line 6: @item outside of table or list (the @section before it closes the table, as here)
 texinfo-tests/57invalid_nestings/section_in_table.texi
-  line 4: @section arguments: ours '(none)', texi2any 'Subsection'
-  line 6: ours '@item -table', texi2any '(nothing)'
+  line 6: ours '@item', texi2any '(nothing)'
 
 # Deliberate: a line command in the middle of a line; line commands occupy a whole line, as the Texinfo manual requires (texi2any accepts it with a warning, taking the rest of the line as its argument)
 texinfo-tests/57invalid_nestings/section_on_cartouche_line.texi
@@ -517,13 +500,6 @@ texinfo-tests/57invalid_nestings/section_on_xtable_line.texi
 texinfo-tests/57invalid_nestings/style_not_closed_in_table_line.texi
   line 4: @code arguments: ours 'in code item in item', texi2any 'in code'
   line 4: @item arguments: ours '(none)', texi2any 'in item'
-
-# Invalid input; texi2any reports at line 8: @node seen before @code closing brace
-texinfo-tests/57invalid_nestings/style_not_closed_no_newline_root_commands.texi
-  line 8: @code arguments: ours 'not closed node chapter chapter chapter', texi2any 'not closed'
-  line 9: @node arguments: ours '(none)', texi2any 'chapter'
-  line 10: @chapter arguments: ours '(none)', texi2any 'chapter'
-  line 12: @code arguments: ours 'still not closed bye', texi2any 'still not closed'
 
 # Invalid input; texi2any reports at line 3: ignoring @tab outside of multitable
 texinfo-tests/57invalid_nestings/tab_in_index.texi

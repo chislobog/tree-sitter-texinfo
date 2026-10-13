@@ -178,6 +178,12 @@ of a line.
   built-in commands other than `@footnote`, `@caption`, `@shortcaption` and
   `@math`; the enclosing block's `@end`; the end of the file), marked by a
   zero-width `missing_brace` node, so they don't break the rest of the file
+- [x] A `@node`, a sectioning command or `@bye` closes the blocks left open
+  before it, but not a conditional, and an unclosed brace command and its
+  paragraph, as in texi2any ("@node seen before @end menu"). A `@menu` or a
+  list still being typed had taken the rest of the file, its chapters read
+  as text, and an `@example` had held the chapters after it (found by
+  review: the comparison doesn't see where a block ends without its `@end`)
 - [x] An unclosed brace command also ends at the `@end` of an enclosing block
   (`@code{` in an `@example` inside a `@quotation`, then `@end quotation`),
   which closes the blocks inside it, as in texi2any; the rest of the file
@@ -196,7 +202,7 @@ of a line.
 
 ## Differences from texi2any
 
-From comparing with texi2any on its own test inputs (118 of 1,755 differ, in
+From comparing with texi2any on its own test inputs (114 of 1,755 differ, in
 their commands or the commands' arguments, all listed with their reasons in
 `test/texi2any-differences.txt`; the manuals match but for three binutils
 fragments meant for `@include`).

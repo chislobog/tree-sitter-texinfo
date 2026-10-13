@@ -62,9 +62,13 @@ parser doesn't track.
 
 Errors are kept local, so a half-typed command doesn't break the rest of the
 document. An unclosed brace command ends where `texi2any` ends it (a blank
-line, the `@end` of the enclosing block, or the end of the file), marked by a
-zero-width `missing_brace` node; a block still open at the end of the file
-ends with a zero-width `missing_end` node. An `@end` of an enclosing block
+line, except in `@footnote`, `@caption`, `@shortcaption` and `@math`; the
+`@end` of the enclosing block; a `@node`, a sectioning command or `@bye`; or
+the end of the file), marked by a zero-width `missing_brace` node. A block
+still open at a `@node`, a sectioning command or `@bye` ends there, as in
+`texi2any`, and one still open at the end of the file ends there, with a
+zero-width `missing_end` node; but a conditional only ends at its `@end`, as
+it may hold whole sections. An `@end` of an enclosing block
 closes the blocks inside it with `missing_end`, as in `texi2any`; one of a
 block that isn't open closes the open blocks (but not conditionals), and is
 then an `unmatched_end` node, which `texi2any` reports and ignores. So is a

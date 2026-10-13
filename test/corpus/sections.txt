@@ -459,3 +459,252 @@ Only comment lines may come between a node and its heading
       (command_name)
       (line_argument
         (text)))))
+
+================================================================================
+A node closes a menu left open, as in texi2any
+================================================================================
+
+@node Top
+@top T
+
+@menu
+* A::
+
+@node A
+@chapter A
+
+Text.
+
+---
+
+(source_file
+  (top
+    node: (node_line
+      name: (command_name)
+      node: (argument
+        (text)))
+    heading: (top_heading
+      name: (command_name)
+      title: (line_argument
+        (text)))
+    (menu
+      name: (command_name)
+      (menu_entry
+        node: (menu_node
+          (text)))
+      end: (missing_end))
+    (chapter
+      node: (node_line
+        name: (command_name)
+        node: (argument
+          (text)))
+      heading: (chapter_heading
+        name: (command_name)
+        title: (line_argument
+          (text)))
+      (paragraph
+        (text)))))
+
+================================================================================
+A sectioning command closes the blocks left open around it
+================================================================================
+
+@chapter A
+
+@quotation
+@table @code
+@item x
+Text
+@section B
+
+More.
+
+---
+
+(source_file
+  (chapter
+    heading: (chapter_heading
+      name: (command_name)
+      title: (line_argument
+        (text)))
+    (block
+      name: (command_name)
+      (list
+        name: (command_name)
+        argument: (line_argument
+          (inline_command
+            name: (command_name)))
+        (item
+          name: (command_name)
+          argument: (line_argument
+            (text))
+          body: (item_body
+            (paragraph
+              (text))))
+        end: (missing_end))
+      end: (missing_end))
+    (section
+      heading: (section_heading
+        name: (command_name)
+        title: (line_argument
+          (text)))
+      (paragraph
+        (text)))))
+
+================================================================================
+A node closes an example left open
+================================================================================
+
+@chapter A
+
+@example
+code
+
+@node B
+@chapter B
+
+---
+
+(source_file
+  (chapter
+    heading: (chapter_heading
+      name: (command_name)
+      title: (line_argument
+        (text)))
+    (block
+      name: (command_name)
+      (paragraph
+        (text))
+      end: (missing_end)))
+  (chapter
+    node: (node_line
+      name: (command_name)
+      node: (argument
+        (text)))
+    heading: (chapter_heading
+      name: (command_name)
+      title: (line_argument
+        (text)))))
+
+================================================================================
+A section closes the blocks inside a conditional, but not the conditional
+================================================================================
+
+@ifset x
+@itemize
+@item a
+@chapter B
+@end ifset
+
+---
+
+(source_file
+  (block
+    name: (command_name)
+    argument: (line_argument
+      (text))
+    (list
+      name: (command_name)
+      (item
+        name: (command_name)
+        body: (item_body
+          (paragraph
+            (text))))
+      end: (missing_end))
+    (chapter
+      heading: (chapter_heading
+        name: (command_name)
+        title: (line_argument
+          (text))))
+    end: (block_end)))
+
+================================================================================
+@bye closes the blocks left open
+================================================================================
+
+@enumerate
+@item a
+@bye
+
+---
+
+(source_file
+  (list
+    name: (command_name)
+    (item
+      name: (command_name)
+      body: (item_body
+        (paragraph
+          (text))))
+    end: (missing_end))
+  (bye
+    name: (command_name)))
+
+================================================================================
+A heading doesn't close a block, as it doesn't in texi2any
+================================================================================
+
+@itemize
+@item a
+@heading H
+@end itemize
+
+---
+
+(source_file
+  (list
+    name: (command_name)
+    (item
+      name: (command_name)
+      body: (item_body
+        (paragraph
+          (text))
+        (heading
+          name: (command_name)
+          title: (line_argument
+            (text)))))
+    end: (block_end)))
+
+================================================================================
+A node closes a brace command left open, and its paragraph
+================================================================================
+
+Text @code{x
+@node B
+@chapter B
+
+Text @footnote{y
+@section C
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (text))
+      (missing_brace)))
+  (chapter
+    node: (node_line
+      name: (command_name)
+      node: (argument
+        (text)))
+    heading: (chapter_heading
+      name: (command_name)
+      title: (line_argument
+        (text)))
+    (paragraph
+      (text)
+      (inline_command
+        name: (command_name)
+        arguments: (brace_arguments
+          (paragraph
+            (text)))
+        (missing_brace)))
+    (section
+      heading: (section_heading
+        name: (command_name)
+        title: (line_argument
+          (text))))))

@@ -595,6 +595,17 @@ static inline bool is_conditional(const char *name) {
   return strncmp(name, "if", 2) == 0;
 }
 
+// `@node`, the sectioning commands and `@bye`, which close the brace
+// commands and blocks left open before them, as in texi2any ("@node seen
+// before @end menu").
+static bool is_root_command(const char *name) {
+  if (strcmp(name, "node") == 0 || strcmp(name, "bye") == 0) return true;
+  for (unsigned i = 0; i < SECTIONING_COUNT; i++) {
+    if (strcmp(SECTIONING[i].name, name) == 0) return true;
+  }
+  return false;
+}
+
 /** The name of the innermost open block; there must be one. */
 static inline const char *innermost_block(const Scanner *scanner) {
   return BLOCKS[scanner->stack[scanner->depth - 1]].name;
@@ -1345,17 +1356,34 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
     return scan_end(scanner, lexer, valid_symbols, brace_at_line_start,
                     paragraph_at_line_start);
   }
+  // A node, a section or `@bye` closes the open blocks, all but a
+  // conditional, which texi2any has evaluated, and which a section may be
+  // inside; and the paragraph and brace command before them.
+  bool closes_block = is_root_command(name) && scanner->depth > 0 &&
+                      !is_conditional(innermost_block(scanner));
   if (paragraph_at_line_start &&
-      (find_block(name) >= 0 || starts_item(scanner, name))) {
+      (find_block(name) >= 0 || starts_item(scanner, name) ||
+       is_root_command(name))) {
     lexer->result_symbol = PARAGRAPH_END_AT_LINE_START;
     return true;
   }
   // A block other than a conditional, or a raw block texi2any keeps inside,
   // closes an ordinary brace command at the start of its line too, and so
-  // does a list's next item.
+  // does a list's next item. A node or section closes any brace command.
   if (brace_at_line_start && valid_symbols[BRACE_CLOSE_AT_PARAGRAPH_END] &&
-      (closes_brace(name) || starts_item(scanner, name))) {
+      (closes_brace(name) || starts_item(scanner, name) ||
+       is_root_command(name))) {
     lexer->result_symbol = BRACE_CLOSE_AT_PARAGRAPH_END;
+    return true;
+  }
+  if (brace_at_line_start && valid_symbols[BRACE_CLOSE_AT_BLOCK_END] &&
+      is_root_command(name)) {
+    lexer->result_symbol = BRACE_CLOSE_AT_BLOCK_END;
+    return true;
+  }
+  if (closes_block && valid_symbols[MISSING_END]) {
+    scanner->depth--;
+    lexer->result_symbol = MISSING_END;
     return true;
   }
 
