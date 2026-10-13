@@ -442,7 +442,7 @@ def _move_end_comments(node: DumpNode):
 
 # A command name as texi2any reads it, such as `@foo-barindex` after
 # `@defindex foo-bar`.
-COMMAND_NAME = re.compile(r"@[A-Za-z0-9][A-Za-z0-9_-]*")
+COMMAND_NAME = re.compile(r"@[A-Za-z0-9][A-Za-z0-9-]*")
 
 
 def command_name(label: str) -> str | None:

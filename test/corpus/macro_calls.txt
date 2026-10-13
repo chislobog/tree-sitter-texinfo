@@ -77,11 +77,12 @@ Explanation.
     end: (block_end)))
 
 ================================================================================
-Macro and command names may start with a digit, hold `_` and be long
+Macro and command names may start with a digit and be long; `_` ends one
 ================================================================================
 
 @macro 1st {p}
 @end macro
+
 @macro a-macro-name-longer-than-thirty-two-chars {p}
 @end macro
 
@@ -89,7 +90,7 @@ Macro and command names may start with a digit, hold `_` and be long
 
 @a-macro-name-longer-than-thirty-two-chars rest
 
-Unknown @2nd, @c_x and @foo_bar{x}.
+Unknown @2nd and @foo_bar{x}; @c_x is a comment, as in texi2any.
 
 ---
 
@@ -120,11 +121,10 @@ Unknown @2nd, @c_x and @foo_bar{x}.
     (inline_command
       name: (command_name))
     (text)
-    (inline_command
-      name: (command_name)
-      arguments: (brace_arguments
-        (text)))
-    (text)))
+    (brace_group
+      (text))
+    (text)
+    (comment)))
 
 ================================================================================
 A macro named like a built-in command is parsed as the built-in

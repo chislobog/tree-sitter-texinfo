@@ -36,8 +36,10 @@ sources, which is what `texi2any` itself uses.
 - [x] Keep the preformatted context through blocks nested in `@example`
   and the other preformatted blocks (`@group`, `@quotation`, even `@menu`),
   where a blank line doesn't close a brace command, as in texi2any
-- [x] Command names of any length, as texi2any reads them, so `@0` or a name
-  longer than 32 characters is one (unknown) command; but see `_` below
+- [x] Command names as texi2any reads them, `[[:alnum:]][[:alnum:]-]*` of any
+  length, so `@0` or a name longer than 32 characters is one (unknown)
+  command, and `_` ends one: `@code_x` is `@code`, then `_x` (it continued
+  one until the comparison of arguments showed `@c_x` is a comment)
 - [x] No table of the file's macros in the scanner: it made every token
   after a definition carry the table in its state, so adding or renaming a
   macro reparsed the rest of the file (76 ms for gawk's manual, against
@@ -240,9 +242,6 @@ comparing arguments:
 - [ ] A comment line ends a paragraph, which texi2any goes on with after it,
   also in the manuals (seen while comparing; paragraphs aren't compared, as
   they aren't commands)
-- [ ] `_` continues a command name here (`@foo_bar`), but not in texi2any,
-  whose command names are `[[:alnum:]][[:alnum:]-]*` (`@code_x` is `@code`,
-  then `_x`); only its macro names may hold one
 
 Deliberate, so the tree shows the source as it is written and edited:
 

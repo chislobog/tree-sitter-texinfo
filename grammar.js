@@ -264,7 +264,7 @@ export default grammar({
 
     // Listed before `command_name` so that a bare `@c` lexes as a comment. As
     // in texi2any, whatever follows the name is the comment's (`@c|`).
-    comment: _ => /@c(omment)?([^a-zA-Z0-9_\-\r\n][^\r\n]*)?/,
+    comment: _ => /@c(omment)?([^a-zA-Z0-9\-\r\n][^\r\n]*)?/,
 
     // `\input texinfo` on the first line, for TeX.
     input_line: $ => seq(token(prec(1, /\\input[ \t\v\f]+[^ \t\n\r\v\f@]+/)), $._newline),
@@ -622,7 +622,7 @@ export default grammar({
     // Raw text up to the end of the line or a comment, as in texi2any. A
     // comment lexes as the longer match at `@c note`, and `@cfoo` as the
     // longer value piece.
-    _set_value: _ => repeat1(choice(/[^@\r\n]+/, /@[a-zA-Z0-9][a-zA-Z0-9_-]*/, /@[^a-zA-Z0-9\r\n]/)),
+    _set_value: _ => repeat1(choice(/[^@\r\n]+/, /@[a-zA-Z0-9][a-zA-Z0-9-]*/, /@[^a-zA-Z0-9\r\n]/)),
 
     definition_arguments: $ => prec.right(repeat1(choice(
       $.text,
@@ -1088,8 +1088,9 @@ export default grammar({
     unmatched_brace: _ => token(prec(-1, '}')),
 
     // As in texi2any, a name starts with a letter or digit and may contain `-`
-    // and `_` (e.g. user-defined macros).
-    command_name: _ => /@[a-zA-Z0-9][a-zA-Z0-9_-]*/,
+    // (user-defined index commands such as `@foo-barindex`), but not `_`:
+    // `@code_x` is `@code` followed by `_x`, and `@c_x` a comment.
+    command_name: _ => /@[a-zA-Z0-9][a-zA-Z0-9-]*/,
 
     // `@@`, `@{`, `@}`, accents like `@'`, spacing like `@*`, `@ ` and `@` at end of line.
     // `@` at the end of a line, like at the end of the file, is a lone `@`:

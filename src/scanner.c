@@ -256,7 +256,7 @@ static void skip_to_next_line(TSLexer *lexer) {
 
 // A character of a command or block name after its first.
 static inline bool is_name_char(int32_t c) {
-  return is_alpha(c) || is_digit(c) || c == '-' || c == '_';
+  return is_alpha(c) || is_digit(c) || c == '-';
 }
 
 /**
