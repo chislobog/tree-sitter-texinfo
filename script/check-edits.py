@@ -5,9 +5,8 @@ For each file, edits are made at random places inside paragraphs, as while
 typing: a character deleted (but not a newline before a line that starts with
 a command), or `{`, `}`, `@`, `@code{` or `@xref{` inserted; not an edit
 that makes a line start with a block command, which opens a block. Not inside a
-footnote, a caption, `@math` or a call to a macro defined in the file, whose
-argument spans paragraphs, so that in texi2any too a brace left open there
-runs to its end.
+footnote, a caption or `@math`, whose argument spans paragraphs, so that in
+texi2any too a brace left open there runs to its end.
 For each edit:
 
 - Incremental parsing: the old tree, edited as an editor does, parsed again
@@ -76,8 +75,6 @@ def paragraphs(node: Node) -> list[Node]:
 # open in it runs to its end: not checked.
 SPANNING = {b"footnote", b"caption", b"shortcaption", b"math"}
 LINE_COMMAND = re.compile(rb"[ \t]*@([a-zA-Z][\w-]*)")
-# Calls to a macro defined in the file may span paragraphs too.
-MACRO_DEFINITION = re.compile(rb"^@r?macro[ \t]+([\w-]+)", re.M)
 
 
 def inside_spanning(root: Node, offset: int, names: set[bytes]) -> bool:
@@ -151,12 +148,11 @@ def check_file(
     source = path.read_bytes()
     old_tree = parser.parse(source)
     candidates = [p for p in paragraphs(old_tree.root_node) if p.end_byte - p.start_byte > 1]
-    spanning = SPANNING | set(MACRO_DEFINITION.findall(source))
     problems = []
     for _ in range(min(edits, len(candidates))):
         paragraph = rng.choice(candidates)
         offset = rng.randrange(paragraph.start_byte, paragraph.end_byte)
-        if inside_spanning(old_tree.root_node, offset, spanning):
+        if inside_spanning(old_tree.root_node, offset, SPANNING):
             continue
         # Joining a line that starts with a command to the one before makes it
         # part of a paragraph, which may end a block early or late by design.

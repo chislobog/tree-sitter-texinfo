@@ -323,6 +323,14 @@ texinfo-tests/58alias/recursive_alias.texi
 texinfo-tests/58alias/texinfo_command_alias_indirect_before.texi
   line 9: ours '@strong', texi2any '(nothing)'
 
+# Deliberate: the parser doesn't track which commands are macros, so a macro call ends where an unknown command does, at a blank line or a block, which texi2any allows in a call's argument (TODO.md)
+texinfo-tests/60macro/complex_argument.texi
+  1 parse errors
+
+# Deliberate: the parser doesn't track which commands are macros, so a macro call ends where an unknown command does, at a blank line or a block, which texi2any allows in a call's argument (TODO.md)
+texinfo-tests/60macro/cpp_directives_in_macro.texi
+  1 parse errors
+
 # Comparison: the tree keeps macros, aliases and @value unexpanded; here a macro call inside an inline conditional's condition, a plain word in the grammar, which only makes sense after expansion
 texinfo-tests/60macro/macro_call_in_inlinefmtifelse_format.texi
   2 parse errors
@@ -337,6 +345,10 @@ texinfo-tests/60macro/macro_end_call_in_ignored_inlinefmtifelse.texi
 
 # Macro: its body opens an inline conditional's brace that the text after the call closes, which only works after expansion; the tree keeps the call unexpanded
 texinfo-tests/60macro/macro_end_call_in_ignored_inlineraw.texi
+  1 parse errors
+
+# Deliberate: the parser doesn't track which commands are macros, so a macro call ends where an unknown command does, at a blank line or a block, which texi2any allows in a call's argument (TODO.md)
+texinfo-tests/60macro/macro_expansion.texi
   1 parse errors
 
 # Invalid input; texi2any reports at line 8: misplaced }
@@ -355,6 +367,10 @@ texinfo-tests/60macro/macro_inlineifcond_end_in_empty_set.texi
 texinfo-tests/60macro/text_before_after.texi
   line 1: ours '@macro', texi2any '+macro -macro'
 
+# Deliberate: the parser doesn't track which commands are macros, so a macro call ends where an unknown command does, at a blank line or a block, which texi2any allows in a call's argument (TODO.md)
+texinfo-tests/60macro/two_macros_on_a_line.texi
+  1 parse errors
+
 # Deliberate: a comment after a macro's name or parameters is a comment, which texi2any accepts there but keeps in the macro line's raw text
 texinfo-tests/60macro/zero_argument_comment.texi
   line 1: ours '@c', texi2any '(nothing)'
@@ -367,14 +383,6 @@ texinfo-tests/65linemacro/begin_conditional_in_linemacro.texi
 # Macro: a line macro's braced argument spans lines holding a block's start or end, which only works after expansion; the tree keeps the call unexpanded
 texinfo-tests/65linemacro/block_begin_end_in_linemacro_call.texi
   3 parse errors
-
-# Grammar: in a line macro call, a brace command's braces close at the end of the line, as in other line commands (`@lm @code{` then text on the next line); allowing line breaks there would cost 400 parser states, for an input only texi2any's tests have
-texinfo-tests/65linemacro/comment_in_linemacro_call.texi
-  1 parse errors
-
-# Grammar: in a line macro call, a brace command's braces close at the end of the line, as in other line commands (`@lm @code{` then text on the next line); allowing line breaks there would cost 400 parser states, for an input only texi2any's tests have
-texinfo-tests/65linemacro/comment_in_one_argument_linemacro_call.texi
-  1 parse errors
 
 # Macro: a line macro's braced argument spans lines holding a block's start or end, which only works after expansion; the tree keeps the call unexpanded
 texinfo-tests/65linemacro/end_conditional_in_linemacro.texi

@@ -1130,10 +1130,6 @@
           "named": true
         },
         {
-          "type": "line_continuation",
-          "named": true
-        },
-        {
           "type": "symbol_command",
           "named": true
         },

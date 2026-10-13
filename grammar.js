@@ -202,12 +202,7 @@ export default grammar({
     $._macro_start,
     $._math_name,
     $._paragraph_end_at_line_start,
-    $._macro_call_name,
     $._word_glue,
-    $._one_parameter_macro_call_name,
-    $._line_macro_call_name,
-    // `@unmacro`, after which the scanner forgets the macro it names.
-    $._unmacro_name,
     // A run of dots in a menu node, but for the last one before whitespace,
     // which ends the node.
     $._menu_node_dots,
@@ -310,16 +305,6 @@ export default grammar({
         optional($.subentry),
         $._line_end,
       ),
-      // A call of a `@linemacro` defined earlier in the file, recognised by
-      // the scanner: its arguments are the rest of the line, separated by
-      // spaces, and the next lines while a line ends in `@`. How they split
-      // depends on the macro's number of parameters, which the grammar
-      // doesn't know.
-      seq(
-        field('name', alias($._line_macro_call_name, $.command_name)),
-        optional(field('argument', alias($._line_macro_arguments, $.line_argument))),
-        $._line_end,
-      ),
       // `@set NAME VALUE` and `@clear NAME`. As in texi2any, the value is raw
       // text; commands in it are only parsed where `@value{NAME}` uses it.
       seq(
@@ -338,10 +323,7 @@ export default grammar({
         $._line_end,
       ),
       seq(
-        field('name', choice(
-          command($, ['clickstyle']),
-          alias($._unmacro_name, $.command_name),
-        )),
+        field('name', command($, ['clickstyle', 'unmacro'])),
         optional(field('argument', alias($._set_value, $.raw_text))),
         $._line_end,
       ),
@@ -376,19 +358,6 @@ export default grammar({
     // Like texi2any, a line command's argument ends at the end of its line,
     // closing any brace command left open in it.
     line_argument: $ => repeat1($._line_argument_inline),
-
-    // A brace group in a line macro's arguments may hold line breaks, as in
-    // texi2any: the call ends at the end of a line outside it. A brace
-    // command's braces close at the end of the line, as in other line
-    // commands: letting them hold line breaks too would cost 400 parser
-    // states, for an input only texi2any's tests have.
-    _line_macro_arguments: $ => repeat1(choice(
-      $.text,
-      alias($._line_argument_command, $.inline_command),
-      $.symbol_command,
-      $.brace_group,
-      $.line_continuation,
-    )),
 
     _line_argument_inline: $ => choice(
       $.text,
@@ -775,26 +744,8 @@ export default grammar({
       choice($._line_end, $._paragraph_end_at_line_start),
     ),
 
-    // A line of a paragraph (or of a last argument) may also hold a call of
-    // a macro with exactly one parameter without braces, whose argument is
-    // the rest of the line, as in texi2any. Only in these lines, where nearly
-    // all such calls are (at the start of a line): in every context that
-    // holds inline commands it would cost 2,000 parser states. Elsewhere a
-    // call takes braces.
-    _line: $ => prec.right(repeat1(choice(
-      $._inline,
-      alias($._one_parameter_macro_call, $.inline_command),
-    ))),
-
-    // The scanner only gives this name when no `{` follows on the line;
-    // otherwise the call is an ordinary macro call with braces.
-    _one_parameter_macro_call: $ => prec.right(seq(
-      field('name', alias($._one_parameter_macro_call_name, $.command_name)),
-      optional(field('argument', alias($._rest_of_line, $.line_argument))),
-    )),
-
-    // All of the rest of the line, in a paragraph.
-    _rest_of_line: $ => prec.right(repeat1($._line_argument_inline)),
+    // A line of a paragraph or of a last argument.
+    _line: $ => prec.right(repeat1($._inline)),
 
     _inline: $ => choice(
       $.text,
@@ -828,22 +779,14 @@ export default grammar({
           field('argument', alias($._accent_argument, $.text)),
         )),
       )),
-      // A call to a macro defined earlier in the file, recognised by the
-      // scanner: as in texi2any, its arguments may hold blank lines, and
-      // spaces may come before its brace.
-      prec.right(seq(
-        field('name', alias($._macro_call_name, $.command_name)),
-        optional(seq(
-          '{',
-          optional(field('arguments', alias($._long_arguments, $.brace_arguments))),
-          longBraceClose($),
-        )),
-      )),
       // Any other command: a macro call, or a command texi2any doesn't know.
-      // Like a built-in brace command, it ends at a blank line, so a mistyped
-      // name with an open brace only breaks its own paragraph; so does a call
-      // to a macro defined in another file whose arguments hold a blank
-      // line, which texi2any allows.
+      // The grammar can't tell them apart: which names are macros depends on
+      // the definitions before, in this file or another. Like a built-in
+      // brace command, it ends at a blank line, so a mistyped name with an
+      // open brace only breaks its own paragraph; so does a macro call whose
+      // arguments hold a blank line, which texi2any allows. A macro with one
+      // parameter called without braces, or a `@linemacro` call, is a
+      // command followed by text, as its arguments depend on the definition.
       prec.right(seq(
         field('name', $.command_name),
         optional(seq(

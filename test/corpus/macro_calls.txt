@@ -1,5 +1,5 @@
 ================================================================================
-A macro with one parameter takes the rest of the line without braces
+A macro call is a command, whose arguments are in braces
 ================================================================================
 
 @macro bar {p}
@@ -10,7 +10,7 @@ Text
 @bar aah @code{x}
 more text.
 
-@bar {braced} here.
+@bar{braced} here.
 
 ---
 
@@ -24,13 +24,12 @@ more text.
   (paragraph
     (text)
     (inline_command
+      name: (command_name))
+    (text)
+    (inline_command
       name: (command_name)
-      argument: (line_argument
-        (text)
-        (inline_command
-          name: (command_name)
-          arguments: (brace_arguments
-            (text)))))
+      arguments: (brace_arguments
+        (text)))
     (text))
   (paragraph
     (inline_command
@@ -40,43 +39,7 @@ more text.
     (text)))
 
 ================================================================================
-Macros with other numbers of parameters take no argument without braces
-================================================================================
-
-@macro two {a, b}
-\a\\b\
-@end macro
-@macro none
-X
-@end macro
-
-@two rest @none rest
-
----
-
-(source_file
-  (macro_definition
-    name: (command_name)
-    macro: (text)
-    parameter: (text)
-    parameter: (text)
-    body: (raw_text)
-    end: (block_end))
-  (macro_definition
-    name: (command_name)
-    macro: (text)
-    body: (raw_text)
-    end: (block_end))
-  (paragraph
-    (inline_command
-      name: (command_name))
-    (text)
-    (inline_command
-      name: (command_name))
-    (text)))
-
-================================================================================
-A line macro call takes the rest of its line and continued lines
+A line macro call is text
 ================================================================================
 
 @linemacro defbuiltin {name, args}
@@ -101,229 +64,17 @@ Explanation.
     end: (block_end))
   (block
     name: (command_name)
-    (line_command
-      name: (command_name)
-      argument: (line_argument
-        (text)
-        (brace_group
-          (text))
-        (text)
-        (line_continuation)
-        (text)))
     (paragraph
+      (inline_command
+        name: (command_name))
+      (text)
+      (brace_group
+        (text))
+      (text)
+      (symbol_command)
+      (text)
       (text))
     end: (block_end)))
-
-================================================================================
-A file's 65th macro is remembered
-================================================================================
-
-@macro m0 {p}
-@end macro
-@macro m1 {p}
-@end macro
-@macro m2 {p}
-@end macro
-@macro m3 {p}
-@end macro
-@macro m4 {p}
-@end macro
-@macro m5 {p}
-@end macro
-@macro m6 {p}
-@end macro
-@macro m7 {p}
-@end macro
-@macro m8 {p}
-@end macro
-@macro m9 {p}
-@end macro
-@macro m10 {p}
-@end macro
-@macro m11 {p}
-@end macro
-@macro m12 {p}
-@end macro
-@macro m13 {p}
-@end macro
-@macro m14 {p}
-@end macro
-@macro m15 {p}
-@end macro
-@macro m16 {p}
-@end macro
-@macro m17 {p}
-@end macro
-@macro m18 {p}
-@end macro
-@macro m19 {p}
-@end macro
-@macro m20 {p}
-@end macro
-@macro m21 {p}
-@end macro
-@macro m22 {p}
-@end macro
-@macro m23 {p}
-@end macro
-@macro m24 {p}
-@end macro
-@macro m25 {p}
-@end macro
-@macro m26 {p}
-@end macro
-@macro m27 {p}
-@end macro
-@macro m28 {p}
-@end macro
-@macro m29 {p}
-@end macro
-@macro m30 {p}
-@end macro
-@macro m31 {p}
-@end macro
-@macro m32 {p}
-@end macro
-@macro m33 {p}
-@end macro
-@macro m34 {p}
-@end macro
-@macro m35 {p}
-@end macro
-@macro m36 {p}
-@end macro
-@macro m37 {p}
-@end macro
-@macro m38 {p}
-@end macro
-@macro m39 {p}
-@end macro
-@macro m40 {p}
-@end macro
-@macro m41 {p}
-@end macro
-@macro m42 {p}
-@end macro
-@macro m43 {p}
-@end macro
-@macro m44 {p}
-@end macro
-@macro m45 {p}
-@end macro
-@macro m46 {p}
-@end macro
-@macro m47 {p}
-@end macro
-@macro m48 {p}
-@end macro
-@macro m49 {p}
-@end macro
-@macro m50 {p}
-@end macro
-@macro m51 {p}
-@end macro
-@macro m52 {p}
-@end macro
-@macro m53 {p}
-@end macro
-@macro m54 {p}
-@end macro
-@macro m55 {p}
-@end macro
-@macro m56 {p}
-@end macro
-@macro m57 {p}
-@end macro
-@macro m58 {p}
-@end macro
-@macro m59 {p}
-@end macro
-@macro m60 {p}
-@end macro
-@macro m61 {p}
-@end macro
-@macro m62 {p}
-@end macro
-@macro m63 {p}
-@end macro
-@macro m64 {p}
-@end macro
-
-@m64 rest
-
----
-
-(source_file
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (macro_definition name: (command_name) macro: (text) parameter: (text) end: (block_end))
-  (paragraph
-    (inline_command
-      name: (command_name)
-      argument: (line_argument
-        (text)))))
 
 ================================================================================
 Macro and command names may start with a digit, hold `_` and be long
@@ -355,14 +106,12 @@ Unknown @2nd, @c_x and @foo_bar{x}.
     end: (block_end))
   (paragraph
     (inline_command
-      name: (command_name)
-      argument: (line_argument
-        (text))))
+      name: (command_name))
+    (text))
   (paragraph
     (inline_command
-      name: (command_name)
-      argument: (line_argument
-        (text))))
+      name: (command_name))
+    (text))
   (paragraph
     (text)
     (inline_command
@@ -378,20 +127,14 @@ Unknown @2nd, @c_x and @foo_bar{x}.
     (text)))
 
 ================================================================================
-@unmacro forgets a macro, giving back the built-in command it shadowed
+A macro named like a built-in command is parsed as the built-in
 ================================================================================
 
 @linemacro code {x}
 \x\
 @end linemacro
-@macro first {p}
-@end macro
-
-@unmacro code
 
 @code{one}
-
-@first rest
 
 ---
 
@@ -402,21 +145,8 @@ Unknown @2nd, @c_x and @foo_bar{x}.
     parameter: (text)
     body: (raw_text)
     end: (block_end))
-  (macro_definition
-    name: (command_name)
-    macro: (text)
-    parameter: (text)
-    end: (block_end))
-  (line_command
-    name: (command_name)
-    argument: (raw_text))
   (paragraph
     (inline_command
       name: (command_name)
       arguments: (brace_arguments
-        (text))))
-  (paragraph
-    (inline_command
-      name: (command_name)
-      argument: (line_argument
         (text)))))

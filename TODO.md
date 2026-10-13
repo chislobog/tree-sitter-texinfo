@@ -35,16 +35,14 @@ sources, which is what `texi2any` itself uses.
   and the other preformatted blocks (`@group`, `@quotation`, even `@menu`),
   where a blank line doesn't close a brace command, as in texi2any
 - [x] Command names as texi2any reads them, `[[:alnum:]][[:alnum:]_-]*` of any
-  length, so calls of macros named `1foo` or longer than 32 characters are
-  recognised, and `@0` or `@foo_bar` is one (unknown) command
-- [x] `@unmacro` makes the scanner forget the macro, so a built-in command
-  it shadowed (`@linemacro code`) is built-in again
-- [x] Remember a file's first 128 macros (`MAX_MACROS`), not 64: glibc's
-  `manual/macros.texi` defines 59
-- Known limitation: the scanner remembers macros by a 32-bit FNV-1a hash of
-  their name, as their names don't fit in tree-sitter's 1 KB of serialized
-  state, so two names with the same hash (`mjkmtxnhps` and `mjbmpqijuu`) are
-  one macro to it. For 128 macros, the chance of that is about 2 in a million
+  length, so `@0`, `@foo_bar` or a name longer than 32 characters is one
+  (unknown) command
+- [x] No table of the file's macros in the scanner: it made every token
+  after a definition carry the table in its state, so adding or renaming a
+  macro reparsed the rest of the file (76 ms for gawk's manual, against
+  0.3 ms for a word typed), and parsing gawk's manual with 128 macros took
+  61 MB, not 43 MB. Macro calls are now commands like any other
+  (Deliberate, below); the parser lost 787 states
 
 ## Commands and arguments
 
@@ -104,17 +102,6 @@ sources, which is what `texi2any` itself uses.
   and `arguments` fields (braces group words)
 - [x] `@` at the end of a definition line's arguments is a `line_continuation`
   (still a `symbol_command` before the arguments start)
-- [x] A call of a macro with exactly one parameter, without braces, takes
-  the rest of the line as its `argument`, as in texi2any (Calc's `@infoline`,
-  autoconf's `@caindex`); in paragraph lines only, where nearly all such
-  calls are: in every context it would cost 2,000 parser states. The scanner
-  records each macro's kind, and gives a call followed by `{` the ordinary
-  macro call
-- [x] A `@linemacro` call is a `line_command` whose `argument` is the rest of
-  its line, continued over lines ending in `@`; a brace group in it may hold
-  line breaks, but not a brace command's braces (texi2any's tests only).
-  How the arguments split depends on the number of parameters, which the
-  grammar doesn't know
 - [x] A definition word glued to a command (`foo@var{x}`,
   `@var{$converter}->method` in texi2any's API reference) is one `word` node,
   as in texi2any; the scanner emits a zero-width glue between its parts.
@@ -195,12 +182,10 @@ of a line.
 - [x] The `@macro` line has `macro` and `parameter` fields, as texi2any
   reads it, rather than an argument parsed for commands; anything else on it
   but a comment is raw text. Tags and highlighting use the fields
-- [x] A call of a macro defined in the file may have spaces before its
-  brace, as in texi2any, also when its argument spans a blank line
 
 ## Differences from texi2any
 
-From comparing with texi2any on its own test inputs (96 of 1,755 differ, all
+From comparing with texi2any on its own test inputs (93 of 1,755 differ, all
 listed with their reasons in `test/texi2any-differences.txt`; the manuals
 match but for three binutils fragments meant for `@include`, and the parse
 errors in Calc's, Gnus's and gawk's `@iftex` blocks).
@@ -236,6 +221,15 @@ Deliberate, so the tree shows the source as it is written and edited:
 - Macros, `@value`, `@alias`, `@linemacro` and conditionals aren't expanded or
   evaluated, so input whose structure only works after expansion (a macro
   that opens a brace the text after its call closes) has parse errors
+- Macro calls aren't told apart from commands texi2any doesn't know, as
+  that depends on the definitions before them, in the file or one it
+  includes: a call's braces end at a blank line, which texi2any allows in
+  them (only `texinfo-tex-test.texi` among the manuals has one); spaces
+  before its brace make a brace group; a macro with one parameter called
+  without braces (397 calls in Autoconf's, Calc's and the LaTeX2e
+  manuals) or a `@linemacro` call (21 in Texinfo's) is a command followed
+  by text; and a macro named like a built-in command (`@linemacro code`)
+  is parsed as the built-in
 - `@click` stays `@click`; texi2any outputs the command `@clickstyle` chose
 - Block commands and `@end` only count at the start of a line, as the Texinfo
   manual requires ("at the beginning of a line by itself"). texi2any's error

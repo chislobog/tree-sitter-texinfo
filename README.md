@@ -51,7 +51,10 @@ mostly deliberately invalid input and macro expansion.
 ### Differences from texi2any
 
 The tree shows the source as written, as an editor needs it: conditionals,
-macros and `@value` are not evaluated, and `@include` is not followed.
+macros and `@value` are not evaluated, and `@include` is not followed. A
+macro call is a command like any other, ending at a blank line: which names
+are macros, and how a call's arguments split, depends on definitions the
+parser doesn't track.
 
 Errors are kept local, so a half-typed command doesn't break the rest of the
 document. An unclosed brace command ends where `texi2any` ends it (a blank

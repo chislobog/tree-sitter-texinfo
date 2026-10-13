@@ -269,7 +269,7 @@ Next.
     (text)))
 
 ================================================================================
-Macro call argument containing a blank line
+A macro call ends at a blank line, like an unknown command
 ================================================================================
 
 @macro mymacro {arg}
@@ -277,8 +277,6 @@ Macro call argument containing a blank line
 @end macro
 
 @mymacro{first
-
-second}
 
 Text @unknwn{open
 
@@ -297,8 +295,8 @@ After.
     (inline_command
       name: (command_name)
       arguments: (brace_arguments
-        (text)
-        (text))))
+        (text))
+      (missing_brace)))
   (paragraph
     (text)
     (inline_command
@@ -475,34 +473,6 @@ Info.
     (paragraph
       (text))
     end: (block_end)))
-
-================================================================================
-Spaces between a macro call and its brace
-================================================================================
-
-@macro mymacro {arg}
-\arg\
-@end macro
-
-@mymacro {first
-
-second}
-
----
-
-(source_file
-  (macro_definition
-    name: (command_name)
-    macro: (text)
-    parameter: (text)
-    body: (raw_text)
-    end: (block_end))
-  (paragraph
-    (inline_command
-      name: (command_name)
-      arguments: (brace_arguments
-        (text)
-        (text)))))
 
 ================================================================================
 Spaces between a built-in brace command and its brace
