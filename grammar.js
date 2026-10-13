@@ -173,7 +173,7 @@ export default grammar({
     $._raw_block_start,
     $.raw_text,
     $.block_end,
-    $._eof,
+    $._end_of_file,
     $._verb_open,
     $._verb_text,
     $._verb_close,
@@ -1060,6 +1060,6 @@ export default grammar({
     _newline: _ => /\n/,
 
     // A newline, or the end of a file that doesn't end in one.
-    _line_end: $ => choice($._newline, $._eof),
+    _line_end: $ => choice($._newline, $._end_of_file),
   },
 });

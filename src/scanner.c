@@ -42,8 +42,8 @@ enum TokenType {
   DEFINITION_START,
   // `@node` lines followed by a sectioning command, one per level, in the
   // order of SECTIONS in grammar.js.
-  NODE_BEFORE_SECTION = DEFINITION_START + 8,
-  LINE_COMMAND_NAME = NODE_BEFORE_SECTION + 6,
+  NODE_BEFORE = DEFINITION_START + 8,
+  LINE_COMMAND_NAME = NODE_BEFORE + 6,
   BRACE_COMMAND_NAME,
   MULTITABLE_START,
   // `@tab` between the cells of a multitable row.
@@ -547,7 +547,7 @@ static bool scan_node_before_section(TSLexer *lexer,
 
     for (unsigned i = 0; i < SECTIONING_COUNT; i++) {
       if (strcmp(SECTIONING[i].name, name) == 0) {
-        enum TokenType token = NODE_BEFORE_SECTION + SECTIONING[i].level;
+        enum TokenType token = NODE_BEFORE + SECTIONING[i].level;
         if (!valid_symbols[token]) return false;
         lexer->result_symbol = token;
         return true;
@@ -1040,6 +1040,50 @@ static bool scan_word_glue(TSLexer *lexer) {
   return true;
 }
 
+/**
+ * The token of the command `@name` where the grammar allows it, other than a
+ * block's, or -1. At most one applies to a name, as the tables of names
+ * don't overlap (script/check-scanner.py checks that), so their order
+ * doesn't matter; only the context tells `@item`'s two apart.
+ */
+static int command_token(const Scanner *scanner, const bool *valid_symbols,
+                         const char *name) {
+  bool item = strcmp(name, "item") == 0;
+  if (valid_symbols[ROW_NAME] && (item || strcmp(name, "headitem") == 0) &&
+      in_multitable(scanner)) {
+    return ROW_NAME;
+  }
+  if (valid_symbols[CONTAINER_ITEM_NAME] && item &&
+      in_item_container(scanner)) {
+    return CONTAINER_ITEM_NAME;
+  }
+  if (valid_symbols[MATH_NAME] && strcmp(name, "math") == 0) return MATH_NAME;
+  if (valid_symbols[CONTEXT_COMMAND_NAME] &&
+      (strcmp(name, "footnote") == 0 || strcmp(name, "caption") == 0 ||
+       strcmp(name, "shortcaption") == 0)) {
+    return CONTEXT_COMMAND_NAME;
+  }
+  if (valid_symbols[SUBENTRY_NAME] && strcmp(name, "subentry") == 0) {
+    return SUBENTRY_NAME;
+  }
+  if (valid_symbols[TAB] && strcmp(name, "tab") == 0) return TAB;
+  if (valid_symbols[LINE_COMMAND_NAME] && is_line_command(name)) {
+    return LINE_COMMAND_NAME;
+  }
+  if (valid_symbols[BRACE_COMMAND_NAME] &&
+      in_table(BRACE_COMMANDS, TABLE_COUNT(BRACE_COMMANDS), name)) {
+    return BRACE_COMMAND_NAME;
+  }
+  return -1;
+}
+
+/**
+ * Scans in two stages. First the tokens that only some contexts allow: an
+ * accent's argument, `@verb`'s parts, the glue in a definition word, raw
+ * text, and the zero-width ends of a brace, paragraph or block left open.
+ * Then a command at `@`, by its name. The first stage only skips blanks
+ * before giving up, so the second sees the same text.
+ */
 bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
                                                const bool *valid_symbols) {
   Scanner *scanner = payload;
@@ -1190,39 +1234,13 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
     return scan_node_before_section(lexer, valid_symbols);
   }
 
-  if (valid_symbols[ROW_NAME] &&
-      (strcmp(name, "item") == 0 || strcmp(name, "headitem") == 0) &&
-      in_multitable(scanner)) {
-    return accept(lexer, ROW_NAME);
-  }
-  if (valid_symbols[MATH_NAME] && strcmp(name, "math") == 0) {
-    return accept(lexer, MATH_NAME);
-  }
-  if (valid_symbols[CONTAINER_ITEM_NAME] && strcmp(name, "item") == 0 &&
-      in_item_container(scanner)) {
-    return accept(lexer, CONTAINER_ITEM_NAME);
-  }
-  if (valid_symbols[CONTEXT_COMMAND_NAME] &&
-      (strcmp(name, "footnote") == 0 || strcmp(name, "caption") == 0 ||
-       strcmp(name, "shortcaption") == 0)) {
-    return accept(lexer, CONTEXT_COMMAND_NAME);
-  }
-  if (valid_symbols[SUBENTRY_NAME] && strcmp(name, "subentry") == 0) {
-    return accept(lexer, SUBENTRY_NAME);
-  }
-  if (valid_symbols[TAB] && strcmp(name, "tab") == 0) {
-    return accept(lexer, TAB);
-  }
-  if (valid_symbols[LINE_COMMAND_NAME] && is_line_command(name)) {
-    return accept(lexer, LINE_COMMAND_NAME);
-  }
-  if (valid_symbols[BRACE_COMMAND_NAME] &&
-      in_table(BRACE_COMMANDS, TABLE_COUNT(BRACE_COMMANDS), name)) {
-    lexer->mark_end(lexer);
-    scanner->after_accent =
-        in_table(LETTER_ACCENTS, TABLE_COUNT(LETTER_ACCENTS), name);
-    lexer->result_symbol = BRACE_COMMAND_NAME;
-    return true;
+  int token = command_token(scanner, valid_symbols, name);
+  if (token >= 0) {
+    if (token == BRACE_COMMAND_NAME) {
+      scanner->after_accent =
+          in_table(LETTER_ACCENTS, TABLE_COUNT(LETTER_ACCENTS), name);
+    }
+    return accept(lexer, (enum TokenType)token);
   }
 
   // read_name stops at the first character that can't be part of a name, so

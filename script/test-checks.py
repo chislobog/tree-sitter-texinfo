@@ -11,6 +11,7 @@ Usage: script/test-checks.py
 """
 
 import importlib.util
+import re
 import subprocess
 import sys
 import tempfile
@@ -207,6 +208,62 @@ def check_edits(checker: Checker):
     checker.report("edits: a mistake that spreads fails", [] if found else ["found no problem"])
 
 
+def check_scanner(checker: Checker):
+    """Each way the scanner can disagree with the grammar is found, in a copy
+    of the scanner changed in that way."""
+    scanner = (ROOT / "src" / "scanner.c").read_text()
+    command = ["python3", "script/check-scanner.py", "--scanner"]
+    checker.expect("scanner: the scanner agrees", [*command, ROOT / "src" / "scanner.c"], True)
+    changes = [
+        (
+            "two tokens swapped",
+            ("  BLOCK_START,\n  LIST_START,", "  LIST_START,\n  BLOCK_START,"),
+            "LIST_START = 0, but the grammar's external 0 is _block_start",
+        ),
+        (
+            "a family's gap too small",
+            ("NODE_BEFORE = DEFINITION_START + 8", "NODE_BEFORE = DEFINITION_START + 7"),
+            "NODE_BEFORE = 21, but the grammar's external 21 is _definition_start_7",
+        ),
+        (
+            "a definition block's layout",
+            ('{"deffn", KIND_DEFINITION}', '{"deffn", KIND_DEFINITION + 1}'),
+            "@deffn has layout 1, but @deffnx is in layout [0]",
+        ),
+        (
+            "a sectioning command's level",
+            ('{"chapter", 2}', '{"chapter", 3}'),
+            "@chapter has level 3, which isn't its section's",
+        ),
+        (
+            "a name in two tables",
+            ('"printindex", "include"', '"printindex", "code", "include"'),
+            "@code is in both LINE_COMMANDS and BRACE_COMMANDS",
+        ),
+        (
+            "a name ending in index",
+            ('{"AA",', '{"AA", "fooindex",'),
+            "@fooindex in BRACE_COMMANDS ends in `index`",
+        ),
+        (
+            "an accent that isn't a brace command",
+            (re.compile(r'\n *"ogonek",'), ""),
+            "the accent @ogonek isn't in BRACE_COMMANDS",
+        ),
+    ]
+    for title, (old, new), message in changes:
+        changed = (
+            old.sub(new, scanner, 1)
+            if isinstance(old, re.Pattern)
+            else scanner.replace(old, new, 1)
+        )
+        if changed == scanner:
+            checker.report(f"scanner: {title}", ["the change doesn't apply to src/scanner.c"])
+            continue
+        path = checker.file("scanner.c", changed)
+        checker.expect(f"scanner: {title} fails", [*command, path], False, message)
+
+
 def main() -> int:
     with tempfile.TemporaryDirectory() as directory:
         checker = Checker(Path(directory))
@@ -214,6 +271,7 @@ def main() -> int:
         check_snapshots(checker)
         check_parse_errors(checker)
         check_edits(checker)
+        check_scanner(checker)
     if checker.failures:
         print(f"{checker.failures} checks don't work as they should")
         return 1

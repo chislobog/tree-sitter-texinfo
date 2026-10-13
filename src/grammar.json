@@ -9225,7 +9225,7 @@
         },
         {
           "type": "SYMBOL",
-          "name": "_eof"
+          "name": "_end_of_file"
         }
       ]
     }
@@ -9265,7 +9265,7 @@
     },
     {
       "type": "SYMBOL",
-      "name": "_eof"
+      "name": "_end_of_file"
     },
     {
       "type": "SYMBOL",

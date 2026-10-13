@@ -338,4 +338,8 @@ Deliberate, so the tree shows the source as it is written and edited:
 - [x] Python source distributions include `src/scanner.c`: `setup.py`, as
   tree-sitter 0.26's template writes it, added it only while compiling, so a
   wheel built from the sdist failed to import
+- [x] A check that the scanner's token enum and its tables of layouts and
+  section levels agree with the grammar, and that its tables of names don't
+  overlap (`script/check-scanner.py`), so the order in which the scanner
+  tries them doesn't matter
 - [ ] Release automation (npm, crates.io, PyPI)
