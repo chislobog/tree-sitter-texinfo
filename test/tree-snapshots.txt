@@ -46,7 +46,7 @@ edfb326d55da46cac4ea75471ff65e1c6720c9071f3425a927cf6533a84f497d  examples/binut
 da1dc6a4feade498ee188985acfba1f9f7244597d4f7fd4c0b77c17e83063022  examples/binutils-with-gold-2.46/gas/doc/c-h8300.texi
 8783be212cb60e6090e2df280eea6404cfa562da5851d9034f66f793fafeac62  examples/binutils-with-gold-2.46/gas/doc/c-hppa.texi
 c077f9af4841911f8a07956ff812f1da8d5428e83eba3b48186d5feaadeefe17  examples/binutils-with-gold-2.46/gas/doc/c-i386.texi
-3e4af74dddcb7a9ea600d2c5c893b5588adf482d6af3cd3763065eb26cf59c46  examples/binutils-with-gold-2.46/gas/doc/c-ia64.texi
+bd40ab59bf293ae9eb95cda46aa242026941122c9715ea354d3bad816cc95763  examples/binutils-with-gold-2.46/gas/doc/c-ia64.texi
 88f85ed706ee939bf2b1cccda668a06662b16fbd77f496e770905ff7eaac4df0  examples/binutils-with-gold-2.46/gas/doc/c-ip2k.texi
 bd45a27866be58008fcacc9ca20fb2863115aedb7281790cd7a068444038b735  examples/binutils-with-gold-2.46/gas/doc/c-kvx.texi
 6c183bffe1deaa02d0deaf8c11e34b21504b84a564cc0b33c3b68a8a79544cec  examples/binutils-with-gold-2.46/gas/doc/c-lm32.texi
@@ -225,7 +225,7 @@ ed7b69d67f24a47b748ea97588de5567de7815ddde678673d81ba469c4be31a3  examples/emacs
 7ae25545808e15b54fa02698765c690704df36505dd8c25acd9095ac7298d39f  examples/emacs-31.1/lispref/windows.texi
 fcf0ebf369c184d2a27cd43e96cc31533f2fcfc5bb9098ecc6d68569d82b40a1  examples/emacs-31.1/misc/auth.texi
 96a28195d7598f195da14731d39d69dd5a3397c1e0b982f3d0f34b73cdef6581  examples/emacs-31.1/misc/autotype.texi
-1c9ad003d85b5c1b6ada8bd6156ed67790df1c0e38cc3b0e43363f0b75a58d26  examples/emacs-31.1/misc/bovine.texi
+38b2ed2c5188da426ac271393434ac5d8dce5a1641ff1b7434ee04898246c249  examples/emacs-31.1/misc/bovine.texi
 9656c0573248794450e73a684f996c204caedca83e03436bbc59853883ed3b3f  examples/emacs-31.1/misc/calc.texi
 05c7cd1ad7478d6669057a0f795fc09b6a3adb5e6abb6f97dbc61c974e6c266c  examples/emacs-31.1/misc/cc-mode.texi
 7825b04cc4fe2599fe12840a06bb5bbcf2ea501cfc843b5b4cc435510cc0ddcd  examples/emacs-31.1/misc/cl.texi
@@ -263,7 +263,7 @@ f5c8f9acddb388b7a00a76ca93bb94e665d6d82794650c980a2a30fb98804f08  examples/emacs
 e3c2f6b048b2663b5779dfb27a0b243efe6e7ecf248be502c112de4b69e05939  examples/emacs-31.1/misc/newsticker.texi
 90940c94b0dbefa429a776fb112fb63cfd5dc17a60fd53d7f4ce27f3a79a62ea  examples/emacs-31.1/misc/nxml-mode.texi
 d2610573ed691e5d8fb5f58499291f8d9cca2e46211126638673e583495fa14c  examples/emacs-31.1/misc/octave-mode.texi
-b10dec8996f23fd9c68bc6c67172f40ea4a96966deaad54ed2a5f65e7d41e1cc  examples/emacs-31.1/misc/pcl-cvs.texi
+3e641318ee2e659c88ef85874f63541c14a21ea09f18d350d548ff753e7d7464  examples/emacs-31.1/misc/pcl-cvs.texi
 af4e62e5ae6b2dbdf684d37b175590c173e1ada4a849ec0a1d052910ed106ca7  examples/emacs-31.1/misc/pgg.texi
 3f58311c6c762ac033c53096fa4971196800207b9e9553f1a0b1ffb5eb0e39e2  examples/emacs-31.1/misc/rcirc.texi
 5a0dbe4ec4ccb677ca852500ac22eb2fd58ce250fc95674cdee3ff0b878aae1a  examples/emacs-31.1/misc/reftex.texi
@@ -517,7 +517,7 @@ dccf7ecbc6503421cd8cc3f306c29df7f22d82611ca31d596a84e94a11658441  examples/maxim
 1b9430f5ce7ae570878aa787f0efcdaa0cd518e8a770a92f5433ccfa4a87fe30  examples/maxima-5.49.0/doc/info/ja/grobner.texi
 d28b265ce2a04461b1096d8502339951a76013a4c72bbcd3f411aafd65e9d28c  examples/maxima-5.49.0/doc/info/ja/impdiff.texi
 353b129dab502b64012079fbb3dfadaf54e370343d0c6be4039fe8e3f6cf15d8  examples/maxima-5.49.0/doc/info/ja/implicit_plot.texi
-890d1b36979f2becfaf5a0540043c9109ebf998341bfa4ea2f4b64b1c887dbd8  examples/maxima-5.49.0/doc/info/ja/include-maxima.texi
+61efc07043e8f90446ad8a88816947e323e5cadb46c5efa7d9b242c931f3ce0f  examples/maxima-5.49.0/doc/info/ja/include-maxima.texi
 e265192632ebc96b5c4d137c57418a4412f38fd200477b3ac012459e253c5a9e  examples/maxima-5.49.0/doc/info/ja/interpol.texi
 aa6d251dc5ec417cd228dbd9d871d90d9986b497357e649b0cdaf7d99f188f28  examples/maxima-5.49.0/doc/info/ja/lapack.texi
 47b37e3581af2b92d003ec1a8f25fcd88a99a7fca41edb7a26b93feb31b70e87  examples/maxima-5.49.0/doc/info/ja/lbfgs.texi

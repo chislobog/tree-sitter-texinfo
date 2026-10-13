@@ -479,3 +479,39 @@ Menu entries inside a conditional in a menu, but not elsewhere
     (paragraph
       (text))
     end: (block_end)))
+
+================================================================================
+Comment lines inside a menu entry's description
+================================================================================
+
+@menu
+* a::  Description
+@c a comment
+goes on.
+* b::  Description
+@c before the next entry
+* c::
+@end menu
+
+---
+
+(source_file
+  (menu
+    name: (command_name)
+    (menu_entry
+      node: (menu_node
+        (text))
+      description: (menu_description
+        (text)
+        (comment)
+        (text)))
+    (menu_entry
+      node: (menu_node
+        (text))
+      description: (menu_description
+        (text)
+        (comment)))
+    (menu_entry
+      node: (menu_node
+        (text)))
+    end: (block_end)))

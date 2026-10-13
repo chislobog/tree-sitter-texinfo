@@ -259,10 +259,11 @@ comparing arguments:
   paragraph, 731 paragraphs fewer (1,501 parser states, 813 of them for
   `@set`, `@clear`, `@alias` and the commands with a raw argument, which
   have rules of their own, for 4 in the manuals; the budget went to 14,200)
+- [x] Comment lines followed by a line that isn't blank stay in a menu
+  entry's description too (4 manuals; 413 parser states)
 - [ ] Comment lines still end a paragraph inside braces (4 in the manuals),
   where the scanner can't look past the newline, which may close the
-  braces, and a menu entry's description (1 in the manuals; 400 parser
-  states)
+  braces
 
 Deliberate, so the tree shows the source as it is written and edited:
 

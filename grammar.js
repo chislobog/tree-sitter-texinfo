@@ -572,8 +572,16 @@ export default grammar({
           $._line,
           prec(1, seq($._newline, optional($._description_blocks), $._line)),
         ),
-        repeat(prec(1, seq($._newline, optional($._description_blocks), $._line))),
-        choice($._line_end, seq($._newline, $._description_blocks)),
+        repeat(prec(1, seq(
+          choice($._newline, $._comment_lines),
+          optional($._description_blocks),
+          $._line,
+        ))),
+        choice(
+          $._line_end,
+          $._comment_lines,
+          seq(choice($._newline, $._comment_lines), $._description_blocks),
+        ),
       ),
       // Or only blocks, which a line after them would go on with.
       prec.right(1, seq($._newline, $._description_blocks)),
@@ -855,10 +863,10 @@ export default grammar({
     ),
 
     // The newline before comment lines that a line other than a blank one
-    // follows, then the comment lines' newlines. texi2any also keeps them in a
-    // menu entry's description, which here would cost 400 parser states, and
-    // in a paragraph inside braces, where the scanner doesn't look past a
-    // newline that may close the braces.
+    // follows, then the comment lines' newlines, in a paragraph or a menu
+    // entry's description. texi2any also keeps them in a paragraph inside
+    // braces, where the scanner doesn't look past a newline that may close
+    // the braces.
     _comment_lines: $ => prec.right(seq($._newline_before_comments, repeat1($._newline))),
 
     // A line of a paragraph or of a last argument.
