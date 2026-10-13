@@ -414,4 +414,6 @@ Deliberate, so the tree shows the source as it is written and edited:
   input in `flake.nix`, a fixed nixpkgs revision): `nix flake update` for a
   newer tree-sitter or LLVM no longer brings a new texi2any and new manuals
   with it, which change many listed differences and snapshots at once
-- [ ] Release automation (npm, crates.io, PyPI)
+- Not published to npm, crates.io or PyPI, by choice: the names are left to
+  a possibly more complete implementation. Editors build the grammar from
+  the repository; releases, if any, are git tags
