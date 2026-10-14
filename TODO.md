@@ -361,6 +361,13 @@ comparing arguments:
   files). In a paragraph, comment lines are no longer extras between
   counted newlines, which would have taken the blank line's newline too,
   but explicit, each with its line end (63 parser states)
+- [x] And preformatted text: in `@example` and the other preformatted
+  blocks and menus, each stretch between the blocks, items and cells in it
+  and the commands that end a paragraph (texi2any's
+  close_preformatted_commands), as texi2any holds it, and its text, in
+  about 22,000 stretches. It found nothing to fix in the grammar: its
+  differences come from those already listed, and an example of a literal
+  `\n`, which texi2any's dump writes as a newline
 - [x] The comparison compares paragraphs too: where they start and end
   among the commands, and their text outside commands. 148,650 of 148,912
   paragraphs match texi2any's; the other differences are listed, by the

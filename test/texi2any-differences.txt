@@ -18,6 +18,7 @@ build/corpus/lists/multitable-cells-over-several-lines-with-blocks-and-empty-cel
 build/corpus/menus/unfinished-menu-entry.texi
   line 3: * arguments: ours 'half typed', texi2any ' | Done'
   line 4: ours '* *', texi2any '(nothing)'
+  line 3: paragraphs: ours '(nothing)', texi2any '<pre> </pre>'
 
 # Invalid input; texi2any reports at line 5: bad argument to @end: html more text, and at line 11: bad argument to @end: html@, keeping the text after the block's name in its `@end` line; here it goes on with the paragraph
 build/corpus/paragraphs/text-after-the-end-of-a-block-in-a-paragraph-goes-on-with-the-paragraph.texi
@@ -50,6 +51,10 @@ examples/binutils-with-gold-2.46/binutils/doc/debug.options.texi
 # Comparison: a fragment for @include inside a table, where texi2any drops @item outside one
 examples/binutils-with-gold-2.46/binutils/doc/sframe.options.texi
   line 4: ours '@item', texi2any '(nothing)'
+
+# Comparison: texi2any's dump writes a newline as `\n` and a backslash as it is, so an example of `\n` alone has no text on texi2any's side for this script
+examples/coreutils-9.11/doc/coreutils.texi
+  line 6698: paragraphs: ours '<pre> </pre>', texi2any '(nothing)'
 
 # Invalid input; texi2any reports at line 5: no matching `@end quotation'
 texinfo-tests/02coverage/command_in_end.texi
@@ -305,6 +310,8 @@ texinfo-tests/10menu/menu_entry_no_entry.texi
   line 5: ours '*', texi2any '(nothing)'
   line 6: ours '*', texi2any '(nothing)'
   line 7: ours '*', texi2any '(nothing)'
+  line 2: paragraphs: ours '(nothing)', texi2any '<pre>'
+  line 7: paragraphs: ours '(nothing)', texi2any '</pre>'
 
 # Deliberate: a menu line starting with `*` is an entry, maybe still being typed, without a node yet; texi2any reads it as text
 texinfo-tests/10menu/menu_entry_no_entry_location.texi
@@ -312,22 +319,27 @@ texinfo-tests/10menu/menu_entry_no_entry_location.texi
   line 3: * arguments: ours 'not an entry', texi2any ' | manual | an entry in description and here with text'
   line 4: * arguments: ours ' | manual | an entry in description', texi2any ' | last manual'
   line 6: ours '* *', texi2any '(nothing)'
+  line 7: paragraphs: ours '<pre> </pre>', texi2any '(nothing)'
 
 # Deliberate: a menu line starting with `*` is an entry, maybe still being typed, without a node yet; texi2any reads it as text
 texinfo-tests/10menu/menu_no_closed_entry_beginning.texi
   line 2: ours '*', texi2any '(nothing)'
+  line 2: paragraphs: ours '(nothing)', texi2any '<pre> </pre>'
 
 # Deliberate: a menu line starting with `*` is an entry, maybe still being typed, without a node yet; texi2any reads it as text
 texinfo-tests/10menu/menu_no_closed_in_entry.texi
   line 2: ours '*', texi2any '(nothing)'
+  line 2: paragraphs: ours '(nothing)', texi2any '<pre> </pre>'
 
 # Deliberate: a menu line starting with `*` is an entry, maybe still being typed, without a node yet; texi2any reads it as text
 texinfo-tests/10menu/menu_no_closed_star.texi
   line 2: ours '*', texi2any '(nothing)'
+  line 2: paragraphs: ours '(nothing)', texi2any '<pre> </pre>'
 
 # Deliberate: a menu line starting with `*` is an entry, maybe still being typed, without a node yet; texi2any reads it as text
 texinfo-tests/10menu/no_colon_in_menu.texi
   line 4: ours '*', texi2any '(nothing)'
+  line 4: paragraphs: ours '(nothing)', texi2any '<pre> </pre>'
 
 # Deliberate: a block command in the middle of a line; blocks start and end at the beginning of a line, as the Texinfo manual requires (texi2any accepts it with an error)
 texinfo-tests/16raw/beginning_and_end_on_line.texi
@@ -391,10 +403,12 @@ texinfo-tests/20preformatted/example_invalid_at_commands_arguments.texi
 # Invalid input; texi2any reports at line 10: bad argument to @end: display text after end, keeping the text after the block's name in its `@end` line; here it is a paragraph after the block
 texinfo-tests/20preformatted/text_on_display_command_line.texi
   line 10: paragraphs: ours '<p> </p>', texi2any '(nothing)'
+  line 14: paragraphs: ours '<pre> </pre>', texi2any '(nothing)'
 
 # Invalid input; texi2any reports at line 10: bad argument to @end: example text after end, keeping the text after the block's name in its `@end` line; here it is a paragraph after the block
 texinfo-tests/20preformatted/text_on_example_command_line.texi
   line 10: paragraphs: ours '<p> </p>', texi2any '(nothing)'
+  line 14: paragraphs: ours '<pre> </pre>', texi2any '(nothing)'
 
 # Deliberate: multitable cells texi2any drops with a warning are kept as written
 texinfo-tests/21multitable/empty_multitable_with_cells.texi
@@ -708,6 +722,7 @@ texinfo-tests/57invalid_nestings/table_not_closed_in_menu_description.texi
   line 2: ours '@table', texi2any '+table'
   line 3: @item arguments: ours '(none)', texi2any 'item'
   line 5: ours '(nothing)', texi2any '-table'
+  line 3: paragraphs: ours '(nothing)', texi2any '<pre> </pre>'
 
 # Deliberate: a block command in the middle of a line; blocks start and end at the beginning of a line, as the Texinfo manual requires (texi2any accepts it with an error)
 texinfo-tests/57invalid_nestings/table_on_item_line.texi
@@ -769,6 +784,8 @@ texinfo-tests/60macro/macro_expansion.texi
 # Comparison: texi2any decides that the line is no menu entry before it expands the macro calls at its start; the expansion compared here starts with `* `
 texinfo-tests/60macro/macro_in_menu_comment_like_entry.texi
   line 7: ours '*', texi2any '(nothing)'
+  line 7: paragraphs: ours '(nothing)', texi2any '<pre>'
+  line 7: paragraphs: ours '(nothing)', texi2any '</pre>'
 
 # Deliberate: a line command in the middle of a line; line commands occupy a whole line, as the Texinfo manual requires (texi2any accepts it with a warning, taking the rest of the line as its argument)
 texinfo-tests/60macro/macro_in_misc_commands.texi
@@ -906,6 +923,7 @@ texinfo-tests/plaintext_tests/all_spaces.texi
 texinfo-tests/plaintext_tests/at_commands_glued_in_example.texi
   line 13: @sp arguments: ours '(none)', texi2any '4'
   line 15: @cindex arguments: ours '(none)', texi2any 'index'
+  line 2: <pre> arguments: ours 'at TeX TeX code code acronym acronym acronym2 acronym email email ref ref Foornote after footnote accent accent and star star noindent after noindent sp 4 anchor anchor index index', texi2any 'at TeX TeX code code acronym acronym acronym2 acronym email email ref ref Foornote after footnote accent accent and star star noindent after noindent sp anchor anchor index'
 
 # Deliberate: a line command in the middle of a line; line commands occupy a whole line, as the Texinfo manual requires (texi2any accepts it with a warning, taking the rest of the line as its argument)
 texinfo-tests/plaintext_tests/at_commands_glued_in_paragraph.texi
@@ -920,6 +938,10 @@ texinfo-tests/plaintext_tests/itemize_in_headitem_in_example.texi
   line 3: ours '@headitem', texi2any '(nothing)'
   line 7: ours '@item @headitem -itemize +itemize @headitem', texi2any '(nothing)'
   line 18: ours '@headitem', texi2any '-itemize +itemize @item'
+  line 3: paragraphs: ours '(nothing)', texi2any '<pre> </pre>'
+  line 8: paragraphs: ours '(nothing)', texi2any '<pre> </pre>'
+  line 12: paragraphs: ours '(nothing)', texi2any '<pre> </pre>'
+  line 18: paragraphs: ours '(nothing)', texi2any '<pre> </pre>'
 
 # Deliberate: multitable cells texi2any drops with a warning are kept as written
 texinfo-tests/plaintext_tests/multitable_in_example_extraneous_item_tab.texi
@@ -933,15 +955,19 @@ texinfo-tests/plaintext_tests/multitable_in_example_extraneous_tab.texi
 # Deliberate: a line command in the middle of a line; line commands occupy a whole line, as the Texinfo manual requires (texi2any accepts it with a warning, taking the rest of the line as its argument)
 texinfo-tests/plaintext_tests/sp_with_text_before_in_example.texi
   line 3: @sp arguments: ours '(none)', texi2any '4'
+  line 3: <pre> arguments: ours 'sp 4 text', texi2any 'sp text'
 
 # Invalid input; texi2any reports at line 3: @tab not meaningful inside `@table' block
 texinfo-tests/plaintext_tests/tab_in_table_in_example.texi
   line 3: ours '@tab', texi2any '(nothing)'
   line 6: ours '@tab', texi2any '(nothing)'
+  line 5: <pre> arguments: ours 'T other tab', texi2any 'T'
+  line 6: paragraphs: ours '(nothing)', texi2any '</pre> <pre>'
 
 # Invalid input; texi2any reports at line 2: ignoring @tab outside of multitable
 texinfo-tests/plaintext_tests/tab_item_in_example.texi
   line 2: ours '@tab @item', texi2any '(nothing)'
+  line 3: paragraphs: ours '(nothing)', texi2any '<pre> </pre>'
 
 # Deliberate: a C preprocessor line directive (`#line 7 "k"`) is text, as the tree shows the source as written; texi2any follows it, to report lines in the file it names, and drops it
 texinfo-tests/transformations/protect_hashchar_at_line_beginning_source_mark.texi

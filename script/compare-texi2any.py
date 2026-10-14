@@ -5,19 +5,24 @@ For each file, both trees are flattened into the sequence of @-commands they
 contain, in document order: `+name` and `-name` for the start and end of a
 block, also where a block left open ends without its `@end` (texi2any
 closes one at a `@node`, for instance), `*` for a menu entry, `@name` for
-every other command, and `<p>` and `</p>` for the start and end of a
-paragraph. The two sequences of commands are diffed, then the sequences
-with the paragraphs, for where those start and end, which are listed as
-`paragraphs:` differences (the commands apart, so that the paragraphs
-don't move where commands are paired). Sections aren't compared as such:
-texi2any's tree doesn't nest them. Neither is the text of preformatted
-blocks and menus, where texi2any has no paragraphs.
+every other command, `<p>` and `</p>` for the start and end of a
+paragraph, and `<pre>` and `</pre>` for those of preformatted text: in a
+preformatted block (`@example`) and a menu, where texi2any has no
+paragraphs, each stretch of content between the blocks, items and cells in
+it and the commands that end a paragraph but `@sp`, as texi2any holds it
+(not a menu entry's description, compared as its argument, nor a stretch
+of comments alone). The two sequences of commands are diffed, then the
+sequences with the paragraphs, for where those start and end, which are
+listed as `paragraphs:` differences (the commands apart, so that the
+paragraphs don't move where commands are paired); the summary counts
+preformatted text as paragraphs. Sections aren't compared as such:
+texi2any's tree doesn't nest them.
 
 Then the arguments of each command found on both sides are compared: one by
 one where this grammar splits them as texi2any does (at commas, a definition
 line into its category, class, type, name and arguments, a menu entry into
-its name, node and description), as one otherwise. A paragraph's argument
-is its text outside the commands in it. Of an argument, only its
+its name, node and description), as one otherwise. A paragraph's argument,
+and preformatted text's, is its text outside the commands in it. Of an argument, only its
 letters and digits count, of any script, with the names of the commands in it
 but not its comments, and without spaces: what both trees keep of it,
 whatever each makes of its spaces, braces and comments, and of the accents
@@ -131,6 +136,58 @@ NO_PARAGRAPHS = frozenset(
     for name, kind in texi2any_table("Commands", "block_commands").items()
     if kind in ("preformatted", "menu", "math")
 )
+# The blocks whose text texi2any holds as `preformatted`, one for each
+# stretch between the blocks in them: the preformatted blocks, with the
+# blocks inside them, and menus, for their comments (an entry's description,
+# compared as its argument, has one of its own).
+PREFORMATTED_TEXT = frozenset(
+    name
+    for name, kind in texi2any_table("Commands", "block_commands").items()
+    if kind in ("preformatted", "menu")
+)
+# The nodes whose content is preformatted text where they are in a block
+# that is, and what is no part of that text, but holds its own or is a
+# command or argument before it.
+PREFORMATTED_HOLDERS = frozenset(
+    ("block", "menu", "list", "item", "tab", "item_body", "definition_block", "definition_body")
+)
+PREFORMATTED_BREAKS = frozenset(
+    (
+        *PREFORMATTED_HOLDERS,
+        "definition_block",
+        "definition_line",
+        "heading",
+        "menu_entry",
+        "itemx",
+        "line_argument",
+        "argument",
+        "command_name",
+    )
+)
+# The commands that end preformatted text, as texi2any's
+# close_preformatted_commands: those that end a paragraph but `@sp`.
+CLOSE_PREFORMATTED = frozenset(texi2any_table("Commands", "close_paragraph_commands")) - {"sp"}
+
+
+def breaks_stretch(node) -> bool:
+    """Whether `node` ends a stretch of preformatted text, as in texi2any:
+    a block but a conditional (which texi2any evaluates), a raw block
+    `@verbatim`, an item, a cell, and the commands that end a paragraph but
+    `@sp`. Raw blocks and macro definitions don't, nor index entries."""
+    if not node.is_named:
+        # Punctuation, such as the comma between a float's arguments.
+        return True
+    name_node = node.child_by_field_name("name")
+    name = text(name_node)[1:] if name_node is not None else ""
+    if node.type == "raw_block":
+        return name == "verbatim"
+    if node.type == "block":
+        return not name.startswith("if")
+    if node.type in ("line_command", "inline_command"):
+        return name in CLOSE_PREFORMATTED
+    return node.type in PREFORMATTED_BREAKS
+
+
 # The commands that start no paragraph in texi2any.
 NO_PARAGRAPH_COMMANDS = frozenset(
     "@" + name for name in texi2any_table("Commands", "no_paragraph_commands")
@@ -328,6 +385,8 @@ class OurWalker:
         self.in_definition_line = False
         # Whether a paragraph here is one in texi2any's tree too.
         self.paragraphs = True
+        # Whether the text here is preformatted in texi2any's tree.
+        self.preformatted = False
 
     def emit(
         self,
@@ -342,17 +401,63 @@ class OurWalker:
     def arguments(self, node, fields=None, skip=("name", "end", "body")):
         return our_arguments(node, self.unknown, fields, skip)
 
-    def children(self, node, *skip, paragraphs: bool | None = None):
+    def children(
+        self,
+        node,
+        *skip,
+        paragraphs: bool | None = None,
+        preformatted: bool | None = None,
+    ):
         """Walks the children of `node`, except the `skip` nodes; where
-        `paragraphs` is given, its paragraphs are or aren't texi2any's."""
+        `paragraphs` is given, its paragraphs are or aren't texi2any's (and
+        its text not preformatted where they are), where `preformatted` is
+        given, its text is or isn't preformatted. Preformatted text is a
+        `<pre>` for each stretch of content between the blocks, items and
+        cells in it, as texi2any has them."""
         skipped = {n.id for n in skip if n is not None}
-        previous = self.paragraphs
+        previous = self.paragraphs, self.preformatted
         if paragraphs is not None:
             self.paragraphs = paragraphs
-        for child in node.children:
-            if child.id not in skipped:
+            self.preformatted = self.preformatted and not paragraphs
+        if preformatted is not None:
+            self.preformatted = preformatted
+        children = [child for child in node.children if child.id not in skipped]
+        if self.preformatted and node.type in PREFORMATTED_HOLDERS:
+            self.stretches(node, children)
+        else:
+            for child in children:
                 self.walk(child)
-        self.paragraphs = previous
+        self.paragraphs, self.preformatted = previous
+
+    def stretches(self, node, children: list):
+        """Walks `children` of `node`, each stretch of content between the
+        others as preformatted text, `<pre>`."""
+        stretch: list = []
+
+        def flush():
+            # A stretch of comments alone isn't one, as texi2any has them in
+            # what is around them (a menu entry's description).
+            if all(child.type == "comment" for child in stretch):
+                for child in stretch:
+                    self.walk(child)
+                stretch.clear()
+                return
+            found = words(paragraph_text(node, stretch, self.unknown))
+            self.emit("<pre>", stretch[0], False, ((found,), False))
+            for child in stretch:
+                self.walk(child)
+            last = stretch[-1]
+            end = last.end_point.row + (1 if last.end_point.column else 0)
+            self.tokens.append(Token("</pre>", end, False))
+            stretch.clear()
+
+        for child in children:
+            if breaks_stretch(child):
+                flush()
+                self.walk(child)
+            else:
+                stretch.append(child)
+        flush()
 
     def walk_expanded_arguments(self, name: str, node):
         """Walks only the arguments of an inline conditional that texi2any
@@ -410,6 +515,8 @@ class OurWalker:
             if argument is not None and name.startswith("def"):
                 self.walk_definition_line(argument)
                 self.children(node, name_node, argument, end, paragraphs=paragraphs)
+            elif name in PREFORMATTED_TEXT:
+                self.children(node, name_node, end, paragraphs=False, preformatted=True)
             else:
                 self.children(node, name_node, end, paragraphs=paragraphs)
             if end.end_byte > end.start_byte:
@@ -704,6 +811,23 @@ def dump_text(node: DumpNode) -> str:
     return ""
 
 
+def has_content(node: DumpNode) -> bool:
+    """Whether `node` holds text other than newlines and spaces, or a
+    command other than a comment."""
+    for child in node.children:
+        name = command_name(child.label)
+        if name is not None:
+            if name not in COMMENTS:
+                return True
+            continue
+        match = LABEL.fullmatch(child.label)
+        content = match.group(2) if match and not match.group(1) else None
+        # The dump writes a newline as `\\n`, and a backslash as it is.
+        if content and re.sub(r"\\[nfr]", "", content).strip():
+            return True
+    return False
+
+
 def dump_paragraph_words(node: DumpNode) -> str:
     """The words of a paragraph's text outside the commands in it, without
     its comments (see `paragraph_text`)."""
@@ -917,6 +1041,21 @@ def texi2any_tokens(dump: str, line_commands: set[str]) -> list[Token]:
         return tuple(found)
 
     def walk(node: DumpNode):
+        kind = label_type(node.label)
+        if kind == "menu_entry_description":
+            # Compared as the entry's argument.
+            for child in node.children:
+                for grandchild in (
+                    child.children if label_type(child.label) == "preformatted" else [child]
+                ):
+                    walk(grandchild)
+            return
+        if kind == "preformatted" and has_content(node):
+            tokens.append(Token("<pre>", arguments=(dump_paragraph_words(node),)))
+            for child in node.children:
+                walk(child)
+            tokens.append(Token("</pre>"))
+            return
         if label_type(node.label) == "paragraph":
             tokens.append(Token("<p>", arguments=(dump_paragraph_words(node),)))
             for child in node.children:
@@ -1004,15 +1143,17 @@ class Differences:
     same_text: int = 0
 
 
-PARAGRAPH_TOKENS = ("<p>", "</p>")
+PARAGRAPH_TOKENS = ("<p>", "</p>", "<pre>", "</pre>")
+# The tokens that start a paragraph or preformatted text, with its text.
+TEXT_TOKENS = ("<p>", "<pre>")
 
 
 def near_unknown(ours: list[Token], start: int, end: int, unknown_lines: frozenset[int]) -> bool:
     """Whether a command texi2any doesn't know is on the lines from the start
     of our paragraph before `start` (or the one it is in) to the end of the
     one at or after `end`."""
-    first = next((t.line for t in reversed(ours[:start]) if t.name == "<p>"), 1)
-    last = next((t.line for t in ours[end:] if t.name == "</p>"), None)
+    first = next((t.line for t in reversed(ours[:start]) if t.name in TEXT_TOKENS), 1)
+    last = next((t.line for t in ours[end:] if t.name in ("</p>", "</pre>")), None)
     return any(first <= line and (last is None or line <= last) for line in unknown_lines)
 
 
@@ -1054,9 +1195,9 @@ def paragraph_differences(
     ends: dict[int, int | None] = {}
     starts: list[int] = []
     for index, token in enumerate(ours):
-        if token.name == "<p>":
+        if token.name in TEXT_TOKENS:
             starts.append(index)
-        elif token.name == "</p>" and starts:
+        elif token.name in ("</p>", "</pre>") and starts:
             ends[starts.pop()] = token.line
     matcher = difflib.SequenceMatcher(
         a=[t.name for t in ours],
@@ -1070,7 +1211,7 @@ def paragraph_differences(
             for index, (mine, reference) in enumerate(
                 zip(ours[a1:a2], theirs[b1:b2], strict=True), a1
             ):
-                if mine.name == "<p>":
+                if mine.name in TEXT_TOKENS:
                     paragraphs += 1
                     end = ends.get(index) or mine.line
                     if any(mine.line <= line <= end for line in unknown_lines):
@@ -1212,7 +1353,7 @@ def main() -> int:
             found[str(path)] = file_differences
             commands = sum(t.name not in PARAGRAPH_TOKENS for t in ours)
             their_commands = sum(t.name not in PARAGRAPH_TOKENS for t in theirs)
-            paragraphs = sum(t.name == "<p>" for t in ours)
+            paragraphs = sum(t.name in TEXT_TOKENS for t in ours)
             print(
                 f"{path}: {len(file_differences)} differences, {compared.matched} of "
                 f"{commands} vs {their_commands} commands match, {compared.same_arguments} "

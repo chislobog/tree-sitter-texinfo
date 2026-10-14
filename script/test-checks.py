@@ -44,6 +44,12 @@ PARAGRAPH_DIFFERENCES = [
     "line 1: paragraphs: ours '(nothing)', texi2any '</p>'",
     "line 1: paragraphs: ours '</p>', texi2any '(nothing)'",
 ]
+# The same in a preformatted block, whose text is compared too.
+PREFORMATTED = CHECKS / "line-command-in-example.texi"
+PREFORMATTED_DIFFERENCE = (
+    "line 2: <pre> arguments: ours 'Some code then a line command 2', "
+    "texi2any 'Some code then a line command'"
+)
 # A block that texi2any closes at a section in the middle of its line, where
 # neither has an `@end`.
 BLOCK = CHECKS / "block-closed-mid-line.texi"
@@ -118,6 +124,12 @@ def check_comparison(checker: Checker):
         [*compare, none, ARGUMENTS],
         False,
         *(f"Unexpected: {ARGUMENTS}: {difference}" for difference in PARAGRAPH_DIFFERENCES),
+    )
+    checker.expect(
+        "comparison: a difference in preformatted text not listed fails",
+        [*compare, none, PREFORMATTED],
+        False,
+        f"Unexpected: {PREFORMATTED}: {PREFORMATTED_DIFFERENCE}",
     )
     checker.expect(
         "comparison: a block's end without its `@end` counts",
