@@ -3,16 +3,19 @@ r"""Compare this grammar's parse trees with texi2any's, the reference parser.
 
 For each file, both trees are flattened into the sequence of @-commands they
 contain, in document order: `+name` and `-name` for the start and end of a
-block, `*` for a menu entry, `@name` for every other command. The two
-sequences are then diffed.
+block, also where a block left open ends without its `@end` (texi2any
+closes one at a `@node`, for instance), `*` for a menu entry, `@name` for
+every other command. The two sequences are then diffed. Sections aren't
+compared as such: texi2any's tree doesn't nest them.
 
 Then the arguments of each command found on both sides are compared: one by
 one where this grammar splits them as texi2any does (at commas, a definition
 line into its category, class, type, name and arguments, a menu entry into
 its name, node and description), as one otherwise. Of an argument, only its
-ASCII letters and digits count, with the names of the commands in it but not
-its comments: what both trees keep of it, whatever each makes of its spaces,
-braces and comments.
+letters and digits count, of any script, with the names of the commands in it
+but not its comments, and without spaces: what both trees keep of it,
+whatever each makes of its spaces, braces and comments, and of the accents
+that split a word in texi2any's tree.
 
 texi2any expands macros, line macros, `@value` and aliases, and evaluates
 conditionals, before or while it parses; a tree-sitter grammar keeps them as
@@ -123,14 +126,16 @@ class Token:
     split: bool = False
 
 
-WORD = re.compile(r"[A-Za-z0-9]+")
+# Letters and digits, of any script, so that arguments in Japanese or with
+# accents are compared too.
+WORD = re.compile(r"[^\W_]+")
 
 
 def words(argument: str) -> str:
-    """The ASCII letters and digits of an argument, in runs separated by a
-    space: what both trees keep of it, whatever each makes of its spaces,
-    braces and commands. texi2any's dump writes a newline as `\\n`, so a
-    written `\\n` is a space too."""
+    """The letters and digits of an argument, in runs separated by a space:
+    what both trees keep of it, whatever each makes of its spaces, braces and
+    commands. texi2any's dump writes a newline as `\\n`, so a written `\\n`
+    is a space too."""
     return " ".join(WORD.findall(re.sub(r"\\[nfr]", " ", argument)))
 
 
@@ -299,6 +304,8 @@ class OurWalker:
             self.children(node, line, end)
             if end.end_byte > end.start_byte:
                 self.emit("-" + text(end).split()[-1], end, True)
+            else:
+                self.emit("-" + text(name_node)[1:], end, True)
             return
 
         if kind in ("block", "menu", "list", "raw_block", "macro_definition"):
@@ -315,6 +322,9 @@ class OurWalker:
                 self.children(node, name_node, end)
             if end.end_byte > end.start_byte:
                 self.emit("-" + text(end).split()[-1], end, True)
+            else:
+                # Where a block left open ends, as where texi2any closes one.
+                self.emit("-" + name, end, True)
             return
 
         if kind == "definition_line":
@@ -765,6 +775,10 @@ def texi2any_tokens(dump: str, line_commands: set[str]) -> list[Token]:
                 # Comments on the `@end` line.
                 for child in children[-1].children:
                     walk(child)
+            else:
+                # Where texi2any closed it, as at a `@node` or the end of the
+                # file.
+                tokens.append(Token("-" + name[1:], structural=True))
             return
         # User-defined index commands (`@defindex op` makes `@opindex`).
         structural = name[1:] in line_commands or "index_entry_command" in node.label
@@ -789,7 +803,8 @@ def shown(arguments: tuple[str, ...]) -> str:
 
 def argument_difference(ours: Token, theirs: Token) -> str | None:
     """The difference between the arguments of a command found on both sides,
-    if any, compared without spaces."""
+    if any, compared without spaces: an accent splits a word in texi2any's
+    tree (`J@"urgen` is `J`, `u`, `rgen`) but not in the source."""
     mine, reference = ours.arguments, theirs.arguments
     if mine is None or reference is None:
         return None

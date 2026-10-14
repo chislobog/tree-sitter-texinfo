@@ -37,6 +37,10 @@ TAB_DIFFERENCE = "line 3: ours '@tab', texi2any '(nothing)'"
 # same command on both sides, with different arguments.
 ARGUMENTS = CHECKS / "line-command-in-text.texi"
 ARGUMENTS_DIFFERENCE = "line 1: @sp arguments: ours '(none)', texi2any '2'"
+# A block that texi2any closes at a section in the middle of its line, where
+# neither has an `@end`.
+BLOCK = CHECKS / "block-closed-mid-line.texi"
+BLOCK_DIFFERENCE = "line 1: ours '(nothing)', texi2any '-itemize'"
 
 
 class Checker:
@@ -101,6 +105,22 @@ def check_comparison(checker: Checker):
         False,
         f"Unexpected: {ARGUMENTS}: {ARGUMENTS_DIFFERENCE}",
         count=("Unexpected:", 1),
+    )
+    checker.expect(
+        "comparison: a block's end without its `@end` counts",
+        [*compare, none, BLOCK],
+        False,
+        f"Unexpected: {BLOCK}: {BLOCK_DIFFERENCE}",
+    )
+    spec = importlib.util.spec_from_file_location(
+        "compare", ROOT / "script" / "compare-texi2any.py"
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    found = module.words("@xref{Top, 節, Été}")
+    checker.report(
+        "comparison: letters of any script count",
+        [] if found == "xref Top 節 Été" else [f"words gave {found!r}"],
     )
     unexplained = checker.file("unexplained.txt", f"{TAB}\n  {TAB_DIFFERENCE}\n")
     checker.expect(
@@ -190,6 +210,12 @@ def check_parse_errors(checker: Checker):
         "parse errors: listed files pass",
         [*command, checker.file("errors.txt", f"# A reason\n{PARSE_ERROR}\n"), PARSE_ERROR, SAME],
         True,
+    )
+    checker.expect(
+        "parse speed: --stress adds the generated inputs",
+        [*command, checker.file("stress-errors.txt", ""), "--stress", SAME],
+        True,
+        "5 files, 0 with parse errors",
     )
     # Of two files, the slower is slower than the median by any factor above 1.
     plain = checker.file("plain.texi", "Plain text in a paragraph.\n\n" * 1000)

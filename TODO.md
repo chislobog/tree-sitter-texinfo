@@ -447,6 +447,12 @@ Deliberate, so the tree shows the source as it is written and edited:
   bugs: `@c|` wasn't a comment, a heading wasn't one inside `@footnote`,
   and an accent at the end of a heading took the next line's first
   character; and the gaps above
+- [x] The comparison counts where a block left open ends, as where
+  texi2any closes one at a `@node`: it couldn't see a block that went on
+  past it (no new difference: the grammar closes them as texi2any does
+  now, but in the middle of a line). Letters of any script count in
+  arguments, not only ASCII ones (no new difference either, in Maxima's
+  Japanese manual among others)
 - [x] texi2any and the manuals pinned apart from the tools (the `reference`
   input in `flake.nix`, a fixed nixpkgs revision): `nix flake update` for a
   newer tree-sitter or LLVM no longer brings a new texi2any and new manuals

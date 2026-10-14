@@ -200,13 +200,16 @@ snapshots-diff`, then `just snapshots-write`; a manual's new version is a new
 path, so its old snapshots go and new ones come.
 
 The comparison checks which commands appear, in order (a menu entry is
-`*`), then the arguments of each command found on both sides: field by field
+`*`, and a block's end counts where it ends without its `@end` too), then
+the arguments of each command found on both sides: field by field
 where the grammar splits them as texi2any does (at commas, a definition line
 into its words, a menu entry into its parts; the positions are the grammar's
 `ARGUMENT_COMMANDS` and the script's tables), as one otherwise. Only an
-argument's ASCII letters and digits count, with the names of the commands in
-it but not its comments, so a difference in spaces or punctuation alone, or
-in a field's node type, shows up only in corpus tests. A difference in
+argument's letters and digits count (of any script), without spaces, with the
+names of the commands in it but not its comments, so a difference in spaces
+or punctuation alone, in a field's node type, in where a paragraph ends, in
+text outside arguments or in how sections nest shows up only in corpus
+tests and the snapshots. A difference in
 arguments is listed as `line N: @xref arguments: ours 'a | b', texi2any
 'a b'`, the fields separated by `|`. To
 find scanner code no corpus test reaches, build a small harness with

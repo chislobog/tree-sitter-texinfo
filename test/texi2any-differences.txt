@@ -16,12 +16,10 @@ examples/binutils-with-gold-2.46/binutils/doc/sframe.options.texi
 # Invalid input; texi2any reports at line 5: no matching `@end quotation'
 texinfo-tests/02coverage/command_in_end.texi
   line 5: ours '(nothing)', texi2any '@code'
-  line 9: ours '(nothing)', texi2any '@code'
-  line 13: ours '(nothing)', texi2any '@code'
-  line 17: ours '(nothing)', texi2any '@asis'
-  line 21: ours '(nothing)', texi2any '-q @asis'
-  line 25: ours '(nothing)', texi2any '-qu @asis'
-  line 29: ours '(nothing)', texi2any '-quot @asis'
+  line 7: ours '(nothing)', texi2any '@code +quotation @code +quotation @asis +quotation -q @asis +quotation -qu @asis +quotation -quot @asis +verbatim -verbatim'
+  line 9: ours '+quotation', texi2any '(nothing)'
+  line 13: ours '+quotation', texi2any '(nothing)'
+  line 17: ours '+quotation -quotation +quotation -quotation +quotation -quotation +verbatim -verbatim', texi2any '(nothing)'
 
 # Deliberate: a DEL character is text; the Texinfo manual makes it a comment character to the end of the line, merging the next line into it, which texi2any deletes before parsing and a tree of the source as written can't show
 texinfo-tests/02coverage/delcomment_on_comment.texi
@@ -29,12 +27,12 @@ texinfo-tests/02coverage/delcomment_on_comment.texi
 
 # Invalid input; texi2any reports at line 1: no matching `@end quotation'
 texinfo-tests/02coverage/end_bad_end_argument_and_superfluous_arg.texi
-  line 1: ours '(nothing)', texi2any '@code'
+  line 4: ours '(nothing)', texi2any '@code'
 
 # Deliberate: a block command in the middle of a line; blocks start and end at the beginning of a line, as the Texinfo manual requires (texi2any accepts it with an error)
 texinfo-tests/02coverage/group_beginning_and_end_on_line.texi
   line 1: +group arguments: ours 'within end group', texi2any 'within'
-  line 1: ours '@end', texi2any '-group'
+  line 1: ours '@end', texi2any '(nothing)'
 
 # Deliberate: a brace or argument on the line after its command doesn't belong to it (texi2any reports at line 3: command `@ringaccent' must not be followed by new line, and takes it)
 texinfo-tests/02coverage/lettered_accent_and_spaces.texi
@@ -192,7 +190,8 @@ texinfo-tests/10menu/no_colon_in_menu.texi
 # Deliberate: a block command in the middle of a line; blocks start and end at the beginning of a line, as the Texinfo manual requires (texi2any accepts it with an error)
 texinfo-tests/16raw/beginning_and_end_on_line.texi
   line 2: +tex arguments: ours 'in tex end tex', texi2any 'in tex'
-  line 2: ours '@end', texi2any '-tex +verbatim -verbatim +html -html'
+  line 2: ours '@end', texi2any '(nothing)'
+  line 7: ours '(nothing)', texi2any '+verbatim -verbatim +html -html'
 
 # Deliberate: a block command in the middle of a line; blocks start and end at the beginning of a line, as the Texinfo manual requires (texi2any accepts it with an error)
 texinfo-tests/16raw/raw_commands_and_end_of_lines.texi
@@ -203,7 +202,7 @@ texinfo-tests/16raw/raw_commands_and_end_of_lines.texi
 # Deliberate: a block command in the middle of a line; blocks start and end at the beginning of a line, as the Texinfo manual requires (texi2any accepts it with an error)
 texinfo-tests/181quotation/quotation_beginning_and_end_on_line.texi
   line 1: +quotation arguments: ours 'in quotation end quotation', texi2any 'in quotation'
-  line 1: ours '@end', texi2any '-quotation'
+  line 1: ours '@end', texi2any '(nothing)'
 
 # Invalid input; texi2any reports at line 3: @itemx outside of table or list, and at line 4: @headitem not meaningful inside `@enumerate' block
 texinfo-tests/18itemize/headitem_itemx_in_enumerate.texi
@@ -218,7 +217,7 @@ texinfo-tests/18itemize/headitem_itemx_in_itemize.texi
 # Deliberate: block and line commands in the middle of a line; they start at the beginning of a line, as the Texinfo manual requires (texi2any accepts them with an error or a warning)
 texinfo-tests/19def/double_command.texi
   line 1: @deffnx arguments: ours '(none)', texi2any 'func plot2 a b c d'
-  line 5: ours '@defvr', texi2any '+defvr'
+  line 5: ours '@defvr', texi2any '+defvr -defvr'
 
 # Deliberate: a line command in the middle of a line; line commands occupy a whole line, as the Texinfo manual requires (texi2any accepts it with a warning, taking the rest of the line as its argument)
 texinfo-tests/20preformatted/example_invalid_at_commands_arguments.texi
@@ -305,7 +304,7 @@ texinfo-tests/57invalid_nestings/bad_tab_nesting.texi
 # Deliberate: block and line commands in the middle of a line; they start at the beginning of a line, as the Texinfo manual requires (texi2any accepts them with an error or a warning)
 texinfo-tests/57invalid_nestings/center.texi
   line 3: @cindex arguments: ours '(none)', texi2any 'cindex'
-  line 5: ours '@quotation', texi2any '+quotation'
+  line 5: ours '@quotation', texi2any '+quotation -quotation'
   line 9: @center arguments: ours '(none)', texi2any 'second center'
   line 15: @code arguments: ours 'in code in center center center in code in center', texi2any 'in code in center'
   line 15: @center arguments: ours '(none)', texi2any 'center in code in center'
@@ -324,12 +323,12 @@ texinfo-tests/57invalid_nestings/center.texi
   line 42: @center arguments: ours 'item cstruc', texi2any 'cstruc'
   line 42: ours '@item', texi2any '(nothing)'
   line 45: ours '@table', texi2any '+table'
-  line 46: ours '@item @item', texi2any '(nothing)'
+  line 46: ours '@item @item', texi2any '-table'
 
 # Deliberate: a block command in the middle of a line; blocks start and end at the beginning of a line, as the Texinfo manual requires (texi2any accepts it with an error)
 texinfo-tests/57invalid_nestings/def_not_closed_in_menu_description.texi
   line 2: * arguments: ours ' | info | before deff deffn bidule truc chose', texi2any ' | info | before deff deffn bidule truc chose deffn text'
-  line 2: ours '@deffn', texi2any '+deffn'
+  line 2: ours '@deffn', texi2any '+deffn -deffn'
 
 # Deliberate: line commands in the middle of a line; line commands occupy a whole line, as the Texinfo manual requires (texi2any accepts them with a warning); and invalid input: texi2any reports at line 11: @ref missing closing brace
 texinfo-tests/57invalid_nestings/in_table.texi
@@ -392,7 +391,7 @@ texinfo-tests/57invalid_nestings/on_subheading_line.texi
 
 # Deliberate: a block command in the middle of a line; blocks start and end at the beginning of a line, as the Texinfo manual requires (texi2any accepts it with an error)
 texinfo-tests/57invalid_nestings/raw_block_on_line.texi
-  line 1: ours '@tex', texi2any '+tex'
+  line 1: ours '@tex', texi2any '+tex -tex'
 
 # Invalid input; texi2any reports at line 5: @insertcopying not allowed inside `@copying' block
 texinfo-tests/57invalid_nestings/recursive_copying.texi
@@ -405,33 +404,43 @@ texinfo-tests/57invalid_nestings/section_in_table.texi
 # Deliberate: a line command in the middle of a line; line commands occupy a whole line, as the Texinfo manual requires (texi2any accepts it with a warning, taking the rest of the line as its argument)
 texinfo-tests/57invalid_nestings/section_on_cartouche_line.texi
   line 1: +cartouche arguments: ours 'section first', texi2any '(none)'
+  line 1: ours '(nothing)', texi2any '-cartouche'
   line 1: @section arguments: ours '(none)', texi2any 'first'
   line 3: +cartouche arguments: ours 'section second spaces', texi2any '(none)'
+  line 3: ours '(nothing)', texi2any '-cartouche'
   line 3: @section arguments: ours '(none)', texi2any 'second spaces'
+  line 4: ours '-cartouche -cartouche', texi2any '(nothing)'
 
 # Deliberate: a line command in the middle of a line; line commands occupy a whole line, as the Texinfo manual requires (texi2any accepts it with a warning, ends the definition there, and reports at line 5: unmatched `@end deffn')
 texinfo-tests/57invalid_nestings/section_on_def_line.texi
   line 1: +deffn arguments: ours 'a |  |  | b | section s', texi2any 'a |  |  | b'
+  line 1: ours '(nothing)', texi2any '-deffn'
   line 1: @section arguments: ours '(none)', texi2any 's'
   line 5: ours '-deffn', texi2any '(nothing)'
 
 # Deliberate: a line command in the middle of a line; line commands occupy a whole line, as the Texinfo manual requires (texi2any accepts it with a warning, ends the definition there, and reports at line 6: unmatched `@end deffn')
 texinfo-tests/57invalid_nestings/section_on_defx_line.texi
   line 2: @deffnx arguments: ours 'a |  |  | b | section s', texi2any 'a |  |  | b'
+  line 2: ours '(nothing)', texi2any '-deffn'
   line 2: @section arguments: ours '(none)', texi2any 's'
   line 6: ours '-deffn', texi2any '(nothing)'
 
 # Deliberate: a line command in the middle of a line; line commands occupy a whole line, as the Texinfo manual requires (texi2any accepts it with a warning, taking the rest of the line as its argument)
 texinfo-tests/57invalid_nestings/section_on_enumerate_line.texi
   line 1: +enumerate arguments: ours 'something section first', texi2any 'something'
+  line 1: ours '(nothing)', texi2any '-enumerate'
   line 1: @section arguments: ours '(none)', texi2any 'first'
   line 3: +enumerate arguments: ours '4 section second', texi2any '4'
+  line 3: ours '(nothing)', texi2any '-enumerate'
   line 3: @section arguments: ours '(none)', texi2any 'second'
+  line 4: ours '-enumerate -enumerate', texi2any '(nothing)'
 
 # Deliberate: a line command in the middle of a line; line commands occupy a whole line, as the Texinfo manual requires (texi2any accepts it with a warning, taking the rest of the line as its argument)
 texinfo-tests/57invalid_nestings/section_on_float_line.texi
   line 1: +float arguments: ours 't | l section first', texi2any 't | l'
+  line 1: ours '(nothing)', texi2any '-float'
   line 1: @section arguments: ours '(none)', texi2any 'first'
+  line 2: ours '-float', texi2any '(nothing)'
 
 # Deliberate: a line command in the middle of a line; line commands occupy a whole line, as the Texinfo manual requires (texi2any accepts it with a warning, taking the rest of the line as its argument)
 texinfo-tests/57invalid_nestings/section_on_index_entry_line.texi
@@ -441,33 +450,47 @@ texinfo-tests/57invalid_nestings/section_on_index_entry_line.texi
 # Deliberate: a line command in the middle of a line; line commands occupy a whole line, as the Texinfo manual requires (texi2any accepts it with a warning, taking the rest of the line as its argument)
 texinfo-tests/57invalid_nestings/section_on_itemize_line.texi
   line 1: +itemize arguments: ours 'minus section first', texi2any 'minus'
+  line 1: ours '(nothing)', texi2any '-itemize'
   line 1: @section arguments: ours '(none)', texi2any 'first'
   line 3: +itemize arguments: ours 'minus aa section second', texi2any 'minus aa'
+  line 3: ours '(nothing)', texi2any '-itemize'
   line 3: @section arguments: ours '(none)', texi2any 'second'
   line 5: +itemize arguments: ours 'section third', texi2any '(none)'
+  line 5: ours '(nothing)', texi2any '-itemize'
   line 5: @section arguments: ours '(none)', texi2any 'third'
   line 7: +itemize arguments: ours 'ringaccent section fourth', texi2any 'ringaccent'
+  line 7: ours '(nothing)', texi2any '-itemize'
   line 7: @section arguments: ours '(none)', texi2any 'fourth'
+  line 8: ours '-itemize -itemize -itemize -itemize', texi2any '(nothing)'
 
 # Deliberate: a line command in the middle of a line; line commands occupy a whole line, as the Texinfo manual requires (texi2any accepts it with a warning, taking the rest of the line as its argument)
 texinfo-tests/57invalid_nestings/section_on_multitable_line.texi
   line 1: +multitable arguments: ours 'section first', texi2any '(none)'
+  line 1: ours '(nothing)', texi2any '-multitable'
   line 1: @section arguments: ours '(none)', texi2any 'first'
   line 3: +multitable arguments: ours 'code this section second', texi2any 'code this'
+  line 3: ours '(nothing)', texi2any '-multitable'
   line 3: @section arguments: ours '(none)', texi2any 'second'
   line 5: +multitable arguments: ours 'aaa bbb section third', texi2any 'aaa bbb'
+  line 5: ours '(nothing)', texi2any '-multitable'
   line 5: @section arguments: ours '(none)', texi2any 'third'
+  line 6: ours '-multitable -multitable -multitable', texi2any '(nothing)'
 
 # Deliberate: a line command in the middle of a line; line commands occupy a whole line, as the Texinfo manual requires (texi2any accepts it with a warning, taking the rest of the line as its argument)
 texinfo-tests/57invalid_nestings/section_on_xtable_line.texi
   line 1: +vtable arguments: ours 'section first', texi2any '(none)'
+  line 1: ours '(nothing)', texi2any '-vtable'
   line 1: @section arguments: ours '(none)', texi2any 'first'
   line 3: +table arguments: ours 'TeX section second', texi2any 'TeX'
+  line 3: ours '(nothing)', texi2any '-table'
   line 3: @section arguments: ours '(none)', texi2any 'second'
   line 5: +table arguments: ours 'code section third', texi2any 'code'
+  line 5: ours '(nothing)', texi2any '-table'
   line 5: @section arguments: ours '(none)', texi2any 'third'
   line 7: +ftable arguments: ours 'ringaccent section fourth', texi2any 'ringaccent'
+  line 7: ours '(nothing)', texi2any '-ftable'
   line 7: @section arguments: ours '(none)', texi2any 'fourth'
+  line 8: ours '-ftable -table -table -vtable', texi2any '(nothing)'
 
 # Invalid input; texi2any reports at line 4: @code missing closing brace
 texinfo-tests/57invalid_nestings/style_not_closed_in_table_line.texi
@@ -483,10 +506,12 @@ texinfo-tests/57invalid_nestings/tab_in_index.texi
 texinfo-tests/57invalid_nestings/table_not_closed_in_menu_description.texi
   line 2: ours '@table', texi2any '+table'
   line 3: @item arguments: ours '(none)', texi2any 'item'
+  line 5: ours '(nothing)', texi2any '-table'
 
 # Deliberate: a block command in the middle of a line; blocks start and end at the beginning of a line, as the Texinfo manual requires (texi2any accepts it with an error)
 texinfo-tests/57invalid_nestings/table_on_item_line.texi
   line 2: ours '@table', texi2any '+table'
+  line 3: ours '(nothing)', texi2any '-table'
 
 # Comparison: texi2any's expansion of this file isn't the same document, so both sides parse the expansion, whose @alias lines texi2any then applies a second time to the already resolved names
 texinfo-tests/58alias/recursive_alias.texi
