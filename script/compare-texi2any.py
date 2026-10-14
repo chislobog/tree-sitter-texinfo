@@ -619,6 +619,13 @@ def run_texi2any(path: Path, source: bytes) -> tuple[str, str, bytes | None]:
             # prints its tree, which is what is compared.
             check=False,
         )
+        # Beyond the error of invalid input (1), texi2any failed, and its
+        # tree may be cut short: Perl's `die` exits with 255, a signal below 0.
+        if result.returncode not in (0, 1):
+            raise SystemExit(
+                f"{path}: texi2any exited with {result.returncode}:\n"
+                + result.stderr.decode("utf-8", "replace")
+            )
         expanded = expansion.read_bytes() if expansion.exists() else None
     return (
         result.stdout.decode("utf-8", "replace"),

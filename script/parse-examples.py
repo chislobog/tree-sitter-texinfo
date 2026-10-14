@@ -165,6 +165,11 @@ def main() -> int:
             f"{len(summaries)} files, {len(failed)} with parse errors; median speed "
             f"{median / 1e6:.2f} MB/s, slowest {min(rates.values()) / 1e6:.2f} MB/s"
         )
+    else:
+        print(
+            f"{len(summaries)} files, {len(failed)} with parse errors; none of "
+            f"{MIN_BYTES // 1000} KB or more, so the speed isn't checked"
+        )
     return 1 if failures else 0
 
 

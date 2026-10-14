@@ -73,12 +73,15 @@ def load_language(root: Path = ROOT) -> Language:
     newest = max(source.stat().st_mtime for source in sources)
     if not library.exists() or library.stat().st_mtime < newest:
         library.parent.mkdir(exist_ok=True)
-        subprocess.run(
+        built = subprocess.run(
             ["tree-sitter", "build", "-o", str(library)],
             cwd=root,
-            check=True,
             capture_output=True,
+            text=True,
+            check=False,
         )
+        if built.returncode != 0:
+            raise SystemExit(f"tree-sitter build failed:\n{built.stdout}{built.stderr}")
     loaded = ctypes.cdll.LoadLibrary(str(library))
     loaded.tree_sitter_texinfo.restype = ctypes.c_void_p
     # py-tree-sitter takes the language pointer wrapped in a PyCapsule.
@@ -121,8 +124,14 @@ def _find(directory: Path, suffixes: tuple[str, ...]) -> list[Path]:
     symbolic links, as `find -L` does, sorted. Relative to the current
     directory, so that from the repository's root the names are those the
     snapshots and the lists of differences record."""
+    if Path.cwd().resolve() != ROOT:
+        raise SystemExit(f"run from the repository's root, {ROOT}, as the names are relative to it")
+
+    def unreadable(error: OSError):
+        raise SystemExit(f"can't read {error.filename}: {error.strerror}")
+
     found = []
-    for parent, _, names in os.walk(directory, followlinks=True):
+    for parent, _, names in os.walk(directory, followlinks=True, onerror=unreadable):
         found.extend(
             Path(os.path.relpath(Path(parent, name))) for name in names if name.endswith(suffixes)
         )
@@ -136,7 +145,7 @@ def manuals() -> list[Path]:
 
 def edited_manuals() -> list[Path]:
     """The example manuals, except gawk's Italian ones (in another encoding)."""
-    return [p for p in manuals() if "it" not in p.parts]
+    return [p for p in manuals() if not (p.parent.name == "it" and "gawk" in p.parent.parent.name)]
 
 
 def compared_manuals() -> list[Path]:
@@ -146,7 +155,7 @@ def compared_manuals() -> list[Path]:
 
 def test_inputs() -> list[Path]:
     """texi2any's test inputs (texinfo-tests/, linked by the dev shell)."""
-    return _find(ROOT / "texinfo-tests", (".texi",))
+    return _find(ROOT / "texinfo-tests", TEXINFO_SUFFIXES)
 
 
 # A corpus test: a header (a line of `=`, the name and attributes, a line of

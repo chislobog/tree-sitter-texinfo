@@ -246,6 +246,12 @@ def check_edits(checker: Checker):
     )
     found = any("nodes changed outside" in p for p in spreading)
     checker.report("edits: a mistake that spreads fails", [] if found else ["found no problem"])
+    checker.expect(
+        "edits: a file with nothing to edit fails",
+        ["python3", "script/check-edits.py", checker.file("no-paragraph.texi", "@c Nothing.\n")],
+        False,
+        "No edit was made.",
+    )
 
 
 def check_scanner(checker: Checker):

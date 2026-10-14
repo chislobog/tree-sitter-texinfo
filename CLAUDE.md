@@ -126,7 +126,8 @@ The Python scripts select their own files: `--manuals`, `--edited-manuals`
 (without gawk's Italian ones), `--compared-manuals` (also without the files
 texi2any fails on), `--test-inputs`, `--corpus-inputs` (each corpus test's
 input, written to `build/corpus/FILE/TITLE.texi`), or names given as arguments or on
-standard input.
+standard input; from the repository's root, which they check, as the names
+they record are relative to it.
 
 `script/tree-snapshots.py` checks every manual's and test input's tree
 against `test/tree-snapshots.txt`, digests of the full trees. After a

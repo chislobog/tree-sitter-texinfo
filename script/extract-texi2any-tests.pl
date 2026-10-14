@@ -37,6 +37,9 @@ sub Texinfo::XSLoader::XS_convert_enabled { return 0; }
 
 my $suite;
 my $count = 0;
+# Cases whose input is a file this doesn't have: the test files' own
+# input_files/ is extracted, not the other test suites' files they name.
+my @missing;
 
 sub write_file {
   my ($path, $content) = @_;
@@ -55,7 +58,10 @@ sub run_all {
     my $path = "$output/$suite/$case_name.texi";
     if ($options and defined($options->{'test_file'})) {
       my $file = "$tests/input_files/$options->{'test_file'}";
-      next unless -f $file;
+      unless (-f $file) {
+        push @missing, "$suite/$case_name";
+        next;
+      }
       copy($file, $path) or die "$file: $!\n";
     } elsif (defined($input)) {
       write_file($path, $input);
@@ -71,8 +77,12 @@ chdir($stubs) or die "$stubs: $!\n";
 foreach my $file (sort glob("$tests/*.t")) {
   $suite = basename($file, '.t');
   do $file;
-  warn "$file: $@" if $@;
+  # A test file that doesn't load would drop its cases unnoticed.
+  die "$file: $@" if $@;
 }
 chdir($cwd);
 
+die "no test inputs found in $tests\n" unless $count;
 print "$count test inputs written to $output\n";
+printf "%d cases left out, their input being another suite's file: %s\n",
+  scalar(@missing), join(', ', @missing) if @missing;

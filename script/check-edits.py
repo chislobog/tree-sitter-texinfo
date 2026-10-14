@@ -117,16 +117,17 @@ def preformatted_block(node: Node) -> Node | None:
 
 def outside(node: Node, start: int, end: int, shift: int) -> Counter:
     """The nodes that end before `start` or start after `end`, with their
-    ancestors' types; those after `end` with their positions moved by
-    `shift`."""
+    field and their ancestors' types; those after `end` with their positions
+    moved by `shift`."""
     found: Counter = Counter()
 
-    def walk(current: Node, ancestors: tuple[str, ...]):
+    def walk(current: Node, field: str | None, ancestors: tuple[str, ...]):
         if current.end_byte <= start or current.start_byte >= end:
             moved = shift if current.start_byte >= end else 0
             found[
                 (
                     current.type,
+                    field,
                     current.start_byte + moved,
                     current.end_byte + moved,
                     current.is_error,
@@ -135,20 +136,22 @@ def outside(node: Node, start: int, end: int, shift: int) -> Counter:
                 )
             ] += 1
         if current.start_byte < end and current.end_byte > start or current.child_count:
-            for child in current.children:
-                walk(child, (*ancestors, current.type))
+            for index, child in enumerate(current.children):
+                walk(child, current.field_name_for_child(index), (*ancestors, current.type))
 
-    walk(node, ())
+    walk(node, None, ())
     return found
 
 
 def check_file(
     parser: Parser, path: Path, edits: int, rng: random.Random, keep: Path | None
-) -> list[str]:
+) -> tuple[int, list[str]]:
+    """The number of edits made in `path`, and the problems found."""
     source = path.read_bytes()
     old_tree = parser.parse(source)
     candidates = [p for p in paragraphs(old_tree.root_node) if p.end_byte - p.start_byte > 1]
     problems = []
+    made = 0
     for _ in range(min(edits, len(candidates))):
         paragraph = rng.choice(candidates)
         offset = rng.randrange(paragraph.start_byte, paragraph.end_byte)
@@ -174,10 +177,11 @@ def check_file(
             and (before is None or before.group(1) != opener.group(1))
         ):
             continue
+        made += 1
         problems.extend(
             check_edit(parser, path, source, old_tree, paragraph, offset, removed, inserted, keep)
         )
-    return problems
+    return made, problems
 
 
 def check_edit(
@@ -242,11 +246,11 @@ def check_edit(
     after = outside(fresh.root_node, start, end, 0)
     if before != after:
         changed = sum(((before - after) + (after - before)).values())
-        first = min((after - before) or (before - after), key=lambda n: n[1])
+        first = min((after - before) or (before - after), key=lambda n: n[2])
         found.append(
             f"{location}: {description}: {changed} nodes changed outside "
             f"bytes {start}-{end} of the edited text, the first a {first[0]} "
-            f"at line {point(edited, first[1]).row + 1}"
+            f"at line {point(edited, first[2]).row + 1}"
         )
     if found and keep is not None:
         row, column = point(source, offset)
@@ -284,11 +288,18 @@ def main() -> int:
     parser = Parser(load_language())
     rng = random.Random(options.seed)
     problems = []
+    made = 0
     for path in options.files:
-        problems.extend(check_file(parser, path, options.edits, rng, options.keep))
+        count, found = check_file(parser, path, options.edits, rng, options.keep)
+        made += count
+        problems.extend(found)
     for problem in problems:
         print(problem)
-    print(f"{len(problems)} problems in {len(options.files)} files", file=sys.stderr)
+    print(f"{len(problems)} problems in {len(options.files)} files, {made} edits", file=sys.stderr)
+    if made == 0:
+        # No paragraph to edit, or every edit skipped: nothing was checked.
+        print("No edit was made.", file=sys.stderr)
+        return 1
     return 1 if problems else 0
 
 

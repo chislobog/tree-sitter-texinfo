@@ -33,12 +33,14 @@ def main() -> int:
     options = arguments.parse_args()
     parser = Parser(load_language())
     tests = []
+    skipped = []
     for path in files_argument(options):
         try:
             text = path.read_bytes().decode("utf-8")
         except UnicodeDecodeError:
             # Corpus files are UTF-8; the inputs in other encodings are left
             # out.
+            skipped.append(path)
             continue
         # The input starts right after the header; `tree-sitter test` keeps
         # one of its final newlines, and the blank line before the `---`
@@ -51,6 +53,9 @@ def main() -> int:
         )
     OUTPUT.write_text("\n".join(tests))
     print(f"{len(tests)} tests written to {OUTPUT.relative_to(ROOT)}")
+    if skipped:
+        names = ", ".join(str(path) for path in skipped)
+        print(f"{len(skipped)} left out, not being UTF-8: {names}")
     return 0
 
 
