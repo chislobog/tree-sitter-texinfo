@@ -52,7 +52,7 @@ const HEADING_COMMANDS = ['majorheading', 'chapheading', 'heading', 'subheading'
 
 // Brace commands whose argument splits at commas, with the field name of each
 // argument by position. As in texi2any, the last argument takes any further
-// commas. These also end at a blank line, like the scanner's BRACE_COMMANDS.
+// commas. Like the scanner's BRACE_COMMANDS, they end at a blank line.
 const ARGUMENT_COMMANDS = {
   'node label title file manual': ['xref', 'pxref', 'ref'],
   'node label file': ['inforef', 'link'],
@@ -216,7 +216,8 @@ export default grammar({
   // token starts with one: one that did would take a lone `\r` before it.
   // A `}` that closes nothing may be anywhere, as texi2any reports and
   // ignores it.
-  extras: $ => [/[ \t\v\f\r]/, $.comment, $.unmatched_brace],
+  // A NUL is a blank too: texi2any drops it.
+  extras: $ => [/[ \t\v\f\r\x00]/, $.comment, $.unmatched_brace],
 
   // A line command, blank line or block after an item's or a definition's
   // first line comes before the next `@itemx` or `@deffnx`, if one follows,
@@ -281,6 +282,8 @@ export default grammar({
     $._menu_entry_start,
     // A block other than a conditional in a menu entry's description.
     $._description_block_start,
+    // Valid only during error recovery, when tree-sitter marks every token
+    // valid: the scanner then returns nothing.
     $._error_sentinel,
   ],
 
@@ -715,8 +718,12 @@ export default grammar({
 
     // Raw text up to the end of the line or a comment, as in texi2any. A
     // comment lexes as the longer match at `@c note`, and `@cfoo` as the
-    // longer value piece.
-    _set_value: _ => repeat1(choice(/[^@\r\n]+/, /@[a-zA-Z0-9][a-zA-Z0-9-]*/, /@[^a-zA-Z0-9\r\n]/)),
+    // longer value piece. It starts after the blanks, which aren't part of
+    // the value in texi2any either.
+    _set_value: _ => seq(
+      choice(/[^@ \t\v\f\r\n][^@\r\n]*/, /@[a-zA-Z0-9][a-zA-Z0-9-]*/, /@[^a-zA-Z0-9\r\n]/),
+      repeat(choice(/[^@\r\n]+/, /@[a-zA-Z0-9][a-zA-Z0-9-]*/, /@[^a-zA-Z0-9\r\n]/)),
+    ),
 
     definition_arguments: $ => prec.right(repeat1(choice(
       $.text,
@@ -771,6 +778,9 @@ export default grammar({
       optional(field('argument', $.line_argument)),
     ),
 
+    // A row, a cell and an item in `@itemize` don't end in `_line_end`, as
+    // other line-level rules do: their content goes on past the line, and
+    // its paragraphs end with their own line ends.
     _row: $ => prec.right(seq(
       // The scanner recognises `@item` and `@headitem` as a row where the
       // innermost open block, other than conditionals, is a multitable.

@@ -170,8 +170,10 @@ static const Block BLOCKS[] = {
     {"ifclear", KIND_BLOCK},
     {"ifcommanddefined", KIND_BLOCK},
     {"ifcommandnotdefined", KIND_BLOCK},
-    // Definitions; the layout numbers index DEFINITION_LAYOUTS in grammar.js
+    // `@defblock` holds `@defline` lines and has no definition line of its
+    // own, so it is an ordinary block.
     {"defblock", KIND_BLOCK},
+    // Definitions; the layout numbers index DEFINITION_LAYOUTS in grammar.js
     {"deffn", KIND_DEFINITION},
     {"defvr", KIND_DEFINITION},
     {"deftypefn", KIND_DEFINITION + 1},
@@ -246,7 +248,7 @@ static inline void skip(TSLexer *lexer) { lexer->advance(lexer, true); }
 // Ends the token here, as `token`.
 static inline bool accept(TSLexer *lexer, enum TokenType token) {
   lexer->mark_end(lexer);
-  lexer->result_symbol = token;
+  lexer->result_symbol = (TSSymbol)token;
   return true;
 }
 
@@ -615,7 +617,7 @@ static bool scan_node_before_section(TSLexer *lexer,
       if (strcmp(SECTIONING[i].name, name) == 0) {
         enum TokenType token = NODE_BEFORE + SECTIONING[i].level;
         if (!valid_symbols[token]) return false;
-        lexer->result_symbol = token;
+        lexer->result_symbol = (TSSymbol)token;
         return true;
       }
     }
@@ -841,7 +843,7 @@ static bool scan_block_start(Scanner *scanner, TSLexer *lexer,
 
   scanner->stack[scanner->depth++] = (uint8_t)index;
   lexer->mark_end(lexer);
-  lexer->result_symbol = token;
+  lexer->result_symbol = (TSSymbol)token;
   return true;
 }
 

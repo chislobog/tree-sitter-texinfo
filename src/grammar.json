@@ -6432,24 +6432,46 @@
       "value": "[^@{} \\t\\n\\r\\v\\f]+"
     },
     "_set_value": {
-      "type": "REPEAT1",
-      "content": {
-        "type": "CHOICE",
-        "members": [
-          {
-            "type": "PATTERN",
-            "value": "[^@\\r\\n]+"
-          },
-          {
-            "type": "PATTERN",
-            "value": "@[a-zA-Z0-9][a-zA-Z0-9-]*"
-          },
-          {
-            "type": "PATTERN",
-            "value": "@[^a-zA-Z0-9\\r\\n]"
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "PATTERN",
+              "value": "[^@ \\t\\v\\f\\r\\n][^@\\r\\n]*"
+            },
+            {
+              "type": "PATTERN",
+              "value": "@[a-zA-Z0-9][a-zA-Z0-9-]*"
+            },
+            {
+              "type": "PATTERN",
+              "value": "@[^a-zA-Z0-9\\r\\n]"
+            }
+          ]
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "PATTERN",
+                "value": "[^@\\r\\n]+"
+              },
+              {
+                "type": "PATTERN",
+                "value": "@[a-zA-Z0-9][a-zA-Z0-9-]*"
+              },
+              {
+                "type": "PATTERN",
+                "value": "@[^a-zA-Z0-9\\r\\n]"
+              }
+            ]
           }
-        ]
-      }
+        }
+      ]
     },
     "definition_arguments": {
       "type": "PREC_RIGHT",
@@ -11826,7 +11848,7 @@
   "extras": [
     {
       "type": "PATTERN",
-      "value": "[ \\t\\v\\f\\r]"
+      "value": "[ \\t\\v\\f\\r\\x00]"
     },
     {
       "type": "SYMBOL",
