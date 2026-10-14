@@ -33,7 +33,7 @@ snapshots-diff rev="HEAD" *files:
 
 # Record the differences from texi2any, then give each new file a reason.
 compare-write:
-    python3 script/compare-texi2any.py --hunks 0 --write-expected test/texi2any-differences.txt --compared-manuals --test-inputs
+    python3 script/compare-texi2any.py --hunks 0 --write-expected test/texi2any-differences.txt --compared-manuals --test-inputs --corpus-inputs
 
 # Simulate typing mistakes in the manuals with another seed.
 edits seed="0" count="5":

@@ -450,6 +450,12 @@ Deliberate, so the tree shows the source as it is written and edited:
   bugs: `@c|` wasn't a comment, a heading wasn't one inside `@footnote`,
   and an accent at the end of a heading took the next line's first
   character; and the gaps above
+- [x] The corpus tests' inputs are compared with texi2any too
+  (`--corpus-inputs`, in the `compare-tests` check), as their trees are
+  written by hand: six differ, each listed with its reason. It found that
+  `@deffn Command foo@` and then `bar` names `foobar` in texi2any, which
+  a test had as two words, and that texi2any takes the text after `@bye`
+  on its line as its argument (now the `argument` field of `bye`)
 - [x] The comparison counts where a block left open ends, as where
   texi2any closes one at a `@node`: it couldn't see a block that went on
   past it (no new difference: the grammar closes them as texi2any does

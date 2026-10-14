@@ -129,8 +129,8 @@ not parsed
 
 (source_file
   (bye
-    (command_name)
-    (ignored)
+    name: (command_name)
+    argument: (ignored)
     (comment)
     (ignored)))
 

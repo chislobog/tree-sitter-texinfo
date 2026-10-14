@@ -116,7 +116,8 @@ one-line aliases; `just` lists them.
 
 The Python scripts select their own files: `--manuals`, `--edited-manuals`
 (without gawk's Italian ones), `--compared-manuals` (also without the files
-texi2any fails on), `--test-inputs`, or names given as arguments or on
+texi2any fails on), `--test-inputs`, `--corpus-inputs` (each corpus test's
+input, written to `build/corpus/FILE/TITLE.texi`), or names given as arguments or on
 standard input.
 
 `script/tree-snapshots.py` checks every manual's and test input's tree
@@ -222,7 +223,9 @@ from the same LLVM version as the compiler (the profile format differs).
   `build:`, `ci:`, `refactor:`, `docs:`, `chore:`).
 - Test first: for new behaviour, write the corpus test with its expected tree
   by hand, based on what texi2any does, and see it fail before changing the
-  grammar. Use `tree-sitter test --update` only to regenerate existing tests
+  grammar. The `compare-tests` check compares the corpus inputs with
+  texi2any too, so one that differs on purpose is listed with its reason
+  (`just compare-write`). Use `tree-sitter test --update` only to regenerate existing tests
   after a deliberate change to the tree's shape, and read every regenerated
   tree before keeping it.
 - A corpus test's input starts right after the header line, so a blank line

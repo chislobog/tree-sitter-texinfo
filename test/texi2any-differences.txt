@@ -1,3 +1,31 @@
+# Deliberate: a block command in the middle of a line; blocks start and end at the beginning of a line, as the Texinfo manual requires (texi2any accepts it with an error)
+build/corpus/blocks/block-command-in-the-middle-of-a-line-is-inline.texi
+  line 2: ours '@example', texi2any '+example -example'
+
+# Deliberate: a block command in the middle of a line; blocks start and end at the beginning of a line, as the Texinfo manual requires (texi2any accepts it with an error)
+build/corpus/brace_arguments/block-command-in-the-middle-of-a-brace-argument-is-inline.texi
+  line 2: ours '@example', texi2any '+example -example'
+
+# Deliberate: content texi2any reports and drops is kept as written, here `@tab` outside a multitable (texi2any warns: ignoring @tab outside of multitable)
+build/corpus/lists/multitable-cells-over-several-lines-with-blocks-and-empty-cells.texi
+  line 14: ours '@tab', texi2any '(nothing)'
+
+# Deliberate: a menu line starting with `*` is an entry, maybe still being typed, without a node yet; texi2any reads it as text
+build/corpus/menus/unfinished-menu-entry.texi
+  line 3: * arguments: ours 'half typed', texi2any ' | Done'
+  line 4: ours '* *', texi2any '(nothing)'
+
+# Comparison: texi2any's tree keeps a @macro line raw, with the comment after its parameters, which it accepts as a comment
+build/corpus/raw/comments-on-a-macro-line.texi
+  line 2: +macro arguments: ours 'foo', texi2any 'foo c foo c'
+  line 2: ours '@c', texi2any '(nothing)'
+  line 6: +macro arguments: ours 'abar', texi2any 'abar comment bar comment'
+  line 6: ours '@comment', texi2any '(nothing)'
+
+# Deliberate: a line command in the middle of a line; line commands occupy a whole line, as the Texinfo manual requires (texi2any accepts it with a warning, taking the rest of the line as its argument)
+build/corpus/structure/user-defined-index-commands-are-line-commands.texi
+  line 4: @opindex arguments: ours '(none)', texi2any 'inline'
+
 # Comparison: a fragment for @include inside a table, where texi2any drops @item outside one
 examples/binutils-with-gold-2.46/binutils/doc/ctf.options.texi
   line 4: ours '@item', texi2any '(nothing)'

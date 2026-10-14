@@ -340,7 +340,7 @@ export default grammar({
     // The rest of the `@bye` line is still read, so a comment there counts.
     bye: $ => seq(
       field('name', alias('@bye', $.command_name)),
-      optional(alias(token(prec(-1, /[^@\s][^@\n\r]*/)), $.ignored)),
+      optional(field('argument', alias(token(prec(-1, /[^@\s][^@\n\r]*/)), $.ignored))),
       $._line_end,
       optional(alias(/[\s\S]+/, $.ignored)),
     ),

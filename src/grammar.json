@@ -1738,20 +1738,24 @@
           "type": "CHOICE",
           "members": [
             {
-              "type": "ALIAS",
+              "type": "FIELD",
+              "name": "argument",
               "content": {
-                "type": "TOKEN",
+                "type": "ALIAS",
                 "content": {
-                  "type": "PREC",
-                  "value": -1,
+                  "type": "TOKEN",
                   "content": {
-                    "type": "PATTERN",
-                    "value": "[^@\\s][^@\\n\\r]*"
+                    "type": "PREC",
+                    "value": -1,
+                    "content": {
+                      "type": "PATTERN",
+                      "value": "[^@\\s][^@\\n\\r]*"
+                    }
                   }
-                }
-              },
-              "named": true,
-              "value": "ignored"
+                },
+                "named": true,
+                "value": "ignored"
+              }
             },
             {
               "type": "BLANK"

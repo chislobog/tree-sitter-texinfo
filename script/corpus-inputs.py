@@ -6,15 +6,10 @@ inputs that reach blocks, raw text, menus and the other scanner paths.
 """
 
 import argparse
-import re
 import sys
 from pathlib import Path
 
-from texinfo_language import ROOT
-
-# A test is a header (a line of `=`, the name and attributes, a line of `=`),
-# the input, a line of `-`, and the expected tree.
-TEST = re.compile(r"^=+\n(.*?)\n=+\n(.*?)\n-{3,}\n", re.S | re.M)
+from texinfo_language import corpus_tests
 
 
 def main() -> int:
@@ -25,10 +20,14 @@ def main() -> int:
     options = arguments.parse_args()
     options.output.mkdir(parents=True, exist_ok=True)
     count = 0
-    for corpus in sorted((ROOT / "test" / "corpus").glob("*.txt")):
-        for number, match in enumerate(TEST.finditer(corpus.read_text()), 1):
-            (options.output / f"{corpus.stem}-{number}.texi").write_text(match.group(2))
-            count += 1
+    numbers: dict[str, int] = {}
+    for corpus, _, text in corpus_tests():
+        numbers[corpus.stem] = numbers.get(corpus.stem, 0) + 1
+        path = options.output / f"{corpus.stem}-{numbers[corpus.stem]}.texi"
+        # With its carriage returns, which the corpus keeps as written.
+        with path.open("w", newline="") as file:
+            file.write(text)
+        count += 1
     print(f"{count} inputs written to {options.output}")
     return 0
 

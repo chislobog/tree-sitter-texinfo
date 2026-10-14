@@ -137,6 +137,35 @@ def test_inputs() -> list[Path]:
     return _find(ROOT / "texinfo-tests", (".texi",))
 
 
+# A corpus test: a header (a line of `=`, the name and attributes, a line of
+# `=`), the input, a line of `-`, and the expected tree.
+CORPUS_TEST = re.compile(r"^=+\n(.*?)\n=+\n(.*?)\n-{3,}\n", re.S | re.M)
+
+
+def corpus_tests() -> Iterator[tuple[Path, str, str]]:
+    """Each corpus test's file, title and input, with its carriage returns."""
+    for corpus in sorted((ROOT / "test" / "corpus").glob("*.txt")):
+        with corpus.open(newline="") as file:
+            text = file.read()
+        for match in CORPUS_TEST.finditer(text):
+            yield corpus, match.group(1).splitlines()[0], match.group(2)
+
+
+def corpus_inputs() -> list[Path]:
+    """The input of each corpus test, written to
+    build/corpus/FILE/TITLE.texi, named after its title so that the name
+    stays when tests are added before it."""
+    found = []
+    for corpus, title, text in corpus_tests():
+        slug = re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
+        path = ROOT / "build" / "corpus" / corpus.stem / f"{slug}.texi"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("w", newline="") as file:
+            file.write(text)
+        found.append(Path(os.path.relpath(path)))
+    return found
+
+
 FILE_SETS = {
     "manuals": (manuals, "example manuals (examples/, linked by the dev shell)"),
     "edited-manuals": (
@@ -147,6 +176,10 @@ FILE_SETS = {
     "test-inputs": (
         test_inputs,
         "texi2any's test inputs (texinfo-tests/, linked by the dev shell)",
+    ),
+    "corpus-inputs": (
+        corpus_inputs,
+        "the corpus tests' inputs, written to build/corpus/ under their titles",
     ),
 }
 

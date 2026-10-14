@@ -380,8 +380,10 @@
             compare-manuals = mkCheck "compare-manuals" ''
               python3 script/compare-texi2any.py --hunks 0 --expected test/texi2any-differences.txt --compared-manuals
             '';
+            # Also on the corpus tests' inputs, whose trees are written by
+            # hand.
             compare-tests = mkCheck "compare-tests" ''
-              python3 script/compare-texi2any.py --hunks 0 --expected test/texi2any-differences.txt --test-inputs
+              python3 script/compare-texi2any.py --hunks 0 --expected test/texi2any-differences.txt --test-inputs --corpus-inputs
             '';
             # Every tree is as recorded in test/tree-snapshots.txt.
             snapshots = mkCheck "snapshots" ''
