@@ -362,6 +362,9 @@ Deliberate, so the tree shows the source as it is written and edited:
   `item_body`, in the `body` field, after the last `@deffnx` or `@itemx`
   line and the index entries, blank lines and blocks (a conditional holding
   an index entry) before it (+164 parser states, no slower)
+- [x] Tests of the folds, textobjects and injections
+  (`script/test-queries.py`, on `test/queries/`): `tree-sitter test` reads
+  each test file of these queries as the query itself (0.26.11)
 - [ ] Textobjects: `.` skips anonymous nodes, so in `@xref{a, b, , d}` the
   empty argument's comma joins `b`'s `@parameter.around`
 

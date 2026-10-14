@@ -1,0 +1,35 @@
+@tex
+$x^2$
+@end tex
+@c <- injection.latex 2 lines up
+
+@html
+<b>bold</b>
+@end html
+@c <- injection.html 2 lines up
+
+@xml
+<x/>
+@end xml
+@c <- injection.xml 2 lines up
+
+Math @math{a^2} here.
+@c         ^ injection.latex
+@c   ^ !injection.latex
+
+@displaymath
+a^2
+@c <- injection.latex
+@end displaymath
+
+Raw @inlineraw{html, <i>i</i>} and @inlineraw{tex, $y$} here.
+@c                   ^ injection.html
+@c                                                 ^ injection.latex
+
+@macro name{arg}
+Some @code{\arg\}.
+@end macro
+@c <- injection.texinfo 2 lines up
+
+@c A comment.
+@c ^ injection.comment

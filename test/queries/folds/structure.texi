@@ -1,0 +1,46 @@
+\input texinfo
+@c <- !fold
+@settitle Folds
+
+@c Sections, blocks, lists, items, menus and macro definitions fold; text
+@c outside them doesn't.
+Text before the first node.
+@c <- !fold
+
+@macro name{arg}
+Body \arg\.
+@end macro
+@c <- fold
+
+@node Top
+@c <- fold
+@top Folds
+
+@menu
+@c <- fold
+* Chapter::
+@end menu
+
+@node Chapter
+@chapter Chapter
+@c <- fold
+
+@example
+@c <- fold
+code
+@end example
+
+@itemize
+@c <- fold
+@item
+@c <- fold
+An item.
+@end itemize
+
+@ignore
+@end ignore
+@c <- fold
+
+@deffn Command name
+@c <- fold
+@end deffn

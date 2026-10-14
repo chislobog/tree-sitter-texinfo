@@ -383,16 +383,17 @@
               tree-sitter generate
               diff -r ../src.committed src
             '';
-            # Corpus, highlight and tags tests.
+            # Corpus, highlight and tags tests, and the other queries' tests.
             tests = mkCheck "tests" (
-              parserFiles
+              scriptFiles
               ++ [
                 ./queries
                 ./test/corpus
                 ./test/highlight
                 ./test/tags
+                ./test/queries
               ]
-            ) "tree-sitter test";
+            ) "tree-sitter test && python3 script/test-queries.py";
             scanner-warnings = mkCheck "scanner-warnings" [ ./src ] ''
               clang -std=c11 -Wall -Wextra -Wpedantic -Wshadow -Werror -Isrc -c src/scanner.c -o scanner.o
             '';

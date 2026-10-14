@@ -89,7 +89,11 @@ well with incomplete input, which is normal while editing.
   table and list. Edit only `queries/`. `tree-sitter query queries/textobjects.scm FILE` shows what a
   textobject captures; highlight and tags
   tests are in `test/highlight/` and `test/tags/` (run by `tree-sitter
-  test`). `ts_query_ls format queries/` formats them; `ts_query_ls check`
+  test`); those of folds, textobjects and injections in
+  `test/queries/QUERY/`, run by `script/test-queries.py` (in the `tests`
+  check), as tree-sitter 0.26.11 reads a test in `test/QUERY/` as the
+  query itself: the same assertions, which it fails, rather than skips,
+  where they aren't comments, and `N lines up` for a raw block's body. `ts_query_ls format queries/` formats them; `ts_query_ls check`
   validates them against the grammar (built with `tree-sitter build`). Tags
   queries only allow tag captures, so their predicates test the
   text of the whole captured command. An assertion in a highlight or tags test is only

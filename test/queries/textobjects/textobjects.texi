@@ -1,0 +1,52 @@
+@node Top, Next, Prev, Up
+@c <- class.around
+@c         ^ parameter.inside
+@c             ^ parameter.around
+@top Textobjects
+
+Text in the section is inside it.
+@c <- class.inside
+
+See @xref{Node, Label} here.
+@c        ^ parameter.inside
+@c            ^ parameter.around
+@c              ^ parameter.inside
+@c                   ^ !parameter.inside
+
+Some @code{code} here.
+@c         ^ parameter.inside
+
+@deffn Command name arguments
+@c <- function.around
+@c                  ^ parameter.inside
+Body.
+@c <- function.inside
+@end deffn
+
+@macro name{param}
+Body.
+@end macro
+@c <- function.around 3 lines up
+@c          ^ parameter.inside 4 lines up
+@c <- function.inside 4 lines up
+
+@itemize
+@item
+@c <- entry.around
+Item text.
+@c <- entry.inside
+@end itemize
+
+@multitable @columnfractions .5 .5
+@item a @tab b
+@c      ^ entry.around
+@c           ^ entry.inside
+@end multitable
+
+@menu
+* Node::  Description.
+@c <- entry.around
+@end menu
+
+@c A comment.
+@c <- comment.inside

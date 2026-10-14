@@ -23,6 +23,10 @@ fmt:
 test *args:
     tree-sitter test {{ args }}
 
+# The folds, textobjects and injections tests, which tree-sitter can't run.
+test-queries:
+    python3 script/test-queries.py
+
 # Record the trees after a deliberate change, reviewed with snapshots-diff.
 snapshots-write:
     python3 script/tree-snapshots.py --write --manuals --test-inputs
