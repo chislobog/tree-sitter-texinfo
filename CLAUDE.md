@@ -20,7 +20,8 @@ well with incomplete input, which is normal while editing.
   restarts.
 - GNU coreutils and sed are on the path, not the macOS ones: use `sed -i`, not
   `sed -i ''`.
-- `examples/` is a symlink, created by the dev shell, to real manuals pinned by
+- `examples/` is a symlink, created by the dev shell, to real manuals
+  (extracted by `script/extract-examples.py`) pinned by
   the `reference` input in `flake.nix`, with texi2any itself and apart from
   the tools: texinfo, make, sed, gawk, glibc, gdb, binutils, bash,
   coreutils, autoconf, automake and Emacs's manuals, and by other authors
@@ -103,9 +104,12 @@ generate` and `tree-sitter test` after every edit to `grammar.js`,
 `src/scanner.c` or the corpus. Every other check is declared in `flake.nix`
 (with flake-parts, and treefmt-nix's and git-hooks.nix's modules) and run
 by `nix flake check` (`just check`), locally as in CI. Nix caches them: a
-check whose inputs didn't change isn't rerun (the docs and CI config aren't
-inputs, except to `pre-commit`, which reads every file); CI keeps the store
-between runs too. Run it before pushing, so CI only confirms. One check by
+check whose inputs didn't change isn't rerun, and each check's inputs are
+only the files it reads (`mkCheck`'s list), so a change to the docs, a
+query or the snapshots reruns only the checks that read them (`pre-commit`
+reads every file); CI keeps the store between runs too. Each check's
+command is a shell application, which shellcheck checks; its fuzzing starts
+from a fixed seed, so that its result depends only on its inputs. Run it before pushing, so CI only confirms. One check by
 name: `just run NAME`, with NAME one of `pre-commit` (formatting and the
 linters), `generated`, `tests`, `scanner-warnings`, `scanner-tables`,
 `parser-size`, `fuzz`, `checks-catch`, `parse`, `compare-manuals`,
@@ -157,10 +161,12 @@ actionlint, the queries' capture names, and that each editor's generated
 queries are up to date; on the commit
 message, convco (Conventional Commits); before pushing, that `src/` matches
 `grammar.js` and `tree-sitter test`. `pre-commit run --all-files` runs them
-by hand; `nix flake check` runs them as its `pre-commit` check.
+by hand (the pre-push ones with `--hook-stage pre-push`); `nix flake check`
+runs the commit ones as its `pre-commit` check, and the others as its
+`generated` and `tests` checks.
 
 The `fuzz-scanner` check runs libFuzzer with sanitizers on the parser and
-scanner for two minutes (harness `test/fuzz/harness.c`, dictionary from
+scanner for 60,000 runs from a fixed seed, about two minutes (harness `test/fuzz/harness.c`, dictionary from
 `script/fuzz-dict.py`, seeds from `script/corpus-inputs.py`); `just
 fuzz-scanner [SECONDS] [JOBS]` runs it longer and on several cores, keeping
 what it covers in `build/fuzz/out`. LLVM is version 23, not nixpkgs' default

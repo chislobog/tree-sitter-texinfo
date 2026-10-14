@@ -50,70 +50,89 @@
         let
           reference = inputs'.reference.legacyPackages;
 
-          # Real-world manuals for regression parsing, pinned by `reference`
-          examples =
-            pkgs.runCommand "texinfo-examples"
-              {
-                srcs = with reference; [
+          # Real-world manuals for regression parsing, pinned by `reference`:
+          # the Texinfo files of these sources, extracted by
+          # script/extract-examples.py.
+          archive = strip: members: src: {
+            source = "${src}";
+            into = builtins.head (builtins.match "(.*)\\.tar\\..*" src.name);
+            inherit strip members;
+          };
+          examplesManifest = pkgs.writeText "examples.json" (
+            builtins.toJSON (
+              map (archive 2 [ "*/doc/*" ]) (
+                with reference;
+                [
                   texinfo.src
                   gnumake.src
                   gnused.src
                   gawk.src
-                ];
-              }
-              ''
-                # Extracts the given paths of a source tarball, minus the
-                # leading directories, and keeps only its Texinfo files.
-                extract() {
-                  local src=$1 strip=$2
-                  shift 2
-                  name=$(stripHash "$src")
-                  dir="$out/''${name%.tar.*}"
-                  mkdir -p "$dir"
-                  tar -xf "$src" -C "$dir" --strip-components="$strip" --wildcards "$@"
-                  find "$dir" -type f ! \( -name '*.texi' -o -name '*.texinfo' -o -name '*.txi' \) -delete
-                  find "$dir" -depth -type d -empty -delete
-                }
-
-                for src in $srcs; do
-                  extract "$src" 2 '*/doc/*'
-                done
-
+                ]
+              )
+              ++ [
                 # Other GNU manuals, each with the files where it keeps them:
                 # glibc's many custom definition macros, autoconf's and
                 # automake's m4 examples full of braces, gdb's and binutils'
                 # conditionals per target, bash's and coreutils' variables.
-                extract ${reference.glibc.src} 1 '*/manual/*'
-                extract ${reference.autoconf.src} 1 '*/doc/*'
-                extract ${reference.automake.src} 1 '*/doc/*'
-                extract ${reference.gdb.src} 1 '*/gdb/doc/*'
-                extract ${reference.binutils-unwrapped.src} 1 \
-                  '*/binutils/doc/*' '*/ld/*.texi' '*/gas/doc/*'
-                extract ${reference.bash.src} 1 '*/doc/*'
-                extract ${reference.coreutils.src} 1 '*/doc/*'
-
+                (archive 1 [ "*/manual/*" ] reference.glibc.src)
+                (archive 1 [ "*/doc/*" ] reference.autoconf.src)
+                (archive 1 [ "*/doc/*" ] reference.automake.src)
+                (archive 1 [ "*/gdb/doc/*" ] reference.gdb.src)
+                (archive 1 [
+                  "*/binutils/doc/*"
+                  "*/ld/*.texi"
+                  "*/gas/doc/*"
+                ] reference.binutils-unwrapped.src)
+                (archive 1 [ "*/doc/*" ] reference.bash.src)
+                (archive 1 [ "*/doc/*" ] reference.coreutils.src)
                 # Emacs: its user manual, Lisp reference and other manuals
                 # (Gnus, Calc, TRAMP, ...), the largest and most varied here.
-                # Its source is a directory, not a tarball.
-                dir="$out/emacs-${reference.emacs.version}"
-                mkdir -p "$dir/lispref" "$dir/emacs" "$dir/misc"
-                cp ${reference.emacs.src}/doc/lispref/*.texi "$dir/lispref"
-                cp ${reference.emacs.src}/doc/emacs/*.texi "$dir/emacs"
-                cp ${reference.emacs.src}/doc/misc/*.texi "$dir/misc"
-
+                # Its source is a directory, not an archive.
+                {
+                  source = "${reference.emacs.src}";
+                  into = "emacs-${reference.emacs.version}";
+                  strip = 1;
+                  members = [
+                    "doc/lispref/*.texi"
+                    "doc/emacs/*.texi"
+                    "doc/misc/*.texi"
+                  ];
+                }
                 # Manuals by other authors, in other styles: SBCL's, with its
                 # contribs (ASDF's among them); Maxima's, in English and
                 # Japanese; GNU Parallel's, generated from Perl's POD by
                 # pod2texi; Stow's; and the LaTeX2e reference manual.
-                extract ${reference.sbcl.src} 1 '*/doc/manual/*' '*/doc/internals/*' '*/contrib/*.texinfo'
-                extract ${reference.maxima.src} 1 '*/doc/info/*' \
-                  --exclude='*/doc/info/'{de,es,pt,pt_BR,ru}'/*'
-                extract ${reference.parallel.src} 1 '*/src/*.texi'
-                extract ${reference.stow.src} 1 '*/doc/*'
-                dir="$out/latex2e-help-texinfo"
-                mkdir -p "$dir"
-                cp ${reference.texlive.pkgs.latex2e-help-texinfo.texdoc}/doc/latex/latex2e-help-texinfo/*.texi "$dir"
-              '';
+                (archive 1 [
+                  "*/doc/manual/*"
+                  "*/doc/internals/*"
+                  "*/contrib/*.texinfo"
+                ] reference.sbcl.src)
+                (
+                  archive 1 [ "*/doc/info/*" ] reference.maxima.src
+                  // {
+                    exclude = map (language: "*/doc/info/${language}/*") [
+                      "de"
+                      "es"
+                      "pt"
+                      "pt_BR"
+                      "ru"
+                    ];
+                  }
+                )
+                (archive 1 [ "*/src/*.texi" ] reference.parallel.src)
+                (archive 1 [ "*/doc/*" ] reference.stow.src)
+                {
+                  source = "${reference.texlive.pkgs.latex2e-help-texinfo.texdoc}";
+                  into = "latex2e-help-texinfo";
+                  strip = 3;
+                  members = [ "doc/latex/latex2e-help-texinfo/*.texi" ];
+                }
+              ]
+            )
+          );
+          examples = pkgs.runCommand "texinfo-examples" { nativeBuildInputs = [ pkgs.python3 ]; } ''
+            python3 ${./script/extract-examples.py} ${examplesManifest} "$out"
+          '';
 
           # The inputs of texi2any's own parser tests, one file per test case
           texinfoTests = pkgs.runCommand "texinfo-tests" { nativeBuildInputs = [ pkgs.perl ]; } ''
@@ -157,47 +176,52 @@
             name: runtimeInputs: text:
             lib.getExe (pkgs.writeShellApplication { inherit name runtimeInputs text; });
 
-          # The source the checks need, without the docs and CI config, so
-          # editing those doesn't rerun every check.
-          checkSource = lib.fileset.toSource {
-            root = ./.;
-            fileset = lib.fileset.unions [
-              ./grammar.js
-              ./tree-sitter.json
-              ./.tsqueryrc.json
-              ./src
-              ./script
-              ./test
-              ./queries
-              ./editors
-            ];
-          };
+          # The files a check reads, and only those, so that a change to
+          # others, such as the docs, a query or a snapshot, doesn't run it
+          # again: `tree-sitter` needs the grammar's files, the scripts in
+          # script/ the grammar and the scanner too (texinfo_language.py
+          # reads their tables).
+          parserFiles = [
+            ./grammar.js
+            ./tree-sitter.json
+            ./src
+          ];
+          scriptFiles = parserFiles ++ [ ./script ];
 
-          # A check: COMMAND in a writable copy of the source, with the
-          # example manuals and texi2any's test inputs linked as in the dev
-          # shell.
+          # A check: COMMAND in a writable copy of FILES, with the example
+          # manuals and texi2any's test inputs linked as in the dev shell.
+          # The command is a shell application, which shellcheck checks
+          # when Nix builds it; it runs in the build's environment, whose
+          # compiler finds its tools (dsymutil on macOS) by its setup hooks.
           mkCheck =
-            name: command:
-            pkgs.runCommand "check-${name}"
-              {
-                nativeBuildInputs = [
-                  pkgs.tree-sitter
-                  pkgs.nodejs_22
-                  llvm.clang
-                  reference.texinfo
-                  python
-                ];
-              }
-              ''
-                cp -r ${checkSource} source
-                chmod -R u+w source
-                cd source
-                ln -s ${examples} examples
-                ln -s ${texinfoTests} texinfo-tests
-                export HOME=$TMPDIR XDG_CACHE_HOME=$TMPDIR/cache TEXINFO_XS=omit
-                ${command}
-                touch $out
-              '';
+            name: files: command:
+            let
+              source = lib.fileset.toSource {
+                root = ./.;
+                fileset = lib.fileset.unions files;
+              };
+              script = pkgs.writeShellApplication {
+                name = "check-${name}";
+                text = ''
+                  cp -r ${source} source
+                  chmod -R u+w source
+                  cd source
+                  ln -s ${examples} examples
+                  ln -s ${texinfoTests} texinfo-tests
+                  export HOME=$TMPDIR XDG_CACHE_HOME=$TMPDIR/cache TEXINFO_XS=omit
+                  ${command}
+                '';
+              };
+            in
+            pkgs.runCommand "check-${name}" {
+              nativeBuildInputs = [
+                pkgs.tree-sitter
+                pkgs.nodejs_22
+                llvm.clang
+                reference.texinfo
+                python
+              ];
+            } "${lib.getExe script} && touch $out";
 
           # As tree-sitter's fuzz-action: the serializer may be called with a
           # null buffer.
@@ -321,7 +345,7 @@
               enable = true;
               name = "Conventional Commits";
               entry = hookProgram "check-commit-message" [ pkgs.convco pkgs.gnugrep pkgs.coreutils ] ''
-                message=$(grep -v '^#' "$1")
+                message=$(grep -v '^#' "$1" || true)
                 case "$(head -n 1 <<<"$message")" in
                   "Merge "* | "Revert \""* | "fixup! "* | "squash! "* | "amend! "*) exit 0 ;;
                 esac
@@ -336,7 +360,7 @@
               name = "src/ matches grammar.js";
               entry = hookProgram "check-generated" [ pkgs.tree-sitter pkgs.nodejs_22 pkgs.git ] ''
                 tree-sitter generate
-                git diff --exit-code -- src/
+                git diff --exit-code HEAD -- src/
               '';
               pass_filenames = false;
               always_run = true;
@@ -354,69 +378,129 @@
 
           checks = {
             # src/ is what `tree-sitter generate` makes of grammar.js.
-            generated = mkCheck "generated" ''
+            generated = mkCheck "generated" parserFiles ''
               cp -r src ../src.committed
               tree-sitter generate
               diff -r ../src.committed src
             '';
             # Corpus, highlight and tags tests.
-            tests = mkCheck "tests" "tree-sitter test";
-            scanner-warnings = mkCheck "scanner-warnings" ''
+            tests = mkCheck "tests" (
+              parserFiles
+              ++ [
+                ./queries
+                ./test/corpus
+                ./test/highlight
+                ./test/tags
+              ]
+            ) "tree-sitter test";
+            scanner-warnings = mkCheck "scanner-warnings" [ ./src ] ''
               clang -std=c11 -Wall -Wextra -Wpedantic -Wshadow -Werror -Isrc -c src/scanner.c -o scanner.o
             '';
             # The scanner's tokens and tables agree with the grammar's.
-            scanner-tables = mkCheck "scanner-tables" "python3 script/check-scanner.py";
+            scanner-tables = mkCheck "scanner-tables" scriptFiles "python3 script/check-scanner.py";
             # The parser's state count is within its budget.
-            parser-size = mkCheck "parser-size" "python3 script/parser-size.py";
-            # Incremental parsing after random edits of the corpus tests.
-            fuzz = mkCheck "fuzz" "tree-sitter fuzz --iterations 100";
+            parser-size = mkCheck "parser-size" scriptFiles "python3 script/parser-size.py";
+            # Incremental parsing after random edits of the corpus tests,
+            # from a fixed seed, so that the check's result depends only on
+            # its inputs, as Nix caches it; `just fuzz-deep` tries others.
+            fuzz = mkCheck "fuzz" (
+              parserFiles
+              ++ [
+                ./test/corpus
+              ]
+            ) "TREE_SITTER_SEED=0 tree-sitter fuzz --iterations 100";
             # Each check still fails on the inputs in test/checks/ it is meant
             # to catch.
-            checks-catch = mkCheck "checks-catch" "python3 script/test-checks.py";
+            checks-catch = mkCheck "checks-catch" (
+              scriptFiles ++ [ ./test/checks ]
+            ) "python3 script/test-checks.py";
             # Only the manuals in test/parse-errors.txt fail to parse, none
             # ten times slower than the median.
-            parse = mkCheck "parse" "python3 script/parse-examples.py --manuals --stress";
+            parse = mkCheck "parse" (
+              scriptFiles ++ [ ./test/parse-errors.txt ]
+            ) "python3 script/parse-examples.py --manuals --stress";
             # The differences from texi2any are exactly those listed.
-            compare-manuals = mkCheck "compare-manuals" ''
+            compare-manuals = mkCheck "compare-manuals" (scriptFiles ++ [ ./test/texi2any-differences.txt ]) ''
               python3 script/compare-texi2any.py --hunks 0 --expected test/texi2any-differences.txt --compared-manuals
             '';
             # Also on the corpus tests' inputs, whose trees are written by
             # hand.
-            compare-tests = mkCheck "compare-tests" ''
-              python3 script/compare-texi2any.py --hunks 0 --expected test/texi2any-differences.txt --test-inputs --corpus-inputs
-            '';
+            compare-tests =
+              mkCheck "compare-tests"
+                (
+                  scriptFiles
+                  ++ [
+                    ./test/texi2any-differences.txt
+                    ./test/corpus
+                  ]
+                )
+                ''
+                  python3 script/compare-texi2any.py --hunks 0 --expected test/texi2any-differences.txt --test-inputs --corpus-inputs
+                '';
             # Every tree is as recorded in test/tree-snapshots.txt.
-            snapshots = mkCheck "snapshots" ''
+            snapshots = mkCheck "snapshots" (scriptFiles ++ [ ./test/tree-snapshots.txt ]) ''
               python3 script/tree-snapshots.py --check --manuals --test-inputs
             '';
             # Incremental parsing after random edits of texi2any's test inputs
             # and the manuals, as corpus tests that exist only here.
-            fuzz-inputs = mkCheck "fuzz-inputs" ''
-              python3 script/fuzz-corpus.py --test-inputs --manuals
-              tree-sitter test --file-name fuzz-inputs.txt >/dev/null
-              tree-sitter fuzz --include texinfo-tests --iterations 50
-              tree-sitter fuzz --include examples --iterations 10
-            '';
+            fuzz-inputs =
+              mkCheck "fuzz-inputs"
+                (
+                  scriptFiles
+                  ++ [
+                    ./queries
+                    ./test/corpus
+                    ./test/highlight
+                    ./test/tags
+                  ]
+                )
+                ''
+                  python3 script/fuzz-corpus.py --test-inputs --manuals
+                  tree-sitter test --file-name fuzz-inputs.txt >/dev/null
+                  TREE_SITTER_SEED=0 tree-sitter fuzz --include texinfo-tests --iterations 50
+                  TREE_SITTER_SEED=0 tree-sitter fuzz --include examples --iterations 10
+                '';
             # Typing mistakes in the manuals stay local.
-            edits = mkCheck "edits" ''
+            edits = mkCheck "edits" scriptFiles ''
               python3 script/check-edits.py --edits 5 --seed 0 --edited-manuals
             '';
             # The generated Neovim queries load and run in Neovim.
-            neovim-queries = mkCheck "neovim-queries" ''
-              mkdir -p runtime/parser runtime/queries
-              tree-sitter build -o runtime/parser/texinfo.so >/dev/null
-              ln -s "$PWD/editors/neovim/queries" runtime/queries/texinfo
-              ${lib.getExe pkgs.neovim} --headless -l test/neovim/check-queries.lua runtime \
-                test/highlight/*.texi test/tags/*.texi
-            '';
-            # libFuzzer with sanitizers on the parser and scanner, for two
-            # minutes, seeded with the corpus tests' inputs.
-            fuzz-scanner = mkCheck "fuzz-scanner" ''
-              ${buildFuzzer "fuzzer"}
-              python3 script/corpus-inputs.py seeds
-              python3 script/fuzz-dict.py > dict
-              ./fuzzer -dict=dict -timeout=10 -max_len=4096 -max_total_time=120 seeds
-            '';
+            neovim-queries =
+              mkCheck "neovim-queries"
+                (
+                  parserFiles
+                  ++ [
+                    ./editors/neovim
+                    ./test/neovim
+                    ./test/highlight
+                    ./test/tags
+                  ]
+                )
+                ''
+                  mkdir -p runtime/parser runtime/queries
+                  tree-sitter build -o runtime/parser/texinfo.so >/dev/null
+                  ln -s "$PWD/editors/neovim/queries" runtime/queries/texinfo
+                  ${lib.getExe pkgs.neovim} --headless -l test/neovim/check-queries.lua runtime \
+                    test/highlight/*.texi test/tags/*.texi
+                '';
+            # libFuzzer with sanitizers on the parser and scanner, for a fixed
+            # number of runs from a fixed seed (about two minutes), seeded with
+            # the corpus tests' inputs.
+            fuzz-scanner =
+              mkCheck "fuzz-scanner"
+                (
+                  scriptFiles
+                  ++ [
+                    ./test/corpus
+                    ./test/fuzz
+                  ]
+                )
+                ''
+                  ${buildFuzzer "fuzzer"}
+                  python3 script/corpus-inputs.py seeds
+                  python3 script/fuzz-dict.py > dict
+                  ./fuzzer -dict=dict -timeout=10 -max_len=4096 -seed=1 -runs=60000 seeds
+                '';
           };
 
           # Longer fuzzing than the check, on several cores, keeping what it
@@ -453,6 +537,9 @@
 
               # Short names for the checks and tools (justfile)
               just
+
+              # Checks a commit message, as the commit-msg hook does
+              convco
 
               # Compiling the generated parser and the scanner
               llvm.clang

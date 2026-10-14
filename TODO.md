@@ -382,6 +382,12 @@ Deliberate, so the tree shows the source as it is written and edited:
   same checks locally before pushing, and CI keeps the Nix store between
   runs, so only the checks whose inputs changed run again. The bindings on
   Linux, macOS and Windows on every push
+- [x] Each check's inputs are only the files it reads, so that a change to
+  a query or a snapshot doesn't rerun the comparisons and the fuzzing; the
+  fuzzing checks start from a fixed seed, as Nix caches their result; each
+  check's command and the extraction of the manuals (now
+  `script/extract-examples.py`, from a manifest in `flake.nix`, the same
+  687 files) were bash that shellcheck never saw (found by review)
 - [x] Standard tools instead of shell scripts: `nix flake check` runs every
   check (cached by Nix), `nix fmt` formats (treefmt-nix), pre-commit runs
   the git hooks (git-hooks.nix), all declared with flake-parts; the justfile only holds
