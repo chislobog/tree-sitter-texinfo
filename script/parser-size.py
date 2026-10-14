@@ -3,7 +3,7 @@
 
 Each grammar feature adds a few percent of states, too little to notice one
 at a time: the parser went from 5,623 states to 12,387 in steps of 1-8%,
-none of which a check against the previous commit would flag (13,637 now). So the budget
+none of which a check against the previous commit would flag (13,748 now). So the budget
 is fixed, and raised only on purpose, in the commit that needs it: the check
 fails when the parser has more states. It also fails when the parser has
 more than 10% fewer, so that the budget follows a reduction down rather than

@@ -70,8 +70,10 @@ well with incomplete input, which is normal while editing.
   blocks at a paragraph's next line, which don't end it, a zero-width end
   of a paragraph before a brace command that ends one in the middle of a
   line (`PARAGRAPH_ENDING_BRACE_COMMANDS`), a zero-width token before
-  `@image` and `@namedanchor` where they start no paragraph, and the
-  end-of-file token. Add new blocks here.
+  `@image` and `@namedanchor` where they start no paragraph, conditionals
+  of text inside a paragraph (it reads the conditional's first line), the
+  rest of a raw block's `@end` line in a paragraph, and the end-of-file
+  token. Add new blocks here.
   Its token enum lists the grammar's `externals` in order, under the same
   names, and its tables of definition layouts and section levels mirror
   the grammar's; `script/check-scanner.py` checks that they agree and that

@@ -904,3 +904,84 @@ Several images on a line start no paragraph, as in texi2any
     name: (command_name)
     file: (argument
       (text))))
+
+================================================================================
+A conditional of text doesn't end a paragraph, as in texi2any, which evaluates it
+================================================================================
+
+Text
+@ifinfo
+info text
+@end ifinfo
+after.
+
+@itemize
+@item First
+@ifinfo
+@item Second
+@end ifinfo
+@end itemize
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (block
+      name: (command_name)
+      (paragraph
+        (text))
+      end: (block_end))
+    (text))
+  (list
+    name: (command_name)
+    (item
+      name: (command_name)
+      body: (item_body
+        (paragraph
+          (text))
+        (block
+          name: (command_name)
+          (item
+            name: (command_name)
+            body: (item_body
+              (paragraph
+                (text))))
+          end: (block_end))))
+    end: (block_end)))
+
+================================================================================
+Text after the end of a block in a paragraph goes on with the paragraph
+================================================================================
+
+Text
+@html
+<b>
+@end html more text
+and more.
+
+Then
+@html
+<b>
+@end html@
+end.
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (raw_block
+      name: (command_name)
+      body: (raw_text)
+      end: (block_end))
+    (text)
+    (text))
+  (paragraph
+    (text)
+    (raw_block
+      name: (command_name)
+      body: (raw_text)
+      end: (block_end))
+    (text)
+    (text)))

@@ -93,10 +93,12 @@ enum TokenType {
   NO_PARAGRAPH_COMMAND_NAME,
   PARAGRAPH_RAW_BLOCK_START,
   PARAGRAPH_MACRO_START,
+  PARAGRAPH_CONDITIONAL_START,
   PARAGRAPH_END_BEFORE_COMMAND,
   NO_PARAGRAPH_CONTEXT_NAME,
   NO_PARAGRAPH_SYMBOL,
   NO_PARAGRAPH_START,
+  END_LINE_TEXT,
   ERROR_SENTINEL,
 };
 
@@ -835,6 +837,59 @@ static bool starts_item(const Scanner *scanner, const char *name) {
 }
 
 /**
+ * Scans the rest of the line after the `@end` of a block in a paragraph, up
+ * to a comment, as one text: texi2any reports it, keeping it in the `@end`
+ * line.
+ */
+static bool scan_end_line_text(TSLexer *lexer) {
+  while (is_blank(lexer->lookahead)) skip(lexer);
+  bool found = false;
+  for (;;) {
+    int32_t c = lexer->lookahead;
+    if (lexer->eof(lexer) || c == '\n' || c == '\r') break;
+    if (c == '@') {
+      // The text ends before a comment.
+      lexer->mark_end(lexer);
+      advance(lexer);
+      char name[MAX_NAME + 1];
+      if (read_name(lexer, name) &&
+          (strcmp(name, "c") == 0 || strcmp(name, "comment") == 0)) {
+        break;
+      }
+      found = true;
+      lexer->mark_end(lexer);
+      continue;
+    }
+    advance(lexer);
+    found = true;
+    if (!is_blank(c)) lexer->mark_end(lexer);
+  }
+  lexer->result_symbol = END_LINE_TEXT;
+  return found;
+}
+
+/**
+ * Whether the line after the current one starts with text: not a blank line,
+ * an `@end`, an item, a node, a section, a block, a line command or a
+ * comment.
+ */
+static bool starts_with_text(TSLexer *lexer) {
+  skip_to_next_line(lexer);
+  skip_blanks(lexer);
+  int32_t c = lexer->lookahead;
+  if (lexer->eof(lexer) || c == '\n' || c == '\r') return false;
+  if (c != '@') return true;
+  advance(lexer);
+  char name[MAX_NAME + 1];
+  if (!read_name(lexer, name)) return true;
+  return strcmp(name, "end") != 0 && strcmp(name, "c") != 0 &&
+         strcmp(name, "comment") != 0 && strcmp(name, "item") != 0 &&
+         strcmp(name, "itemx") != 0 && strcmp(name, "headitem") != 0 &&
+         strcmp(name, "tab") != 0 && find_block(name) < 0 &&
+         !is_root_command(name) && !is_line_command(name);
+}
+
+/**
  * Scans a block opener such as `@example` at the start of a line. The `@` has
  * already been consumed.
  */
@@ -867,11 +922,20 @@ static bool scan_block_start(Scanner *scanner, TSLexer *lexer,
   if (kind == KIND_MACRO && valid_symbols[PARAGRAPH_MACRO_START]) {
     token = PARAGRAPH_MACRO_START;
   }
+  lexer->mark_end(lexer);
+  // Nor past a conditional, which texi2any evaluates, so that the paragraph
+  // goes on with the branch it takes: where the conditional starts with
+  // text. One that starts with items, a section or a block is part of the
+  // structure around the paragraph. Its first line is read here, so that an
+  // edit there makes tree-sitter scan again.
+  if (kind == KIND_BLOCK && is_conditional(name) &&
+      valid_symbols[PARAGRAPH_CONDITIONAL_START] && starts_with_text(lexer)) {
+    token = PARAGRAPH_CONDITIONAL_START;
+  }
   if (!valid_symbols[token]) return false;
   if (scanner->depth >= MAX_DEPTH) return false;
 
   scanner->stack[scanner->depth++] = (uint8_t)index;
-  lexer->mark_end(lexer);
   lexer->result_symbol = (TSSymbol)token;
   return true;
 }
@@ -1364,6 +1428,8 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
       scan_accent_argument(lexer, valid_symbols)) {
     return true;
   }
+
+  if (valid_symbols[END_LINE_TEXT] && scan_end_line_text(lexer)) return true;
 
   if (valid_symbols[VERB_OPEN] || valid_symbols[VERB_TEXT] ||
       valid_symbols[VERB_CLOSE]) {

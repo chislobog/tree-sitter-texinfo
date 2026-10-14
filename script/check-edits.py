@@ -4,9 +4,15 @@
 For each file, edits are made at random places inside paragraphs, as while
 typing: a character deleted (but not a newline before a line that starts with
 a command), or `{`, `}`, `@`, `@code{` or `@xref{` inserted; not an edit
-that makes a line start with a block command, which opens a block. Not inside a
-footnote, a caption or `@math`, whose argument spans paragraphs, so that in
-texi2any too a brace left open there runs to its end.
+that makes a line start with a block command, or a brace be followed by one
+(`@code{@@html` becoming `@code{@html`), which opens a block, as in texi2any.
+Not inside a
+footnote, a caption, `@math` or an inline conditional, whose argument spans
+paragraphs, so that in texi2any too a brace left open there runs to its end,
+nor inside `@verb`, which, its delimiter gone, takes the rest of the file, as
+in texi2any; nor inside a block in
+a paragraph (a raw block, a macro definition or a conditional), whose `@end`
+an edit may break, which leaves it open to an `@end` further on.
 For each edit:
 
 - Incremental parsing: the old tree, edited as an editor does, parsed again
@@ -50,6 +56,20 @@ PREFORMATTED = {
     "@format",
     "@smallformat",
 }
+# A block command right after a brace, which opens the block there.
+BRACE_BLOCK = re.compile(rb"\{[ \t]*@([a-zA-Z][\w-]*)")
+
+
+def opens_block_after_brace(source: bytes, edited: bytes, offset: int) -> bool:
+    """Whether the edit at `offset` makes a block command follow a brace."""
+
+    def count(text: bytes) -> int:
+        window = text[max(0, offset - 64) : offset + 64]
+        return sum(m.group(1).decode() in BLOCK_NAMES for m in BRACE_BLOCK.finditer(window))
+
+    return count(edited) > count(source)
+
+
 # A blank line, after which a paragraph has ended.
 BLANK_LINE = re.compile(rb"\n[ \t]*\n")
 
@@ -72,8 +92,20 @@ def paragraphs(node: Node) -> list[Node]:
 
 
 # Commands whose argument spans paragraphs, as in texi2any, so a brace left
-# open in it runs to its end: not checked.
-SPANNING = {b"footnote", b"caption", b"shortcaption", b"math"}
+# open in it runs to its end, and `@verb`, which left open takes the rest of
+# the file: not checked.
+SPANNING = {
+    b"footnote",
+    b"caption",
+    b"shortcaption",
+    b"math",
+    b"inlinefmt",
+    b"inlinefmtifelse",
+    b"inlineifset",
+    b"inlineifclear",
+    b"inlineraw",
+    b"verb",
+}
 LINE_COMMAND = re.compile(rb"[ \t]*@([a-zA-Z][\w-]*)")
 
 
@@ -82,6 +114,20 @@ def inside_spanning(root: Node, offset: int, names: set[bytes]) -> bool:
     while node is not None:
         name = node.child_by_field_name("name") if node.type == "inline_command" else None
         if name is not None and name.text[1:] in names:
+            return True
+        node = node.parent
+    return False
+
+
+# Blocks that a paragraph may hold.
+PARAGRAPH_BLOCKS = {"block", "raw_block", "macro_definition"}
+
+
+def inside_block(paragraph: Node, offset: int) -> bool:
+    """Whether `offset` is inside a block that `paragraph` holds."""
+    node = paragraph.descendant_for_byte_range(offset, offset)
+    while node is not None and node.id != paragraph.id:
+        if node.type in PARAGRAPH_BLOCKS:
             return True
         node = node.parent
     return False
@@ -155,7 +201,7 @@ def check_file(
     for _ in range(min(edits, len(candidates))):
         paragraph = rng.choice(candidates)
         offset = rng.randrange(paragraph.start_byte, paragraph.end_byte)
-        if inside_spanning(old_tree.root_node, offset, SPANNING):
+        if inside_spanning(old_tree.root_node, offset, SPANNING) or inside_block(paragraph, offset):
             continue
         # Joining a line that starts with a command to the one before makes it
         # part of a paragraph, which may end a block early or late by design.
@@ -175,7 +221,7 @@ def check_file(
             # A block opener, which runs on to its `@end` by design.
             and opener.group(1).decode() in BLOCK_NAMES
             and (before is None or before.group(1) != opener.group(1))
-        ):
+        ) or opens_block_after_brace(source, edited, offset):
             continue
         made += 1
         problems.extend(

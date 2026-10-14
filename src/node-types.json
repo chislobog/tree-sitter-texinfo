@@ -1896,6 +1896,10 @@
       "required": false,
       "types": [
         {
+          "type": "block",
+          "named": true
+        },
+        {
           "type": "brace_group",
           "named": true
         },

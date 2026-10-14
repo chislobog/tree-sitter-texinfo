@@ -310,6 +310,8 @@ export default grammar({
     // start of its next line.
     $._paragraph_raw_block_start,
     $._paragraph_macro_start,
+    // A conditional of text, which doesn't end a paragraph either.
+    $._paragraph_conditional_start,
     // Zero-width before a command that ends a paragraph in the middle of a
     // line (`@caption`, `@titlefont`), and the names of a context command
     // and of `@*` that start no paragraph, where one would start.
@@ -319,6 +321,8 @@ export default grammar({
     // Zero-width before `@image` or `@namedanchor`, where they start no
     // paragraph.
     $._no_paragraph_start,
+    // The rest of the line after the `@end` of a block in a paragraph.
+    $._end_line_text,
     // Valid only during error recovery, when tree-sitter marks every token
     // valid: the scanner then returns nothing.
     $._error_sentinel,
@@ -516,11 +520,29 @@ export default grammar({
     _vskip_argument: $ => alias(/[^\r\n]+/, $.raw_text),
     _raw_argument: $ => alias($._set_value, $.raw_text),
 
+    // A conditional in a paragraph, which goes on with the text of the branch
+    // texi2any takes, as it evaluates the conditional; the scanner only gives
+    // its token where the conditional starts with text.
+    _paragraph_conditional: $ => seq(
+      field('name', alias($._paragraph_conditional_start, $.command_name)),
+      optional(field('argument', $.line_argument)),
+      $._line_end,
+      $._block_rest,
+    ),
+
     // A block that doesn't end the paragraph it is in, then its line's end.
     _paragraph_block: $ => seq(
       choice(
-        alias($._paragraph_raw_block, $.raw_block),
+        // Text after a raw block's `@end` on that line, which texi2any
+        // reports, keeping it in the `@end` line: one token. As the
+        // paragraph's next line, it would cost 656 parser states; after the
+        // other blocks too, 100 more, for what stays a local error there.
+        seq(
+          alias($._paragraph_raw_block, $.raw_block),
+          optional(alias($._end_line_text, $.text)),
+        ),
         alias($._paragraph_macro_definition, $.macro_definition),
+        alias($._paragraph_conditional, $.block),
       ),
       choice($._line_end, $._comment_lines),
     ),

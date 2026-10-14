@@ -345,9 +345,17 @@ comparing arguments:
   (2 of texi2any's test inputs)
 - [x] Macro definitions don't end a paragraph either, as in texi2any (6
   files; 88 parser states, the definition's own in a paragraph)
-- [ ] Nor do conditionals in texi2any, which evaluates them, so that the
-  text of the branch it takes goes on with the paragraph around it; the
-  comparison can't see that, as texi2any's expansion has no conditionals
+- [x] Nor do conditionals, which texi2any evaluates, so that the text of
+  the branch it takes goes on with the paragraph around it: a conditional
+  whose first line is text is a block inside the paragraph, at the start of
+  one of its lines; one that starts with items, a section or a block stays
+  part of the structure around the paragraph (60 parser states). The
+  comparison can't see it, as texi2any's expansion has no conditionals
+- [x] Text after a raw block's `@end` on that line, in a paragraph, is one
+  text in the paragraph (texi2any reports it); it was an error that could
+  reach far, found by the editing simulation (51 parser states). After a
+  conditional's or a macro definition's, it stays a local error, which
+  would cost another 100
 - [x] Comment lines at the end of a paragraph, before a blank line or the
   end of the file, are in it, as in texi2any; they were after it (61
   files). In a paragraph, comment lines are no longer extras between

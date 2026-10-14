@@ -19,6 +19,11 @@ build/corpus/menus/unfinished-menu-entry.texi
   line 3: * arguments: ours 'half typed', texi2any ' | Done'
   line 4: ours '* *', texi2any '(nothing)'
 
+# Invalid input; texi2any reports at line 5: bad argument to @end: html more text, and at line 11: bad argument to @end: html@, keeping the text after the block's name in its `@end` line; here it goes on with the paragraph
+build/corpus/paragraphs/text-after-the-end-of-a-block-in-a-paragraph-goes-on-with-the-paragraph.texi
+  line 11: ours '(nothing)', texi2any '@\n'
+  line 2: <p> arguments: ours 'Text more text and more', texi2any 'Text and more'
+
 # Comparison: texi2any's tree keeps a @macro line raw, with the comment after its parameters, which it accepts as a comment
 build/corpus/raw/comments-on-a-macro-line.texi
   line 2: +macro arguments: ours 'foo', texi2any 'foo c foo c'
