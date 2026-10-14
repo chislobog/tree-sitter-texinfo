@@ -27,7 +27,7 @@
 ; `@inlineraw{FORMAT, TEXT}`: the format names the language, `tex` aside.
 ((inline_command
   name: (command_name) @_name
-  condition: (argument) @_format
+  format: (argument) @_format
   body: (raw_text) @injection.content)
   (#eq? @_name "@inlineraw")
   (#any-of? @_format "tex" "latex")
@@ -35,7 +35,7 @@
 
 ((inline_command
   name: (command_name) @_name
-  condition: (argument) @injection.language
+  format: (argument) @injection.language
   body: (raw_text) @injection.content)
   (#eq? @_name "@inlineraw")
   (#not-any-of? @injection.language "tex" "latex"))

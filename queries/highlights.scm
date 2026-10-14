@@ -242,8 +242,7 @@
 (bye
   name: (command_name) @keyword)
 
-(bye
-  (ignored) @comment)
+(ignored) @comment
 
 ; Inline markup
 ((inline_command

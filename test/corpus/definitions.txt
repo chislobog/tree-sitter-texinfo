@@ -408,6 +408,7 @@ A definition line continued before its name
         (text))
       type: (brace_group
         (text))
+      continuation: (line_continuation)
       entity: (text)
       arguments: (definition_arguments
         (text)))
@@ -537,6 +538,7 @@ bar baz
       category: (text)
       entity: (word
         (text)
+        (line_continuation)
         (text))
       arguments: (definition_arguments
         (text)))

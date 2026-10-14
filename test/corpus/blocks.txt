@@ -325,11 +325,13 @@ Accents and brace commands in a float type
       (text)
       (inline_command
         name: (command_name)
-        argument: (text))
+        arguments: (brace_arguments
+          (text)))
       (text)
       (inline_command
         name: (command_name)
-        argument: (text))
+        arguments: (brace_arguments
+          (text)))
       (text)
       (inline_command
         name: (command_name)

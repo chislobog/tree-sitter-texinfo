@@ -130,7 +130,8 @@ not parsed
 (source_file
   (bye
     name: (command_name)
-    argument: (ignored)
+    argument: (line_argument
+      (ignored))
     (comment)
     (ignored)))
 
@@ -199,7 +200,8 @@ Less common line commands
 (source_file
   (line_command
     (command_name)
-    (raw_text))
+    (line_argument
+      (raw_text)))
   (line_command
     (command_name)
     (line_argument
@@ -423,11 +425,14 @@ Raw arguments of @vskip, @clickstyle and @unmacro
 (source_file
   (line_command
     name: (command_name)
-    argument: (raw_text))
+    argument: (line_argument
+      (raw_text)))
   (line_command
     name: (command_name)
-    argument: (raw_text)
+    argument: (line_argument
+      (raw_text))
     (comment))
   (line_command
     name: (command_name)
-    argument: (raw_text)))
+    argument: (line_argument
+      (raw_text))))

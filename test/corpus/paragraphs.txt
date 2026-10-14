@@ -100,7 +100,8 @@ Symbol commands
     (symbol_command)
     (inline_command
       (command_name)
-      (text))))
+      (brace_arguments
+        (text)))))
 
 ================================================================================
 Brace groups
@@ -189,10 +190,12 @@ e
     (text)
     (inline_command
       name: (command_name)
-      argument: (text))
+      arguments: (brace_arguments
+        (text)))
     (inline_command
       name: (command_name)
-      argument: (text))
+      arguments: (brace_arguments
+        (text)))
     (inline_command
       name: (command_name)
       arguments: (brace_arguments
@@ -201,16 +204,20 @@ e
       name: (command_name))
     (inline_command
       name: (command_name)
-      argument: (text))
+      arguments: (brace_arguments
+        (text)))
     (inline_command
       name: (command_name)
-      argument: (text))
+      arguments: (brace_arguments
+        (text)))
     (inline_command
       name: (command_name)
-      argument: (text))
+      arguments: (brace_arguments
+        (text)))
     (inline_command
       name: (command_name)
-      argument: (text))))
+      arguments: (brace_arguments
+        (text)))))
 
 ================================================================================
 An accent at the end of a line command's line has no argument

@@ -121,17 +121,19 @@ const builtinName = ($) => field('name', alias($._brace_command_name, $.command_
 
 /**
  * What follows a built-in brace command's name: its braces, holding
- * `braceArguments`, or an accent's argument without them. The rules made
- * with it stay apart: one rule shared where they are used costs states (34
- * for a float's type).
+ * `braceArguments`, or an accent's argument without them, which is its
+ * `brace_arguments` too, as texi2any has either as the accent's argument
+ * (`accentArguments`, a rule holding the `text`). The rules made with it
+ * stay apart: one rule shared where they are used costs states (34 for a
+ * float's type).
  *
  * @param {GrammarSymbols<string>} $
  * @param {RuleOrLiteral} braceArguments
- * @param {RuleOrLiteral} accentArgument
+ * @param {RuleOrLiteral} accentArguments
  */
-const braceOrAccent = ($, braceArguments, accentArgument) => choice(
+const braceOrAccent = ($, braceArguments, accentArguments) => choice(
   seq('{', braceArguments),
-  field('argument', alias(accentArgument, $.text)),
+  field('arguments', alias(accentArguments, $.brace_arguments)),
 );
 
 /**
@@ -344,10 +346,12 @@ export default grammar({
     // The rest of the `@bye` line is still read, so a comment there counts.
     bye: $ => seq(
       field('name', alias('@bye', $.command_name)),
-      optional(field('argument', alias(token(prec(-1, /[^@\s][^@\n\r]*/)), $.ignored))),
+      optional(field('argument', alias($._bye_argument, $.line_argument))),
       $._line_end,
       optional(alias(/[\s\S]+/, $.ignored)),
     ),
+
+    _bye_argument: $ => alias(token(prec(-1, /[^@\s][^@\n\r]*/)), $.ignored),
 
     _content: $ => choice(
       $._body_start,
@@ -418,14 +422,15 @@ export default grammar({
         )),
       ),
       // Commands whose argument texi2any keeps as raw text: all of the line
-      // for `@vskip`, up to a comment for `@clickstyle` and `@unmacro`.
+      // for `@vskip`, up to a comment for `@clickstyle` and `@unmacro`. The
+      // `line_argument` holds it, as texi2any's line argument does.
       seq(
         field('name', command($, ['vskip'])),
-        optional(field('argument', alias(/[^\r\n]+/, $.raw_text))),
+        optional(field('argument', alias($._vskip_argument, $.line_argument))),
       ),
       seq(
         field('name', command($, ['clickstyle', 'unmacro'])),
-        optional(field('argument', alias($._set_value, $.raw_text))),
+        optional(field('argument', alias($._raw_argument, $.line_argument))),
       ),
       // `@alias NEW = EXISTING`; the spaces are optional. Anything else on
       // the line, which texi2any reports, is left as an argument, and a
@@ -445,6 +450,9 @@ export default grammar({
         optional($.subentry),
       ),
     ),
+
+    _vskip_argument: $ => alias(/[^\r\n]+/, $.raw_text),
+    _raw_argument: $ => alias($._set_value, $.raw_text),
 
     _paragraph_line_command: $ => lineCommand($, $._paragraph_line_command_name, $._line_end),
 
@@ -486,7 +494,7 @@ export default grammar({
     _line_argument_command: $ => choice(
       prec.right(seq(
         builtinName($),
-        optional(braceOrAccent($, $._line_brace_arguments, $._line_accent_argument)),
+        optional(braceOrAccent($, $._line_brace_arguments, $._line_accent_arguments)),
       )),
       prec.right(seq(
         field('name', $.command_name),
@@ -711,9 +719,11 @@ export default grammar({
     // A word of a definition line: braces group several words into one.
     // A definition line is a line command: braces left open close at its end.
     _definition_word: $ => choice(
-      // A line ending in `@` may continue before any word. Anonymous, so a
-      // query for the word's field (`entity: (_)`) only finds the word.
-      seq(alias($.line_continuation, '@\n'), $._definition_word),
+      // A line ending in `@` may continue before any word. The field of its
+      // own keeps it out of the word's (a query for `entity: (_)` only finds
+      // the word): outside the rule, where it needs none, it costs 3,572
+      // parser states.
+      seq(field('continuation', $.line_continuation), $._definition_word),
       $._definition_word_part,
       // Parts with no space between them make one word, as in texi2any
       // (`foo@var{x}`); the scanner glues them.
@@ -725,10 +735,9 @@ export default grammar({
     // group, a symbol, or a built-in brace command with its braces or accent
     // argument. Other commands, whose braces are optional too, only end a
     // word: a part glued after them starts the next one.
-    // A line ending in `@` right inside the word continues it, anonymous as
-    // before a word.
+    // A line ending in `@` right inside the word continues it.
     _glued_word: $ => seq(
-      repeat1(seq($._glueable_word_part, $._word_glue, optional(alias($.line_continuation, '@\n')))),
+      repeat1(seq($._glueable_word_part, $._word_glue, optional($.line_continuation))),
       $._definition_word_part,
     ),
 
@@ -741,7 +750,7 @@ export default grammar({
 
     _glueable_command: $ => seq(
       builtinName($),
-      braceOrAccent($, $._line_brace_arguments, $._line_accent_argument),
+      braceOrAccent($, $._line_brace_arguments, $._line_accent_arguments),
     ),
 
     _definition_word_part: $ => choice(
@@ -881,7 +890,8 @@ export default grammar({
     // A macro parameter, spaces inside included (texi2any reports them).
     _macro_parameter: _ => /[^,}\s]([^,}\r\n]*[^,}\s])?/,
     // What follows a macro's name or parameters other than a comment.
-    _macro_line_rest: $ => field('argument', alias(/[^@{\s][^\r\n]*/, $.raw_text)),
+    _macro_line_rest: $ => field('argument', alias($._macro_line_argument, $.line_argument)),
+    _macro_line_argument: $ => alias(/[^@{\s][^\r\n]*/, $.raw_text),
 
     // A block still open at the end of the file ends with a zero-width
     // `missing_end`, so it keeps its structure.
@@ -979,7 +989,7 @@ export default grammar({
             braceClose($),
           ),
           // An accent command's argument without braces: `@'e`, `@u o`.
-          field('argument', alias($._accent_argument, $.text)),
+          field('arguments', alias($._accent_arguments, $.brace_arguments)),
         )),
       )),
       // Any other command: a macro call, or a command texi2any doesn't know.
@@ -1019,7 +1029,7 @@ export default grammar({
     _math_command: $ => choice(
       prec.right(seq(
         builtinName($),
-        optional(braceOrAccent($, $._math_brace_arguments, $._accent_argument)),
+        optional(braceOrAccent($, $._math_brace_arguments, $._accent_arguments)),
       )),
       prec.right(seq(
         field('name', $.command_name),
@@ -1037,7 +1047,7 @@ export default grammar({
     // states.
     _float_type_command: $ => prec.right(seq(
       builtinName($),
-      optional(braceOrAccent($, $._line_brace_arguments, $._line_accent_argument)),
+      optional(braceOrAccent($, $._line_brace_arguments, $._line_accent_arguments)),
     )),
 
     // Paragraphs, blocks and line commands: what texi2any allows there.
@@ -1051,6 +1061,10 @@ export default grammar({
 
     // An inline conditional's output format or flag name.
     _condition: $ => alias(repeat1(alias($._argument_text, $.text)), $.argument),
+
+    // An accent's argument without braces, in a paragraph or in a line.
+    _accent_arguments: $ => alias($._accent_argument, $.text),
+    _line_accent_arguments: $ => alias($._line_accent_argument, $.text),
 
     _line_brace_arguments: $ => seq(
       optional(field('arguments', alias(
@@ -1113,16 +1127,15 @@ export default grammar({
           longBraceClose($),
         )),
       )),
-      // `@inlinefmt{FORMAT, TEXT}`, `@inlineifset{FLAG, TEXT}`: like a
+      // `@inlinefmt{FORMAT, TEXT}`, `@inlineifset{VARIABLE, TEXT}`: like a
       // conditional block, the text may hold blank lines and blocks.
       prec.right(seq(
-        field('name', command($, ['inlinefmt', 'inlineifset', 'inlineifclear'])),
-        optional(seq(
-          '{',
-          optional(field('condition', $._condition)),
-          optional(seq(',', optional(field('text', alias($._long_arguments, $.argument))))),
-          longBraceClose($),
-        )),
+        field('name', command($, ['inlinefmt'])),
+        optional(seq('{', optional(field('format', $._condition)), $._inline_conditional_text)),
+      )),
+      prec.right(seq(
+        field('name', command($, ['inlineifset', 'inlineifclear'])),
+        optional(seq('{', optional(field('variable', $._condition)), $._inline_conditional_text)),
       )),
       // `@inlinefmtifelse{FORMAT, THEN, ELSE}`: both texts may hold blank
       // lines and blocks; the first ends at a comma, the last takes the rest.
@@ -1130,7 +1143,7 @@ export default grammar({
         field('name', command($, ['inlinefmtifelse'])),
         optional(seq(
           '{',
-          optional(field('condition', $._condition)),
+          optional(field('format', $._condition)),
           optional(seq(
             ',',
             optional(field('then', alias($._long_comma_arguments, $.argument))),
@@ -1144,11 +1157,18 @@ export default grammar({
         field('name', command($, ['inlineraw'])),
         optional(seq(
           '{',
-          optional(field('condition', $._condition)),
+          optional(field('format', $._condition)),
           optional(seq(',', optional(field('body', alias($._inline_raw_text, $.raw_text))))),
           braceClose($),
         )),
       )),
+    ),
+
+    // A rule of its own, shared by the inline conditionals whose first
+    // arguments' fields differ (60 parser states fewer).
+    _inline_conditional_text: $ => seq(
+      optional(seq(',', optional(field('text', alias($._long_arguments, $.argument))))),
+      longBraceClose($),
     ),
 
     // `@verb{xTEXTx}`: the scanner reads the delimiter `x` and the raw text.

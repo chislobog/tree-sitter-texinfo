@@ -343,7 +343,7 @@
         "required": false,
         "types": [
           {
-            "type": "ignored",
+            "type": "line_argument",
             "named": true
           }
         ]
@@ -650,15 +650,15 @@
         "required": false,
         "types": [
           {
-            "type": "@\n",
-            "named": false
-          },
-          {
             "type": "brace_group",
             "named": true
           },
           {
             "type": "inline_command",
+            "named": true
+          },
+          {
+            "type": "line_continuation",
             "named": true
           },
           {
@@ -680,15 +680,15 @@
         "required": false,
         "types": [
           {
-            "type": "@\n",
-            "named": false
-          },
-          {
             "type": "brace_group",
             "named": true
           },
           {
             "type": "inline_command",
+            "named": true
+          },
+          {
+            "type": "line_continuation",
             "named": true
           },
           {
@@ -705,20 +705,30 @@
           }
         ]
       },
-      "entity": {
+      "continuation": {
         "multiple": true,
         "required": false,
         "types": [
           {
-            "type": "@\n",
-            "named": false
-          },
+            "type": "line_continuation",
+            "named": true
+          }
+        ]
+      },
+      "entity": {
+        "multiple": true,
+        "required": false,
+        "types": [
           {
             "type": "brace_group",
             "named": true
           },
           {
             "type": "inline_command",
+            "named": true
+          },
+          {
+            "type": "line_continuation",
             "named": true
           },
           {
@@ -750,15 +760,15 @@
         "required": false,
         "types": [
           {
-            "type": "@\n",
-            "named": false
-          },
-          {
             "type": "brace_group",
             "named": true
           },
           {
             "type": "inline_command",
+            "named": true
+          },
+          {
+            "type": "line_continuation",
             "named": true
           },
           {
@@ -854,10 +864,6 @@
           {
             "type": "line_argument",
             "named": true
-          },
-          {
-            "type": "text",
-            "named": true
           }
         ]
       },
@@ -877,16 +883,6 @@
         "types": [
           {
             "type": "raw_text",
-            "named": true
-          }
-        ]
-      },
-      "condition": {
-        "multiple": false,
-        "required": false,
-        "types": [
-          {
-            "type": "argument",
             "named": true
           }
         ]
@@ -912,6 +908,16 @@
         ]
       },
       "file": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "argument",
+            "named": true
+          }
+        ]
+      },
+      "format": {
         "multiple": false,
         "required": false,
         "types": [
@@ -1022,6 +1028,16 @@
         ]
       },
       "url": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "argument",
+            "named": true
+          }
+        ]
+      },
+      "variable": {
         "multiple": false,
         "required": false,
         "types": [
@@ -1258,7 +1274,15 @@
           "named": true
         },
         {
+          "type": "ignored",
+          "named": true
+        },
+        {
           "type": "inline_command",
+          "named": true
+        },
+        {
+          "type": "raw_text",
           "named": true
         },
         {
@@ -1292,10 +1316,6 @@
         "types": [
           {
             "type": "line_argument",
-            "named": true
-          },
-          {
-            "type": "raw_text",
             "named": true
           }
         ]
@@ -1459,7 +1479,7 @@
         "required": false,
         "types": [
           {
-            "type": "raw_text",
+            "type": "line_argument",
             "named": true
           }
         ]
@@ -2682,6 +2702,10 @@
           "named": true
         },
         {
+          "type": "line_continuation",
+          "named": true
+        },
+        {
           "type": "symbol_command",
           "named": true
         },
@@ -2710,10 +2734,6 @@
   },
   {
     "type": "=",
-    "named": false
-  },
-  {
-    "type": "@\n",
     "named": false
   },
   {

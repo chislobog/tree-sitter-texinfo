@@ -147,7 +147,8 @@ x
     macro: (text)
     parameter: (text)
     parameter: (text)
-    argument: (raw_text)
+    argument: (line_argument
+      (raw_text))
     body: (raw_text)
     end: (block_end))
   (macro_definition

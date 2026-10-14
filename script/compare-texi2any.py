@@ -160,11 +160,11 @@ MENU_ENTRY_FIELDS = ("label", "node", "description")
 DEFINITION_FIELDS = ("category", "class", "type", "entity", "arguments")
 SPLIT_FIELDS = {
     **{"@" + name: fields for name, fields in ARGUMENT_FIELDS.items()},
-    "@inlinefmt": ("condition", "text"),
-    "@inlineifset": ("condition", "text"),
-    "@inlineifclear": ("condition", "text"),
-    "@inlineraw": ("condition", "body"),
-    "@inlinefmtifelse": ("condition", "then", "else"),
+    "@inlinefmt": ("format", "text"),
+    "@inlineifset": ("variable", "text"),
+    "@inlineifclear": ("variable", "text"),
+    "@inlineraw": ("format", "body"),
+    "@inlinefmtifelse": ("format", "then", "else"),
 }
 
 
@@ -266,9 +266,9 @@ class OurWalker:
 
     def walk_expanded_arguments(self, name: str, node):
         """Walks only the arguments of an inline conditional that texi2any
-        expands, given by position after the condition: `text` (or
+        expands, given by position after the format or variable: `text` (or
         @inlinefmtifelse's `then`) is 1, its `else` is 2."""
-        flag = first_word(node.child_by_field_name("condition"))
+        flag = first_word(node.child_by_field_name("variable"))
         expanded = {
             "@inlinefmt": set(),
             "@inlineraw": set(),

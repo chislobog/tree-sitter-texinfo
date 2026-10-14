@@ -65,10 +65,12 @@ sources, which is what `texi2any` itself uses.
   `@xref`, `@pxref`, `@ref`, `@inforef`, `@link`, `@uref`, `@url`, `@email`,
   `@image`, `@abbr`, `@acronym`, `@namedanchor`
 - [x] `@node` arguments in fields (`node_line`: node, next, previous, up)
-- [x] Split the inline conditionals' arguments into `condition` and `text`
-  (multi-line, like a conditional block) or, for `@inlineraw`, a raw `body`,
-  injected in the language its format names
-- [x] `@inlinefmtifelse`'s three arguments: `condition`, `then` and `else`,
+- [x] Split the inline conditionals' arguments into `format` (`@inlinefmt`)
+  or `variable` (`@inlineifset`, `@inlineifclear`) and `text` (multi-line,
+  like a conditional block) or, for `@inlineraw`, `format` and a raw
+  `body`, injected in the language its format names. The first was
+  `condition` for all of them until review (100 parser states)
+- [x] `@inlinefmtifelse`'s three arguments: `format`, `then` and `else`,
   both texts spanning blank lines and blocks (+1,074 parser states)
 - [x] `@float` arguments: `type` and `label` fields; the label is a tag and
   highlighted like a node name. Commands with named arguments (`@xref`)
@@ -82,7 +84,14 @@ sources, which is what `texi2any` itself uses.
   closes the brace at one in the middle of a line, which the manual
   doesn't allow
 - [x] Accent commands without braces: `@'e`, `@"u`, and letter accents with
-  a space: `@u o`, `@v c`; the character is the command's `argument`
+  a space: `@u o`, `@v c`; the character is in the command's `arguments`,
+  a `brace_arguments` as with braces (its `argument`, a `text`, until
+  review), as texi2any has either as the accent's argument
+- [x] Each field holds one kind of node since review: `argument` is always
+  a `line_argument`, which holds the raw text of `@vskip`, `@clickstyle`,
+  `@unmacro` and of what follows a macro's name or parameters, and the
+  ignored text after `@bye` on its line, as texi2any's line argument does
+  (they were the `argument` themselves); an accent's argument is above
 - [x] `@value{name}`: an inline command whose name is highlighted as a
   variable, like `@set`'s
 - [x] `@alias` has `alias` and `target` fields; `@macro`, `@rmacro` and
@@ -110,7 +119,10 @@ sources, which is what `texi2any` itself uses.
   (still a `symbol_command` before the arguments start)
 - [x] A line ending in `@` right after a definition word, with the next
   line starting with no blank, continues the word, as in texi2any
-  (`foo@` then `bar` is `foobar`); it was a space between two words
+  (`foo@` then `bar` is `foobar`); it was a space between two words. Its
+  `@` is a `line_continuation` inside the `word`, and one before a word is
+  in a `continuation` field, outside the word's (both were an anonymous
+  `@\n` until review; outside any field, it costs 3,572 parser states)
 - [x] A definition word glued to a command (`foo@var{x}`,
   `@var{$converter}->method` in texi2any's API reference) is one `word` node,
   as in texi2any; the scanner emits a zero-width glue between its parts.

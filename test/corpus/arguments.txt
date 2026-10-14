@@ -204,7 +204,7 @@ Inline conditionals
   (paragraph
     (inline_command
       name: (command_name)
-      condition: (argument
+      format: (argument
         (text))
       text: (argument
         (text)
@@ -214,18 +214,18 @@ Inline conditionals
             (text)))))
     (inline_command
       name: (command_name)
-      condition: (argument
+      variable: (argument
         (text))
       text: (argument
         (text)))
     (inline_command
       name: (command_name)
-      condition: (argument
+      format: (argument
         (text))
       body: (raw_text))
     (inline_command
       name: (command_name)
-      condition: (argument
+      format: (argument
         (text)))))
 
 ================================================================================
@@ -300,7 +300,7 @@ x
   (paragraph
     (inline_command
       name: (command_name)
-      condition: (argument
+      format: (argument
         (text))
       then: (argument
         (text)
@@ -314,7 +314,7 @@ x
   (paragraph
     (inline_command
       name: (command_name)
-      condition: (argument
+      format: (argument
         (text))
       then: (argument
         (text)
