@@ -278,3 +278,52 @@ Comment directly after a block name
     (raw_text)
     (block_end))
   (comment))
+
+================================================================================
+The other raw formats
+================================================================================
+
+@latex
+\section{x}
+@end latex
+
+@xml
+<x/>
+@end xml
+
+@docbook
+<para/>
+@end docbook
+
+---
+
+(source_file
+  (raw_block
+    (command_name)
+    (raw_text)
+    (block_end))
+  (raw_block
+    (command_name)
+    (raw_text)
+    (block_end))
+  (raw_block
+    (command_name)
+    (raw_text)
+    (block_end)))
+
+================================================================================
+A macro definition left open at the end of the file
+================================================================================
+
+@macro foo {a}
+Text \a\.
+
+---
+
+(source_file
+  (macro_definition
+    (command_name)
+    (text)
+    (text)
+    (raw_text)
+    (missing_end)))

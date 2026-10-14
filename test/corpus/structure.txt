@@ -235,7 +235,7 @@ Text with @opindex inline.
     (text)))
 
 ================================================================================
-Command fields are named consistently
+Headings and bye name their command in the name field
 ================================================================================
 
 @chapter Intro

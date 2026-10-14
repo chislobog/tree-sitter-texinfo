@@ -390,7 +390,7 @@ load-path}.
     (text)))
 
 ================================================================================
-Text starting with a non-ASCII space
+Spaces other than ASCII ones are text: a node name of em spaces, a line starting with a no-break space
 ================================================================================
 
 @node   
@@ -402,6 +402,104 @@ Text starting with a non-ASCII space
   (node_line
     name: (command_name)
     node: (argument
+      (text)))
+  (paragraph
+    (text)))
+
+================================================================================
+The line commands that end a paragraph, as in texi2any
+================================================================================
+
+Text
+@sp 2
+Text
+@page
+Text
+@need 100
+Text
+@exdent Exdented line.
+Text
+@maketitle
+Text
+@printindex cp
+Text
+@insertcopying
+Text
+@shortcontents
+Text
+@summarycontents
+Text
+@listoffloats Figure
+Text
+@verbatiminclude file.txt
+Text
+@dircategory Category
+Text
+
+---
+
+(source_file
+  (paragraph
+    (text))
+  (line_command
+    (command_name)
+    (line_argument
+      (text)))
+  (paragraph
+    (text))
+  (line_command
+    (command_name))
+  (paragraph
+    (text))
+  (line_command
+    (command_name)
+    (line_argument
+      (text)))
+  (paragraph
+    (text))
+  (line_command
+    (command_name)
+    (line_argument
+      (text)))
+  (paragraph
+    (text))
+  (line_command
+    (command_name))
+  (paragraph
+    (text))
+  (line_command
+    (command_name)
+    (line_argument
+      (text)))
+  (paragraph
+    (text))
+  (line_command
+    (command_name))
+  (paragraph
+    (text))
+  (line_command
+    (command_name))
+  (paragraph
+    (text))
+  (line_command
+    (command_name))
+  (paragraph
+    (text))
+  (line_command
+    (command_name)
+    (line_argument
+      (text)))
+  (paragraph
+    (text))
+  (line_command
+    (command_name)
+    (line_argument
+      (text)))
+  (paragraph
+    (text))
+  (line_command
+    (command_name)
+    (line_argument
       (text)))
   (paragraph
     (text)))

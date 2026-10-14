@@ -559,3 +559,178 @@ A comment after a word is not glued to it
       (text)
       (comment))
     (block_end)))
+
+================================================================================
+Every definition layout
+================================================================================
+
+@defop Operation Class name args
+@end defop
+
+@deftypeop Operation Class int name (args)
+@end deftypeop
+
+@deftypefun int foo (int x)
+@end deftypefun
+
+@deftypevar int foo
+@end deftypevar
+
+@defmethod Class name args
+@end defmethod
+
+@deftypemethod Class int name args
+@end deftypemethod
+
+@defcv Option Class name
+@end defcv
+
+@deftypecv Option Class int name
+@end deftypecv
+
+@defivar Class name
+@end defivar
+
+@deftypeivar Class int name
+@end deftypeivar
+
+@defvr Variable name
+@end defvr
+
+@deftypevr Variable int name
+@end deftypevr
+
+@deftp {Data type} name fields
+@end deftp
+
+@defspec name args
+@end defspec
+
+@defmac name args
+@end defmac
+
+@defopt name
+@end defopt
+
+---
+
+(source_file
+  (definition_block
+    (definition_line
+      name: (command_name)
+      category: (text)
+      class: (text)
+      entity: (text)
+      arguments: (definition_arguments
+        (text)))
+    end: (block_end))
+  (definition_block
+    (definition_line
+      name: (command_name)
+      category: (text)
+      class: (text)
+      type: (text)
+      entity: (text)
+      arguments: (definition_arguments
+        (text)))
+    end: (block_end))
+  (definition_block
+    (definition_line
+      name: (command_name)
+      type: (text)
+      entity: (text)
+      arguments: (definition_arguments
+        (text)))
+    end: (block_end))
+  (definition_block
+    (definition_line
+      name: (command_name)
+      type: (text)
+      entity: (text))
+    end: (block_end))
+  (definition_block
+    (definition_line
+      name: (command_name)
+      class: (text)
+      entity: (text)
+      arguments: (definition_arguments
+        (text)))
+    end: (block_end))
+  (definition_block
+    (definition_line
+      name: (command_name)
+      class: (text)
+      type: (text)
+      entity: (text)
+      arguments: (definition_arguments
+        (text)))
+    end: (block_end))
+  (definition_block
+    (definition_line
+      name: (command_name)
+      category: (text)
+      class: (text)
+      entity: (text))
+    end: (block_end))
+  (definition_block
+    (definition_line
+      name: (command_name)
+      category: (text)
+      class: (text)
+      type: (text)
+      entity: (text))
+    end: (block_end))
+  (definition_block
+    (definition_line
+      name: (command_name)
+      class: (text)
+      entity: (text))
+    end: (block_end))
+  (definition_block
+    (definition_line
+      name: (command_name)
+      class: (text)
+      type: (text)
+      entity: (text))
+    end: (block_end))
+  (definition_block
+    (definition_line
+      name: (command_name)
+      category: (text)
+      entity: (text))
+    end: (block_end))
+  (definition_block
+    (definition_line
+      name: (command_name)
+      category: (text)
+      type: (text)
+      entity: (text))
+    end: (block_end))
+  (definition_block
+    (definition_line
+      name: (command_name)
+      category: (brace_group
+        (text))
+      entity: (text)
+      arguments: (definition_arguments
+        (text)))
+    end: (block_end))
+  (definition_block
+    (definition_line
+      name: (command_name)
+      entity: (text)
+      arguments: (definition_arguments
+        (text)))
+    end: (block_end))
+  (definition_block
+    (definition_line
+      name: (command_name)
+      entity: (text)
+      arguments: (definition_arguments
+        (text)))
+    end: (block_end))
+  (definition_block
+    (definition_line
+      name: (command_name)
+      entity: (text))
+    end: (block_end)))

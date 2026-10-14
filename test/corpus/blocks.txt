@@ -488,3 +488,411 @@ More.
   (unmatched_end)
   (paragraph
     (text)))
+
+================================================================================
+Every other block
+================================================================================
+
+@display
+In display.
+@end display
+
+@smalldisplay
+In smalldisplay.
+@end smalldisplay
+
+@format
+In format.
+@end format
+
+@smallformat
+In smallformat.
+@end smallformat
+
+@smallquotation
+In smallquotation.
+@end smallquotation
+
+@smalllisp
+In smalllisp.
+@end smalllisp
+
+@indentedblock
+In indentedblock.
+@end indentedblock
+
+@smallindentedblock
+In smallindentedblock.
+@end smallindentedblock
+
+@flushleft
+In flushleft.
+@end flushleft
+
+@flushright
+In flushright.
+@end flushright
+
+@raggedright
+In raggedright.
+@end raggedright
+
+@titlepage
+In titlepage.
+@end titlepage
+
+@copying
+In copying.
+@end copying
+
+@documentdescription
+In documentdescription.
+@end documentdescription
+
+@documentinfo
+In documentinfo.
+@end documentinfo
+
+@publication
+In publication.
+@end publication
+
+@ifnotinfo
+In ifnotinfo.
+@end ifnotinfo
+
+@ifnothtml
+In ifnothtml.
+@end ifnothtml
+
+@ifplaintext
+In ifplaintext.
+@end ifplaintext
+
+@ifnotplaintext
+In ifnotplaintext.
+@end ifnotplaintext
+
+@ifdocbook
+In ifdocbook.
+@end ifdocbook
+
+@ifnotdocbook
+In ifnotdocbook.
+@end ifnotdocbook
+
+@ifxml
+In ifxml.
+@end ifxml
+
+@ifnotxml
+In ifnotxml.
+@end ifnotxml
+
+@iflatex
+In iflatex.
+@end iflatex
+
+@ifnotlatex
+In ifnotlatex.
+@end ifnotlatex
+
+@ifcommanddefined code
+Defined.
+@end ifcommanddefined
+
+@ifcommandnotdefined foo
+Not defined.
+@end ifcommandnotdefined
+
+@ftable @code
+@item x
+An item.
+@end ftable
+
+---
+
+(source_file
+  (block
+    (command_name)
+    (paragraph
+      (text))
+    (block_end))
+  (block
+    (command_name)
+    (paragraph
+      (text))
+    (block_end))
+  (block
+    (command_name)
+    (paragraph
+      (text))
+    (block_end))
+  (block
+    (command_name)
+    (paragraph
+      (text))
+    (block_end))
+  (block
+    (command_name)
+    (paragraph
+      (text))
+    (block_end))
+  (block
+    (command_name)
+    (paragraph
+      (text))
+    (block_end))
+  (block
+    (command_name)
+    (paragraph
+      (text))
+    (block_end))
+  (block
+    (command_name)
+    (paragraph
+      (text))
+    (block_end))
+  (block
+    (command_name)
+    (paragraph
+      (text))
+    (block_end))
+  (block
+    (command_name)
+    (paragraph
+      (text))
+    (block_end))
+  (block
+    (command_name)
+    (paragraph
+      (text))
+    (block_end))
+  (block
+    (command_name)
+    (paragraph
+      (text))
+    (block_end))
+  (block
+    (command_name)
+    (paragraph
+      (text))
+    (block_end))
+  (block
+    (command_name)
+    (paragraph
+      (text))
+    (block_end))
+  (block
+    (command_name)
+    (paragraph
+      (text))
+    (block_end))
+  (block
+    (command_name)
+    (paragraph
+      (text))
+    (block_end))
+  (block
+    (command_name)
+    (paragraph
+      (text))
+    (block_end))
+  (block
+    (command_name)
+    (paragraph
+      (text))
+    (block_end))
+  (block
+    (command_name)
+    (paragraph
+      (text))
+    (block_end))
+  (block
+    (command_name)
+    (paragraph
+      (text))
+    (block_end))
+  (block
+    (command_name)
+    (paragraph
+      (text))
+    (block_end))
+  (block
+    (command_name)
+    (paragraph
+      (text))
+    (block_end))
+  (block
+    (command_name)
+    (paragraph
+      (text))
+    (block_end))
+  (block
+    (command_name)
+    (paragraph
+      (text))
+    (block_end))
+  (block
+    (command_name)
+    (paragraph
+      (text))
+    (block_end))
+  (block
+    (command_name)
+    (paragraph
+      (text))
+    (block_end))
+  (block
+    (command_name)
+    (line_argument
+      (text))
+    (paragraph
+      (text))
+    (block_end))
+  (block
+    (command_name)
+    (line_argument
+      (text))
+    (paragraph
+      (text))
+    (block_end))
+  (list
+    (command_name)
+    (line_argument
+      (inline_command
+        (command_name)))
+    (item
+      (command_name)
+      (line_argument
+        (text))
+      (item_body
+        (paragraph
+          (text))))
+    (block_end)))
+
+================================================================================
+A multitable left open at the end of the file
+================================================================================
+
+@multitable @columnfractions .5 .5
+@item a @tab b
+
+---
+
+(source_file
+  (list
+    (command_name)
+    (line_argument
+      (inline_command
+        (command_name)
+        (line_argument
+          (text))))
+    (item
+      (command_name)
+      (paragraph
+        (text))
+      (tab
+        (command_name)
+        (paragraph
+          (text))))
+    (missing_end)))
+
+================================================================================
+A menu and a detailmenu left open at the end of the file
+================================================================================
+
+@menu
+* A::
+@detailmenu
+* B::
+
+---
+
+(source_file
+  (menu
+    (command_name)
+    (menu_entry
+      (menu_node
+        (text)))
+    (menu
+      (command_name)
+      (menu_entry
+        (menu_node
+          (text)))
+      (missing_end))
+    (missing_end)))
+
+================================================================================
+A float left open at the end of the file
+================================================================================
+
+@float Figure, fig
+A figure.
+
+---
+
+(source_file
+  (block
+    (command_name)
+    (argument
+      (text))
+    (argument
+      (text))
+    (paragraph
+      (text))
+    (missing_end)))
+
+================================================================================
+A defblock left open at the end of the file
+================================================================================
+
+@defblock
+@defline Command name
+Text.
+
+---
+
+(source_file
+  (block
+    (command_name)
+    (definition_line
+      (command_name)
+      (text)
+      (text))
+    (paragraph
+      (text))
+    (missing_end)))
+
+================================================================================
+A group and a cartouche left open at the end of the file
+================================================================================
+
+@cartouche
+@group
+Text.
+
+---
+
+(source_file
+  (block
+    (command_name)
+    (block
+      (command_name)
+      (paragraph
+        (text))
+      (missing_end))
+    (missing_end)))
+
+================================================================================
+An include at the end of the file without a newline
+================================================================================
+
+@include file.texi
+---
+
+(source_file
+  (line_command
+    (command_name)
+    (line_argument
+      (text))))
