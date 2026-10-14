@@ -13,6 +13,15 @@ See @xref{Node, Label} here.
 @c              ^ parameter.inside
 @c                   ^ !parameter.inside
 
+An empty argument's comma is no other argument's.
+Gaps: @xref{Node,,, manual, Title} here.
+@c          ^ parameter.around
+@c              ^^^ !parameter.around
+@c                  ^ parameter.around
+@c                        ^ parameter.around
+@c                          ^ parameter.around
+@c                               ^ !parameter.around
+
 Some @code{code} here.
 @c         ^ parameter.inside
 

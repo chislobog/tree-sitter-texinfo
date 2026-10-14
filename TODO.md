@@ -387,8 +387,11 @@ Deliberate, so the tree shows the source as it is written and edited:
 - [x] Tests of the folds, textobjects and injections
   (`script/test-queries.py`, on `test/queries/`): `tree-sitter test` reads
   each test file of these queries as the query itself (0.26.11)
-- [ ] Textobjects: `.` skips anonymous nodes, so in `@xref{a, b, , d}` the
-  empty argument's comma joins `b`'s `@parameter.around`
+- [x] Textobjects: `.` skips anonymous nodes, so in `@xref{a, b, , d}` the
+  empty argument's comma joined `b`'s `@parameter.around`. A comma is only
+  taken between arguments in consecutive fields now, which the query lists;
+  an argument followed by an empty one is alone, like the last, as no query
+  can tell which comma is its own
 
 ## Project
 
