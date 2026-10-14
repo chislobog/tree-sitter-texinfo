@@ -89,5 +89,8 @@ jobs:
           test-go: true
           # go.mod's version, which go-tree-sitter 0.25 requires.
           go-version: "1.23"
-          # XCTest comes with Xcode, which only the macOS runner has.
+          # XCTest comes with Xcode, which only the macOS runner has. The
+          # action's default Swift, 6.1, can't build the modules of the
+          # runner's newer macOS SDK.
           test-swift: ${{ matrix.os == 'macos-latest' }}
+          swift-version: latest
