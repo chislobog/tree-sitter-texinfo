@@ -265,6 +265,36 @@ static void skip_to_next_line(TSLexer *lexer) {
   if (lexer->lookahead == '\n') advance(lexer);
 }
 
+/**
+ * Whether a scan started at the start of its line, before any blanks. Asked
+ * only where the answer decides the token: tree-sitter counts the column
+ * from the start of the line on every call, which made a long line's parse
+ * quadratic when it was asked before each token. `consumed` counts the
+ * characters read since the start (blanks, carriage returns, `@` and a
+ * name, each one byte), so the start's column is the current one less it.
+ */
+typedef struct {
+  TSLexer *lexer;
+  unsigned consumed;
+  int8_t at_start;  // -1 until asked
+} LineStart;
+
+static bool starts_line(LineStart *start) {
+  if (start->at_start < 0) {
+    start->at_start = start->lexer->get_column(start->lexer) == start->consumed;
+  }
+  return start->at_start;
+}
+
+// Skips the blanks, and carriage returns if `returns`, counting them.
+static void skip_counted(LineStart *start, bool returns) {
+  TSLexer *lexer = start->lexer;
+  while (is_blank(lexer->lookahead) || (returns && lexer->lookahead == '\r')) {
+    skip(lexer);
+    start->consumed++;
+  }
+}
+
 // A character of a command or block name after its first.
 static inline bool is_name_char(int32_t c) {
   return is_alpha(c) || is_digit(c) || c == '-';
@@ -1258,14 +1288,25 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
     }
   }
 
+  // The only column checked in the scanner: at the start of a line, where a
+  // line command inside braces has taken the newline before it, a brace
+  // closes and a paragraph ends as they would at the end of the previous
+  // line. Nothing comes before them on their line, and an edit that puts
+  // something there touches the newline right before it, which tree-sitter
+  // re-scans.
+  LineStart start = {lexer, 0, -1};
+  bool paragraph_end = valid_symbols[PARAGRAPH_END_AT_LINE_START];
+  bool brace_close = valid_symbols[BRACE_CLOSE_AT_PARAGRAPH_END] ||
+                     valid_symbols[BRACE_CLOSE_AT_BLOCK_END] ||
+                     valid_symbols[BRACE_CLOSE_AT_LINE_END];
+
   // Right after a brace closed at a blank line there, the paragraph ends
   // too; at an `@end` or a block, it does so when the name has been read.
-  bool paragraph_at_line_start = valid_symbols[PARAGRAPH_END_AT_LINE_START] &&
-                                 lexer->get_column(lexer) == 0;
-  if (paragraph_at_line_start) {
+  if (paragraph_end) {
     lexer->mark_end(lexer);
-    while (is_blank(lexer->lookahead)) skip(lexer);
-    if (lexer->lookahead == '\n' || lexer->lookahead == '\r') {
+    skip_counted(&start, false);
+    if ((lexer->lookahead == '\n' || lexer->lookahead == '\r') &&
+        starts_line(&start)) {
       lexer->result_symbol = PARAGRAPH_END_AT_LINE_START;
       return true;
     }
@@ -1273,37 +1314,22 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
 
   // Inside braces, where the newline may close one instead, the scan of a
   // missing brace looks for comment lines too.
-  if (valid_symbols[NEWLINE_BEFORE_COMMENTS] &&
-      !valid_symbols[BRACE_CLOSE_AT_PARAGRAPH_END] &&
-      !valid_symbols[BRACE_CLOSE_AT_BLOCK_END] &&
-      !valid_symbols[BRACE_CLOSE_AT_LINE_END]) {
-    while (is_blank(lexer->lookahead) || lexer->lookahead == '\r') {
-      skip(lexer);
-    }
+  if (valid_symbols[NEWLINE_BEFORE_COMMENTS] && !brace_close) {
+    skip_counted(&start, true);
     if (lexer->lookahead == '\n') return scan_newline_before_comments(lexer);
   }
 
-  // A brace still open at the start of a line, where a line command inside
-  // the braces has taken the newline before it, closes on that line as it
-  // would from the end of the previous one. The only column checked in the
-  // scanner: nothing comes before it on its line, and an edit that puts
-  // something there touches the newline right before it, which tree-sitter
-  // re-scans.
-  bool brace_at_line_start = false;
-  if (valid_symbols[BRACE_CLOSE_AT_PARAGRAPH_END] ||
-      valid_symbols[BRACE_CLOSE_AT_BLOCK_END] ||
-      valid_symbols[BRACE_CLOSE_AT_LINE_END]) {
-    bool line_start = lexer->get_column(lexer) == 0;
-    brace_at_line_start = line_start;
-    while (is_blank(lexer->lookahead)) skip(lexer);
-    if (line_start && valid_symbols[BRACE_CLOSE_AT_PARAGRAPH_END] &&
-        !in_preformatted(scanner) &&
-        (lexer->lookahead == '\n' || lexer->lookahead == '\r')) {
+  // A brace still open at the start of a line closes on that line as it
+  // would from the end of the previous one.
+  if (brace_close) {
+    skip_counted(&start, false);
+    bool line_end = lexer->lookahead == '\n' || lexer->lookahead == '\r';
+    if (line_end && valid_symbols[BRACE_CLOSE_AT_PARAGRAPH_END] &&
+        !in_preformatted(scanner) && starts_line(&start)) {
       // The line is blank: the paragraph has ended.
       return accept(lexer, BRACE_CLOSE_AT_PARAGRAPH_END);
     }
-    if (lexer->eof(lexer) || lexer->lookahead == '\n' ||
-        lexer->lookahead == '\r') {
+    if (lexer->eof(lexer) || line_end) {
       // In a line command's argument, a brace closes at the end of the line.
       if (valid_symbols[BRACE_CLOSE_AT_LINE_END]) {
         return accept(lexer, BRACE_CLOSE_AT_LINE_END);
@@ -1318,17 +1344,18 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
   // which doesn't record a column check in a scan that returns false, so the
   // internal lexer's `@end` would be kept after an edit that moves it to the
   // start of its line (CLAUDE.md).
-  while (is_blank(lexer->lookahead)) skip(lexer);
+  skip_counted(&start, false);
 
   bool missing_end = valid_symbols[MISSING_END] && scanner->depth > 0;
   if (valid_symbols[END_OF_FILE] || missing_end) {
     // A lone carriage return is a blank too (see `extras` in grammar.js).
     // Only a command can start past here, so skipping the `\r` of a line
     // end changes nothing.
-    while (is_blank(lexer->lookahead) || lexer->lookahead == '\r') {
-      skip(lexer);
-    }
+    skip_counted(&start, true);
     if (lexer->eof(lexer)) {
+      // At the end of the file, where the scan stopped, unless a paragraph
+      // ends at the start of the line.
+      if (paragraph_end && !starts_line(&start)) lexer->mark_end(lexer);
       // Blocks still open end first, also after a last line of blanks.
       if (missing_end) scanner->depth--;
       lexer->result_symbol = missing_end ? MISSING_END : END_OF_FILE;
@@ -1340,6 +1367,7 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
   // Zero-width tokens end here; every other token marks its own end.
   lexer->mark_end(lexer);
   advance(lexer);
+  start.consumed++;
 
   if (valid_symbols[BRACE_COMMAND_NAME] && is_symbol_accent(lexer->lookahead)) {
     advance(lexer);
@@ -1351,33 +1379,37 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
 
   char name[MAX_NAME + 1];
   if (!read_name(lexer, name)) return false;
+  start.consumed += (unsigned)strlen(name);
 
   if (strcmp(name, "end") == 0) {
-    return scan_end(scanner, lexer, valid_symbols, brace_at_line_start,
-                    paragraph_at_line_start);
+    bool line_start = (brace_close || paragraph_end) && starts_line(&start);
+    return scan_end(scanner, lexer, valid_symbols, brace_close && line_start,
+                    paragraph_end && line_start);
   }
   // A node, a section or `@bye` closes the open blocks, all but a
   // conditional, which texi2any has evaluated, and which a section may be
   // inside; and the paragraph and brace command before them.
   bool closes_block = is_root_command(name) && scanner->depth > 0 &&
                       !is_conditional(innermost_block(scanner));
-  if (paragraph_at_line_start &&
+  if (paragraph_end &&
       (find_block(name) >= 0 || starts_item(scanner, name) ||
-       is_root_command(name))) {
+       is_root_command(name)) &&
+      starts_line(&start)) {
     lexer->result_symbol = PARAGRAPH_END_AT_LINE_START;
     return true;
   }
   // A block other than a conditional, or a raw block texi2any keeps inside,
   // closes an ordinary brace command at the start of its line too, and so
   // does a list's next item. A node or section closes any brace command.
-  if (brace_at_line_start && valid_symbols[BRACE_CLOSE_AT_PARAGRAPH_END] &&
+  if (valid_symbols[BRACE_CLOSE_AT_PARAGRAPH_END] &&
       (closes_brace(name) || starts_item(scanner, name) ||
-       is_root_command(name))) {
+       is_root_command(name)) &&
+      starts_line(&start)) {
     lexer->result_symbol = BRACE_CLOSE_AT_PARAGRAPH_END;
     return true;
   }
-  if (brace_at_line_start && valid_symbols[BRACE_CLOSE_AT_BLOCK_END] &&
-      is_root_command(name)) {
+  if (valid_symbols[BRACE_CLOSE_AT_BLOCK_END] && is_root_command(name) &&
+      starts_line(&start)) {
     lexer->result_symbol = BRACE_CLOSE_AT_BLOCK_END;
     return true;
   }

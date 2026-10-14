@@ -403,6 +403,12 @@ Deliberate, so the tree shows the source as it is written and edited:
   (`script/tree-snapshots.py`), and a simulation of typing mistakes in the
   manuals that checks error locality and incremental parsing
   (`script/check-edits.py`), both in CI
+- [x] A long line parsed in time quadratic in its length (a line of 8,000
+  `@code{x}` took 4.6 s, 35 ms now): the scanner asked for the column before
+  every token, which tree-sitter counts from the start of the line. It asks
+  only where the answer decides the token now, and the parse check times
+  generated long lines too (`--stress`), as no manual has a line over a
+  kilobyte (found by review)
 - [x] Parse errors and parse speed of the manuals checked
   (`script/parse-examples.py`, timing each parse's CPU time); texi2any's
   test inputs and the manuals fuzzed with `tree-sitter fuzz`, from a corpus

@@ -133,7 +133,9 @@ lists of differences. `--keep DIR` saves the edited text of each problem, to ins
 `tree-sitter parse --cst` or `--debug-graph` (`tree-sitter parse --edits`
 rejects every edit in tree-sitter 0.26.11). `script/parse-examples.py` checks
 that only the manuals in `test/parse-errors.txt`, each with its reason, fail
-to parse, and that none parses ten times slower than the median.
+to parse, and that none parses ten times slower than the median; with
+`--stress` (as the check runs it), also generated inputs no manual has,
+such as a line of thousands of commands.
 `script/fuzz-corpus.py` turns texi2any's test inputs and the manuals into a
 corpus file that git ignores, for `tree-sitter fuzz --include texinfo-tests`
 or `--include examples` (about 10 seconds an iteration for the manuals);
@@ -233,8 +235,11 @@ from the same LLVM version as the compiler (the profile format differs).
   the scanner's own tokens, or apply where an edit that changes its outcome
   touches the token. The scanner checks only column 0, where nothing comes
   before a token on its line, to close a brace and end a paragraph after a
-  line command inside the braces took the newline. `script/check-edits.py`
-  checks that incremental parsing still matches a fresh parse.
+  line command inside the braces took the newline, and only where the
+  answer decides the token: `get_column` counts from the start of the line
+  on every call, so asking before each token made a long line's parse
+  quadratic. `script/check-edits.py` checks that incremental parsing still
+  matches a fresh parse.
 - Update `TODO.md` in the same commit as the work it tracks.
 - Neovim reads `#match?` regexes as Vim's "very magic" ones, where `@` is
   an operator: write `[@]`, or use `#any-of?`. The `neovim-queries` check

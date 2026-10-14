@@ -12,15 +12,18 @@
   the CPU time of the parse in this process, which other processes running
   at once (as `nix flake check`'s other checks do) hardly affect. A file
   that looks slow is timed again: it only fails if it is still slow every
-  time.
+  time. `--stress` adds generated inputs that the manuals don't have, such
+  as one line holding thousands of commands, to catch a parse that grows
+  faster than the input.
 
 Usage: script/parse-examples.py [--manuals] [--test-inputs] [--compared-manuals]
-       [--edited-manuals] [--slowdown N] [--expected FILE] [FILE...]
+       [--edited-manuals] [--stress] [--slowdown N] [--expected FILE] [FILE...]
 """
 
 import argparse
 import statistics
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -32,6 +35,17 @@ EXPECTED = ROOT / "test" / "parse-errors.txt"
 MIN_BYTES = 20_000
 # Times a file that looks slow is timed again.
 RETRIES = 3
+
+# Inputs of about 200 KB that a parse slower than linear in some construct
+# would take far longer on than the manuals, none of which has a line over
+# a kilobyte: the column tree-sitter counts from the start of the line made
+# each of these quadratic.
+STRESS = {
+    "long-line-commands.texi": "word @code{x} more text, " * 8000,
+    "long-line-groups.texi": "a {b} c " * 25000,
+    "long-line-references.texi": "see @xref{Node, Label}, " * 8000,
+    "long-heading.texi": "@chapter " + "a @emph{b} " * 18000,
+}
 
 
 def read_expected(path: Path) -> dict[str, list[str]]:
@@ -91,8 +105,18 @@ def main() -> int:
         metavar="FILE",
         help="file listing expected parse errors (default %(default)s)",
     )
+    arguments.add_argument(
+        "--stress",
+        action="store_true",
+        help="also generated inputs that grow slow faster than the input, such as long lines",
+    )
     add_files_argument(arguments)
     options = arguments.parse_args()
+    stress = tempfile.TemporaryDirectory() if options.stress else None
+    if stress is not None:
+        for name, text in STRESS.items():
+            (Path(stress.name) / name).write_text(text + "\n")
+        options.files.extend(Path(stress.name) / name for name in STRESS)
     options.files = files_argument(options)
 
     parser = Parser(load_language())

@@ -375,7 +375,7 @@
             checks-catch = mkCheck "checks-catch" "python3 script/test-checks.py";
             # Only the manuals in test/parse-errors.txt fail to parse, none
             # ten times slower than the median.
-            parse = mkCheck "parse" "python3 script/parse-examples.py --manuals";
+            parse = mkCheck "parse" "python3 script/parse-examples.py --manuals --stress";
             # The differences from texi2any are exactly those listed.
             compare-manuals = mkCheck "compare-manuals" ''
               python3 script/compare-texi2any.py --hunks 0 --expected test/texi2any-differences.txt --compared-manuals
