@@ -222,14 +222,18 @@ The comparison checks which commands appear, in order (a menu entry is
 the arguments of each command found on both sides: field by field
 where the grammar splits them as texi2any does (at commas, a definition line
 into its words, a menu entry into its parts; the positions are the grammar's
-`ARGUMENT_COMMANDS` and the script's tables), as one otherwise. Only an
+`ARGUMENT_COMMANDS` and the script's tables), as one otherwise. Then where
+paragraphs start and end among the commands (`<p>` and `</p>`; not in
+preformatted blocks and menus, where texi2any has none), and the text of
+each paragraph outside its commands. Only an
 argument's letters and digits count (of any script), without spaces, with the
 names of the commands in it but not its comments, so a difference in spaces
-or punctuation alone, in a field's node type, in where a paragraph ends, in
-text outside arguments or in how sections nest shows up only in corpus
-tests and the snapshots. A difference in
+or punctuation alone, in a field's node type, in text outside paragraphs
+and arguments (a preformatted block's) or in how sections nest shows up
+only in corpus tests and the snapshots. A difference in
 arguments is listed as `line N: @xref arguments: ours 'a | b', texi2any
-'a b'`, the fields separated by `|`. To
+'a b'`, the fields separated by `|`, one in paragraphs as `line N:
+paragraphs: ours '</p>', texi2any '(nothing)'`. To
 find scanner code no corpus test reaches, build a small harness with
 `-fprofile-instr-generate -fcoverage-mapping` and read it with `llvm-cov`
 from the same LLVM version as the compiler (the profile format differs).

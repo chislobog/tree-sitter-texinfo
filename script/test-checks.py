@@ -34,9 +34,16 @@ COMPARED = [
 ]
 TAB_DIFFERENCE = "line 3: ours '@tab', texi2any '(nothing)'"
 # A line command in the middle of a line, which is one only for texi2any: the
-# same command on both sides, with different arguments.
+# same command on both sides, with different arguments, and the paragraph
+# ends before it in texi2any, after it here.
 ARGUMENTS = CHECKS / "line-command-in-text.texi"
 ARGUMENTS_DIFFERENCE = "line 1: @sp arguments: ours '(none)', texi2any '2'"
+PARAGRAPH_DIFFERENCES = [
+    "line 1: <p> arguments: ours 'Some text then a line command 2', "
+    "texi2any 'Some text then a line command'",
+    "line 1: paragraphs: ours '(nothing)', texi2any '</p>'",
+    "line 1: paragraphs: ours '</p>', texi2any '(nothing)'",
+]
 # A block that texi2any closes at a section in the middle of its line, where
 # neither has an `@end`.
 BLOCK = CHECKS / "block-closed-mid-line.texi"
@@ -104,7 +111,13 @@ def check_comparison(checker: Checker):
         [*compare, none, ARGUMENTS],
         False,
         f"Unexpected: {ARGUMENTS}: {ARGUMENTS_DIFFERENCE}",
-        count=("Unexpected:", 1),
+        count=("Unexpected:", 1 + len(PARAGRAPH_DIFFERENCES)),
+    )
+    checker.expect(
+        "comparison: a difference in where a paragraph ends or in its text not listed fails",
+        [*compare, none, ARGUMENTS],
+        False,
+        *(f"Unexpected: {ARGUMENTS}: {difference}" for difference in PARAGRAPH_DIFFERENCES),
     )
     checker.expect(
         "comparison: a block's end without its `@end` counts",
@@ -129,9 +142,8 @@ def check_comparison(checker: Checker):
         False,
         f"No reason given: {TAB}",
     )
-    listed = (
-        f"# A reason\n{TAB}\n  {TAB_DIFFERENCE}\n\n"
-        f"# A reason\n{ARGUMENTS}\n  {ARGUMENTS_DIFFERENCE}\n"
+    listed = f"# A reason\n{TAB}\n  {TAB_DIFFERENCE}\n\n# A reason\n{ARGUMENTS}\n" + "".join(
+        f"  {difference}\n" for difference in [ARGUMENTS_DIFFERENCE, *PARAGRAPH_DIFFERENCES]
     )
     gone = checker.file(
         "gone.txt", f"{listed}\n# A reason\n{SAME}\n  line 4: ours '@x', texi2any '(nothing)'\n"

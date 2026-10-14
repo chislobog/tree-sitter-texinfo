@@ -5,13 +5,19 @@ For each file, both trees are flattened into the sequence of @-commands they
 contain, in document order: `+name` and `-name` for the start and end of a
 block, also where a block left open ends without its `@end` (texi2any
 closes one at a `@node`, for instance), `*` for a menu entry, `@name` for
-every other command. The two sequences are then diffed. Sections aren't
-compared as such: texi2any's tree doesn't nest them.
+every other command, and `<p>` and `</p>` for the start and end of a
+paragraph. The two sequences of commands are diffed, then the sequences
+with the paragraphs, for where those start and end, which are listed as
+`paragraphs:` differences (the commands apart, so that the paragraphs
+don't move where commands are paired). Sections aren't compared as such:
+texi2any's tree doesn't nest them. Neither is the text of preformatted
+blocks and menus, where texi2any has no paragraphs.
 
 Then the arguments of each command found on both sides are compared: one by
 one where this grammar splits them as texi2any does (at commas, a definition
 line into its category, class, type, name and arguments, a menu entry into
-its name, node and description), as one otherwise. Of an argument, only its
+its name, node and description), as one otherwise. A paragraph's argument
+is its text outside the commands in it. Of an argument, only its
 letters and digits count, of any script, with the names of the commands in it
 but not its comments, and without spaces: what both trees keep of it,
 whatever each makes of its spaces, braces and comments, and of the accents
@@ -40,7 +46,13 @@ input it is often not the same document. Then:
 
 The summary counts the files compared each way. In the last two, the
 commands texi2any reports it doesn't know in the text compared are left out
-on our side, also from the arguments they are in. Line numbers in the
+on our side, also from the arguments they are in. texi2any also drops the
+braces after one, so that a line of them is an empty line to it, which ends
+a paragraph, and makes a paragraph of a line command it doesn't know (an
+index command another file defines); and it keeps an `@value` of a
+variable that isn't set (another file sets it) outside a paragraph, as a
+command that starts none. So a paragraph that starts or ends differently
+around one of them, or holds one, is no difference, nor is its text. Line numbers in the
 differences are those of the text compared. The parse errors are always
 counted in the file as written.
 
@@ -109,6 +121,24 @@ INLINE_CONDITIONALS = (
     "@inlinefmtifelse",
     "@inlineifset",
     "@inlineifclear",
+)
+# The blocks in which texi2any has no paragraphs: the preformatted ones and
+# menus hold `preformatted` text instead, which blank lines don't split, and
+# math holds its text as it is. A command with a context of its own
+# (`@footnote`) holds paragraphs again, wherever it is.
+NO_PARAGRAPHS = frozenset(
+    name
+    for name, kind in texi2any_table("Commands", "block_commands").items()
+    if kind in ("preformatted", "menu", "math")
+)
+# The commands that start no paragraph in texi2any.
+NO_PARAGRAPH_COMMANDS = frozenset(
+    "@" + name for name in texi2any_table("Commands", "no_paragraph_commands")
+)
+CONTEXT_COMMANDS = frozenset(
+    "@" + name
+    for name, kind in texi2any_table("Commands", "brace_commands").items()
+    if kind == "context"
 )
 
 
@@ -212,6 +242,59 @@ def known_text(node, unknown: set[tuple[int, str]]) -> str:
     return source.decode("utf-8", "replace")
 
 
+def paragraph_text(node, children: list, unknown: set[tuple[int, str]]) -> str:
+    """The text of `children` of a paragraph, outside the commands in them,
+    which are compared as commands, and without comments. A command texi2any
+    doesn't know leaves its braces' content, as in texi2any's tree."""
+    first = children[0].start_byte
+    source = node.text[first - node.start_byte : children[-1].end_byte - node.start_byte]
+    cuts = []
+    nodes = list(children)
+    while nodes:
+        current = nodes.pop()
+        name = current.child_by_field_name("name")
+        line = current.start_point.row + 1
+        if name is not None and is_unknown(Token(text(name), line), unknown):
+            cuts.append((name.start_byte - first, name.end_byte - first))
+            nodes.extend(c for c in current.children if c.id != name.id)
+        elif name is not None or current.type in ("comment", "symbol_command", "command_name"):
+            cuts.append((current.start_byte - first, current.end_byte - first))
+        else:
+            nodes.extend(current.children)
+    for start, end in sorted(cuts, reverse=True):
+        source = source[:start] + b" " + source[end:]
+    return source.decode("utf-8", "replace")
+
+
+def starts_paragraph(node) -> bool:
+    """Whether `node`, in a paragraph, would start one in texi2any."""
+    if node.type in ("comment", "line_command"):
+        return False
+    name = node.child_by_field_name("name")
+    return name is None or text(name) not in NO_PARAGRAPH_COMMANDS
+
+
+def unknown_only_rows(node, unknown: set[tuple[int, str]]) -> set[int]:
+    """The rows of a paragraph that hold nothing but commands texi2any
+    doesn't know, their braces and blanks: texi2any drops those, which
+    leaves an empty line, which ends the paragraph."""
+    names: dict[int, set[str]] = {}
+    for line, name in unknown:
+        names.setdefault(line - 1, set()).add(name)
+    rows = set()
+    lines = node.text.decode("utf-8", "replace").split("\n")
+    for offset, content in enumerate(lines):
+        row = node.start_point.row + offset
+        if row not in names:
+            continue
+        pattern = "|".join(re.escape(n) for n in names[row] if n != "unexpected")
+        if pattern:
+            content = re.sub(rf"@(?:{pattern})(?![A-Za-z0-9-])", "", content)
+        if not content.strip(" \t\r\f\v{}"):
+            rows.add(row)
+    return rows
+
+
 def our_arguments(
     node,
     unknown: set[tuple[int, str]],
@@ -243,6 +326,8 @@ class OurWalker:
         # The flags set, for `@inlineifset` and `@inlineifclear`.
         self.flags: set[str] = {"txicommandconditionals"}
         self.in_definition_line = False
+        # Whether a paragraph here is one in texi2any's tree too.
+        self.paragraphs = True
 
     def emit(
         self,
@@ -257,12 +342,17 @@ class OurWalker:
     def arguments(self, node, fields=None, skip=("name", "end", "body")):
         return our_arguments(node, self.unknown, fields, skip)
 
-    def children(self, node, *skip):
-        """Walks the children of `node`, except the `skip` nodes."""
+    def children(self, node, *skip, paragraphs: bool | None = None):
+        """Walks the children of `node`, except the `skip` nodes; where
+        `paragraphs` is given, its paragraphs are or aren't texi2any's."""
         skipped = {n.id for n in skip if n is not None}
+        previous = self.paragraphs
+        if paragraphs is not None:
+            self.paragraphs = paragraphs
         for child in node.children:
             if child.id not in skipped:
                 self.walk(child)
+        self.paragraphs = previous
 
     def walk_expanded_arguments(self, name: str, node):
         """Walks only the arguments of an inline conditional that texi2any
@@ -316,11 +406,12 @@ class OurWalker:
             name = text(name_node)[1:]
             fields = FLOAT_FIELDS if name == "float" else None
             self.emit("+" + name, node, True, self.arguments(node, fields))
+            paragraphs = False if name in NO_PARAGRAPHS else None
             if argument is not None and name.startswith("def"):
                 self.walk_definition_line(argument)
-                self.children(node, name_node, argument, end)
+                self.children(node, name_node, argument, end, paragraphs=paragraphs)
             else:
-                self.children(node, name_node, end)
+                self.children(node, name_node, end, paragraphs=paragraphs)
             if end.end_byte > end.start_byte:
                 self.emit("-" + text(end).split()[-1], end, True)
             else:
@@ -370,7 +461,34 @@ class OurWalker:
             if name in INLINE_CONDITIONALS:
                 self.walk_expanded_arguments(name, node)
             else:
-                self.children(node, name_node)
+                self.children(node, name_node, paragraphs=name in CONTEXT_COMMANDS or None)
+            return
+
+        if kind == "paragraph" and self.paragraphs:
+            # Paragraphs as texi2any has them: split at a line it drops.
+            empty = unknown_only_rows(node, self.unknown)
+            segments: list[list] = [[]]
+            for child in node.children:
+                if child.start_point.row in empty:
+                    segments.append([])
+                    self.walk(child)
+                else:
+                    segments[-1].append(child)
+            for index, segment in enumerate(segments):
+                # After a line texi2any drops, the paragraph starts at what
+                # starts one in texi2any: not a comment or an index entry.
+                while index and segment and not starts_paragraph(segment[0]):
+                    self.walk(segment.pop(0))
+                if not segment:
+                    continue
+                words_found = words(paragraph_text(node, segment, self.unknown))
+                self.emit("<p>", segment[0], False, ((words_found,), False))
+                for child in segment:
+                    self.walk(child)
+                # On the line of its last character.
+                last = segment[-1] if len(segments) > 1 else node
+                end = last.end_point.row + (1 if last.end_point.column else 0)
+                self.tokens.append(Token("</p>", end, False))
             return
 
         if kind == "symbol_command":
@@ -586,6 +704,24 @@ def dump_text(node: DumpNode) -> str:
     return ""
 
 
+def dump_paragraph_words(node: DumpNode) -> str:
+    """The words of a paragraph's text outside the commands in it, without
+    its comments (see `paragraph_text`)."""
+    parts = []
+
+    def walk(node: DumpNode):
+        for child in node.children:
+            if command_name(child.label) is not None or child.label.startswith("/comment_at_end/"):
+                continue
+            match = LABEL.fullmatch(child.label)
+            if match and match.group(2):
+                parts.append(match.group(2))
+            walk(child)
+
+    walk(node)
+    return words(" ".join(parts))
+
+
 def run_texi2any(path: Path, source: bytes) -> tuple[str, str, bytes | None]:
     """Runs texi2any on `source`, as the file `path`: returns its tree as a
     debug dump, its messages, and its expansion of the file, or None if it
@@ -663,9 +799,8 @@ UNKNOWN_COMMAND = re.compile(r":(\d+): (?:unknown command `([^']+)'|(unexpected)
 CPP_LINE = re.compile(rb'^\s*#\s*(?:line)? (\d+)(?: "[^"]+"(?:\s+\d+)*)?\s*$')
 
 
-def unknown_commands(messages: str, source: bytes) -> set[tuple[int, str]]:
-    """The commands texi2any reports it doesn't know in `source`, as (line,
-    name) pairs; `unexpected` stands for a symbol."""
+def source_lines(source: bytes, number: str) -> list[int]:
+    """The lines of `source` that texi2any reports as line `number`."""
     reported: list[int] = []
     line = 1
     for text_line in source.split(b"\n"):
@@ -673,11 +808,29 @@ def unknown_commands(messages: str, source: bytes) -> set[tuple[int, str]]:
         directive = CPP_LINE.match(text_line)
         # texi2any numbers the line after `#line N` as N + 1.
         line = int(directive.group(1)) + 1 if directive else line + 1
+    return [i + 1 for i, n in enumerate(reported) if n == int(number)] or [int(number)]
+
+
+def unknown_commands(messages: str, source: bytes) -> set[tuple[int, str]]:
+    """The commands texi2any reports it doesn't know in `source`, as (line,
+    name) pairs; `unexpected` stands for a symbol."""
     unknown: set[tuple[int, str]] = set()
     for number, name, unexpected in UNKNOWN_COMMAND.findall(messages):
-        lines = [i + 1 for i, n in enumerate(reported) if n == int(number)]
-        unknown.update((line, name or unexpected) for line in lines or [int(number)])
+        unknown.update((line, name or unexpected) for line in source_lines(source, number))
     return unknown
+
+
+# texi2any's warning for `@value` of a variable not set, which it keeps as a
+# command that starts no paragraph.
+UNDEFINED_FLAG = re.compile(r":(\d+): warning: undefined flag: ")
+
+
+def undefined_values(messages: str, source: bytes) -> set[int]:
+    """The lines of `source` with an `@value` texi2any doesn't expand, as its
+    variable isn't set: one another file sets."""
+    return {
+        line for number in UNDEFINED_FLAG.findall(messages) for line in source_lines(source, number)
+    }
 
 
 def is_unknown(token: Token, unknown: set[tuple[int, str]]) -> bool:
@@ -700,6 +853,8 @@ class Side:
     how: str
     # The commands texi2any doesn't know in `text`, to leave out on our side.
     unknown: set[tuple[int, str]]
+    # The lines of `text` with an `@value` texi2any doesn't expand.
+    undefined: set[int]
 
 
 def texi2any_side(path: Path, line_commands: set[str]) -> Side:
@@ -708,19 +863,26 @@ def texi2any_side(path: Path, line_commands: set[str]) -> Side:
     tokens = texi2any_tokens(dump, line_commands)
     if expanded is None or (expanded != source and not EXPANDED.search(source)):
         # Nothing to expand: the expansion would only repair errors.
-        return Side(tokens, source, "as written", unknown_commands(messages, source))
+        return Side(
+            tokens,
+            source,
+            "as written",
+            unknown_commands(messages, source),
+            undefined_values(messages, source),
+        )
     if expanded == source:
-        return Side(tokens, expanded, "expanded", set())
+        return Side(tokens, expanded, "expanded", set(), undefined_values(messages, source))
     again, again_messages, _ = run_texi2any(path, expanded)
     again_tokens = texi2any_tokens(again, line_commands)
     unknown = unknown_commands(again_messages, expanded)
+    undefined = undefined_values(again_messages, expanded)
     if (
         not unknown
         and [t.name for t in again_tokens] == [t.name for t in tokens]
         and messages_without_unknown(again_messages) == messages_without_unknown(messages)
     ):
-        return Side(tokens, expanded, "expanded", set())
-    return Side(again_tokens, expanded, "both expanded", unknown)
+        return Side(tokens, expanded, "expanded", set(), undefined)
+    return Side(again_tokens, expanded, "both expanded", unknown, undefined)
 
 
 def texi2any_line_commands() -> set[str]:
@@ -755,6 +917,12 @@ def texi2any_tokens(dump: str, line_commands: set[str]) -> list[Token]:
         return tuple(found)
 
     def walk(node: DumpNode):
+        if label_type(node.label) == "paragraph":
+            tokens.append(Token("<p>", arguments=(dump_paragraph_words(node),)))
+            for child in node.children:
+                walk(child)
+            tokens.append(Token("</p>"))
+            return
         if label_type(node.label) == "menu_entry":
             tokens.append(Token("*", structural=True, arguments=tuple(menu_entry_words(node))))
             for child in node.children:
@@ -828,9 +996,27 @@ class Differences:
     matched: int
     # Of those, the ones whose arguments are the same.
     same_arguments: int
+    # The paragraphs found on both sides; of those, the ones whose text is
+    # compared (not holding a command texi2any doesn't know), and of those,
+    # the ones whose text is the same.
+    paragraphs: int = 0
+    compared_text: int = 0
+    same_text: int = 0
 
 
-def differences(ours: list[Token], theirs: list[Token]) -> Differences:
+PARAGRAPH_TOKENS = ("<p>", "</p>")
+
+
+def near_unknown(ours: list[Token], start: int, end: int, unknown_lines: frozenset[int]) -> bool:
+    """Whether a command texi2any doesn't know is on the lines from the start
+    of our paragraph before `start` (or the one it is in) to the end of the
+    one at or after `end`."""
+    first = next((t.line for t in reversed(ours[:start]) if t.name == "<p>"), 1)
+    last = next((t.line for t in ours[end:] if t.name == "</p>"), None)
+    return any(first <= line and (last is None or line <= last) for line in unknown_lines)
+
+
+def command_differences(ours: list[Token], theirs: list[Token]) -> Differences:
     """The differences between the two command sequences, and between the
     arguments of each command found on both sides, one line each."""
     matcher = difflib.SequenceMatcher(
@@ -855,6 +1041,79 @@ def differences(ours: list[Token], theirs: list[Token]) -> Differences:
         reference = " ".join(t.name for t in theirs[b1:b2]) or "(nothing)"
         found.append(f"line {line}: ours {mine!r}, texi2any {reference!r}")
     return Differences(found, matched, same_arguments)
+
+
+def paragraph_differences(
+    ours: list[Token], theirs: list[Token], unknown_lines: frozenset[int]
+) -> Differences:
+    """The differences in where paragraphs start and end, among the commands,
+    and in the text of each paragraph found on both sides; but where they
+    start or end differently around a command texi2any doesn't know, on
+    `unknown_lines`, or the paragraph holds one."""
+    # The line of the end of each of our paragraphs, by its start's index.
+    ends: dict[int, int | None] = {}
+    starts: list[int] = []
+    for index, token in enumerate(ours):
+        if token.name == "<p>":
+            starts.append(index)
+        elif token.name == "</p>" and starts:
+            ends[starts.pop()] = token.line
+    matcher = difflib.SequenceMatcher(
+        a=[t.name for t in ours],
+        b=[t.name for t in theirs],
+        autojunk=False,
+    )
+    found = []
+    paragraphs = compared_text = same_text = 0
+    for tag, a1, a2, b1, b2 in matcher.get_opcodes():
+        if tag == "equal":
+            for index, (mine, reference) in enumerate(
+                zip(ours[a1:a2], theirs[b1:b2], strict=True), a1
+            ):
+                if mine.name == "<p>":
+                    paragraphs += 1
+                    end = ends.get(index) or mine.line
+                    if any(mine.line <= line <= end for line in unknown_lines):
+                        continue
+                    compared_text += 1
+                    difference = argument_difference(mine, reference)
+                    if difference is None:
+                        same_text += 1
+                    else:
+                        found.append(difference)
+            continue
+        mine = [t for t in ours[a1:a2] if t.name in PARAGRAPH_TOKENS]
+        reference = [t for t in theirs[b1:b2] if t.name in PARAGRAPH_TOKENS]
+        if [t.name for t in mine] == [t.name for t in reference]:
+            continue
+        if near_unknown(ours, a1, a2, unknown_lines):
+            continue
+        line = (mine or ours[a1:a2] or ours[a1 - 1 : a1] or [Token("", "?")])[0].line
+        shown_mine = " ".join(t.name for t in mine) or "(nothing)"
+        shown_reference = " ".join(t.name for t in reference) or "(nothing)"
+        found.append(f"line {line}: paragraphs: ours {shown_mine!r}, texi2any {shown_reference!r}")
+    return Differences(found, 0, 0, paragraphs, compared_text, same_text)
+
+
+def differences(
+    ours: list[Token], theirs: list[Token], unknown_lines: frozenset[int] = frozenset()
+) -> Differences:
+    """The differences between the command sequences, compared without the
+    paragraphs, so that those don't move where commands are paired; then
+    those in the paragraphs, compared among the commands."""
+    commands = command_differences(
+        [t for t in ours if t.name not in PARAGRAPH_TOKENS],
+        [t for t in theirs if t.name not in PARAGRAPH_TOKENS],
+    )
+    paragraphs = paragraph_differences(ours, theirs, unknown_lines)
+    return Differences(
+        commands.found + paragraphs.found,
+        commands.matched,
+        commands.same_arguments,
+        paragraphs.paragraphs,
+        paragraphs.compared_text,
+        paragraphs.same_text,
+    )
 
 
 @dataclass
@@ -927,6 +1186,7 @@ def main() -> int:
     parser = Parser(load_language())
     line_commands = texi2any_line_commands()
     total_ours = total_matched = total_same = total_differences = 0
+    total_paragraphs = total_matched_paragraphs = total_compared_text = total_same_text = 0
     found: dict[str, list[str]] = {}
     how_compared: Counter[str] = Counter()
     # texi2any is the slow part: run it for all files in parallel, and report
@@ -941,23 +1201,34 @@ def main() -> int:
             if options.structure:
                 ours = [t for t in ours if t.structural]
                 theirs = [t for t in theirs if t.structural]
-            compared = differences(ours, theirs)
+            # Where texi2any's paragraphs differ from the file's for want of
+            # what another file defines.
+            unknown_lines = frozenset({line for line, _ in texi2any.unknown} | texi2any.undefined)
+            compared = differences(ours, theirs, unknown_lines)
             file_differences = compared.found
             errors = parse_errors(parser, path.read_bytes())
             if errors:
                 file_differences.append(f"{errors} parse errors")
             found[str(path)] = file_differences
+            commands = sum(t.name not in PARAGRAPH_TOKENS for t in ours)
+            their_commands = sum(t.name not in PARAGRAPH_TOKENS for t in theirs)
+            paragraphs = sum(t.name == "<p>" for t in ours)
             print(
                 f"{path}: {len(file_differences)} differences, {compared.matched} of "
-                f"{len(ours)} vs {len(theirs)} commands match, {compared.same_arguments} "
-                "with the same arguments"
+                f"{commands} vs {their_commands} commands match, {compared.same_arguments} "
+                f"with the same arguments; {compared.paragraphs} of {paragraphs} paragraphs, "
+                f"{compared.same_text} of {compared.compared_text} compared with the same text"
             )
             for difference in file_differences[: options.hunks]:
                 print(f"  {difference}")
             if len(file_differences) > options.hunks:
                 print(f"  ... {len(file_differences) - options.hunks} more")
-            total_ours += len(ours)
+            total_ours += commands
             total_matched += compared.matched
+            total_paragraphs += paragraphs
+            total_matched_paragraphs += compared.paragraphs
+            total_compared_text += compared.compared_text
+            total_same_text += compared.same_text
             total_same += compared.same_arguments
             total_differences += len(file_differences)
     if len(options.files) > 1:
@@ -965,7 +1236,9 @@ def main() -> int:
         print(
             f"\nOverall: {total_differences} differences in {differing} of "
             f"{len(found)} files; {total_matched} of {total_ours} commands match, "
-            f"{total_same} with the same arguments"
+            f"{total_same} with the same arguments; {total_matched_paragraphs} of "
+            f"{total_paragraphs} paragraphs, {total_same_text} of {total_compared_text} "
+            "compared with the same text"
         )
         print(
             f"Compared: {how_compared['expanded']} as texi2any expanded them, "
