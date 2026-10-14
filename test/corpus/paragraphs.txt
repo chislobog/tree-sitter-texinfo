@@ -844,3 +844,63 @@ Separate.
     end: (block_end))
   (paragraph
     (text)))
+
+================================================================================
+@image and @namedanchor start no paragraph, as in texi2any
+================================================================================
+
+@image{figure}
+
+@image{a} and text after.
+
+Text @image{b} inside.
+
+@namedanchor{x, Label}
+More.
+
+---
+
+(source_file
+  (inline_command
+    name: (command_name)
+    file: (argument
+      (text)))
+  (inline_command
+    name: (command_name)
+    file: (argument
+      (text)))
+  (paragraph
+    (text))
+  (paragraph
+    (text)
+    (inline_command
+      name: (command_name)
+      file: (argument
+        (text)))
+    (text))
+  (inline_command
+    name: (command_name)
+    anchor: (argument
+      (text))
+    label: (argument
+      (text)))
+  (paragraph
+    (text)))
+
+================================================================================
+Several images on a line start no paragraph, as in texi2any
+================================================================================
+
+@image{a} @image{b}
+
+---
+
+(source_file
+  (inline_command
+    name: (command_name)
+    file: (argument
+      (text)))
+  (inline_command
+    name: (command_name)
+    file: (argument
+      (text))))

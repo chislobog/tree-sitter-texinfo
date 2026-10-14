@@ -69,8 +69,9 @@ well with incomplete input, which is normal while editing.
   paragraph (`NO_PARAGRAPH_COMMANDS`) where one would start and of raw
   blocks at a paragraph's next line, which don't end it, a zero-width end
   of a paragraph before a brace command that ends one in the middle of a
-  line (`PARAGRAPH_ENDING_BRACE_COMMANDS`), and the end-of-file token. Add
-  new blocks here.
+  line (`PARAGRAPH_ENDING_BRACE_COMMANDS`), a zero-width token before
+  `@image` and `@namedanchor` where they start no paragraph, and the
+  end-of-file token. Add new blocks here.
   Its token enum lists the grammar's `externals` in order, under the same
   names, and its tables of definition layouts and section levels mirror
   the grammar's; `script/check-scanner.py` checks that they agree and that
@@ -283,7 +284,7 @@ from the same LLVM version as the compiler (the profile format differs).
 - Recognise long lists of command names in the scanner, not with keywords in
   the grammar: every keyword is an entry in every parser state where a
   command can start. Moving 199 keywords to the scanner took `parser.c` from
-  29 MB to 6 MB (it has grown back to 22 MB since, with 12,900 states).
+  29 MB to 6 MB (it has grown back to 24 MB since, with 13,600 states).
   That is the table's size: a few keywords in place of one cost no states.
 - Watch `tree-sitter generate` time (normally about 12 seconds) and the
   parser's state count, which has a budget: the `parser-size` check

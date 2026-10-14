@@ -96,6 +96,7 @@ enum TokenType {
   PARAGRAPH_END_BEFORE_COMMAND,
   NO_PARAGRAPH_CONTEXT_NAME,
   NO_PARAGRAPH_SYMBOL,
+  NO_PARAGRAPH_START,
   ERROR_SENTINEL,
 };
 
@@ -1290,6 +1291,14 @@ static int command_token(const Scanner *scanner, const bool *valid_symbols,
       return NO_PARAGRAPH_COMMAND_NAME;
     }
   }
+  // `@image` and `@namedanchor`, keywords in the grammar, where a paragraph
+  // would start, which they start none: zero-width before them. In an open
+  // paragraph, they are in it, as `@anchor` is.
+  if (valid_symbols[NO_PARAGRAPH_START] &&
+      !valid_symbols[PARAGRAPH_LINE_COMMAND_NAME] &&
+      (strcmp(name, "image") == 0 || strcmp(name, "namedanchor") == 0)) {
+    return NO_PARAGRAPH_START;
+  }
   bool item = strcmp(name, "item") == 0;
   if (valid_symbols[ROW_NAME] && (item || strcmp(name, "headitem") == 0) &&
       in_multitable(scanner)) {
@@ -1546,9 +1555,9 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
   }
 
   int token = command_token(scanner, valid_symbols, name);
-  if (token == PARAGRAPH_END_BEFORE_COMMAND) {
+  if (token == PARAGRAPH_END_BEFORE_COMMAND || token == NO_PARAGRAPH_START) {
     // Zero-width, before the `@`: the command is read again after it.
-    lexer->result_symbol = PARAGRAPH_END_BEFORE_COMMAND;
+    lexer->result_symbol = (TSSymbol)token;
     return true;
   }
   if (token >= 0) {

@@ -63,6 +63,25 @@ const ARGUMENT_COMMANDS = {
   'anchor label': ['namedanchor'],
 };
 
+// The commands of ARGUMENT_COMMANDS that start no paragraph, as in texi2any.
+const NO_PARAGRAPH_ARGUMENT_COMMANDS = ['image', 'namedanchor'];
+
+/**
+ * A command of ARGUMENT_COMMANDS, `commands` with the fields `names`.
+ *
+ * @param {GrammarSymbols<string>} $
+ * @param {string} names
+ * @param {string[]} commands
+ */
+const argumentCommand = ($, names, commands) => prec.right(seq(
+  field('name', command($, commands)),
+  optional(seq(
+    '{',
+    commaArguments(names.split(' '), $.argument, alias($._last_argument, $.argument), ','),
+    braceClose($),
+  )),
+));
+
 /**
  * Arguments separated by commas, each in the field named by its position;
  * empty arguments are left out. The last argument may contain commas.
@@ -297,6 +316,9 @@ export default grammar({
     $._paragraph_end_before_command,
     $._no_paragraph_context_name,
     $._no_paragraph_symbol,
+    // Zero-width before `@image` or `@namedanchor`, where they start no
+    // paragraph.
+    $._no_paragraph_start,
     // Valid only during error recovery, when tree-sitter marks every token
     // valid: the scanner then returns nothing.
     $._error_sentinel,
@@ -398,6 +420,7 @@ export default grammar({
     _body_start: $ => choice(
       $._newline,
       alias($._no_paragraph_command, $.inline_command),
+      $._no_paragraph_argument_command,
       alias($._no_paragraph_context_command, $.inline_command),
       alias($._no_paragraph_symbol, $.symbol_command),
       // An `@end` that ends no open block, which texi2any reports and ignores.
@@ -1157,14 +1180,26 @@ export default grammar({
     // Commands whose arguments split at commas into named fields.
     _argument_command: $ => choice(
       $._context_or_inline_command,
-      ...Object.entries(ARGUMENT_COMMANDS).map(([names, commands]) => prec.right(seq(
-        field('name', command($, commands)),
-        optional(seq(
-          '{',
-          commaArguments(names.split(' '), $.argument, alias($._last_argument, $.argument), ','),
-          braceClose($),
-        )),
-      ))),
+      ...Object.entries(ARGUMENT_COMMANDS).map(([names, commands]) => argumentCommand($, names, commands)),
+    ),
+
+    // `@image` and `@namedanchor` where a paragraph would start, which they
+    // start none, as in texi2any: after a zero-width token from the scanner,
+    // so that the keyword is read one way only, then the line's end, the
+    // paragraph the rest of the line starts or another of them, which the
+    // command is always followed by, wherever it is. A rule of their own: one shared with the
+    // commands in a paragraph costs 66 parser states more, and other
+    // followers 1,100 more.
+    _no_paragraph_argument_command: $ => seq(
+      $._no_paragraph_start,
+      alias($._no_paragraph_argument, $.inline_command),
+      choice($._line_end, $.paragraph, $._no_paragraph_argument_command),
+    ),
+
+    _no_paragraph_argument: $ => choice(
+      ...Object.entries(ARGUMENT_COMMANDS)
+        .filter(([, commands]) => commands.some((c) => NO_PARAGRAPH_ARGUMENT_COMMANDS.includes(c)))
+        .map(([names, commands]) => argumentCommand($, names, commands)),
     ),
 
     // In a line argument, the commands with named arguments close at the end

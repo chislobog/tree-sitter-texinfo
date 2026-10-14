@@ -73,7 +73,8 @@ NO_PARAGRAPH_ELSEWHERE = {
     "caption",
     "shortcaption",
     "*",
-    # Not yet: keywords in the grammar (TODO.md).
+    # Keywords in the grammar, before which the scanner gives a zero-width
+    # token where they start no paragraph.
     "image",
     "namedanchor",
 }

@@ -104,13 +104,12 @@ Image arguments
 ---
 
 (source_file
-  (paragraph
-    (inline_command
-      name: (command_name)
-      file: (argument
-        (text))
-      alt: (argument
-        (text)))))
+  (inline_command
+    name: (command_name)
+    file: (argument
+      (text))
+    alt: (argument
+      (text))))
 
 ================================================================================
 Unclosed cross-reference ends at a blank line

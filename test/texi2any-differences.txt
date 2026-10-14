@@ -1,8 +1,3 @@
-# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
-build/corpus/arguments/image-arguments.texi
-  line 2: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 2: paragraphs: ours '</p>', texi2any '(nothing)'
-
 # Deliberate: a block command in the middle of a line; blocks start and end at the beginning of a line, as the Texinfo manual requires (texi2any accepts it with an error)
 build/corpus/blocks/block-command-in-the-middle-of-a-line-is-inline.texi
   line 2: ours '@example', texi2any '+example -example'
@@ -50,42 +45,6 @@ examples/binutils-with-gold-2.46/binutils/doc/debug.options.texi
 # Comparison: a fragment for @include inside a table, where texi2any drops @item outside one
 examples/binutils-with-gold-2.46/binutils/doc/sframe.options.texi
   line 4: ours '@item', texi2any '(nothing)'
-
-# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
-examples/emacs-31.1/lispref/objects.texi
-  line 2602: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 2602: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
-examples/gawk-5.4.1/gawkinet.texi
-  line 2963: paragraphs: ours '<p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
-examples/latex2e-help-texinfo/latex2e.texi
-  line 6019: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 6019: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
-examples/maxima-5.49.0/doc/info/Numerical.texi
-  line 1175: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 1175: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 1202: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 1202: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 1225: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 1225: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 1246: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 1246: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 1271: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 1271: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 1394: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 1394: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 1440: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 1440: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
-examples/sbcl-2.6.8-source/doc/internals/discriminating-functions.texinfo
-  line 51: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 51: paragraphs: ours '</p>', texi2any '(nothing)'
 
 # Invalid input; texi2any reports at line 5: no matching `@end quotation'
 texinfo-tests/02coverage/command_in_end.texi
@@ -174,46 +133,10 @@ texinfo-tests/02coverage/symbol_after_block.texi
   line 71: paragraphs: ours '<p>', texi2any '(nothing)'
   line 71: paragraphs: ours '</p>', texi2any '(nothing)'
 
-# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
-texinfo-tests/03coverage_braces/empty_images.texi
-  line 1: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 1: paragraphs: ours '</p> <p>', texi2any '(nothing)'
-  line 3: paragraphs: ours '</p> <p>', texi2any '(nothing)'
-  line 6: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
-texinfo-tests/03coverage_braces/image_no_braces.texi
-  line 1: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 1: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
-texinfo-tests/03coverage_braces/space_command_in_image.texi
-  line 1: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 1: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
+# Gap (TODO.md): `@image` inside a footnote's or caption's braces, at the start of a line, starts a paragraph here, but none in texi2any
 texinfo-tests/03coverage_braces/test_image.texi
-  line 17: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 17: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 31: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 31: paragraphs: ours '</p>', texi2any '(nothing)'
   line 35: paragraphs: ours '<p>', texi2any '(nothing)'
   line 35: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
-texinfo-tests/05paragraph/indent_before_macro_definition_and_other.texi
-  line 4: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 8: paragraphs: ours '(nothing)', texi2any '<p>'
-
-# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
-texinfo-tests/05paragraph/no_paragraph_commands.texi
-  line 3: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 3: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
-texinfo-tests/05paragraph/sole_image.texi
-  line 1: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 1: paragraphs: ours '</p>', texi2any '(nothing)'
 
 # Invalid input; texi2any reports at line 1: @columnfractions only meaningful on a @multitable line
 texinfo-tests/06columnfractions/out_of_multitable.texi
@@ -367,24 +290,9 @@ texinfo-tests/08misc_commands/text_before_line_command.texi
   line 6: paragraphs: ours '</p>', texi2any '(nothing)'
   line 9: <p> arguments: ours 'aaa quotation author quotation', texi2any 'aaa quotation'
 
-# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
-texinfo-tests/09indices/image_lines_count.texi
-  line 3: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 3: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
-texinfo-tests/09indices/image_text_lines_count.texi
-  line 3: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 3: paragraphs: ours '</p>', texi2any '(nothing)'
-
 # Deliberate: a menu line starting with `*` is an entry, maybe still being typed, without a node yet; texi2any reads it as text
 texinfo-tests/10menu/bad_beginning.texi
   line 2: ours '*', texi2any '(nothing)'
-
-# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
-texinfo-tests/10menu/commands_in_nodedescriptionblock.texi
-  line 22: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 22: paragraphs: ours '</p>', texi2any '(nothing)'
 
 # Deliberate: a menu line starting with `*` is an entry, maybe still being typed, without a node yet; texi2any reads it as text
 texinfo-tests/10menu/menu_entry_no_entry.texi
@@ -943,21 +851,6 @@ texinfo-tests/converters_tests/form_feeds.texi
   line 39: paragraphs: ours '(nothing)', texi2any '<p> </p>'
   line 39: <p> arguments: ours 'shc within shortcaption', texi2any 'shortcaption'
 
-# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
-texinfo-tests/converters_tests/image_extension.texi
-  line 1: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 1: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
-texinfo-tests/converters_tests/image_formatting.texi
-  line 30: <p> arguments: ours '(none)', texi2any 'in para'
-  line 32: paragraphs: ours '<p> </p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
-texinfo-tests/converters_tests/image_with_spaces.texi
-  line 1: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 1: paragraphs: ours '(nothing)', texi2any '<p>'
-
 # Deliberate: a brace or argument on the line after its command doesn't belong to it (texi2any reports at line 1: command `@inlineifclear' must not be followed by new line, and takes it)
 texinfo-tests/converters_tests/inlineifsetifclearspaces.texi
   line 1: @inlineifclear arguments: ours '(none)', texi2any 'aaa | iclear first'
@@ -969,15 +862,6 @@ texinfo-tests/converters_tests/inlineifsetifclearspaces.texi
 texinfo-tests/converters_tests/multitable_prototypes.texi
   line 5: ours '@tab', texi2any '(nothing)'
 
-# Gap (TODO.md): `@namedanchor` starts no paragraph in texi2any, but does here
-texinfo-tests/converters_tests/namedanchor.texi
-  line 4: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 4: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 9: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 10: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 15: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 15: paragraphs: ours '</p>', texi2any '(nothing)'
-
 # Deliberate: a line command in the middle of a line; line commands occupy a whole line, as the Texinfo manual requires (texi2any accepts it with a warning, taking the rest of the line as its argument)
 texinfo-tests/epub_tests/setfilename_on_top_and_after_node_epub.texi
   line 2: @setfilename arguments: ours '(none)', texi2any 'very badly placed setfilename'
@@ -986,51 +870,6 @@ texinfo-tests/epub_tests/setfilename_on_top_and_after_node_epub.texi
 texinfo-tests/formats_encodings/japanese_shift_jis.texi
   line 19: ours '@�', texi2any '(nothing)'
   line 33: ours '@�', texi2any '(nothing)'
-
-# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
-texinfo-tests/html_tests/commands_in_alt.texi
-  line 1: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 1: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
-texinfo-tests/html_tests/image_link_prefix.texi
-  line 1: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 1: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@namedanchor` starts no paragraph in texi2any, but does here
-texinfo-tests/html_tests/namedanchor_in_redirection_file.texi
-  line 9: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 9: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
-texinfo-tests/info_tests/image_and_spaces_formatting.texi
-  line 3: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 3: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
-texinfo-tests/info_tests/image_extension.texi
-  line 3: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 5: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
-texinfo-tests/info_tests/image_not_found.texi
-  line 2: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 2: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
-texinfo-tests/info_tests/image_quotes.texi
-  line 3: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 3: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
-texinfo-tests/info_tests/image_text_encoded.texi
-  line 3: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 3: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
-texinfo-tests/info_tests/image_text_file_only_and_alt.texi
-  line 3: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 3: paragraphs: ours '</p>', texi2any '(nothing)'
 
 # Deliberate: a form feed is a blank, like a vertical tab; texi2any makes it an empty line, which ends a paragraph
 texinfo-tests/plaintext_tests/all_spaces.texi
@@ -1106,34 +945,7 @@ texinfo-tests/transformations/protect_hashchar_at_line_beginning_source_mark.tex
   line 18: paragraphs: ours '<p> </p>', texi2any '(nothing)'
   line 22: paragraphs: ours '<p> </p>', texi2any '(nothing)'
 
-# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
-texinfo-tests/xml_tests/brace_commands_spaces_end_of_lines.texi
-  line 1: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 2: paragraphs: ours '</p> <p>', texi2any '(nothing)'
-  line 5: paragraphs: ours '</p> <p>', texi2any '(nothing)'
-  line 8: paragraphs: ours '</p> <p>', texi2any '(nothing)'
-  line 11: paragraphs: ours '</p> <p>', texi2any '(nothing)'
-  line 14: paragraphs: ours '</p> <p>', texi2any '(nothing)'
-  line 17: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
-texinfo-tests/xml_tests/commands_and_spaces.texi
-  line 21: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 21: paragraphs: ours '</p> <p>', texi2any '(nothing)'
-  line 24: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
+# Gap (TODO.md): `@image` inside a footnote's or caption's braces, at the start of a line, starts a paragraph here, but none in texi2any
 texinfo-tests/xml_tests/image_inline_or_not.texi
-  line 1: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 1: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 8: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 8: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 21: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 21: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 27: <p> arguments: ours '(none)', texi2any 'AA'
-  line 29: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 29: paragraphs: ours '</p> <p> </p>', texi2any '(nothing)'
   line 46: paragraphs: ours '<p>', texi2any '(nothing)'
   line 46: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 57: <p> arguments: ours '(none)', texi2any 'PAra'
-  line 59: paragraphs: ours '<p> </p>', texi2any '(nothing)'

@@ -332,11 +332,17 @@ comparing arguments:
   starts none (`@anchor`), at the start of a line (54 parser states for the
   captions, 18 for the footnotes, as alternatives of `_line_item`: in the
   footnote's own rule, they cost 176)
-- [ ] `@image` and `@namedanchor` start no paragraph in texi2any either, but
-  are keywords in the grammar: where content starts, the image's arguments
-  then have states for both ways of reading it, about 1,100 parser states
-  (8%), also with a zero-width token from the scanner before the keyword,
-  for 29 files where a lone `@image` is in a paragraph of its own here
+- [x] `@image` and `@namedanchor` start no paragraph either (29 files, 5 of
+  them manuals). As keywords, they get a zero-width token from the scanner
+  before them where content starts, so that they are read one way only,
+  and are followed by their line's end, the paragraph the rest of the line
+  starts or another of them, the same everywhere: 181 parser states,
+  against 1,100 for the keyword as an alternative where content starts,
+  whose arguments then had states for each context's followers; the
+  budget went to 14,300
+- [ ] Nor does `@image` inside a footnote's or caption's braces, at the
+  start of a line, in texi2any, where it may be followed by the `}`
+  (2 of texi2any's test inputs)
 - [x] Macro definitions don't end a paragraph either, as in texi2any (6
   files; 88 parser states, the definition's own in a paragraph)
 - [ ] Nor do conditionals in texi2any, which evaluates them, so that the
@@ -493,7 +499,7 @@ Deliberate, so the tree shows the source as it is written and edited:
 - [x] Reduce the parser's size: `src/parser.c` was 29 MB. The line and brace
   command keywords, now recognised by the scanner, made each parser state
   where a command can start carry about 200 entries; it went to 6 MB, with
-  the same tree. Features added since have taken it back to 22 MB (12,900
+  the same tree. Features added since have taken it back to 24 MB (13,600
   states), each with its cost measured against the budget
 - [x] Tree snapshots of every manual and test input
   (`script/tree-snapshots.py`), and a simulation of typing mistakes in the
