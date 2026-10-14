@@ -60,3 +60,23 @@ Symbols @@ and @{ are escapes, but not a letter after an at sign: @emph{@é}.
 @c      ^ string.escape
 @c                                                                      ^ string.escape
 @c                                                                       ^ markup.italic
+
+@c Aliases name commands; cross-references' other arguments are link text or files.
+@alias strong = emph
+@c     ^ function
+@c              ^ function
+See @xref{Node, Label, Title, file, Manual} here.
+@c              ^ markup.link
+@c                     ^ markup.link
+@c                            ^ string.special.path
+@c                                  ^ markup.link
+Visit @uref{http://example.org, the site} or @email{a@@b.org, me}.
+@c                              ^ markup.link
+@c                                                            ^ markup.link
+An @image{picture, 2cm, , alt text, png} here.
+@c        ^ string.special.path
+@c                        ^ string
+An @inlinefmt{html, @emph{inline} text} here.
+@c                        ^ !markup.link
+Bare @uref{http://example.org} too.
+@c    ^ function

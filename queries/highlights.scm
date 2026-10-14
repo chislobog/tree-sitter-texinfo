@@ -84,6 +84,33 @@
     address: (argument)
   ] @markup.link.url)
 
+; The other arguments of a cross-reference, a URL or an address: the text a
+; link shows, or a manual's file. An inline conditional's `text` is text.
+(inline_command
+  [
+    label: (argument)
+    title: (argument)
+    manual: (argument)
+  ] @markup.link)
+
+((inline_command
+  name: (command_name) @function
+  text: (argument)? @markup.link)
+  (#any-of? @function "@uref" "@url" "@email"))
+
+(inline_command
+  file: (argument) @string.special.path)
+
+(inline_command
+  alt: (argument) @string)
+
+; `@alias NEW = EXISTING` names two commands.
+(line_command
+  [
+    alias: (text)
+    target: (text)
+  ] @function)
+
 (menu_entry
   node: (menu_node) @markup.link.label)
 
@@ -266,9 +293,9 @@
   name: (command_name) @function)
   (#not-any-of? @function
     "@code" "@samp" "@kbd" "@key" "@file" "@command" "@option" "@env" "@t" "@indicateurl" "@emph"
-    "@i" "@dfn" "@cite" "@slanted" "@strong" "@b" "@var" "@value" "@anchor" "@noindent" "@indent"
-    "@'" "@\"" "@^" "@`" "@~" "@=" "@," "@H" "@dotaccent" "@dotless" "@ogonek" "@ringaccent"
-    "@tieaccent" "@u" "@ubaraccent" "@udotaccent" "@v"))
+    "@i" "@dfn" "@cite" "@slanted" "@strong" "@b" "@var" "@value" "@anchor" "@uref" "@url" "@email"
+    "@noindent" "@indent" "@'" "@\"" "@^" "@`" "@~" "@=" "@," "@H" "@dotaccent" "@dotless" "@ogonek"
+    "@ringaccent" "@tieaccent" "@u" "@ubaraccent" "@udotaccent" "@v"))
 
 ; Commands that error recovery left without their usual parent; not a
 ; generic (command_name) pattern, which would overlap the ones above.
