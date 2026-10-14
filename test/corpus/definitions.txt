@@ -736,3 +736,94 @@ Every definition layout
       name: (command_name)
       entity: (text))
     end: (block_end)))
+
+================================================================================
+An x line after a comment after another x line is part of the head
+================================================================================
+
+@deffn c a
+@deffnx {c} followed by a comment
+@c comment
+@deffnx {c} after an x line
+@c comment
+@deffnx {c} before the body
+Body.
+
+More.
+@end deffn
+
+---
+
+(source_file
+  (definition_block
+    (definition_line
+      name: (command_name)
+      category: (text)
+      entity: (text))
+    (definition_line
+      name: (command_name)
+      category: (brace_group
+        (text))
+      entity: (text)
+      arguments: (definition_arguments
+        (text)))
+    (comment)
+    (definition_line
+      name: (command_name)
+      category: (brace_group
+        (text))
+      entity: (text)
+      arguments: (definition_arguments
+        (text)))
+    (comment)
+    (definition_line
+      name: (command_name)
+      category: (brace_group
+        (text))
+      entity: (text)
+      arguments: (definition_arguments
+        (text)))
+    body: (definition_body
+      (paragraph
+        (text))
+      (paragraph
+        (text)))
+    end: (block_end)))
+
+================================================================================
+An @itemx line after a comment after another is part of the item's head
+================================================================================
+
+@table @asis
+@item a
+@itemx b
+@c comment
+@itemx c
+Body.
+@end table
+
+---
+
+(source_file
+  (list
+    name: (command_name)
+    argument: (line_argument
+      (inline_command
+        name: (command_name)))
+    (item
+      name: (command_name)
+      argument: (line_argument
+        (text))
+      (itemx
+        name: (command_name)
+        argument: (line_argument
+          (text)))
+      (comment)
+      (itemx
+        name: (command_name)
+        argument: (line_argument
+          (text)))
+      body: (item_body
+        (paragraph
+          (text))))
+    end: (block_end)))

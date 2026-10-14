@@ -1171,3 +1171,43 @@ after.
       end: (block_end))
     (text)
     (text)))
+
+================================================================================
+An @anchor or @image after an index entry stays in the paragraph
+================================================================================
+
+Text
+@cindex entry
+@anchor{x}
+more
+
+Text
+@findex entry
+@image{y}
+more
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (line_command
+      name: (command_name)
+      argument: (line_argument
+        (text)))
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (text)))
+    (text))
+  (paragraph
+    (text)
+    (line_command
+      name: (command_name)
+      argument: (line_argument
+        (text)))
+    (inline_command
+      name: (command_name)
+      file: (argument
+        (text)))
+    (text)))

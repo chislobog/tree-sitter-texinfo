@@ -290,11 +290,23 @@ export default grammar({
   // A NUL is a blank too: texi2any drops it.
   extras: $ => [/[ \t\v\f\r\x00]/, $.comment, $.unmatched_brace],
 
+  // Rules whose node would hold only what the tokens after it decide, so
+  // that an incremental parse could reuse it where those tokens changed.
+  // After a node of a paragraph's line commands, no more of them can
+  // follow, and the scanner, for which their name being valid means the
+  // paragraph is open, gave an `@anchor` or `@image` after an index entry
+  // the token that starts no paragraph. A newline made the start of a body,
+  // where no `@deffnx` came after it, stayed one when an `@deffnx` did:
+  // tree-sitter doesn't reuse a node built in a conflict, but this one
+  // wasn't. Found by `tree-sitter fuzz`; inlined, they cost 4 parser states.
+  inline: $ => [$._paragraph_line_commands, $._body_start, $._between_lines],
+
   // A line command, blank line or block after an item's or a definition's
   // first line comes before the next `@itemx` or `@deffnx`, if one follows,
   // and starts the body otherwise: only the lines after it tell.
   conflicts: $ => [
-    [$._body_start, $._between_lines],
+    [$._definition_body],
+    [$._item_body],
   ],
 
   // Block openers are recognised by the scanner, which keeps a stack of open

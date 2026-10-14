@@ -40,6 +40,16 @@ sources, which is what `texi2any` itself uses.
   on its line, then undone, left the section inside an unclosed `@math{`,
   as tree-sitter reused its subtree (found by `tree-sitter fuzz`, which the
   checks ran without failing on what it reports)
+- [x] Nor does an incremental parse reuse a node that only holds what the
+  tokens after it decide (found by `just fuzz-deep` in two of texi2any's
+  test inputs). After an edit by a paragraph's index entry, an `@anchor`
+  or `@image` on the next line left the paragraph: the scanner gives it
+  the token that starts no paragraph only where no line command of the
+  paragraph may follow, and after the reused node of those line commands
+  none could. And a newline made the start of a definition's or an item's
+  body, where an edit had left no x line after it, stayed one when the
+  `@deffnx` came back. The rules are inlined (4 parser states); a corpus
+  test of each fails the `fuzz` check without that
 - [x] Keep the preformatted context through blocks nested in `@example`
   and the other preformatted blocks (`@group`, `@quotation`, even `@menu`),
   where a blank line doesn't close a brace command, as in texi2any

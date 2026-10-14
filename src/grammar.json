@@ -10971,8 +10971,10 @@
   ],
   "conflicts": [
     [
-      "_body_start",
-      "_between_lines"
+      "_definition_body"
+    ],
+    [
+      "_item_body"
     ]
   ],
   "precedences": [],
@@ -11218,7 +11220,11 @@
       "name": "_error_sentinel"
     }
   ],
-  "inline": [],
+  "inline": [
+    "_paragraph_line_commands",
+    "_body_start",
+    "_between_lines"
+  ],
   "supertypes": [],
   "reserved": {}
 }

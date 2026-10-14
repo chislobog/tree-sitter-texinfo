@@ -321,6 +321,15 @@ from the same LLVM version as the compiler (the profile format differs).
   were unknown anyway.
 - Token precedence doesn't stop a longer match by another token valid in the
   same state; make the grammar allow only one of them there instead.
+- The scanner may choose a token by which others are valid, but the choice
+  must be the same before a reduction and after it: a fresh parse lexes the
+  token after a node before reducing it, and an incremental one that reuses
+  the node lexes it in the state after. Nor may a node hold only what the
+  tokens after it decide: tree-sitter reuses a node built without a
+  conflict even where the next tokens changed. Such a hidden rule goes in
+  `inline` (`_paragraph_line_commands`, after which no more line commands
+  could follow, and `_body_start`, a newline that an `@deffnx` after it
+  makes part of the head); `tree-sitter fuzz` finds what breaks this.
 - Favour error recovery that keeps the rest of the document intact: a
   mistake being typed should only affect its own paragraph or block, as in
   texi2any. tree-sitter's own recovery often doesn't manage that, so close
