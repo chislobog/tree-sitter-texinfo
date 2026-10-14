@@ -420,15 +420,11 @@ export default grammar({
     _paragraph_line_commands: $ => prec.right(repeat1(choice(
       alias($._paragraph_line_command, $.line_command),
       seq(alias($._paragraph_raw_block, $.raw_block), $._line_end),
-      prec.right(seq(
-        alias($._paragraph_raw_block, $.raw_block),
-        $._newline_before_comments,
-        repeat1($._newline),
-      )),
-      prec.right(seq(
+      seq(alias($._paragraph_raw_block, $.raw_block), $._comment_lines),
+      seq(
         alias($._paragraph_line_command_before_comments, $.line_command),
-        repeat1($._newline),
-      )),
+        $._comment_line_ends,
+      ),
     ))),
 
     // Line commands recognised by keyword, as their arguments differ: a rule
@@ -986,10 +982,15 @@ export default grammar({
       ),
     ),
 
-    // Zero-width before the newline that comment lines and then a line other
-    // than a blank one follow, the newline, then the comment lines' newlines,
-    // in a paragraph or a menu entry's description.
-    _comment_lines: $ => prec.right(seq($._newline_before_comments, repeat1($._newline))),
+    // Zero-width before the newline that comment lines follow, the newline,
+    // then the comment lines, in a paragraph or a menu entry's description,
+    // which they don't end, as in texi2any.
+    _comment_lines: $ => seq($._newline_before_comments, $._newline, $._comment_line_ends),
+
+    // Comment lines, each with its line end, so that the newline of a blank
+    // line after them, which ends the paragraph, is not one of theirs: the
+    // same token, it would be, were they extras between newlines.
+    _comment_line_ends: $ => prec.right(repeat1(seq($.comment, $._line_end))),
 
     // A line of a paragraph or of a last argument.
     _line: $ => prec.right(repeat1($._inline)),

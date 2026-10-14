@@ -279,8 +279,8 @@ More.
     (comment)
     (text))
   (paragraph
-    (text))
-  (comment)
+    (text)
+    (comment))
   (paragraph
     (text)
     (comment)
@@ -669,3 +669,39 @@ respectively.
       end: (block_end))
     (comment)
     (text)))
+
+================================================================================
+Comment lines at a paragraph's end stay in it, also before a blank line, as in texi2any
+================================================================================
+
+First paragraph.
+@c a comment
+@c another
+
+Second paragraph.
+   @c indented
+
+@cindex entry
+@c after an index entry
+
+Last.
+@c at the end
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (comment)
+    (comment))
+  (paragraph
+    (text)
+    (comment))
+  (line_command
+    name: (command_name)
+    argument: (line_argument
+      (text)))
+  (comment)
+  (paragraph
+    (text)
+    (comment)))

@@ -51,20 +51,6 @@ build/corpus/structure/user-defined-index-commands-are-line-commands.texi
   line 4: @opindex arguments: ours '(none)', texi2any 'inline'
   line 4: <p> arguments: ours 'Text with inline', texi2any 'Text with'
 
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/autoconf-2.73/doc/autoconf.texi
-  line 16020: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 16022: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 25298: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 25300: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/binutils-with-gold-2.46/binutils/doc/binutils.texi
-  line 325: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 327: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 3230: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 3233: paragraphs: ours '(nothing)', texi2any '</p>'
-
 # Comparison: a fragment for @include inside a table, where texi2any drops @item outside one
 examples/binutils-with-gold-2.46/binutils/doc/ctf.options.texi
   line 4: ours '@item', texi2any '(nothing)'
@@ -80,7 +66,7 @@ examples/binutils-with-gold-2.46/binutils/doc/debug.options.texi
 examples/binutils-with-gold-2.46/binutils/doc/sframe.options.texi
   line 4: ours '@item', texi2any '(nothing)'
 
-# Gap (TODO.md): a macro definition doesn't end a paragraph in texi2any, but does here; and gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
+# Gap (TODO.md): a macro definition doesn't end a paragraph in texi2any, but does here
 examples/coreutils-9.11/doc/coreutils.texi
   line 4703: <p> arguments: ours 'Treat each input file as binary by reading it in binary mode and outputting a flag This is the inverse of On systems like GNU that do not distinguish between binary and text files this option merely flags each input mode as binary the checksum is unaffected This option is the default on systems like MS DOS that distinguish between binary and text files except for reading standard input when standard input is a terminal', texi2any 'Treat each input file as binary by reading it in binary mode and outputting a flag This is the inverse of On systems like GNU that do not distinguish between binary and text files this option merely flags each input mode as binary the checksum is unaffected This option is the default on systems like MS DOS that distinguish between binary and text files except for reading standard input when standard input is a terminal This option is deprecated and not documented in It is only supported by the command to support emulation of the legacy standalone checksumming utilities'
   line 4709: paragraphs: ours '</p>', texi2any '(nothing)'
@@ -90,8 +76,6 @@ examples/coreutils-9.11/doc/coreutils.texi
   line 6227: <p> arguments: ours 'Output a newline before each group of repeated lines', texi2any 'Output a newline before each group of repeated lines With use a zero byte ASCII NUL instead of a newline as the delimiter'
   line 6227: paragraphs: ours '</p>', texi2any '(nothing)'
   line 6232: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 6362: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 6364: paragraphs: ours '(nothing)', texi2any '</p>'
   line 8563: <p> arguments: ours 'If only one tab stop is given set the tabs spaces apart default is 8 Otherwise set the tabs at columns numbered from 0 and replace any tabs beyond the last tab stop given with single spaces', texi2any 'If only one tab stop is given set the tabs spaces apart default is 8 Otherwise set the tabs at columns numbered from 0 and replace any tabs beyond the last tab stop given with single spaces Tab stops can be separated by blanks as well as by commas'
   line 8566: paragraphs: ours '</p>', texi2any '(nothing)'
   line 8582: paragraphs: ours '<p>', texi2any '(nothing)'
@@ -99,106 +83,13 @@ examples/coreutils-9.11/doc/coreutils.texi
   line 11770: paragraphs: ours '</p>', texi2any '(nothing)'
   line 11775: paragraphs: ours '<p>', texi2any '(nothing)'
 
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/emacs-31.1/emacs/emerge-xtra.texi
-  line 236: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 238: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/emacs-31.1/emacs/glossary.texi
-  line 500: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 503: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/emacs-31.1/emacs/mule.texi
-  line 1430: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 1432: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/emacs-31.1/emacs/rmail.texi
-  line 139: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 141: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 267: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 271: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/emacs-31.1/lispref/edebug.texi
-  line 1746: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 1749: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 1904: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 1906: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/emacs-31.1/lispref/markers.texi
-  line 531: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 533: paragraphs: ours '(nothing)', texi2any '</p>'
-
 # Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
 examples/emacs-31.1/lispref/objects.texi
   line 2602: paragraphs: ours '<p>', texi2any '(nothing)'
   line 2602: paragraphs: ours '</p>', texi2any '(nothing)'
 
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/emacs-31.1/lispref/text.texi
-  line 2008: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 2011: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/emacs-31.1/lispref/variables.texi
-  line 2951: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 2953: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/emacs-31.1/misc/calc.texi
-  line 240: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 244: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 269: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 273: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 298: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 300: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 1172: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 1174: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 6182: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 6184: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/emacs-31.1/misc/cc-mode.texi
-  line 1245: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 1248: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 1267: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 1269: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/emacs-31.1/misc/cl.texi
-  line 206: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 208: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/emacs-31.1/misc/gnus.texi
-  line 23477: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 23479: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 28306: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 28308: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/emacs-31.1/misc/ido.texi
-  line 327: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 332: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/emacs-31.1/misc/info.texi
-  line 110: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 114: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/emacs-31.1/misc/url.texi
-  line 886: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 892: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here; and gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
+# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
 examples/gawk-5.4.1/gawk.texi
-  line 3090: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 3092: paragraphs: ours '(nothing)', texi2any '</p>'
   line 5933: paragraphs: ours '<p>', texi2any '(nothing)'
   line 5933: paragraphs: ours '</p>', texi2any '(nothing)'
   line 7570: paragraphs: ours '<p>', texi2any '(nothing)'
@@ -251,21 +142,15 @@ examples/gawk-5.4.1/gawk.texi
   line 38153: paragraphs: ours '</p>', texi2any '(nothing)'
   line 39736: paragraphs: ours '<p>', texi2any '(nothing)'
   line 39736: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 44198: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 44200: paragraphs: ours '(nothing)', texi2any '</p>'
   line 45470: paragraphs: ours '<p>', texi2any '(nothing)'
   line 45470: paragraphs: ours '</p>', texi2any '(nothing)'
   line 45501: paragraphs: ours '<p>', texi2any '(nothing)'
   line 45501: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 45694: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 45696: paragraphs: ours '(nothing)', texi2any '</p>'
 
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here; and gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here; and gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
+# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here; and gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
 examples/gawk-5.4.1/gawkinet.texi
   line 700: paragraphs: ours '<p>', texi2any '(nothing)'
   line 700: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 1016: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 1019: paragraphs: ours '(nothing)', texi2any '</p>'
   line 2963: paragraphs: ours '<p>', texi2any '(nothing)'
 
 # Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
@@ -277,160 +162,10 @@ examples/gawk-5.4.1/gawkworkflow.texi
   line 636: paragraphs: ours '<p>', texi2any '(nothing)'
   line 636: paragraphs: ours '</p>', texi2any '(nothing)'
 
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/gawk-5.4.1/pm-gawk.texi
-  line 742: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 744: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 1352: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 1354: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/gdb-17.2/gdb/doc/annotate.texinfo
-  line 635: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 637: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/gdb-17.2/gdb/doc/gdb.texinfo
-  line 11442: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 11444: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 39769: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 39771: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/gdb-17.2/gdb/doc/stabs.texinfo
-  line 2733: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 2737: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/glibc-2.44/manual/arith.texi
-  line 1025: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 1028: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/glibc-2.44/manual/filesys.texi
-  line 3514: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 3516: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/glibc-2.44/manual/maint.texi
-  line 251: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 258: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/glibc-2.44/manual/memory.texi
-  line 1307: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 1313: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 1420: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 1429: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 1473: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 1483: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 1608: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 1612: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 1715: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 1718: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 2885: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 2887: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/glibc-2.44/manual/resource.texi
-  line 910: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 914: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/glibc-2.44/manual/socket.texi
-  line 1681: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 1700: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 2473: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 2475: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 3440: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 3442: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/glibc-2.44/manual/stdio.texi
-  line 667: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 675: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/glibc-2.44/manual/sysinfo.texi
-  line 900: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 904: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here; and gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
+# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
 examples/latex2e-help-texinfo/latex2e.texi
-  line 2264: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 2266: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 2749: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 2752: paragraphs: ours '(nothing)', texi2any '</p>'
   line 6019: paragraphs: ours '<p>', texi2any '(nothing)'
   line 6019: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 9571: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 9573: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 10587: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 10590: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 11275: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 11278: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 12845: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 12848: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 13266: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 13268: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 14877: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 14880: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/maxima-5.49.0/doc/info/Command.texi
-  line 821: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 823: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/maxima-5.49.0/doc/info/Equations.texi
-  line 1442: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 1444: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/maxima-5.49.0/doc/info/Evaluation.texi
-  line 640: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 642: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 732: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 734: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/maxima-5.49.0/doc/info/Function.texi
-  line 2562: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 2564: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/maxima-5.49.0/doc/info/Integration.texi
-  line 172: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 174: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/maxima-5.49.0/doc/info/MathFunctions.texi
-  line 947: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 949: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 1126: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 1128: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 2719: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 2725: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 2798: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 2806: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 2840: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 2846: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 2853: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 2859: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 3215: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 3221: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/maxima-5.49.0/doc/info/Matrices.texi
-  line 125: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 127: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 140: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 142: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/maxima-5.49.0/doc/info/Miscellaneous.texi
-  line 262: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 268: paragraphs: ours '(nothing)', texi2any '</p>'
 
 # Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
 examples/maxima-5.49.0/doc/info/Numerical.texi
@@ -448,33 +183,6 @@ examples/maxima-5.49.0/doc/info/Numerical.texi
   line 1394: paragraphs: ours '</p>', texi2any '(nothing)'
   line 1440: paragraphs: ours '<p>', texi2any '(nothing)'
   line 1440: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/maxima-5.49.0/doc/info/Polynomials.texi
-  line 371: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 373: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 2253: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 2256: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/maxima-5.49.0/doc/info/Program.texi
-  line 678: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 685: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/maxima-5.49.0/doc/info/Rules.texi
-  line 1293: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 1295: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/maxima-5.49.0/doc/info/commandline-options.texi
-  line 2: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 4: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/maxima-5.49.0/doc/info/dynamics.texi
-  line 299: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 309: paragraphs: ours '(nothing)', texi2any '</p>'
 
 # Gap (TODO.md): `@*` starts no paragraph in texi2any, but does here
 examples/maxima-5.49.0/doc/info/format.texi
@@ -501,150 +209,22 @@ examples/maxima-5.49.0/doc/info/format.texi
   line 501: paragraphs: ours '<p>', texi2any '(nothing)'
   line 501: paragraphs: ours '</p>', texi2any '(nothing)'
 
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/maxima-5.49.0/doc/info/ja/Command.texi
-  line 692: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 694: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/maxima-5.49.0/doc/info/ja/Database.texi
-  line 71: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 74: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 158: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 161: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/maxima-5.49.0/doc/info/ja/Evaluation.texi
-  line 569: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 571: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 660: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 662: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/maxima-5.49.0/doc/info/ja/Input.texi
-  line 638: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 644: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/maxima-5.49.0/doc/info/ja/Integration.texi
-  line 161: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 163: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/maxima-5.49.0/doc/info/ja/MathFunctions.texi
-  line 382: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 384: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/maxima-5.49.0/doc/info/ja/Matrices.texi
-  line 56: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 58: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/maxima-5.49.0/doc/info/ja/Polynomials.texi
-  line 266: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 268: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 306: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 309: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 1581: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 1584: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/maxima-5.49.0/doc/info/ja/Program.texi
-  line 45: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 49: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 523: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 530: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/maxima-5.49.0/doc/info/ja/Rules.texi
-  line 1097: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 1099: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/maxima-5.49.0/doc/info/ja/Runtime.texi
-  line 97: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 99: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/maxima-5.49.0/doc/info/ja/Special.texi
-  line 1805: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 1811: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/maxima-5.49.0/doc/info/ja/contrib_ode.texi
-  line 581: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 586: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/maxima-5.49.0/doc/info/ja/lbfgs.texi
-  line 120: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 129: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 258: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 269: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/maxima-5.49.0/doc/info/ja/romberg.texi
-  line 64: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 74: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/maxima-5.49.0/doc/info/lbfgs.texi
-  line 117: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 126: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 255: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 266: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/sbcl-2.6.8-source/contrib/asdf/asdf.texinfo
-  line 688: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 692: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 943: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 945: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 1149: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 1157: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 6114: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 6118: paragraphs: ours '(nothing)', texi2any '</p>'
-
 # Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
 examples/sbcl-2.6.8-source/doc/internals/discriminating-functions.texinfo
   line 51: paragraphs: ours '<p>', texi2any '(nothing)'
   line 51: paragraphs: ours '</p>', texi2any '(nothing)'
 
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
-examples/sed-4.10/sed.texi
-  line 4687: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 4689: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here; and gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
+# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
 examples/texinfo-7.3/texi2any_api.texi
-  line 2037: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 2041: paragraphs: ours '(nothing)', texi2any '</p>'
   line 3277: paragraphs: ours '<p>', texi2any '(nothing)'
   line 3277: paragraphs: ours '</p>', texi2any '(nothing)'
   line 4562: paragraphs: ours '<p>', texi2any '(nothing)'
   line 4562: paragraphs: ours '</p>', texi2any '(nothing)'
 
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here; and gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
+# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
 examples/texinfo-7.3/texinfo.texi
   line 7609: paragraphs: ours '(nothing)', texi2any '</p>'
   line 7610: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 8230: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 8232: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 14720: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 14724: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 15811: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 15814: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 15860: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 15862: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 16566: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 16568: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 17858: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 17862: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 19211: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 19213: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 24408: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 24410: paragraphs: ours '(nothing)', texi2any '</p>'
 
 # Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
 texinfo-tests/02coverage/block_commands.texi
@@ -676,7 +256,7 @@ texinfo-tests/02coverage/command_in_end_ignored_raw_command_after.texi
   line 3: paragraphs: ours '<p>', texi2any '(nothing)'
   line 3: paragraphs: ours '</p>', texi2any '(nothing)'
 
-# Gap (TODO.md): comment lines at the end of a paragraph, before a blank line, are in it in texi2any, but after it here
+# Deliberate: a DEL character is text; the Texinfo manual makes it a comment character for TeX, and texi2any deletes it with the rest of its line and the line end before parsing, which merges the next line into this one, here into the @c comment; the tree keeps the two lines as written; and deliberate: a C preprocessor line directive (`#line 7 "k"`) is text, as the tree shows the source as written; texi2any follows it, to report lines in the file it names, and drops it
 texinfo-tests/02coverage/delcomment.texi
   line 6: <p> arguments: ours 'this is a comment', texi2any 'This line is the only output'
   line 8: paragraphs: ours '<p> </p>', texi2any '(nothing)'

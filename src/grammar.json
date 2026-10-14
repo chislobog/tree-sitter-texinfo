@@ -2470,58 +2470,40 @@
               ]
             },
             {
-              "type": "PREC_RIGHT",
-              "value": 0,
-              "content": {
-                "type": "SEQ",
-                "members": [
-                  {
-                    "type": "ALIAS",
-                    "content": {
-                      "type": "SYMBOL",
-                      "name": "_paragraph_raw_block"
-                    },
-                    "named": true,
-                    "value": "raw_block"
-                  },
-                  {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "ALIAS",
+                  "content": {
                     "type": "SYMBOL",
-                    "name": "_newline_before_comments"
+                    "name": "_paragraph_raw_block"
                   },
-                  {
-                    "type": "REPEAT1",
-                    "content": {
-                      "type": "SYMBOL",
-                      "name": "_newline"
-                    }
-                  }
-                ]
-              }
+                  "named": true,
+                  "value": "raw_block"
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "_comment_lines"
+                }
+              ]
             },
             {
-              "type": "PREC_RIGHT",
-              "value": 0,
-              "content": {
-                "type": "SEQ",
-                "members": [
-                  {
-                    "type": "ALIAS",
-                    "content": {
-                      "type": "SYMBOL",
-                      "name": "_paragraph_line_command_before_comments"
-                    },
-                    "named": true,
-                    "value": "line_command"
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "ALIAS",
+                  "content": {
+                    "type": "SYMBOL",
+                    "name": "_paragraph_line_command_before_comments"
                   },
-                  {
-                    "type": "REPEAT1",
-                    "content": {
-                      "type": "SYMBOL",
-                      "name": "_newline"
-                    }
-                  }
-                ]
-              }
+                  "named": true,
+                  "value": "line_command"
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "_comment_line_ends"
+                }
+              ]
             }
           ]
         }
@@ -7230,23 +7212,40 @@
       ]
     },
     "_comment_lines": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "_newline_before_comments"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_newline"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_comment_line_ends"
+        }
+      ]
+    },
+    "_comment_line_ends": {
       "type": "PREC_RIGHT",
       "value": 0,
       "content": {
-        "type": "SEQ",
-        "members": [
-          {
-            "type": "SYMBOL",
-            "name": "_newline_before_comments"
-          },
-          {
-            "type": "REPEAT1",
-            "content": {
+        "type": "REPEAT1",
+        "content": {
+          "type": "SEQ",
+          "members": [
+            {
               "type": "SYMBOL",
-              "name": "_newline"
+              "name": "comment"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "_line_end"
             }
-          }
-        ]
+          ]
+        }
       }
     },
     "_line": {

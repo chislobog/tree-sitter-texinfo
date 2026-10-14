@@ -697,9 +697,8 @@ static bool more_comment_lines(TSLexer *lexer) {
 
 /**
  * Scans the zero-width token before a paragraph's newline when comment lines
- * follow it, then a line that isn't blank: as in texi2any, they don't end
- * the paragraph. With a blank line or the end of the file after them, the
- * newline ends the paragraph, and the comment lines are outside it.
+ * follow it: as in texi2any, they don't end the paragraph, also before a
+ * blank line or the end of the file.
  */
 static bool scan_newline_before_comments(TSLexer *lexer) {
   lexer->mark_end(lexer);
@@ -714,8 +713,6 @@ static bool scan_newline_before_comments(TSLexer *lexer) {
       (strcmp(name, "c") != 0 && strcmp(name, "comment") != 0)) {
     return false;
   }
-  skip_to_next_line(lexer);
-  if (!more_comment_lines(lexer)) return false;
   lexer->result_symbol = NEWLINE_BEFORE_COMMENTS;
   return true;
 }
@@ -1134,10 +1131,13 @@ static bool scan_missing_brace(Scanner *scanner, TSLexer *lexer,
   if (!read_name(lexer, name)) return false;
 
   // Comment lines inside a paragraph, which don't close the brace there.
+  // Before a blank line, which closes an ordinary brace command after them,
+  // they are left in its argument; in other braces (`@footnote`), they stay
+  // in the paragraph, as in texi2any.
   if (strcmp(name, "c") == 0 || strcmp(name, "comment") == 0) {
     if (!valid_symbols[NEWLINE_BEFORE_COMMENTS]) return false;
     skip_to_next_line(lexer);
-    if (!more_comment_lines(lexer)) return false;
+    if (paragraph_end && !more_comment_lines(lexer)) return false;
     lexer->result_symbol = NEWLINE_BEFORE_COMMENTS;
     return true;
   }

@@ -334,11 +334,11 @@ comparing arguments:
 - [ ] Macro definitions and conditionals don't end a paragraph in texi2any
   either (the comparison can't see conditionals, which texi2any has
   evaluated)
-- [ ] Comment lines at the end of a paragraph, before a blank line, are in
-  it in texi2any, but after it here (61 files): the paragraph can't end
-  after them without taking the blank lines after them too, as a blank
-  line's newline and a comment line's are the same token, unless the
-  scanner checks the column (see CLAUDE.md)
+- [x] Comment lines at the end of a paragraph, before a blank line or the
+  end of the file, are in it, as in texi2any; they were after it (61
+  files). In a paragraph, comment lines are no longer extras between
+  counted newlines, which would have taken the blank line's newline too,
+  but explicit, each with its line end (63 parser states)
 - [ ] `@titlefont` (and other brace commands in texi2any's
   close_paragraph_commands) ends a paragraph in texi2any, also in the
   middle of a line
@@ -485,10 +485,6 @@ Deliberate, so the tree shows the source as it is written and edited:
   that a comma-separated argument (`@xref{`) didn't take a conditional
   block, so a brace left open before one broke the enclosing block; and
   `.txi` files are checked too
-- [ ] Each of `ARGUMENT_COMMANDS`' groups as a hidden rule of its own would
-  save 1,023 parser states, but tree-sitter then lexes `@xref` at the start
-  of a paragraph as a generic command name (`_set_value`'s identical
-  pattern takes its place), so the keywords need another way in first
 - [x] Reduce the parser's size: `src/parser.c` was 29 MB. The line and brace
   command keywords, now recognised by the scanner, made each parser state
   where a command can start carry about 200 entries; it went to 6 MB, with

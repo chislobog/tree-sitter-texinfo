@@ -103,8 +103,8 @@ Next paragraph.}
         (paragraph
           (text)
           (comment)
-          (text))
-        (comment)
+          (text)
+          (comment))
         (paragraph
           (text))))))
 

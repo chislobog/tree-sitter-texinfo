@@ -1683,6 +1683,10 @@
           "named": true
         },
         {
+          "type": "comment",
+          "named": true
+        },
+        {
           "type": "definition_block",
           "named": true
         },
@@ -1865,6 +1869,10 @@
       "types": [
         {
           "type": "brace_group",
+          "named": true
+        },
+        {
+          "type": "comment",
           "named": true
         },
         {
