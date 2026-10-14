@@ -105,7 +105,8 @@ well with incomplete input, which is normal while editing.
 
 A Claude Code hook (`.claude/hooks/check-grammar.py`) runs `tree-sitter
 generate` and `tree-sitter test` after every edit to `grammar.js`,
-`src/scanner.c` or the corpus. Every other check is declared in `flake.nix`
+`src/scanner.c` or the corpus made with the Write or Edit tools (not one
+made through Bash, after which run them yourself). Every other check is declared in `flake.nix`
 (with flake-parts, and treefmt-nix's and git-hooks.nix's modules) and run
 by `nix flake check` (`just check`), locally as in CI. Nix caches them: a
 check whose inputs didn't change isn't rerun, and each check's inputs are

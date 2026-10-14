@@ -156,6 +156,14 @@ source = { git = "https://github.com/chislobog/tree-sitter-texinfo", rev = "main
 Then build the grammar with `hx --grammar fetch` and `hx --grammar build`, and
 link or copy `editors/helix/queries/` as Helix's `runtime/queries/texinfo/`.
 
+## Bindings
+
+The bindings that tree-sitter generates (C, Go, Node.js, Python, Rust and
+Swift) are built and tested in CI on Linux, macOS and Windows, each test
+parsing a document. They aren't published to a package registry: depend on
+this repository, as a git dependency, at a commit or tag. They need a
+tree-sitter runtime that reads ABI 15, version 0.25 or later.
+
 ## Development
 
 The Nix flake provides everything: tree-sitter, a C compiler and clangd,
