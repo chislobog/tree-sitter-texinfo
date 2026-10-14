@@ -682,8 +682,10 @@ export default grammar({
     // group, a symbol, or a built-in brace command with its braces or accent
     // argument. Other commands, whose braces are optional too, only end a
     // word: a part glued after them starts the next one.
+    // A line ending in `@` right inside the word continues it, anonymous as
+    // before a word.
     _glued_word: $ => seq(
-      repeat1(seq($._glueable_word_part, $._word_glue)),
+      repeat1(seq($._glueable_word_part, $._word_glue, optional(alias($.line_continuation, '@\n')))),
       $._definition_word_part,
     ),
 

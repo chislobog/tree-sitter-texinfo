@@ -1177,9 +1177,11 @@ void tree_sitter_texinfo_external_scanner_deserialize(void *payload,
 /**
  * Scans the zero-width glue after a part of a definition line's word when
  * another part follows with no space between them: text, a command or a
- * brace group, but not a line ending in `@` (a continuation, which is a
- * space) or a comment. Only the next characters are read, never the
- * column, so incremental parsing re-scans it when they change.
+ * brace group, but not a comment. A line ending in `@` right after the part
+ * continues the word if the next line starts with it, as in texi2any; with
+ * a blank before the `@` or after the line end, it is a space. Only the next
+ * characters are read, never the column, so incremental parsing re-scans it
+ * when they change.
  */
 static bool scan_word_glue(TSLexer *lexer) {
   int32_t c = lexer->lookahead;
@@ -1190,7 +1192,22 @@ static bool scan_word_glue(TSLexer *lexer) {
   if (c == '@') {
     advance(lexer);
     c = lexer->lookahead;
-    if (lexer->eof(lexer) || c == '\n' || c == '\r') return false;
+    if (c == '\r') {
+      advance(lexer);
+      c = lexer->lookahead;
+      if (c != '\n') return false;
+    }
+    if (c == '\n') {
+      advance(lexer);
+      c = lexer->lookahead;
+      if (lexer->eof(lexer) || is_blank(c) || c == '\n' || c == '\r' ||
+          c == '}') {
+        return false;
+      }
+      lexer->result_symbol = WORD_GLUE;
+      return true;
+    }
+    if (lexer->eof(lexer)) return false;
     char name[MAX_NAME + 1];
     if (read_name(lexer, name) &&
         (strcmp(name, "c") == 0 || strcmp(name, "comment") == 0)) {

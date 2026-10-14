@@ -107,6 +107,9 @@ sources, which is what `texi2any` itself uses.
   and `arguments` fields (braces group words)
 - [x] `@` at the end of a definition line's arguments is a `line_continuation`
   (still a `symbol_command` before the arguments start)
+- [x] A line ending in `@` right after a definition word, with the next
+  line starting with no blank, continues the word, as in texi2any
+  (`foo@` then `bar` is `foobar`); it was a space between two words
 - [x] A definition word glued to a command (`foo@var{x}`,
   `@var{$converter}->method` in texi2any's API reference) is one `word` node,
   as in texi2any; the scanner emits a zero-width glue between its parts.

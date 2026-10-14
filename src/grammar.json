@@ -6275,6 +6275,23 @@
               {
                 "type": "SYMBOL",
                 "name": "_word_glue"
+              },
+              {
+                "type": "CHOICE",
+                "members": [
+                  {
+                    "type": "ALIAS",
+                    "content": {
+                      "type": "SYMBOL",
+                      "name": "line_continuation"
+                    },
+                    "named": false,
+                    "value": "@\n"
+                  },
+                  {
+                    "type": "BLANK"
+                  }
+                ]
               }
             ]
           }

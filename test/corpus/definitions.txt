@@ -473,14 +473,18 @@ Text and commands with no space between them make one word
     end: (block_end)))
 
 ================================================================================
-A space or a continued line separates words
+A space separates words, also before or after a continued line's end
 ================================================================================
 
 @deffn Command foo @var{x}
 @end deffn
 
-@deffn Command foo@
+@deffn Command foo @
 bar baz
+@end deffn
+
+@deffn Command foo@
+  bar baz
 @end deffn
 
 ---
@@ -504,6 +508,37 @@ bar baz
       entity: (text)
       arguments: (definition_arguments
         (line_continuation)
+        (text)))
+    end: (block_end))
+  (definition_block
+    (definition_line
+      name: (command_name)
+      category: (text)
+      entity: (text)
+      arguments: (definition_arguments
+        (line_continuation)
+        (text)))
+    end: (block_end)))
+
+================================================================================
+A continued line's end with no space around it joins a word, as in texi2any
+================================================================================
+
+@deffn Command foo@
+bar baz
+@end deffn
+
+---
+
+(source_file
+  (definition_block
+    (definition_line
+      name: (command_name)
+      category: (text)
+      entity: (word
+        (text)
+        (text))
+      arguments: (definition_arguments
         (text)))
     end: (block_end)))
 
