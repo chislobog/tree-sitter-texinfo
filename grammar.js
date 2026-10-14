@@ -112,6 +112,42 @@ const definitionFields = ($, fields) => {
 };
 
 /**
+ * The name of a built-in brace command, recognised by the scanner
+ * (BRACE_COMMANDS in src/scanner.c).
+ *
+ * @param {GrammarSymbols<string>} $
+ */
+const builtinName = ($) => field('name', alias($._brace_command_name, $.command_name));
+
+/**
+ * What follows a built-in brace command's name: its braces, holding
+ * `braceArguments`, or an accent's argument without them. The rules made
+ * with it stay apart: one rule shared where they are used costs states (34
+ * for a float's type).
+ *
+ * @param {GrammarSymbols<string>} $
+ * @param {RuleOrLiteral} braceArguments
+ * @param {RuleOrLiteral} accentArgument
+ */
+const braceOrAccent = ($, braceArguments, accentArgument) => choice(
+  seq('{', braceArguments),
+  field('argument', alias(accentArgument, $.text)),
+);
+
+/**
+ * Lines of `inline` content, whose line ends may start blocks and line
+ * commands, as in a brace command's argument that may hold blank lines.
+ *
+ * @param {GrammarSymbols<string>} $
+ * @param {RuleOrLiteral[]} inline
+ */
+const longLines = ($, ...inline) => repeat1(choice(
+  ...inline,
+  $._newline,
+  seq($._newline, repeat1($._line_item)),
+));
+
+/**
  * A command keyword exposed as a `command_name` node.
  *
  * @param {GrammarSymbols<string>} $
@@ -442,11 +478,8 @@ export default grammar({
 
     _line_argument_command: $ => choice(
       prec.right(seq(
-        field('name', alias($._brace_command_name, $.command_name)),
-        optional(choice(
-          seq('{', $._line_brace_arguments),
-          field('argument', alias($._line_accent_argument, $.text)),
-        )),
+        builtinName($),
+        optional(braceOrAccent($, $._line_brace_arguments, $._line_accent_argument)),
       )),
       prec.right(seq(
         field('name', $.command_name),
@@ -700,11 +733,8 @@ export default grammar({
     ),
 
     _glueable_command: $ => seq(
-      field('name', alias($._brace_command_name, $.command_name)),
-      choice(
-        seq('{', $._line_brace_arguments),
-        field('argument', alias($._line_accent_argument, $.text)),
-      ),
+      builtinName($),
+      braceOrAccent($, $._line_brace_arguments, $._line_accent_argument),
     ),
 
     _definition_word_part: $ => choice(
@@ -981,11 +1011,8 @@ export default grammar({
 
     _math_command: $ => choice(
       prec.right(seq(
-        field('name', alias($._brace_command_name, $.command_name)),
-        optional(choice(
-          seq('{', $._math_brace_arguments),
-          field('argument', alias($._accent_argument, $.text)),
-        )),
+        builtinName($),
+        optional(braceOrAccent($, $._math_brace_arguments, $._accent_argument)),
       )),
       prec.right(seq(
         field('name', $.command_name),
@@ -1002,11 +1029,8 @@ export default grammar({
     // line argument: a rule of its own, as sharing that one costs 34 parser
     // states.
     _float_type_command: $ => prec.right(seq(
-      field('name', alias($._brace_command_name, $.command_name)),
-      optional(choice(
-        seq('{', $._line_brace_arguments),
-        field('argument', alias($._line_accent_argument, $.text)),
-      )),
+      builtinName($),
+      optional(braceOrAccent($, $._line_brace_arguments, $._line_accent_argument)),
     )),
 
     // Paragraphs, blocks and line commands: what texi2any allows there.
@@ -1222,20 +1246,15 @@ export default grammar({
       $._long_comma_lines,
     ),
 
-    _long_comma_lines: $ => repeat1(choice(
+    _long_comma_lines: $ => longLines(
+      $,
       alias($._argument_text, $.text),
       $.inline_command,
       $.symbol_command,
       $.brace_group,
-      $._newline,
-      seq($._newline, repeat1($._line_item)),
-    )),
+    ),
 
-    _long_lines: $ => repeat1(choice(
-      $._inline,
-      $._newline,
-      seq($._newline, repeat1($._line_item)),
-    )),
+    _long_lines: $ => longLines($, $._inline),
 
     // Like a built-in brace command, an unclosed group ends at a blank line or
     // the end of its block, so it only breaks its own paragraph.
