@@ -10,9 +10,16 @@
   one whose line commands include its `x` form (`@deffn`, `@deffnx`).
 - Each sectioning command's level (`SECTIONING`) is that of the section
   whose heading has it.
+- Each sectioning command in a heading rule of the grammar is in
+  `SECTIONING`, so that a `@node` before it starts its section.
 - The tables of command names don't overlap, nor end in `index` (which
   makes a line command), so the order in which the scanner tries them
   doesn't matter; and the accents without braces are brace commands.
+- The names are texi2any's (the texi2any on the path), in its classes: the
+  line commands are its line commands, those that end a paragraph its
+  `close_paragraph_commands` and the others not; the brace commands its
+  brace commands; the blocks all its blocks, each of the kind its category
+  makes it, and the preformatted ones and conditionals as it has them.
 
 Usage: script/check-scanner.py [--scanner FILE] [--grammar FILE]
 """
@@ -23,7 +30,29 @@ import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+from texinfo_language import ROOT, texi2any_table
+
+# The scanner's kind of block for each category of texi2any's
+# `%block_commands`; KIND_BLOCK for the others.
+BLOCK_KINDS = {
+    "def": "KIND_DEFINITION",
+    "raw": "KIND_RAW",
+    "format_raw": "KIND_RAW",
+    "menu": "KIND_MENU",
+    "multitable": "KIND_MULTITABLE",
+    "float": "KIND_FLOAT",
+    "item_container": "KIND_LIST",
+    "item_line": "KIND_LIST",
+}
+# Blocks whose kind differs from their category on purpose.
+BLOCK_KIND_EXCEPTIONS = {
+    # Macro definitions are raw, but `macro_definition` nodes.
+    "macro": "KIND_MACRO",
+    "rmacro": "KIND_MACRO",
+    "linemacro": "KIND_MACRO",
+    # Holds `@defline` lines, and has no definition line of its own.
+    "defblock": "KIND_BLOCK",
+}
 
 
 def c_strings(source: str, table: str) -> list[str]:
@@ -137,13 +166,65 @@ def check_sections(source: str, grammar: dict) -> list[str]:
     if not match:
         raise SystemExit("no table SECTIONING in the scanner")
     problems = []
-    for command, level in re.findall(r'\{"(\w+)", (\d+)\}', match.group(1)):
+    levels = re.findall(r'\{"(\w+)", (\d+)\}', match.group(1))
+    for command, level in levels:
         level = int(level)
         heading = (
             grammar["rules"].get(f"{sections[level]}_heading") if level < len(sections) else None
         )
         if heading is None or command not in string_choices(name_field(heading)):
             problems.append(f"@{command} has level {level}, which isn't its section's")
+    listed = {command for command, _ in levels}
+    for section in sections:
+        heading = grammar["rules"].get(f"{section}_heading")
+        if heading is None:
+            problems.append(f"the grammar has no rule {section}_heading")
+            continue
+        for command in sorted(set(string_choices(name_field(heading))) - listed):
+            problems.append(f"@{command} starts a {section} but isn't in SECTIONING")
+    return problems
+
+
+def check_texi2any(source: str) -> list[str]:
+    line = texi2any_table("Commands", "line_commands")
+    brace = texi2any_table("Commands", "brace_commands")
+    blocks = texi2any_table("Commands", "block_commands")
+    closing = texi2any_table("Commands", "close_paragraph_commands")
+    preformatted = texi2any_table("Commands", "preformatted_commands")
+    problems = []
+    for table, known, kind in (
+        ("LINE_COMMANDS", line, "line"),
+        ("PARAGRAPH_ENDING_LINE_COMMANDS", line, "line"),
+        ("BRACE_COMMANDS", brace, "brace"),
+    ):
+        for name in c_strings(source, table):
+            if name not in known:
+                problems.append(f"@{name} in {table} isn't one of texi2any's {kind} commands")
+    for name in c_strings(source, "PARAGRAPH_ENDING_LINE_COMMANDS"):
+        if name not in closing:
+            problems.append(f"@{name} ends a paragraph, which it doesn't in texi2any")
+    for name in c_strings(source, "LINE_COMMANDS"):
+        if name in closing:
+            problems.append(
+                f"@{name} ends a paragraph in texi2any, but isn't in PARAGRAPH_ENDING_LINE_COMMANDS"
+            )
+    ours = dict(re.findall(r'\{"(\w+)", (KIND_\w+)(?: \+ \d+)?\}', source))
+    for name, kind in sorted(ours.items()):
+        if name not in blocks:
+            problems.append(f"@{name} in BLOCKS isn't one of texi2any's blocks")
+            continue
+        expected = BLOCK_KIND_EXCEPTIONS.get(name) or BLOCK_KINDS.get(blocks[name], "KIND_BLOCK")
+        if kind != expected:
+            problems.append(f"@{name} is {kind}, but texi2any's {blocks[name]} makes it {expected}")
+    for name in sorted(blocks.keys() - ours.keys()):
+        problems.append(f"texi2any's block @{name} isn't in BLOCKS")
+    for name in sorted(set(c_strings(source, "PREFORMATTED")) ^ preformatted.keys()):
+        problems.append(f"@{name} is preformatted on one side only, in_preformatted or texi2any")
+    for name in sorted(blocks):
+        if (blocks[name] == "conditional") != name.startswith("if"):
+            problems.append(
+                f"@{name} is a conditional on one side only, is_conditional or texi2any"
+            )
     return problems
 
 
@@ -183,6 +264,7 @@ def main() -> int:
         *check_layouts(source, grammar),
         *check_sections(source, grammar),
         *check_names(source),
+        *check_texi2any(source),
     ]
     for problem in problems:
         print(problem)

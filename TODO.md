@@ -444,7 +444,12 @@ Deliberate, so the tree shows the source as it is written and edited:
 - [x] A check that the scanner's token enum and its tables of layouts and
   section levels agree with the grammar, and that its tables of names don't
   overlap (`script/check-scanner.py`), so the order in which the scanner
-  tries them doesn't matter
+  tries them doesn't matter; and since review, that its names are texi2any's,
+  in texi2any's classes (line, paragraph-ending, brace commands, the kinds
+  of blocks, the preformatted ones and the conditionals), and that every
+  sectioning command in the grammar is in its table. It found two
+  obsolete commands among the line commands
+  (`@setcontentsaftertitlepage`), which texi2any no longer knows
 - [x] A budget for the parser's state count (`script/parser-size.py`, a
   flake check), raised only on purpose: features added 1-8% each, which
   the check against the previous push didn't flag, until the parser had

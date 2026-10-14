@@ -89,6 +89,7 @@ from texinfo_language import (
     add_files_argument,
     files_argument,
     load_language,
+    texi2any_table,
 )
 
 from tree_sitter import Parser
@@ -719,12 +720,7 @@ def texi2any_line_commands() -> set[str]:
     """texi2any's line commands, from its own command table, with the items
     of lists and tables: what `--structure` keeps of its tree, whatever this
     grammar makes of them."""
-    commands = Path(shutil.which("texi2any") or "texi2any").resolve().parent.parent
-    table = (commands / "share" / "texi2any" / "Texinfo" / "Commands.pm").read_text()
-    line_commands = re.search(r"our %line_commands = \((.*?)\n\);", table, re.S)
-    if line_commands is None:
-        raise SystemExit("texi2any's Commands.pm has no %line_commands table")
-    return set(re.findall(r'"([^"]+)"\s*=>', line_commands.group(1))) | {"item", "headitem"}
+    return set(texi2any_table("Commands", "line_commands")) | {"item", "headitem"}
 
 
 def texi2any_definition_shortcuts() -> set[str]:

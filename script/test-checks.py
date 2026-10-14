@@ -290,6 +290,31 @@ def check_scanner(checker: Checker):
             (re.compile(r'\n *"ogonek",'), ""),
             "the accent @ogonek isn't in BRACE_COMMANDS",
         ),
+        (
+            "a sectioning command missing",
+            ('    {"centerchap", 2},\n', ""),
+            "@centerchap starts a chapter but isn't in SECTIONING",
+        ),
+        (
+            "a name texi2any doesn't have",
+            ('"include",', '"include", "foo",'),
+            "@foo in LINE_COMMANDS isn't one of texi2any's line commands",
+        ),
+        (
+            "a line command that ends a paragraph in texi2any",
+            ('"include",', '"include", "page",'),
+            "@page ends a paragraph in texi2any, but isn't in PARAGRAPH_ENDING_LINE_COMMANDS",
+        ),
+        (
+            "a block of the wrong kind",
+            ('{"example", KIND_BLOCK}', '{"example", KIND_RAW}'),
+            "@example is KIND_RAW, but texi2any's preformatted makes it KIND_BLOCK",
+        ),
+        (
+            "a block missing",
+            ('    {"smallquotation", KIND_BLOCK},\n', ""),
+            "texi2any's block @smallquotation isn't in BLOCKS",
+        ),
     ]
     for title, (old, new), message in changes:
         changed = (

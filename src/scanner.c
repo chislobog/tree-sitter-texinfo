@@ -359,8 +359,7 @@ static const char *const LINE_COMMANDS[] = {
     "exampleindent", "footnotestyle", "frenchspacing", "allowcodebreaks",
     "kbdinputstyle", "codequoteundirected", "codequotebacktick",
     "deftypefnnewline", "urefbreakstyle", "xrefautomaticsectiontitle",
-    "setcontentsaftertitlepage", "setshortcontentsaftertitlepage", "novalidate",
-    "raisesections", "lowersections",
+    "novalidate", "raisesections", "lowersections",
     // Less common: two-letter index names, page layout
     "cpindex", "fnindex", "kyindex", "pgindex", "tpindex", "vrindex",
     "bsixpaper", "fonttextsize", "microtype", "evenfootingmarks",

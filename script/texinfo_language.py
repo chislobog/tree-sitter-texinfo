@@ -13,6 +13,7 @@ import argparse
 import ctypes
 import os
 import re
+import shutil
 import subprocess
 import sys
 from collections.abc import Iterator
@@ -52,6 +53,17 @@ def _argument_fields() -> dict[str, tuple[str, ...]]:
 # The brace commands whose arguments split at commas, with the field of each
 # argument by position, from the grammar's ARGUMENT_COMMANDS.
 ARGUMENT_FIELDS = _argument_fields()
+
+
+def texi2any_table(module: str, table: str) -> dict[str, str]:
+    """A command table of the texi2any on the path, such as `%line_commands`
+    in its Commands.pm: each command with its value."""
+    share = Path(shutil.which("texi2any") or "texi2any").resolve().parent.parent / "share"
+    source = (share / "texi2any" / "Texinfo" / f"{module}.pm").read_text()
+    match = re.search(rf"our %{table} = \((.*?)\n\);", source, re.S)
+    if match is None:
+        raise SystemExit(f"texi2any's {module}.pm has no %{table} table")
+    return dict(re.findall(r'"([^"]+)"\s*=>\s*\'?([^\',\n]*)', match.group(1)))
 
 
 def load_language(root: Path = ROOT) -> Language:
