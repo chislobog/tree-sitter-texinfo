@@ -53,3 +53,17 @@ Caf@'e and @u o.
 
 @end example
 @c <- keyword
+
+Text before
+@ifinfo
+@c <- keyword.conditional
+Info text.
+@end ifinfo
+@c <- keyword.conditional
+after.
+
+@image{figure}
+@c     ^ string.special.path
+
+@noindent
+@c <- keyword

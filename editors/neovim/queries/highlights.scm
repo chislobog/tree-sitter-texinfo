@@ -270,7 +270,7 @@
   arguments: (brace_arguments)? @variable.parameter)
   (#eq? @function "@var"))
 
-; Commands without braces that start a paragraph.
+; `@noindent` and `@indent`, which say how the next paragraph starts.
 ((inline_command
   name: (command_name) @keyword)
   (#any-of? @keyword "@noindent" "@indent"))

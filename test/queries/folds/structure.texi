@@ -44,3 +44,10 @@ An item.
 @deffn Command name
 @c <- fold
 @end deffn
+
+Text before
+@ifinfo
+@c <- fold
+Info text.
+@end ifinfo
+after.
