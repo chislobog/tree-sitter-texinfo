@@ -5884,10 +5884,6 @@
         },
         {
           "type": "SYMBOL",
-          "name": "_no_paragraph_argument_command"
-        },
-        {
-          "type": "SYMBOL",
           "name": "line_command"
         },
         {
@@ -7924,6 +7920,10 @@
                   {
                     "type": "SYMBOL",
                     "name": "_line_item"
+                  },
+                  {
+                    "type": "SYMBOL",
+                    "name": "_context_no_paragraph_argument"
                   }
                 ]
               }
@@ -7955,6 +7955,24 @@
           },
           "named": true,
           "value": "paragraph"
+        }
+      ]
+    },
+    "_context_no_paragraph_argument": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "_no_paragraph_start"
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_no_paragraph_argument"
+          },
+          "named": true,
+          "value": "inline_command"
         }
       ]
     },

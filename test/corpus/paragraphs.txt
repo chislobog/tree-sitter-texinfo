@@ -994,10 +994,6 @@ T@footnote{
 @image{in_footnote}
 }
 
-@float
-@caption{@image{x}}
-@end float
-
 ---
 
 (source_file
@@ -1009,18 +1005,149 @@ T@footnote{
         (inline_command
           name: (command_name)
           file: (argument
-            (text))))))
+            (text)))))))
+
+================================================================================
+Nor does one that the brace around it closes on its line, as in texi2any
+================================================================================
+
+@float
+@caption{@image{a}}
+@shortcaption{@image{a} text @image{c}}
+@end float
+
+@float
+@caption{@image{a} @image{b} }
+@end float
+
+T@footnote{x
+@image{f}}
+
+U@footnote{
+@image{g} more}
+
+@image{s} }
+
+---
+
+(source_file
   (block
     name: (command_name)
     (inline_command
       name: (command_name)
       arguments: (brace_arguments
+        (inline_command
+          name: (command_name)
+          file: (argument
+            (text)))))
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (inline_command
+          name: (command_name)
+          file: (argument
+            (text)))
         (paragraph
+          (text)
           (inline_command
             name: (command_name)
             file: (argument
               (text))))))
-    end: (block_end)))
+    end: (block_end))
+  (block
+    name: (command_name)
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (inline_command
+          name: (command_name)
+          file: (argument
+            (text)))
+        (inline_command
+          name: (command_name)
+          file: (argument
+            (text)))))
+    end: (block_end))
+  (paragraph
+    (text)
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (paragraph
+          (text)
+          (inline_command
+            name: (command_name)
+            file: (argument
+              (text)))))))
+  (paragraph
+    (text)
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (inline_command
+          name: (command_name)
+          file: (argument
+            (text)))
+        (paragraph
+          (text)))))
+  (inline_command
+    name: (command_name)
+    file: (argument
+      (text)))
+  (unmatched_brace))
+
+================================================================================
+An @image at the start of a line inside a brace command stays in it, as in texi2any
+================================================================================
+
+A @code{a
+@image{x} b
+c}
+
+B @inlinefmt{html,a
+@image{y} c}
+
+D @code{a
+@image{z}}
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (text)
+        (inline_command
+          name: (command_name)
+          file: (argument
+            (text)))
+        (text)
+        (text))))
+  (paragraph
+    (text)
+    (inline_command
+      name: (command_name)
+      format: (argument
+        (text))
+      text: (argument
+        (text)
+        (inline_command
+          name: (command_name)
+          file: (argument
+            (text)))
+        (text))))
+  (paragraph
+    (text)
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (text)
+        (inline_command
+          name: (command_name)
+          file: (argument
+            (text)))))))
 
 ================================================================================
 Text after the end of a conditional in a paragraph goes on with the paragraph

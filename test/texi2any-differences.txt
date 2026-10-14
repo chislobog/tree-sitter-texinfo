@@ -20,11 +20,6 @@ build/corpus/menus/unfinished-menu-entry.texi
   line 4: ours '* *', texi2any '(nothing)'
   line 3: paragraphs: ours '(nothing)', texi2any '<pre> </pre>'
 
-# Gap (TODO.md): an `@image` that the `}` of the caption or footnote around it follows on its line (`@caption{@image{x}}`) is in a paragraph here, as the image's line can't end there; texi2any starts none
-build/corpus/paragraphs/an-image-at-the-start-of-a-line-in-a-footnote-starts-no-paragraph-as-in-texi2any.texi
-  line 7: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 7: paragraphs: ours '</p>', texi2any '(nothing)'
-
 # Invalid input; texi2any reports at line 5: bad argument to @end: html more text, and at line 11: bad argument to @end: html@, keeping the text after the block's name in its `@end` line; here it goes on with the paragraph
 build/corpus/paragraphs/text-after-the-end-of-a-block-in-a-paragraph-goes-on-with-the-paragraph.texi
   line 11: ours '(nothing)', texi2any '@\n'

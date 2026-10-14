@@ -341,10 +341,14 @@ comparing arguments:
   whose arguments then had states for each context's followers; the
   budget went to 14,300
 - [x] Nor does `@image` inside a footnote's or caption's braces, at the
-  start of a line (2 of texi2any's test inputs; 103 parser states)
-- [ ] But one that the `}` around it follows on its line
-  (`@caption{@image{x}}`), which the scanner leaves in a paragraph: the
-  image's line would have to be able to end there too (378 parser states)
+  start of a line (2 of texi2any's test inputs), also where the `}` follows
+  on its line (`@caption{@image{x}}`): an item of the footnote's text of
+  its own, followed by whatever the text allows there, such as a paragraph
+  or the `}` (43 parser states). It was first among the line items that
+  brace commands' lines share, followed by its line's end or a paragraph,
+  which put a paragraph inside `@code{` where an image started one of its
+  lines; the scanner looked for a `}` on the image's line to avoid it,
+  which only hid it where the `}` was on that line
 - [x] Macro definitions don't end a paragraph either, as in texi2any (6
   files; 88 parser states, the definition's own in a paragraph)
 - [x] Nor do conditionals, which texi2any evaluates, so that the text of

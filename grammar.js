@@ -857,15 +857,12 @@ export default grammar({
     ),
 
     // Headings too, which texi2any allows in a footnote or caption, and a
-    // command that starts no paragraph (`@anchor`, `@*`, `@image`) at the
-    // start of a line, outside the paragraphs there as in texi2any. The
-    // scanner leaves an `@image` that the `}` around it follows on its line
-    // (`@caption{@image{x}}`) in a paragraph, which may end there.
+    // command that starts no paragraph (`@anchor`, `@*`) at the start of a
+    // line, outside the paragraphs there as in texi2any.
     _line_item: $ => choice(
       $._line_block,
       alias($._no_paragraph_symbol, $.symbol_command),
       alias($._no_paragraph_command, $.inline_command),
-      $._no_paragraph_argument_command,
       $.line_command,
       $.heading,
       alias($._definition_continuation, $.definition_line),
@@ -1235,10 +1232,21 @@ export default grammar({
     // Paragraphs, blocks and line commands: what texi2any allows there.
     _context_body: $ => choice(
       seq(
-        repeat1(choice($._newline, $.paragraph, $._line_item)),
+        repeat1(choice($._newline, $.paragraph, $._line_item, $._context_no_paragraph_argument)),
         optional(alias($._cell_paragraph, $.paragraph)),
       ),
       alias($._cell_paragraph, $.paragraph),
+    ),
+
+    // `@image` or `@namedanchor` where a paragraph would start in a footnote
+    // or caption, which starts none, as in texi2any: not followed by its
+    // line's end, as elsewhere, but by whatever the text there allows,
+    // which may end at the `}` on its line (`@caption{@image{x}}`). Not in
+    // `_line_item`, which brace commands' lines share, where it is inline
+    // (43 parser states).
+    _context_no_paragraph_argument: $ => seq(
+      $._no_paragraph_start,
+      alias($._no_paragraph_argument, $.inline_command),
     ),
 
     // An inline conditional's output format or flag name.
@@ -1266,9 +1274,10 @@ export default grammar({
     // start none, as in texi2any: after a zero-width token from the scanner,
     // so that the keyword is read one way only, then the line's end, the
     // paragraph the rest of the line starts or another of them, which the
-    // command is always followed by, wherever it is. A rule of their own: one shared with the
-    // commands in a paragraph costs 66 parser states more, and other
-    // followers 1,100 more.
+    // command is always followed by, wherever it is but in a footnote or
+    // caption (`_context_no_paragraph_argument`). A rule of their own: one
+    // shared with the commands in a paragraph costs 66 parser states more,
+    // and other followers 1,100 more.
     _no_paragraph_argument_command: $ => seq(
       $._no_paragraph_start,
       alias($._no_paragraph_argument, $.inline_command),
