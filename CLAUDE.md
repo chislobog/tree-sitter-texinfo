@@ -181,7 +181,9 @@ fuzz-scanner [SECONDS] [JOBS]` runs it longer and on several cores, keeping
 what it covers in `build/fuzz/out`. LLVM is version 23, not nixpkgs' default
 21, whose AddressSanitizer deadlocks at startup on macOS 27. `just fuzz-deep`
 (`script/fuzz-deep.py`) runs `tree-sitter fuzz` on texi2any's test inputs
-and the manuals for longer than the checks, on several cores.
+and the manuals for longer than the checks, on several cores. The checks run
+it through `script/fuzz.py`, which fails on a test it reports failed:
+`tree-sitter fuzz` exits with 0 whatever it finds.
 
 CI (`.github/workflows/ci.yml`) runs `nix flake check` on every push, except
 one that only changes Markdown files; a newer push cancels a run in

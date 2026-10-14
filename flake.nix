@@ -407,9 +407,10 @@
             fuzz = mkCheck "fuzz" (
               parserFiles
               ++ [
+                ./script/fuzz.py
                 ./test/corpus
               ]
-            ) "TREE_SITTER_SEED=0 tree-sitter fuzz --iterations 100";
+            ) "TREE_SITTER_SEED=0 python3 script/fuzz.py --iterations 100";
             # Each check still fails on the inputs in test/checks/ it is meant
             # to catch.
             checks-catch = mkCheck "checks-catch" (
@@ -458,8 +459,8 @@
                 ''
                   python3 script/fuzz-corpus.py --test-inputs --manuals
                   tree-sitter test --file-name fuzz-inputs.txt >/dev/null
-                  TREE_SITTER_SEED=0 tree-sitter fuzz --include texinfo-tests --iterations 50
-                  TREE_SITTER_SEED=0 tree-sitter fuzz --include examples --iterations 10
+                  TREE_SITTER_SEED=0 python3 script/fuzz.py --include texinfo-tests --iterations 50
+                  TREE_SITTER_SEED=0 python3 script/fuzz.py --include examples --iterations 10
                 '';
             # Typing mistakes in the manuals stay local.
             edits = mkCheck "edits" scriptFiles ''

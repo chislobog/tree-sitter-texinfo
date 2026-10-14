@@ -356,6 +356,25 @@ def check_parser_size(checker: Checker):
         )
 
 
+def check_fuzz(checker: Checker):
+    """script/fuzz.py, which the fuzz checks run, fails on what tree-sitter
+    fuzz reports, as its exit status doesn't tell."""
+    from fuzz import failures
+
+    failing = (
+        "  0. texinfo - corpus - fuzz-inputs - a.texi\n"
+        "Incorrect parse for texinfo - corpus - fuzz-inputs - a.texi - seed 31\n\n"
+        "1 texinfo corpus tests failed fuzzing\n"
+    )
+    found = failures(failing)
+    checker.report(
+        "fuzz: an incorrect parse fails",
+        [] if len(found) == 2 else [f"found {found!r}"],
+    )
+    found = failures("  0. texinfo - corpus - fuzz-inputs - a.texi\n")
+    checker.report("fuzz: no failure passes", [f"found {found!r}"] if found else [])
+
+
 def main() -> int:
     with tempfile.TemporaryDirectory() as directory:
         checker = Checker(Path(directory))
@@ -365,6 +384,7 @@ def main() -> int:
         check_edits(checker)
         check_scanner(checker)
         check_parser_size(checker)
+        check_fuzz(checker)
     if checker.failures:
         print(f"{checker.failures} checks don't work as they should")
         return 1

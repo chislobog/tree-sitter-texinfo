@@ -21,6 +21,7 @@ import tempfile
 import time
 from pathlib import Path
 
+from fuzz import failures
 from texinfo_language import ROOT, manuals, test_inputs
 
 CORPUS = ROOT / "test" / "corpus" / "fuzz-inputs.txt"
@@ -85,16 +86,14 @@ def main() -> int:
             process.wait()
             text = log.read_text(errors="replace")
             seed = re.search(r"Seed: (\d+)", text)
-            failures = re.findall(
-                r"^(?:Incorrect|.*failed fuzzing|thread .* panicked).*$", text, re.M
-            )
-            status = "ok" if process.returncode == 0 and not failures else "FAILED"
+            found = failures(text)
+            status = "ok" if process.returncode == 0 and not found else "FAILED"
             failed += status == "FAILED"
             print(
                 f"{status}: {log.name}, {count} inputs, seed {seed.group(1) if seed else '?'}"
                 f", {time.monotonic() - start:.0f} s"
             )
-            for failure in failures[:5]:
+            for failure in found[:5]:
                 print(f"  {failure[:200]}")
     finally:
         for _, _, process in runs:
