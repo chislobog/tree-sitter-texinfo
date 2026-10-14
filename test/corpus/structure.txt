@@ -119,6 +119,46 @@ Everything after bye is ignored
     (ignored)))
 
 ================================================================================
+Text after bye on its line is ignored too
+================================================================================
+
+@bye junk @c the end
+not parsed
+
+---
+
+(source_file
+  (bye
+    (command_name)
+    (ignored)
+    (comment)
+    (ignored)))
+
+================================================================================
+Text after input texinfo on its line
+================================================================================
+\input texinfo % TeX comment
+@setfilename sample.info
+
+---
+
+(source_file
+  (input_line)
+  (line_command
+    (command_name)
+    (line_argument
+      (text))))
+
+================================================================================
+Input texinfo alone without a newline
+================================================================================
+\input texinfo
+---
+
+(source_file
+  (input_line))
+
+================================================================================
 Line command at end of file without newline
 ================================================================================
 

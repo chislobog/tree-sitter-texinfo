@@ -573,3 +573,21 @@ goes on.
           (text)))
       end: (block_end))
     end: (block_end)))
+
+================================================================================
+A menu entry with an empty node name has no node
+================================================================================
+
+@menu
+* ::    Typed without its name yet.
+@end menu
+
+---
+
+(source_file
+  (menu
+    name: (command_name)
+    (menu_entry
+      description: (menu_description
+        (text)))
+    end: (block_end)))

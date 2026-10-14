@@ -162,6 +162,23 @@ SPLIT_FIELDS = {
 }
 
 
+def verb_delimiters(node) -> list[tuple[int, int]]:
+    """The byte ranges of a `@verb`'s delimiters, around its body, which
+    texi2any's tree doesn't hold as text."""
+    body = node.child_by_field_name("body") if node.type == "inline_command" else None
+    name = node.child_by_field_name("name") if body is not None else None
+    if name is None or text(name) != "@verb":
+        return []
+    before = body.prev_sibling
+    after = body.next_sibling
+    ranges = []
+    if before is not None and before.type == "{":
+        ranges.append((before.end_byte, body.start_byte))
+    if after is not None:
+        ranges.append((body.end_byte, after.end_byte))
+    return ranges
+
+
 def known_text(node, unknown: set[tuple[int, str]]) -> str:
     """The text of `node` without its comments, which this grammar has
     wherever they are but texi2any's tree may have in another argument or
@@ -179,6 +196,10 @@ def known_text(node, unknown: set[tuple[int, str]]) -> str:
         ):
             cuts.append((current.start_byte - node.start_byte, current.end_byte - node.start_byte))
         else:
+            cuts.extend(
+                (start - node.start_byte, end - node.start_byte)
+                for start, end in verb_delimiters(current)
+            )
             nodes.extend(current.children)
     for start, end in sorted(cuts, reverse=True):
         source = source[:start] + b" " + source[end:]

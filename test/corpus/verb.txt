@@ -62,12 +62,79 @@ Empty verb
       (command_name))))
 
 ================================================================================
-Unclosed verb
-:error
+An unclosed verb takes the rest of the file, as in texi2any
 ================================================================================
 
-@verb{|unclosed}
+@node Top
+@top T
+
+Text @verb{|unclosed}
+
+More.
 
 ---
 
-(source_file)
+(source_file
+  (top
+    (node_line
+      (command_name)
+      (argument
+        (text)))
+    (top_heading
+      (command_name)
+      (line_argument
+        (text)))
+    (paragraph
+      (text)
+      (inline_command
+        (command_name)
+        (raw_text)
+        (missing_brace)))))
+
+================================================================================
+A verb whose delimiter is a brace, or that is cut at the end of the file
+================================================================================
+
+@verb{}
+
+@verb{
+
+---
+
+(source_file
+  (paragraph
+    (inline_command
+      (command_name)
+      (raw_text)
+      (missing_brace))))
+
+================================================================================
+A verb cut right after its brace at the end of the file
+================================================================================
+
+Text @verb{
+---
+
+(source_file
+  (paragraph
+    (text)
+    (inline_command
+      (command_name)
+      (missing_brace))))
+
+================================================================================
+A verb at the end of its line has no delimiter: its text ends at a brace, as in texi2any
+================================================================================
+
+Text @verb{
+in @code{x verb} after.
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (inline_command
+      (command_name)
+      (raw_text))
+    (text)))

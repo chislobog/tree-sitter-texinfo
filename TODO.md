@@ -204,7 +204,7 @@ of a line.
 
 ## Differences from texi2any
 
-From comparing with texi2any on its own test inputs (113 of 1,755 differ, in
+From comparing with texi2any on its own test inputs (104 of 1,755 differ, in
 their commands or the commands' arguments, all listed with their reasons in
 `test/texi2any-differences.txt`; the manuals match but for three binutils
 fragments meant for `@include`).
@@ -232,6 +232,17 @@ Gaps, where we give a parse error and texi2any recovers:
 - [x] A blank at the end of a file that leaves a block open
   (`@quotation`, a line `x`, then a last line of only a space) gave a
   `MISSING block_end` instead of `missing_end`
+- [x] An unclosed `@verb` takes the rest of the file, as in texi2any, and
+  ends with a `missing_brace`: it was an error from the start of its
+  paragraph to the end of the file, outside the sections before it (9 of
+  texi2any's test inputs). A `@verb{` at the end of a line has no
+  delimiter: as in texi2any, its raw text ends at the first `}`
+- [x] Parse errors on input that is being typed or that texi2any accepts:
+  `\input texinfo` without a newline (a new file) or with text after it (a
+  TeX `%` comment), text after `@bye` on its line, which texi2any ignores
+  with a warning, and an empty node name (`* ::`), which was the node `:`.
+  `@` before a character other than ASCII is a lone `@`, as in texi2any:
+  the character was part of the symbol command (found by review)
 - [ ] Files not in UTF-8 (`@documentencoding ISO-8859-1`, Shift-JIS): the
   editor has to convert them, as tree-sitter reads UTF-8
 

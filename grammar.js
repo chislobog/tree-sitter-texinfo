@@ -329,13 +329,18 @@ export default grammar({
     // in texi2any, whatever follows the name is the comment's (`@c|`).
     comment: _ => /@c(omment)?([^a-zA-Z0-9\-\r\n][^\r\n]*)?/,
 
-    // `\input texinfo` on the first line, for TeX.
-    input_line: $ => seq(token(prec(1, /\\input[ \t\v\f]+[^ \t\n\r\v\f@]+/)), $._newline),
+    // `\input texinfo` on the first line, for TeX, which texi2any takes as
+    // text, with what follows on the line (a TeX `%` comment) but a comment.
+    input_line: $ => seq(
+      token(prec(1, /\\input[ \t\v\f]+[^ \t\n\r\v\f@]+([ \t\v\f]+[^@\n\r]*)?/)),
+      $._line_end,
+    ),
 
-    // Everything after `@bye` is ignored.
+    // Everything after `@bye` is ignored, also on its line, as in texi2any.
     // The rest of the `@bye` line is still read, so a comment there counts.
     bye: $ => seq(
       field('name', alias('@bye', $.command_name)),
+      optional(alias(token(prec(-1, /[^@\s][^@\n\r]*/)), $.ignored)),
       $._line_end,
       optional(alias(/[\s\S]+/, $.ignored)),
     ),
@@ -525,8 +530,9 @@ export default grammar({
     _menu_entry_in_block: $ => seq($._menu_entry_start, $._menu_star, $._menu_entry_rest),
 
     _menu_entry_rest: $ => choice(
+      // The node may be empty, as texi2any reports and accepts.
       seq(
-        field('node', alias($._menu_name, $.menu_node)),
+        optional(field('node', alias($._menu_name, $.menu_node))),
         '::',
         $._menu_entry_end,
       ),
@@ -1103,14 +1109,21 @@ export default grammar({
     ),
 
     // `@verb{xTEXTx}`: the scanner reads the delimiter `x` and the raw text.
+    // Unclosed, it takes the rest of the file, as in texi2any, and ends
+    // there with a `missing_brace`. A line end is no delimiter: as in
+    // texi2any, the raw text then ends at the first `}`.
     _verb_command: $ => prec.right(seq(
       field('name', alias('@verb', $.command_name)),
       optional(seq(
         token.immediate('{'),
-        $._verb_open,
-        optional(field('body', alias($._verb_text, $.raw_text))),
-        $._verb_close,
-        '}',
+        choice(
+          seq(
+            $._verb_open,
+            optional(field('body', alias($._verb_text, $.raw_text))),
+            choice(seq($._verb_close, '}'), alias($._brace_close_at_block_end, $.missing_brace)),
+          ),
+          alias($._brace_close_at_block_end, $.missing_brace),
+        ),
       )),
     )),
 
@@ -1236,8 +1249,9 @@ export default grammar({
     // `@` at the end of a line, like at the end of the file, is a lone `@`:
     // the newline stays outside it, so the next line still starts a line (an
     // `@end` there ends its block). Elsewhere a following command name makes
-    // the longer match.
-    symbol_command: _ => /@[^a-zA-Z0-9\r\n]?/,
+    // the longer match. Before a character other than ASCII, the `@` is
+    // alone too, and the character text, as in texi2any ("unexpected @").
+    symbol_command: _ => /@[\x00-\x09\x0b\x0c\x0e-\x2f\x3a-\x40\x5b-\x60\x7b-\x7f]?/,
 
     // Only ASCII spaces count, as in texi2any: a text may start with a
     // no-break space. A carriage return not before a newline is part of it.

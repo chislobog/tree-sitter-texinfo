@@ -50,6 +50,13 @@ Typing @code or @code{} or @emph.
 @c     ^ function
 @c              ^ function
 @c                         ^ function
+@c A macro body is raw text, where an assertion would go unchecked, so only
+@c the end is asserted.
 @macro
-@c <- keyword
 @end macro
+@c <- keyword
+
+Symbols @@ and @{ are escapes, but not a letter after an at sign: @emph{@é}.
+@c      ^ string.escape
+@c                                                                      ^ string.escape
+@c                                                                       ^ markup.italic

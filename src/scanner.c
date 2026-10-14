@@ -217,6 +217,10 @@ static const Block BLOCKS[] = {
 // Longest block name is "nodedescriptionblock"; longer words never match.
 #define MAX_NAME 32
 
+// The `@verb` delimiter after a `@verb{` at the end of a line, which has
+// none: no character is negative.
+#define NO_VERB_DELIMITER (-1)
+
 // Deepest nesting tracked inside a single raw block body.
 #define MAX_RAW_DEPTH 64
 
@@ -974,8 +978,22 @@ static bool scan_raw(Scanner *scanner, TSLexer *lexer) {
  */
 static bool scan_verb(Scanner *scanner, TSLexer *lexer,
                       const bool *valid_symbols) {
+  // Unclosed at the end of the file, as texi2any leaves it.
+  if (lexer->eof(lexer)) {
+    if (!valid_symbols[BRACE_CLOSE_AT_BLOCK_END]) return false;
+    scanner->verb_delimiter = 0;
+    lexer->result_symbol = BRACE_CLOSE_AT_BLOCK_END;
+    return true;
+  }
   if (valid_symbols[VERB_OPEN]) {
-    if (lexer->eof(lexer)) return false;
+    // A line end is no delimiter: as in texi2any, which reports it, the raw
+    // text then ends at the first `}`, and the opening is zero-width.
+    if (lexer->lookahead == '\n' || lexer->lookahead == '\r') {
+      scanner->verb_delimiter = NO_VERB_DELIMITER;
+      lexer->mark_end(lexer);
+      lexer->result_symbol = VERB_OPEN;
+      return true;
+    }
     scanner->verb_delimiter = lexer->lookahead;
     advance(lexer);
     return accept(lexer, VERB_OPEN);
@@ -983,6 +1001,13 @@ static bool scan_verb(Scanner *scanner, TSLexer *lexer,
 
   bool has_text = false;
   while (!lexer->eof(lexer)) {
+    if (scanner->verb_delimiter == NO_VERB_DELIMITER &&
+        lexer->lookahead == '}') {
+      lexer->mark_end(lexer);
+      if (!has_text) scanner->verb_delimiter = 0;
+      lexer->result_symbol = has_text ? VERB_TEXT : VERB_CLOSE;
+      return true;
+    }
     if (lexer->lookahead == scanner->verb_delimiter) {
       lexer->mark_end(lexer);
       advance(lexer);
@@ -1002,7 +1027,7 @@ static bool scan_verb(Scanner *scanner, TSLexer *lexer,
     has_text = true;
   }
 
-  // Unclosed at end of file; the missing delimiter is a parse error.
+  // Unclosed at the end of the file, which closes it next.
   if (!has_text || !valid_symbols[VERB_TEXT]) return false;
   return accept(lexer, VERB_TEXT);
 }

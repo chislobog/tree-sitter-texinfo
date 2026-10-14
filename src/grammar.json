@@ -1708,13 +1708,13 @@
             "value": 1,
             "content": {
               "type": "PATTERN",
-              "value": "\\\\input[ \\t\\v\\f]+[^ \\t\\n\\r\\v\\f@]+"
+              "value": "\\\\input[ \\t\\v\\f]+[^ \\t\\n\\r\\v\\f@]+([ \\t\\v\\f]+[^@\\n\\r]*)?"
             }
           }
         },
         {
           "type": "SYMBOL",
-          "name": "_newline"
+          "name": "_line_end"
         }
       ]
     },
@@ -1733,6 +1733,30 @@
             "named": true,
             "value": "command_name"
           }
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "ALIAS",
+              "content": {
+                "type": "TOKEN",
+                "content": {
+                  "type": "PREC",
+                  "value": -1,
+                  "content": {
+                    "type": "PATTERN",
+                    "value": "[^@\\s][^@\\n\\r]*"
+                  }
+                }
+              },
+              "named": true,
+              "value": "ignored"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
         },
         {
           "type": "SYMBOL",
@@ -4077,17 +4101,25 @@
           "type": "SEQ",
           "members": [
             {
-              "type": "FIELD",
-              "name": "node",
-              "content": {
-                "type": "ALIAS",
-                "content": {
-                  "type": "SYMBOL",
-                  "name": "_menu_name"
+              "type": "CHOICE",
+              "members": [
+                {
+                  "type": "FIELD",
+                  "name": "node",
+                  "content": {
+                    "type": "ALIAS",
+                    "content": {
+                      "type": "SYMBOL",
+                      "name": "_menu_name"
+                    },
+                    "named": true,
+                    "value": "menu_node"
+                  }
                 },
-                "named": true,
-                "value": "menu_node"
-              }
+                {
+                  "type": "BLANK"
+                }
+              ]
             },
             {
               "type": "STRING",
@@ -11127,37 +11159,75 @@
                     }
                   },
                   {
-                    "type": "SYMBOL",
-                    "name": "_verb_open"
-                  },
-                  {
                     "type": "CHOICE",
                     "members": [
                       {
-                        "type": "FIELD",
-                        "name": "body",
-                        "content": {
-                          "type": "ALIAS",
-                          "content": {
+                        "type": "SEQ",
+                        "members": [
+                          {
                             "type": "SYMBOL",
-                            "name": "_verb_text"
+                            "name": "_verb_open"
                           },
-                          "named": true,
-                          "value": "raw_text"
-                        }
+                          {
+                            "type": "CHOICE",
+                            "members": [
+                              {
+                                "type": "FIELD",
+                                "name": "body",
+                                "content": {
+                                  "type": "ALIAS",
+                                  "content": {
+                                    "type": "SYMBOL",
+                                    "name": "_verb_text"
+                                  },
+                                  "named": true,
+                                  "value": "raw_text"
+                                }
+                              },
+                              {
+                                "type": "BLANK"
+                              }
+                            ]
+                          },
+                          {
+                            "type": "CHOICE",
+                            "members": [
+                              {
+                                "type": "SEQ",
+                                "members": [
+                                  {
+                                    "type": "SYMBOL",
+                                    "name": "_verb_close"
+                                  },
+                                  {
+                                    "type": "STRING",
+                                    "value": "}"
+                                  }
+                                ]
+                              },
+                              {
+                                "type": "ALIAS",
+                                "content": {
+                                  "type": "SYMBOL",
+                                  "name": "_brace_close_at_block_end"
+                                },
+                                "named": true,
+                                "value": "missing_brace"
+                              }
+                            ]
+                          }
+                        ]
                       },
                       {
-                        "type": "BLANK"
+                        "type": "ALIAS",
+                        "content": {
+                          "type": "SYMBOL",
+                          "name": "_brace_close_at_block_end"
+                        },
+                        "named": true,
+                        "value": "missing_brace"
                       }
                     ]
-                  },
-                  {
-                    "type": "SYMBOL",
-                    "name": "_verb_close"
-                  },
-                  {
-                    "type": "STRING",
-                    "value": "}"
                   }
                 ]
               },
@@ -11708,7 +11778,7 @@
     },
     "symbol_command": {
       "type": "PATTERN",
-      "value": "@[^a-zA-Z0-9\\r\\n]?"
+      "value": "@[\\x00-\\x09\\x0b\\x0c\\x0e-\\x2f\\x3a-\\x40\\x5b-\\x60\\x7b-\\x7f]?"
     },
     "text": {
       "type": "PATTERN",
