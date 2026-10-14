@@ -1,1 +1,2 @@
-A verb that is never closed: @verb{*text
+A command in an inline conditional's flag, which only a macro's expansion
+makes valid: @inlineifclear{fl@x{}}.
