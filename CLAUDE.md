@@ -286,16 +286,23 @@ from the same LLVM version as the compiler (the profile format differs).
 - Recognise long lists of command names in the scanner, not with keywords in
   the grammar: every keyword is an entry in every parser state where a
   command can start. Moving 199 keywords to the scanner took `parser.c` from
-  29 MB to 6 MB (it has grown back to 24 MB since, with 13,600 states).
+  29 MB to 6 MB (it is 14 MB now, with 7,100 states).
   That is the table's size: a few keywords in place of one cost no states.
-- Watch `tree-sitter generate` time (normally about 12 seconds) and the
+- Watch `tree-sitter generate` time (normally about a second) and the
   parser's state count, which has a budget: the `parser-size` check
   (`script/parser-size.py`) fails above it, and more than 10% under it.
   Raise `BUDGET` only with the change that needs it, after measuring why it
   costs what it does; each feature's few percent went unnoticed, until the
-  parser had twice the states. Nested
-  optional sequences, as in `commaArguments`, multiply parser states quickly;
-  a change there once made generation run for over 13 minutes.
+  parser had twice the states. Optional parts that may be left out
+  anywhere, as a command's comma-separated arguments may be empty, expand
+  into a production for each combination of those present, and the parser
+  into states for each: write them as a chain of hidden rules, one for each
+  position, holding the next (`commaArguments`, and a definition line's
+  words): 13,748 states became 7,139, with the same trees, and generation
+  went from ten seconds to one. A change in nested optional sequences once
+  made generation run for over 13 minutes. `tree-sitter generate
+  --report-states-for-rule -` counts the states that each rule's items are
+  in, which shows where they go.
 - Measure a grammar change's cost before implementing it: generate in a
   scratch copy and read `STATE_COUNT` in `src/parser.c`. An alternative in a
   rule used in many contexts often costs far less as a hidden rule of its own

@@ -38,12 +38,7 @@ const SECTIONS = [
  */
 const nodeLine = ($, name) => seq(
   field('name', name),
-  optional(commaArguments(
-    ['node', 'next', 'previous', 'up'],
-    alias($._line_comma_argument, $.argument),
-    alias($._line_last_argument, $.argument),
-    ',',
-  )),
+  optional(commaArguments($, '_node_arguments', NODE_ARGUMENTS, nodeArgument)),
   $._line_end,
 );
 
@@ -77,28 +72,64 @@ const argumentCommand = ($, names, commands) => prec.right(seq(
   field('name', command($, commands)),
   optional(seq(
     '{',
-    commaArguments(names.split(' '), $.argument, alias($._last_argument, $.argument), ','),
+    commaArguments($, `_${commands[0]}_arguments`, names.split(' '), commandArgument(names.split(' '), false)),
     braceClose($),
   )),
 ));
 
 /**
  * Arguments separated by commas, each in the field named by its position;
- * empty arguments are left out. The last argument may contain commas.
+ * empty arguments are left out. The last argument may contain commas. Each
+ * position after the first is a hidden rule of its own, `prefix` and its
+ * number (commaArgumentRules), which holds the comma, the argument and the
+ * next position's rule. Written as nested optionals instead, the arguments
+ * expand into a production for each combination of empty ones, and the
+ * parser into states for each, as many as the commands' fields allow.
+ *
+ * @param {GrammarSymbols<string>} $
+ * @param {string} prefix
+ * @param {string[]} names
+ * @param {(arg0: GrammarSymbols<string>, arg1: number) => RuleOrLiteral} argument
+ */
+const commaArguments = ($, prefix, names, argument) => seq(
+  optional(field(names[0], argument($, 0))),
+  optional($[`${prefix}_1`]),
+);
+
+/**
+ * The rules of commaArguments for the positions after the first.
+ *
+ * @param {string} prefix
+ * @param {string[]} names
+ * @param {(arg0: GrammarSymbols<string>, arg1: number) => RuleOrLiteral} argument
+ */
+const commaArgumentRules = (prefix, names, argument) => Object.fromEntries(
+  names.slice(1).map((name, k) => [`${prefix}_${k + 1}`, ($) => seq(
+    ',',
+    optional(field(name, argument($, k + 1))),
+    ...(k + 2 < names.length ? [optional($[`${prefix}_${k + 2}`])] : []),
+  )]),
+);
+
+// The fields of a `@node` line, and the argument at each position.
+const NODE_ARGUMENTS = ['node', 'next', 'previous', 'up'];
+/** @type {(arg0: GrammarSymbols<string>, arg1: number) => RuleOrLiteral} */
+const nodeArgument = ($, i) => alias(
+  i === NODE_ARGUMENTS.length - 1 ? $._line_last_argument : $._line_comma_argument,
+  $.argument,
+);
+
+/**
+ * The argument at position `i` of a command of ARGUMENT_COMMANDS with the
+ * fields `names`, in a paragraph or in a line.
  *
  * @param {string[]} names
- * @param {RuleOrLiteral} argument
- * @param {RuleOrLiteral} lastArgument
- * @param {RuleOrLiteral} separator
+ * @param {boolean} line
  */
-const commaArguments = (names, argument, lastArgument, separator) => {
-  const argumentAt = (i) => field(names[i], i === names.length - 1 ? lastArgument : argument);
-  /** @type {RuleOrLiteral[]} */
-  let rest = [];
-  for (let i = names.length - 1; i >= 1; i--) {
-    rest = [optional(seq(separator, optional(argumentAt(i)), ...rest))];
-  }
-  return seq(optional(argumentAt(0)), ...rest);
+const commandArgument = (names, line) => ($, i) => {
+  const last = i === names.length - 1;
+  if (line) return alias(last ? $._line_last_argument : $._line_comma_argument, $.argument);
+  return last ? alias($._last_argument, $.argument) : $.argument;
 };
 
 // The layouts of definition lines: the words before the arguments, as fields,
@@ -122,13 +153,14 @@ const DEFINITION_LAYOUTS = [
  * @param {GrammarSymbols<string>} $
  * @param {string[]} fields
  */
-const definitionFields = ($, fields) => {
-  let rest = optional(field('arguments', $.definition_arguments));
-  for (const name of [...fields].reverse()) {
-    rest = optional(seq(field(name, $._definition_word), rest));
-  }
-  return rest;
-};
+const definitionFields = ($, fields) => optional($[definitionFieldsRule(fields)]);
+
+/** @param {string[]} fields */
+const definitionFieldsRule = (fields) => `_definition_fields_${fields.join('_')}`;
+
+// Every layout's fields and the fields after each of them: each a rule of its own.
+const DEFINITION_FIELD_SUFFIXES = [...new Set(DEFINITION_LAYOUTS.flatMap(({fields}) =>
+  fields.map((_, i) => fields.slice(i).join(' '))))].map((s) => s.split(' '));
 
 /**
  * The name of a built-in brace command, recognised by the scanner
@@ -229,6 +261,23 @@ const cell = ($) => [
   repeat($._content),
   optional(alias($._cell_paragraph, $.paragraph)),
 ];
+
+/** @type {(arg0: GrammarSymbols<string>, arg1: number) => RuleOrLiteral} */
+const floatArgument = ($, i) => i === 0 ?
+  alias(repeat1(choice(
+    alias($._argument_text, $.text),
+    alias($._float_type_command, $.inline_command),
+    $.symbol_command,
+    $.brace_group,
+  )), $.argument) :
+  alias($.line_argument, $.argument);
+
+/** @type {(arg0: GrammarSymbols<string>, arg1: number) => RuleOrLiteral} */
+const inlinefmtifelseArgument = ($, i) => [
+  $._condition,
+  alias($._long_comma_arguments, $.argument),
+  alias($._long_arguments, $.argument),
+][i];
 
 export default grammar({
   name: 'texinfo',
@@ -334,6 +383,25 @@ export default grammar({
       repeat(choice($._content, $._section)),
       optional($.bye),
     ),
+
+    ...commaArgumentRules('_node_arguments', NODE_ARGUMENTS, nodeArgument),
+    ...commaArgumentRules('_float_arguments', ['type', 'label'], floatArgument),
+    ...Object.assign({}, ...Object.entries(ARGUMENT_COMMANDS).map(([names, commands]) => ({
+      ...commaArgumentRules(`_${commands[0]}_arguments`, names.split(' '), commandArgument(names.split(' '), false)),
+      ...commaArgumentRules(`_${commands[0]}_line_arguments`, names.split(' '), commandArgument(names.split(' '), true)),
+    }))),
+
+    ...Object.fromEntries(DEFINITION_FIELD_SUFFIXES.map((fields) => [
+      definitionFieldsRule(fields),
+      $ => seq(
+        field(fields[0], $._definition_word),
+        fields.length > 1 ?
+          optional($[definitionFieldsRule(fields.slice(1))]) :
+          optional(field('arguments', $.definition_arguments)),
+      ),
+    ])),
+
+    ...commaArgumentRules('_inlinefmtifelse_arguments', ['format', 'then', 'else'], inlinefmtifelseArgument),
 
     _section: $ => choice(...SECTIONS.map(({name}) => $[name])),
 
@@ -614,17 +682,7 @@ export default grammar({
         // parser states.
         seq(
           field('name', alias($._float_start, $.command_name)),
-          optional(commaArguments(
-            ['type', 'label'],
-            alias(repeat1(choice(
-              alias($._argument_text, $.text),
-              alias($._float_type_command, $.inline_command),
-              $.symbol_command,
-              $.brace_group,
-            )), $.argument),
-            alias($.line_argument, $.argument),
-            ',',
-          )),
+          optional(commaArguments($, '_float_arguments', ['type', 'label'], floatArgument)),
         ),
       ),
       $._line_end,
@@ -1232,10 +1290,7 @@ export default grammar({
         optional(seq(
           '{',
           commaArguments(
-            names.split(' '),
-            alias($._line_comma_argument, $.argument),
-            alias($._line_last_argument, $.argument),
-            ',',
+            $, `_${commands[0]}_line_arguments`, names.split(' '), commandArgument(names.split(' '), true),
           ),
           choice('}', alias($._brace_close_at_line_end, $.missing_brace)),
         )),
@@ -1280,12 +1335,7 @@ export default grammar({
         field('name', command($, ['inlinefmtifelse'])),
         optional(seq(
           '{',
-          optional(field('format', $._condition)),
-          optional(seq(
-            ',',
-            optional(field('then', alias($._long_comma_arguments, $.argument))),
-            optional(seq(',', optional(field('else', alias($._long_arguments, $.argument))))),
-          )),
+          commaArguments($, '_inlinefmtifelse_arguments', ['format', 'then', 'else'], inlinefmtifelseArgument),
           longBraceClose($),
         )),
       )),

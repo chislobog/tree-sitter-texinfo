@@ -514,8 +514,13 @@ Deliberate, so the tree shows the source as it is written and edited:
 - [x] Reduce the parser's size: `src/parser.c` was 29 MB. The line and brace
   command keywords, now recognised by the scanner, made each parser state
   where a command can start carry about 200 entries; it went to 6 MB, with
-  the same tree. Features added since have taken it back to 24 MB (13,600
-  states), each with its cost measured against the budget
+  the same tree. Features added since took it back to 24 MB (13,748
+  states), each with its cost measured against the budget; until the
+  comma-separated arguments, whose empty ones the nested optionals they
+  were written as expanded into productions for each combination, became a
+  chain of hidden rules, one per position, as did a definition line's
+  words: 14 MB, 7,139 states, the same trees, and generation in a second
+  instead of ten
 - [x] Tree snapshots of every manual and test input
   (`script/tree-snapshots.py`), and a simulation of typing mistakes in the
   manuals that checks error locality and incremental parsing
