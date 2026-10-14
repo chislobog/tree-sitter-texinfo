@@ -173,42 +173,7 @@ const lineCommand = ($, name, end) => choice(
     optional($.subentry),
     end,
   ),
-  // `@set NAME VALUE` and `@clear NAME`. As in texi2any, the value is raw
-  // text; commands in it are only parsed where `@value{NAME}` uses it.
-  seq(
-    field('name', command($, ['set', 'clear'])),
-    optional(seq(
-      field('variable', alias($._word_text, $.text)),
-      optional(field('value', alias($._set_value, $.raw_text))),
-    )),
-    end,
-  ),
-  // Commands whose argument texi2any keeps as raw text: all of the line
-  // for `@vskip`, up to a comment for `@clickstyle` and `@unmacro`.
-  seq(
-    field('name', command($, ['vskip'])),
-    optional(field('argument', alias(/[^\r\n]+/, $.raw_text))),
-    end,
-  ),
-  seq(
-    field('name', command($, ['clickstyle', 'unmacro'])),
-    optional(field('argument', alias($._set_value, $.raw_text))),
-    end,
-  ),
-  // `@alias NEW = EXISTING`; the spaces are optional. Anything else on the
-  // line, which texi2any reports, is left as an argument.
-  seq(
-    field('name', command($, ['alias'])),
-    optional(seq(
-      field('alias', alias($._alias_name, $.text)),
-      optional(seq(
-        token(prec(1, '=')),
-        optional(field('target', alias($._alias_name, $.text))),
-      )),
-    )),
-    optional(field('argument', $.line_argument)),
-    end,
-  ),
+  seq($._keyword_line_command, end),
 );
 
 /**
@@ -438,6 +403,48 @@ export default grammar({
         repeat1($._newline),
       )),
     ))),
+
+    // Line commands recognised by keyword, as their arguments differ: a rule
+    // of its own, shared by the line commands of every context (558 parser
+    // states fewer than an alternative of `lineCommand`).
+    _keyword_line_command: $ => choice(
+      // `@set NAME VALUE` and `@clear NAME`. As in texi2any, the value is raw
+      // text; commands in it are only parsed where `@value{NAME}` uses it.
+      seq(
+        field('name', command($, ['set', 'clear'])),
+        optional(seq(
+          field('variable', alias($._word_text, $.text)),
+          optional(field('value', alias($._set_value, $.raw_text))),
+        )),
+      ),
+      // Commands whose argument texi2any keeps as raw text: all of the line
+      // for `@vskip`, up to a comment for `@clickstyle` and `@unmacro`.
+      seq(
+        field('name', command($, ['vskip'])),
+        optional(field('argument', alias(/[^\r\n]+/, $.raw_text))),
+      ),
+      seq(
+        field('name', command($, ['clickstyle', 'unmacro'])),
+        optional(field('argument', alias($._set_value, $.raw_text))),
+      ),
+      // `@alias NEW = EXISTING`; the spaces are optional. Anything else on
+      // the line, which texi2any reports, is left as an argument, and a
+      // `@subentry` in it is one, as in texi2any. Also, a `line_argument`
+      // followed by other tokens than in other line commands would have
+      // states of its own (384).
+      seq(
+        field('name', command($, ['alias'])),
+        optional(seq(
+          field('alias', alias($._alias_name, $.text)),
+          optional(seq(
+            token(prec(1, '=')),
+            optional(field('target', alias($._alias_name, $.text))),
+          )),
+        )),
+        optional(field('argument', $.line_argument)),
+        optional($.subentry),
+      ),
+    ),
 
     _paragraph_line_command: $ => lineCommand($, $._paragraph_line_command_name, $._line_end),
 

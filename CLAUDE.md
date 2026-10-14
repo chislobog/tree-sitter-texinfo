@@ -272,7 +272,8 @@ from the same LLVM version as the compiler (the profile format differs).
 - Recognise long lists of command names in the scanner, not with keywords in
   the grammar: every keyword is an entry in every parser state where a
   command can start. Moving 199 keywords to the scanner took `parser.c` from
-  29 MB to 6 MB (it has grown back to 23 MB since, with 13,800 states).
+  29 MB to 6 MB (it has grown back to 22 MB since, with 12,900 states).
+  That is the table's size: a few keywords in place of one cost no states.
 - Watch `tree-sitter generate` time (normally about 12 seconds) and the
   parser's state count, which has a budget: the `parser-size` check
   (`script/parser-size.py`) fails above it, and more than 10% under it.
@@ -284,8 +285,11 @@ from the same LLVM version as the compiler (the profile format differs).
 - Measure a grammar change's cost before implementing it: generate in a
   scratch copy and read `STATE_COUNT` in `src/parser.c`. An alternative in a
   rule used in many contexts often costs far less as a hidden rule of its own
-  (macro parameters: 979 → 166 states), or allowed only where it occurs. An
-  alias of a rule listed in `inline` doesn't make a node.
+  (macro parameters: 979 → 166 states), or allowed only where it occurs. A
+  rule has states of its own for each set of tokens that may follow it, so
+  let the same ones follow it everywhere where that's harmless (a
+  `line_argument` after `@alias` that no `@subentry` could follow: 384
+  states). An alias of a rule listed in `inline` doesn't make a node.
 - Keep the scanner's state to what nests (the stack of open blocks) or lasts
   a token or two (the `@verb` delimiter): no tables of names the file
   defines (macros, `@set` variables, aliases). The scanner once remembered

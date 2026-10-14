@@ -391,6 +391,26 @@ Aliases
       (text))))
 
 ================================================================================
+A subentry after an alias's extra text, as in texi2any
+================================================================================
+
+@alias new = code extra @subentry sub
+
+---
+
+(source_file
+  (line_command
+    name: (command_name)
+    alias: (text)
+    target: (text)
+    argument: (line_argument
+      (text))
+    (subentry
+      name: (command_name)
+      argument: (line_argument
+        (text)))))
+
+================================================================================
 Raw arguments of @vskip, @clickstyle and @unmacro
 ================================================================================
 

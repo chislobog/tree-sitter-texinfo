@@ -286,7 +286,10 @@ comparing arguments:
   here they ended it. Now 4,100 of them in the manuals are inside their
   paragraph, 731 paragraphs fewer (1,501 parser states, 813 of them for
   `@set`, `@clear`, `@alias` and the commands with a raw argument, which
-  have rules of their own, for 4 in the manuals; the budget went to 14,200)
+  have rules of their own, for 4 in the manuals; the budget went to 14,200).
+  Since review, those rules are one hidden rule that every context's line
+  commands share, and a `@subentry` may follow `@alias`'s argument, as in
+  texi2any and other line commands: 942 states fewer, budget 13,500
 - [x] Comment lines followed by a line that isn't blank stay in a menu
   entry's description too (4 manuals; 413 parser states)
 - [x] Comment lines inside a paragraph in braces (`@footnote`) too: the
@@ -428,7 +431,7 @@ Deliberate, so the tree shows the source as it is written and edited:
 - [x] Reduce the parser's size: `src/parser.c` was 29 MB. The line and brace
   command keywords, now recognised by the scanner, made each parser state
   where a command can start carry about 200 entries; it went to 6 MB, with
-  the same tree. Features added since have taken it back to 23 MB (13,800
+  the same tree. Features added since have taken it back to 22 MB (12,900
   states), each with its cost measured against the budget
 - [x] Tree snapshots of every manual and test input
   (`script/tree-snapshots.py`), and a simulation of typing mistakes in the
