@@ -34,6 +34,12 @@ sources, which is what `texi2any` itself uses.
 - [x] `@verb{xTEXTx}` with an arbitrary delimiter character
 - [x] A stray `@end` that ends no open block is an `unmatched_end` node, to
   the end of its line, which editors should report
+- [x] An unclosed brace command closes before a node, a section or `@bye`
+  on the next line at the end of the line before it, which the scan reads
+  to the command: decided at the command by its column, an edit before it
+  on its line, then undone, left the section inside an unclosed `@math{`,
+  as tree-sitter reused its subtree (found by `tree-sitter fuzz`, which the
+  checks ran without failing on what it reports)
 - [x] Keep the preformatted context through blocks nested in `@example`
   and the other preformatted blocks (`@group`, `@quotation`, even `@menu`),
   where a blank line doesn't close a brace command, as in texi2any

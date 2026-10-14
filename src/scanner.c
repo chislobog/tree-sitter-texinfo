@@ -1095,8 +1095,8 @@ static bool scan_menu_node_dots(TSLexer *lexer) {
  * Closes an unclosed brace command before the end of the current line if
  * texi2any would close it there: the next line is blank or opens a block
  * other than a conditional (ordinary brace commands only), or it is the `@end`
- * of an open block, or the file ends. The lexer is at the line
- * end, after any blanks.
+ * of an open block, a node, a section or `@bye`, or the file ends. The lexer is
+ * at the line end, after any blanks.
  */
 static bool scan_missing_brace(Scanner *scanner, TSLexer *lexer,
                                const bool *valid_symbols) {
@@ -1153,6 +1153,17 @@ static bool scan_missing_brace(Scanner *scanner, TSLexer *lexer,
     }
     lexer->result_symbol = BRACE_CLOSE_AT_BLOCK_END;
     return true;
+  }
+
+  // A node, a section or `@bye` closes any brace command. Decided here, at
+  // the end of the line before it, which this scan reads to it, so that an
+  // edit before the command on its line makes tree-sitter scan again: at the
+  // command, only the column would tell, and the subtree after such an edit
+  // would be reused (in `@math{`, which a blank line doesn't close).
+  if (is_root_command(name)) {
+    lexer->result_symbol =
+        paragraph_end ? BRACE_CLOSE_AT_PARAGRAPH_END : BRACE_CLOSE_AT_BLOCK_END;
+    return paragraph_end || block_end;
   }
 
   if (!paragraph_end || !closes_brace(name)) return false;
