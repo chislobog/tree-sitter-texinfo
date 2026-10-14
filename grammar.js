@@ -421,6 +421,11 @@ export default grammar({
       alias($._paragraph_line_command, $.line_command),
       seq(alias($._paragraph_raw_block, $.raw_block), $._line_end),
       prec.right(seq(
+        alias($._paragraph_raw_block, $.raw_block),
+        $._newline_before_comments,
+        repeat1($._newline),
+      )),
+      prec.right(seq(
         alias($._paragraph_line_command_before_comments, $.line_command),
         repeat1($._newline),
       )),

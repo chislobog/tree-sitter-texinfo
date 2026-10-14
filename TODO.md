@@ -317,7 +317,8 @@ comparing arguments:
   paragraphs, most of them an `@anchor` line before a definition or an
   item; 90 parser states); a raw block but `@verbatim` (`@tex`, `@html`,
   `@ignore`) doesn't end a paragraph (1,611 more, most in Maxima's
-  manuals; 53 parser states)
+  manuals; 53 parser states), nor do comment lines after one (ld's and
+  Maxima's manuals; 43 parser states)
 - [ ] Also `@image`, `@namedanchor`, `@caption`, `@shortcaption` and `@*`
   start no paragraph in texi2any; the first two are keywords in the
   grammar, the next two context commands, the last a symbol

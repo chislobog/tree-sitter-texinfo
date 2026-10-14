@@ -2479,6 +2479,35 @@
                     "type": "ALIAS",
                     "content": {
                       "type": "SYMBOL",
+                      "name": "_paragraph_raw_block"
+                    },
+                    "named": true,
+                    "value": "raw_block"
+                  },
+                  {
+                    "type": "SYMBOL",
+                    "name": "_newline_before_comments"
+                  },
+                  {
+                    "type": "REPEAT1",
+                    "content": {
+                      "type": "SYMBOL",
+                      "name": "_newline"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "type": "PREC_RIGHT",
+              "value": 0,
+              "content": {
+                "type": "SEQ",
+                "members": [
+                  {
+                    "type": "ALIAS",
+                    "content": {
+                      "type": "SYMBOL",
                       "name": "_paragraph_line_command_before_comments"
                     },
                     "named": true,

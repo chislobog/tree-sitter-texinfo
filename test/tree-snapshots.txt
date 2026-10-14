@@ -289,11 +289,11 @@ e153c943d0e66513fdbd7cf4ea07a03c3bafc858c5f2faffc329ddda363642dc  examples/emacs
 8f21004c81a8235830a25f208254fb9a7a3f2115b241bdee4b4b6cd4975789b3  examples/emacs-31.1/misc/widget.texi
 79b7b11b64d6c0581a0fc653f294bd1f55ca0e569f4217f7bd20dfddc3b9e920  examples/emacs-31.1/misc/wisent.texi
 58c7601d0e82cf987dcb96652537c045b0e17490a3648001cb3bbf23df80db5a  examples/emacs-31.1/misc/woman.texi
-6a7bfc15e21b47949dbd86f2eee96db2ec2bf2f38ae2a30b5322cb89f851ebfe  examples/gawk-5.4.1/gawk.texi
-d791e14318c53b2af7ae1a4609d7ed75fdbf3fdc139feb3c666faea3438468b6  examples/gawk-5.4.1/gawkinet.texi
+3e8d8fb58aefcbccee12e0b6c9fde8b7684a3a86288063e4085eba9d4535ca4a  examples/gawk-5.4.1/gawk.texi
+6426393dfc1f1322cac072220f4545b3401468309457e0cefd34d76ae18ba295  examples/gawk-5.4.1/gawkinet.texi
 0423a38dff4dc6438a426df3819ab2e491f3471e07f74c7d8a789e02d2102907  examples/gawk-5.4.1/gawknotes.texi
 f9e4e0382ad2bb572187d7d67f9faf46a1ece01a1695e78cd6e611c87de08f5e  examples/gawk-5.4.1/gawkworkflow.texi
-dba914717b63db88fbdbdd4371612cf976b256028d33b4e588b0a7670d585574  examples/gawk-5.4.1/it/gawk.texi
+f5e21823a01d2dfc4b4500a9e1cbcdd6f9d58acdcdf4fb8fa27d1a9a39f06e2c  examples/gawk-5.4.1/it/gawk.texi
 b355eef6beba3d011033a6dcf1d8c8c9e1299d0620e0c013ee00c86ca9523e4a  examples/gawk-5.4.1/it/margini.texi
 8c3e3cb6632bf8f566a7246487b6cc928998294bc2d3a1c65cbf8dd865940803  examples/gawk-5.4.1/it/pm-gawk.texi
 86ca1b2f1e35c42eaa50f9556798eae18dfbb8c10d5a88b764fd656d68a4f4ab  examples/gawk-5.4.1/pm-gawk.texi

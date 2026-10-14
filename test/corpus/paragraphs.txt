@@ -644,3 +644,28 @@ Next.
       end: (block_end)))
   (paragraph
     (text)))
+
+================================================================================
+Comment lines after a raw block inside a paragraph stay in it, as in texi2any
+================================================================================
+
+Scale a constant by
+@c KILL
+@tex
+$x$
+@end tex
+@c END KILL
+respectively.
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (comment)
+    (raw_block
+      name: (command_name)
+      body: (raw_text)
+      end: (block_end))
+    (comment)
+    (text)))
