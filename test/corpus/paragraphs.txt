@@ -985,3 +985,62 @@ end.
       end: (block_end))
     (text)
     (text)))
+
+================================================================================
+An @image at the start of a line in a footnote starts no paragraph, as in texi2any
+================================================================================
+
+T@footnote{
+@image{in_footnote}
+}
+
+@float
+@caption{@image{x}}
+@end float
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (inline_command
+          name: (command_name)
+          file: (argument
+            (text))))))
+  (block
+    name: (command_name)
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (paragraph
+          (inline_command
+            name: (command_name)
+            file: (argument
+              (text))))))
+    end: (block_end)))
+
+================================================================================
+Text after the end of a conditional in a paragraph goes on with the paragraph
+================================================================================
+
+Text
+@iftex
+x
+@end iftex more
+after.
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (block
+      name: (command_name)
+      (paragraph
+        (text))
+      end: (block_end))
+    (text)
+    (text)))

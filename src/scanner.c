@@ -869,6 +869,27 @@ static bool scan_end_line_text(TSLexer *lexer) {
 }
 
 /**
+ * Whether a `}` that closes what a command is in follows it on its line,
+ * after the command's own braces and any others.
+ */
+static bool closed_on_its_line(TSLexer *lexer) {
+  int depth = 0;
+  while (!lexer->eof(lexer) && lexer->lookahead != '\n') {
+    int32_t c = lexer->lookahead;
+    advance(lexer);
+    if (c == '@') {
+      if (lexer->eof(lexer) || lexer->lookahead == '\n') return false;
+      advance(lexer);
+    } else if (c == '{') {
+      depth++;
+    } else if (c == '}' && --depth < 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
  * Whether the line after the current one starts with text: not a blank line,
  * an `@end`, an item, a node, a section, a block, a line command or a
  * comment.
@@ -1621,6 +1642,11 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
   }
 
   int token = command_token(scanner, valid_symbols, name);
+  // Not before `@image{x}` followed on its line by a `}` that closes what it
+  // is in (`@caption{@image{x}}`): the image's line can't end there.
+  if (token == NO_PARAGRAPH_START && closed_on_its_line(lexer)) {
+    return false;
+  }
   if (token == PARAGRAPH_END_BEFORE_COMMAND || token == NO_PARAGRAPH_START) {
     // Zero-width, before the `@`: the command is read again after it.
     lexer->result_symbol = (TSSymbol)token;

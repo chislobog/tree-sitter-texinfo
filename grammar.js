@@ -599,19 +599,16 @@ export default grammar({
     ),
 
     // A block that doesn't end the paragraph it is in, then its line's end.
+    // Text after its `@end` on that line, which texi2any reports, keeping
+    // it in the `@end` line, is one token (102 parser states), which goes on
+    // with the paragraph.
     _paragraph_block: $ => seq(
       choice(
-        // Text after a raw block's `@end` on that line, which texi2any
-        // reports, keeping it in the `@end` line: one token. As the
-        // paragraph's next line, it would cost 656 parser states; after the
-        // other blocks too, 100 more, for what stays a local error there.
-        seq(
-          alias($._paragraph_raw_block, $.raw_block),
-          optional(alias($._end_line_text, $.text)),
-        ),
+        alias($._paragraph_raw_block, $.raw_block),
         alias($._paragraph_macro_definition, $.macro_definition),
         alias($._paragraph_conditional, $.block),
       ),
+      optional(alias($._end_line_text, $.text)),
       choice($._line_end, $._comment_lines),
     ),
 
@@ -860,13 +857,15 @@ export default grammar({
     ),
 
     // Headings too, which texi2any allows in a footnote or caption, and a
-    // command that starts no paragraph (`@anchor`, `@*`) at the start of a
-    // line, outside the paragraphs there as in texi2any (18 parser states;
-    // in `_context_body`, 176).
+    // command that starts no paragraph (`@anchor`, `@*`, `@image`) at the
+    // start of a line, outside the paragraphs there as in texi2any. The
+    // scanner leaves an `@image` that the `}` around it follows on its line
+    // (`@caption{@image{x}}`) in a paragraph, which may end there.
     _line_item: $ => choice(
       $._line_block,
       alias($._no_paragraph_symbol, $.symbol_command),
       alias($._no_paragraph_command, $.inline_command),
+      $._no_paragraph_argument_command,
       $.line_command,
       $.heading,
       alias($._definition_continuation, $.definition_line),

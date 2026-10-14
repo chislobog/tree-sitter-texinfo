@@ -340,9 +340,11 @@ comparing arguments:
   against 1,100 for the keyword as an alternative where content starts,
   whose arguments then had states for each context's followers; the
   budget went to 14,300
-- [ ] Nor does `@image` inside a footnote's or caption's braces, at the
-  start of a line, in texi2any, where it may be followed by the `}`
-  (2 of texi2any's test inputs)
+- [x] Nor does `@image` inside a footnote's or caption's braces, at the
+  start of a line (2 of texi2any's test inputs; 103 parser states)
+- [ ] But one that the `}` around it follows on its line
+  (`@caption{@image{x}}`), which the scanner leaves in a paragraph: the
+  image's line would have to be able to end there too (378 parser states)
 - [x] Macro definitions don't end a paragraph either, as in texi2any (6
   files; 88 parser states, the definition's own in a paragraph)
 - [x] Nor do conditionals, which texi2any evaluates, so that the text of
@@ -353,9 +355,8 @@ comparing arguments:
   comparison can't see it, as texi2any's expansion has no conditionals
 - [x] Text after a raw block's `@end` on that line, in a paragraph, is one
   text in the paragraph (texi2any reports it); it was an error that could
-  reach far, found by the editing simulation (51 parser states). After a
-  conditional's or a macro definition's, it stays a local error, which
-  would cost another 100
+  reach far, found by the editing simulation; after a conditional's or a
+  macro definition's too (102 parser states)
 - [x] Comment lines at the end of a paragraph, before a blank line or the
   end of the file, are in it, as in texi2any; they were after it (61
   files). In a paragraph, comment lines are no longer extras between

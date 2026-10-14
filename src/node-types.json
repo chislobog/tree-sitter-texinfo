@@ -44,6 +44,10 @@
           "named": true
         },
         {
+          "type": "paragraph",
+          "named": true
+        },
+        {
           "type": "raw_block",
           "named": true
         },
@@ -325,6 +329,10 @@
         },
         {
           "type": "missing_brace",
+          "named": true
+        },
+        {
+          "type": "paragraph",
           "named": true
         },
         {

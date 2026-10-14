@@ -20,6 +20,11 @@ build/corpus/menus/unfinished-menu-entry.texi
   line 4: ours '* *', texi2any '(nothing)'
   line 3: paragraphs: ours '(nothing)', texi2any '<pre> </pre>'
 
+# Gap (TODO.md): an `@image` that the `}` of the caption or footnote around it follows on its line (`@caption{@image{x}}`) is in a paragraph here, as the image's line can't end there; texi2any starts none
+build/corpus/paragraphs/an-image-at-the-start-of-a-line-in-a-footnote-starts-no-paragraph-as-in-texi2any.texi
+  line 7: paragraphs: ours '<p>', texi2any '(nothing)'
+  line 7: paragraphs: ours '</p>', texi2any '(nothing)'
+
 # Invalid input; texi2any reports at line 5: bad argument to @end: html more text, and at line 11: bad argument to @end: html@, keeping the text after the block's name in its `@end` line; here it goes on with the paragraph
 build/corpus/paragraphs/text-after-the-end-of-a-block-in-a-paragraph-goes-on-with-the-paragraph.texi
   line 11: ours '(nothing)', texi2any '@\n'
@@ -142,11 +147,6 @@ texinfo-tests/02coverage/symbol_after_block.texi
   line 67: paragraphs: ours '<p> </p>', texi2any '(nothing)'
   line 71: paragraphs: ours '<p>', texi2any '(nothing)'
   line 71: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@image` inside a footnote's or caption's braces, at the start of a line, starts a paragraph here, but none in texi2any
-texinfo-tests/03coverage_braces/test_image.texi
-  line 35: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 35: paragraphs: ours '</p>', texi2any '(nothing)'
 
 # Invalid input; texi2any reports at line 1: @columnfractions only meaningful on a @multitable line
 texinfo-tests/06columnfractions/out_of_multitable.texi
@@ -975,8 +975,3 @@ texinfo-tests/transformations/protect_hashchar_at_line_beginning_source_mark.tex
   line 12: paragraphs: ours '<p> </p>', texi2any '(nothing)'
   line 18: paragraphs: ours '<p> </p>', texi2any '(nothing)'
   line 22: paragraphs: ours '<p> </p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@image` inside a footnote's or caption's braces, at the start of a line, starts a paragraph here, but none in texi2any
-texinfo-tests/xml_tests/image_inline_or_not.texi
-  line 46: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 46: paragraphs: ours '</p>', texi2any '(nothing)'
