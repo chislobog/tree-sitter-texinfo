@@ -705,3 +705,107 @@ Last.
   (paragraph
     (text)
     (comment)))
+
+================================================================================
+Captions and @titlefont end a paragraph and start none, @* starts none, as in texi2any
+================================================================================
+
+@float Figure
+An example float.
+@caption{The caption.}
+@end float
+
+Text @titlefont{T} after.
+
+@float
+@caption{First}
+@shortcaption{Short} text after
+@end float
+
+@*
+Line after a break.
+
+Text @* in.
+
+---
+
+(source_file
+  (block
+    name: (command_name)
+    type: (argument
+      (text))
+    (paragraph
+      (text))
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (paragraph
+          (text))))
+    end: (block_end))
+  (paragraph
+    (text))
+  (inline_command
+    name: (command_name)
+    arguments: (brace_arguments
+      (text)))
+  (paragraph
+    (text))
+  (block
+    name: (command_name)
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (paragraph
+          (text))))
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (paragraph
+          (text))))
+    (paragraph
+      (text))
+    end: (block_end))
+  (symbol_command)
+  (paragraph
+    (text))
+  (paragraph
+    (text)
+    (symbol_command)
+    (text)))
+
+================================================================================
+Commands that start no paragraph in a footnote are outside its paragraphs, as in texi2any
+================================================================================
+
+See@footnote{In footnote.
+
+@anchor{a}
+
+Text.}
+
+And@footnote{
+@*
+}
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (paragraph
+          (text))
+        (inline_command
+          name: (command_name)
+          arguments: (brace_arguments
+            (text)))
+        (paragraph
+          (text)))))
+  (paragraph
+    (text)
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (symbol_command)))))

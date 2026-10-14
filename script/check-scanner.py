@@ -20,9 +20,11 @@
   `close_paragraph_commands` and the others not; the brace commands its
   brace commands; the blocks all its blocks, each of the kind its category
   makes it, and the preformatted ones and conditionals as it has them, and
-  of the raw blocks only `@verbatim` ends a paragraph; and the commands that
-  start no paragraph its `no_paragraph_commands`, but for the line and
-  block commands and those the grammar recognises otherwise.
+  of the raw blocks only `@verbatim` ends a paragraph; the brace commands
+  that end a paragraph its brace commands among `close_paragraph_commands`;
+  and the commands that start no paragraph its `no_paragraph_commands`, but
+  for the line and block commands and those the grammar recognises
+  otherwise.
 
 Usage: script/check-scanner.py [--scanner FILE] [--grammar FILE]
 """
@@ -65,13 +67,15 @@ NO_PARAGRAPH_ELSEWHERE = {
     "item",
     "headitem",
     "tab",
-    # Not yet: a keyword in the grammar (`@image`, `@namedanchor`), a context
-    # command (`@caption`, `@shortcaption`) and a symbol (`@*`). TODO.md.
-    "image",
-    "namedanchor",
+    # The context commands, which end a paragraph too
+    # (PARAGRAPH_ENDING_BRACE_COMMANDS), and `@*`, a symbol, which the
+    # scanner tells by itself.
     "caption",
     "shortcaption",
     "*",
+    # Not yet: keywords in the grammar (TODO.md).
+    "image",
+    "namedanchor",
 }
 
 
@@ -245,6 +249,14 @@ def check_texi2any(source: str) -> list[str]:
         problems.append(f"@{name} ends a paragraph on one side only, scan_block_start or texi2any")
     for name in sorted(set(c_strings(source, "PREFORMATTED")) ^ preformatted.keys()):
         problems.append(f"@{name} is preformatted on one side only, in_preformatted or texi2any")
+    for name in sorted(
+        set(c_strings(source, "PARAGRAPH_ENDING_BRACE_COMMANDS"))
+        ^ {n for n in closing if n in brace}
+    ):
+        problems.append(
+            f"@{name} is a brace command that ends a paragraph on one side only, "
+            "PARAGRAPH_ENDING_BRACE_COMMANDS or texi2any"
+        )
     starts_none = {n for n in no_paragraph if n not in line and n not in blocks}
     for name in sorted(
         set(c_strings(source, "NO_PARAGRAPH_COMMANDS")) ^ (starts_none - NO_PARAGRAPH_ELSEWHERE)

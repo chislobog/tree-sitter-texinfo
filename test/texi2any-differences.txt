@@ -8,25 +8,10 @@ build/corpus/blocks/block-command-in-the-middle-of-a-line-is-inline.texi
   line 2: ours '@example', texi2any '+example -example'
   line 2: <p> arguments: ours 'Text here', texi2any 'Text'
 
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
-build/corpus/blocks/float-type-and-label.texi
-  line 3: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 3: paragraphs: ours '</p>', texi2any '(nothing)'
-
 # Deliberate: a block command in the middle of a line; blocks start and end at the beginning of a line, as the Texinfo manual requires (texi2any accepts it with an error)
 build/corpus/brace_arguments/block-command-in-the-middle-of-a-brace-argument-is-inline.texi
   line 2: ours '@example', texi2any '+example -example'
   line 2: <p> arguments: ours 'see here', texi2any 'see'
-
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
-build/corpus/brace_arguments/line-command-inside-a-caption.texi
-  line 3: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 5: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
-build/corpus/brace_arguments/unclosed-brace-command-ends-at-the-end-of-its-block.texi
-  line 3: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 3: paragraphs: ours '</p>', texi2any '(nothing)'
 
 # Deliberate: content texi2any reports and drops is kept as written, here `@tab` outside a multitable (texi2any warns: ignoring @tab outside of multitable)
 build/corpus/lists/multitable-cells-over-several-lines-with-blocks-and-empty-cells.texi
@@ -88,79 +73,9 @@ examples/emacs-31.1/lispref/objects.texi
   line 2602: paragraphs: ours '<p>', texi2any '(nothing)'
   line 2602: paragraphs: ours '</p>', texi2any '(nothing)'
 
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
-examples/gawk-5.4.1/gawk.texi
-  line 5933: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 5933: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 7570: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 7570: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 9126: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 9126: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 10869: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 10869: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 11922: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 11922: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 12413: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 12413: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 12991: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 12991: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 16345: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 16345: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 18800: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 18800: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 18889: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 18889: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 18966: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 18966: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 19049: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 19049: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 19316: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 19316: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 19795: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 19795: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 34086: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 34086: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 34097: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 34097: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 34192: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 34192: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 34811: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 34811: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 34868: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 34868: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 35406: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 35406: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 35426: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 35426: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 35447: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 35447: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 35610: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 35610: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 36957: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 37088: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 38153: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 38153: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 39736: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 39736: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 45470: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 45470: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 45501: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 45501: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here; and gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
+# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
 examples/gawk-5.4.1/gawkinet.texi
-  line 700: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 700: paragraphs: ours '</p>', texi2any '(nothing)'
   line 2963: paragraphs: ours '<p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
-examples/gawk-5.4.1/gawkworkflow.texi
-  line 514: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 514: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 552: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 552: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 636: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 636: paragraphs: ours '</p>', texi2any '(nothing)'
 
 # Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
 examples/latex2e-help-texinfo/latex2e.texi
@@ -184,52 +99,10 @@ examples/maxima-5.49.0/doc/info/Numerical.texi
   line 1440: paragraphs: ours '<p>', texi2any '(nothing)'
   line 1440: paragraphs: ours '</p>', texi2any '(nothing)'
 
-# Gap (TODO.md): `@*` starts no paragraph in texi2any, but does here
-examples/maxima-5.49.0/doc/info/format.texi
-  line 155: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 156: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 163: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 164: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 173: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 174: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 181: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 182: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 189: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 190: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 199: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 200: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 207: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 208: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 219: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 220: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 226: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 227: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 235: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 236: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 501: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 501: paragraphs: ours '</p>', texi2any '(nothing)'
-
 # Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
 examples/sbcl-2.6.8-source/doc/internals/discriminating-functions.texinfo
   line 51: paragraphs: ours '<p>', texi2any '(nothing)'
   line 51: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
-examples/texinfo-7.3/texi2any_api.texi
-  line 3277: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 3277: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 4562: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 4562: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
-examples/texinfo-7.3/texinfo.texi
-  line 7609: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 7610: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
-texinfo-tests/02coverage/block_commands.texi
-  line 14: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 16: paragraphs: ours '</p>', texi2any '(nothing)'
 
 # Invalid input; texi2any reports at line 5: no matching `@end quotation'
 texinfo-tests/02coverage/command_in_end.texi
@@ -286,13 +159,6 @@ texinfo-tests/02coverage/lettered_accent_and_spaces.texi
   line 3: @ringaccent arguments: ours '(none)', texi2any 'a'
   line 3: <p> arguments: ours 'a', texi2any '(none)'
 
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
-texinfo-tests/02coverage/punctuation_in_line_commands.texi
-  line 15: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 16: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 20: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 21: paragraphs: ours '</p>', texi2any '(nothing)'
-
 # Deliberate: a brace or argument on the line after its command doesn't belong to it (texi2any reports at line 3: command `@samp' must not be followed by new line, and takes it)
 texinfo-tests/02coverage/spaces_after_braced_command.texi
   line 3: @samp arguments: ours '(none)', texi2any 'v'
@@ -325,16 +191,6 @@ texinfo-tests/02coverage/symbol_after_block.texi
   line 71: paragraphs: ours '<p>', texi2any '(nothing)'
   line 71: paragraphs: ours '</p>', texi2any '(nothing)'
 
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
-texinfo-tests/03coverage_braces/caption_no_braces.texi
-  line 1: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 1: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
-texinfo-tests/03coverage_braces/caption_not_closed.texi
-  line 3: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 6: paragraphs: ours '</p>', texi2any '(nothing)'
-
 # Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
 texinfo-tests/03coverage_braces/empty_images.texi
   line 1: paragraphs: ours '<p>', texi2any '(nothing)'
@@ -352,27 +208,14 @@ texinfo-tests/03coverage_braces/space_command_in_image.texi
   line 1: paragraphs: ours '<p>', texi2any '(nothing)'
   line 1: paragraphs: ours '</p>', texi2any '(nothing)'
 
-# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here; and gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
+# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
 texinfo-tests/03coverage_braces/test_image.texi
   line 17: paragraphs: ours '<p>', texi2any '(nothing)'
   line 17: paragraphs: ours '</p>', texi2any '(nothing)'
   line 31: paragraphs: ours '<p>', texi2any '(nothing)'
   line 31: paragraphs: ours '</p>', texi2any '(nothing)'
   line 35: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 35: paragraphs: ours '<p>', texi2any '(nothing)'
   line 35: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 37: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@titlefont` ends a paragraph in texi2any, also in the middle of a line, but not here
-texinfo-tests/05paragraph/close_paragraph_command.texi
-  line 1: <p> arguments: ours 'para after titlefont', texi2any 'para'
-  line 1: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 1: paragraphs: ours '(nothing)', texi2any '<p>'
-
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
-texinfo-tests/05paragraph/commands_in_flushright.texi
-  line 39: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 39: paragraphs: ours '</p>', texi2any '(nothing)'
 
 # Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here; and gap (TODO.md): a macro definition doesn't end a paragraph in texi2any, but does here
 texinfo-tests/05paragraph/indent_before_macro_definition_and_other.texi
@@ -381,9 +224,9 @@ texinfo-tests/05paragraph/indent_before_macro_definition_and_other.texi
   line 12: paragraphs: ours '</p>', texi2any '(nothing)'
   line 16: paragraphs: ours '<p>', texi2any '(nothing)'
 
-# Gap (TODO.md): `@*` starts no paragraph in texi2any, but does here; and gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
+# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
 texinfo-tests/05paragraph/no_paragraph_commands.texi
-  line 1: paragraphs: ours '<p>', texi2any '(nothing)'
+  line 3: paragraphs: ours '<p>', texi2any '(nothing)'
   line 3: paragraphs: ours '</p>', texi2any '(nothing)'
 
 # Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
@@ -560,7 +403,7 @@ texinfo-tests/10menu/bad_beginning.texi
 # Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
 texinfo-tests/10menu/commands_in_nodedescriptionblock.texi
   line 22: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 23: paragraphs: ours '</p>', texi2any '(nothing)'
+  line 22: paragraphs: ours '</p>', texi2any '(nothing)'
 
 # Deliberate: a menu line starting with `*` is an entry, maybe still being typed, without a node yet; texi2any reads it as text
 texinfo-tests/10menu/menu_entry_no_entry.texi
@@ -707,153 +550,9 @@ texinfo-tests/22xtable/title_and_itemx_before_item.texi
   line 2: paragraphs: ours '(nothing)', texi2any '</p>'
   line 3: paragraphs: ours '</p>', texi2any '(nothing)'
 
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
-texinfo-tests/27float/anchor_in_caption.texi
-  line 7: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 8: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
-texinfo-tests/27float/cindex_in_caption.texi
-  line 7: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 10: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here; and gap (TODO.md): inside a footnote or caption, a command that starts no paragraph (`@anchor`) is outside one in texi2any, but starts one here
-texinfo-tests/27float/complex_float.texi
-  line 39: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 45: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 45: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 73: paragraphs: ours '</p> <p>', texi2any '(nothing)'
-  line 75: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 86: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 112: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 112: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 120: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
-texinfo-tests/27float/empty_caption.texi
-  line 2: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 3: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 7: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 8: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 12: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 14: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
-texinfo-tests/27float/empty_listoffloats_with_floats.texi
-  line 7: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 8: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 16: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 17: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here; and gap (TODO.md): inside a footnote or caption, a command that starts no paragraph (`@anchor`) is outside one in texi2any, but starts one here
-texinfo-tests/27float/float_copying.texi
-  line 8: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 19: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 21: paragraphs: ours '</p> </p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
-texinfo-tests/27float/float_in_block_commands.texi
-  line 9: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 9: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 15: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 15: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
-texinfo-tests/27float/float_with_at_commands.texi
-  line 3: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 4: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
-texinfo-tests/27float/footnote_in_caption.texi
-  line 7: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 8: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
-texinfo-tests/27float/footnote_in_caption_and_error.texi
-  line 7: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 8: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
-texinfo-tests/27float/multiple_captions.texi
-  line 8: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 9: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 13: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 14: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 18: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 18: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
-texinfo-tests/27float/numbering_captions_listoffloats.texi
-  line 6: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 7: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 13: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 14: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 20: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 21: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 37: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 39: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 45: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 46: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 52: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 53: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 70: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 70: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 74: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 74: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 80: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 80: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 86: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 87: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 93: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 94: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 117: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 119: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 124: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 125: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 134: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 136: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 146: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 148: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 155: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 157: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 163: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 164: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 172: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 174: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
-texinfo-tests/27float/simple.texi
-  line 3: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 4: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
-texinfo-tests/27float/special_characters_in_float_type.texi
-  line 8: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 9: paragraphs: ours '</p>', texi2any '(nothing)'
-
 # Deliberate: a line command in the middle of a line; line commands occupy a whole line, as the Texinfo manual requires (texi2any accepts it with a warning, taking the rest of the line as its argument)
 texinfo-tests/30sectioning/setfilename_on_top_and_after_node.texi
   line 2: @setfilename arguments: ours '(none)', texi2any 'very badly placed setfilename'
-
-# Gap (TODO.md): inside a footnote or caption, a command that starts no paragraph (`@anchor`) is outside one in texi2any, but starts one here
-texinfo-tests/40moresectioning/no_element.texi
-  line 15: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 15: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): inside a footnote or caption, a command that starts no paragraph (`@anchor`) is outside one in texi2any, but starts one here
-texinfo-tests/40moresectioning/placed_things_before_element.texi
-  line 11: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 11: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): inside a footnote or caption, a command that starts no paragraph (`@anchor`) is outside one in texi2any, but starts one here
-texinfo-tests/40moresectioning/placed_things_before_element_no_use_node.texi
-  line 11: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 11: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): inside a footnote or caption, a command that starts no paragraph (`@anchor`) is outside one in texi2any, but starts one here
-texinfo-tests/40moresectioning/placed_things_before_node.texi
-  line 11: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 11: paragraphs: ours '</p>', texi2any '(nothing)'
 
 # Invalid input; texi2any reports: bad name for @clear, and takes the comments on those lines into its argument; the tree keeps them as comments
 texinfo-tests/50value/comment_on_clear_line.texi
@@ -931,11 +630,6 @@ texinfo-tests/57invalid_nestings/center.texi
 texinfo-tests/57invalid_nestings/def_not_closed_in_menu_description.texi
   line 2: * arguments: ours ' | info | before deff deffn bidule truc chose', texi2any ' | info | before deff deffn bidule truc chose deffn text'
   line 2: ours '@deffn', texi2any '+deffn -deffn'
-
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
-texinfo-tests/57invalid_nestings/float_in_style_command.texi
-  line 3: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 4: paragraphs: ours '</p>', texi2any '(nothing)'
 
 # Deliberate: line commands in the middle of a line; line commands occupy a whole line, as the Texinfo manual requires (texi2any accepts them with a warning); and invalid input: texi2any reports at line 11: @ref missing closing brace
 texinfo-tests/57invalid_nestings/in_table.texi
@@ -1239,11 +933,6 @@ texinfo-tests/65linemacro/block_begin_end_in_linemacro_call.texi
   line 30: paragraphs: ours '</p>', texi2any '(nothing)'
   line 35: paragraphs: ours '(nothing)', texi2any '</p>'
 
-# Gap (TODO.md): `@*` starts no paragraph in texi2any, but does here
-texinfo-tests/65linemacro/paragraph_no_paragraph.texi
-  line 5: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 5: paragraphs: ours '(nothing)', texi2any '<p>'
-
 # Deliberate: a C preprocessor line directive (`#line 7 "k"`) is text, as the tree shows the source as written; texi2any follows it, to report lines in the file it names, and drops it
 texinfo-tests/80include/cpp_line_latin1.texi
   line 10: <p> arguments: ours 'line 100 foo pt xi', texi2any 'aaa'
@@ -1283,19 +972,18 @@ texinfo-tests/80include/value_expansion_in_include.texi
   line 25: paragraphs: ours '(nothing)', texi2any '</p>'
   line 25: paragraphs: ours '</p>', texi2any '(nothing)'
 
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here; and deliberate: a form feed is a blank, like a vertical tab; texi2any makes it an empty line, which ends a paragraph
+# Deliberate: a form feed is a blank, like a vertical tab; texi2any makes it an empty line, which ends a paragraph
 texinfo-tests/converters_tests/form_feeds.texi
   line 3: paragraphs: ours '(nothing)', texi2any '<p> </p> <p> </p>'
   line 7: <p> arguments: ours 'aa bb', texi2any 'cc'
   line 9: <p> arguments: ours 'cc dd', texi2any 'dd'
-  line 18: <p> arguments: ours 'gg jj', texi2any 'gg'
   line 18: paragraphs: ours '(nothing)', texi2any '<p> </p>'
-  line 37: <p> arguments: ours 'a float Toto After shc', texi2any 'a float'
-  line 37: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 38: paragraphs: ours '(nothing)', texi2any '<p> </p> <p> </p>'
-  line 38: <p> arguments: ours 'within cation', texi2any 'Toto'
-  line 39: <p> arguments: ours 'shc within shortcaption', texi2any 'shc within'
-  line 39: paragraphs: ours '(nothing)', texi2any '<p> </p> <p>'
+  line 18: <p> arguments: ours 'gg jj', texi2any 'jj'
+  line 38: <p> arguments: ours 'within cation', texi2any 'within'
+  line 38: <p> arguments: ours 'Toto', texi2any 'cation'
+  line 38: paragraphs: ours '(nothing)', texi2any '<p> </p>'
+  line 39: paragraphs: ours '(nothing)', texi2any '<p> </p>'
+  line 39: <p> arguments: ours 'shc within shortcaption', texi2any 'shortcaption'
 
 # Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
 texinfo-tests/converters_tests/image_extension.texi
@@ -1332,27 +1020,6 @@ texinfo-tests/converters_tests/namedanchor.texi
   line 15: paragraphs: ours '<p>', texi2any '(nothing)'
   line 15: paragraphs: ours '</p>', texi2any '(nothing)'
 
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
-texinfo-tests/converters_tests/references_to_top_no_top_output.texi
-  line 24: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 25: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 47: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 48: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here; and gap (TODO.md): inside a footnote or caption, a command that starts no paragraph (`@anchor`) is outside one in texi2any, but starts one here
-texinfo-tests/converters_tests/things_before_setfilename.texi
-  line 13: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 13: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 29: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 29: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here; and gap (TODO.md): inside a footnote or caption, a command that starts no paragraph (`@anchor`) is outside one in texi2any, but starts one here
-texinfo-tests/converters_tests/things_before_setfilename_no_element.texi
-  line 13: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 13: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 29: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 29: paragraphs: ours '</p>', texi2any '(nothing)'
-
 # Deliberate: a line command in the middle of a line; line commands occupy a whole line, as the Texinfo manual requires (texi2any accepts it with a warning, taking the rest of the line as its argument)
 texinfo-tests/epub_tests/setfilename_on_top_and_after_node_epub.texi
   line 2: @setfilename arguments: ours '(none)', texi2any 'very badly placed setfilename'
@@ -1367,12 +1034,6 @@ texinfo-tests/html_tests/commands_in_alt.texi
   line 1: paragraphs: ours '<p>', texi2any '(nothing)'
   line 1: paragraphs: ours '</p>', texi2any '(nothing)'
 
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here; and gap (TODO.md): inside a footnote or caption, a command that starts no paragraph (`@anchor`) is outside one in texi2any, but starts one here
-texinfo-tests/html_tests/float_copying.texi
-  line 12: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 23: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 25: paragraphs: ours '</p> </p>', texi2any '(nothing)'
-
 # Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
 texinfo-tests/html_tests/image_link_prefix.texi
   line 1: paragraphs: ours '<p>', texi2any '(nothing)'
@@ -1382,28 +1043,6 @@ texinfo-tests/html_tests/image_link_prefix.texi
 texinfo-tests/html_tests/namedanchor_in_redirection_file.texi
   line 9: paragraphs: ours '<p>', texi2any '(nothing)'
   line 9: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
-texinfo-tests/html_tests/tex_expanded_in_caption_multiple_time.texi
-  line 2: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 7: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
-texinfo-tests/info_tests/empty_caption.texi
-  line 5: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 6: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
-texinfo-tests/info_tests/error_in_footnote.texi
-  line 8: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 11: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
-texinfo-tests/info_tests/float_long_captions.texi
-  line 4: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 4: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 8: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 8: paragraphs: ours '</p>', texi2any '(nothing)'
 
 # Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
 texinfo-tests/info_tests/image_and_spaces_formatting.texi
@@ -1434,30 +1073,6 @@ texinfo-tests/info_tests/image_text_encoded.texi
 texinfo-tests/info_tests/image_text_file_only_and_alt.texi
   line 3: paragraphs: ours '<p>', texi2any '(nothing)'
   line 3: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@titlefont` ends a paragraph in texi2any, also in the middle of a line, but not here
-texinfo-tests/init_files_tests/documentation_examples.texi
-  line 13: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 14: paragraphs: ours '(nothing)', texi2any '<p>'
-
-# Gap (TODO.md): `@titlefont` ends a paragraph in texi2any, also in the middle of a line, but not here
-texinfo-tests/init_files_tests/documentation_examples_texi2html.texi
-  line 13: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 14: paragraphs: ours '(nothing)', texi2any '<p>'
-
-# Gap (TODO.md): `@*` starts no paragraph in texi2any, but does here
-texinfo-tests/init_files_tests/test_format_single_footnote_in_inline_content.texi
-  line 17: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 17: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
-texinfo-tests/latex_tests/float_and_refs.texi
-  line 8: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 10: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 14: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 16: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 20: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 22: paragraphs: ours '</p>', texi2any '(nothing)'
 
 # Deliberate: a form feed is a blank, like a vertical tab; texi2any makes it an empty line, which ends a paragraph
 texinfo-tests/plaintext_tests/all_spaces.texi
@@ -1543,18 +1158,13 @@ texinfo-tests/xml_tests/brace_commands_spaces_end_of_lines.texi
   line 14: paragraphs: ours '</p> <p>', texi2any '(nothing)'
   line 17: paragraphs: ours '</p>', texi2any '(nothing)'
 
-# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here; and gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
+# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
 texinfo-tests/xml_tests/commands_and_spaces.texi
   line 21: paragraphs: ours '<p>', texi2any '(nothing)'
   line 21: paragraphs: ours '</p> <p>', texi2any '(nothing)'
   line 24: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 31: <p> arguments: ours 'f j g', texi2any 'f'
-  line 31: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 32: paragraphs: ours '(nothing)', texi2any '<p> </p>'
-  line 32: <p> arguments: ours 'In caption', texi2any 'j'
-  line 33: paragraphs: ours '(nothing)', texi2any '<p>'
 
-# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here; and gap (TODO.md): `@caption` and `@shortcaption` start no paragraph in texi2any, but do here
+# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
 texinfo-tests/xml_tests/image_inline_or_not.texi
   line 1: paragraphs: ours '<p>', texi2any '(nothing)'
   line 1: paragraphs: ours '</p>', texi2any '(nothing)'
@@ -1568,4 +1178,4 @@ texinfo-tests/xml_tests/image_inline_or_not.texi
   line 46: paragraphs: ours '<p>', texi2any '(nothing)'
   line 46: paragraphs: ours '</p>', texi2any '(nothing)'
   line 57: <p> arguments: ours '(none)', texi2any 'PAra'
-  line 59: paragraphs: ours '<p> <p> </p> </p>', texi2any '(nothing)'
+  line 59: paragraphs: ours '<p> </p>', texi2any '(nothing)'

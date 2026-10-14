@@ -325,12 +325,18 @@ comparing arguments:
   `@ignore`) doesn't end a paragraph (1,611 more, most in Maxima's
   manuals; 53 parser states), nor do comment lines after one (ld's and
   Maxima's manuals; 43 parser states)
-- [ ] Also `@image`, `@namedanchor`, `@caption`, `@shortcaption` and `@*`
-  start no paragraph in texi2any; the first two are keywords in the
-  grammar (as alternatives where content starts, they cost 1,122 parser
-  states), the next two context commands, the last a symbol. Nor does an
-  `@anchor` inside a footnote or caption (176 parser states, for the
-  anchor's braces inside braces)
+- [x] `@caption`, `@shortcaption` and `@titlefont` (the brace commands in
+  texi2any's close_paragraph_commands) end a paragraph, also in the middle
+  of a line, with a zero-width token before them, and start none; `@*`
+  starts none; and in a footnote or caption, neither does a command that
+  starts none (`@anchor`), at the start of a line (54 parser states for the
+  captions, 18 for the footnotes, as alternatives of `_line_item`: in the
+  footnote's own rule, they cost 176)
+- [ ] `@image` and `@namedanchor` start no paragraph in texi2any either, but
+  are keywords in the grammar: where content starts, the image's arguments
+  then have states for both ways of reading it, about 1,100 parser states
+  (8%), also with a zero-width token from the scanner before the keyword,
+  for 29 files where a lone `@image` is in a paragraph of its own here
 - [ ] Macro definitions and conditionals don't end a paragraph in texi2any
   either (the comparison can't see conditionals, which texi2any has
   evaluated)
@@ -339,9 +345,6 @@ comparing arguments:
   files). In a paragraph, comment lines are no longer extras between
   counted newlines, which would have taken the blank line's newline too,
   but explicit, each with its line end (63 parser states)
-- [ ] `@titlefont` (and other brace commands in texi2any's
-  close_paragraph_commands) ends a paragraph in texi2any, also in the
-  middle of a line
 - [x] The comparison compares paragraphs too: where they start and end
   among the commands, and their text outside commands. 148,650 of 148,912
   paragraphs match texi2any's; the other differences are listed, by the

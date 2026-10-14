@@ -338,6 +338,12 @@ def check_scanner(checker: Checker):
             ('"noindent", "refill",', '"noindent",'),
             "@refill starts no paragraph on one side only, NO_PARAGRAPH_COMMANDS or texi2any",
         ),
+        (
+            "a brace command that ends a paragraph missing",
+            (re.compile(r'("shortcaption"),\s*"titlefont"\}'), r"\1}"),
+            "@titlefont is a brace command that ends a paragraph on one side only, "
+            "PARAGRAPH_ENDING_BRACE_COMMANDS or texi2any",
+        ),
     ]
     for title, (old, new), message in changes:
         changed = (

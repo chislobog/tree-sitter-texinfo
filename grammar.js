@@ -290,6 +290,12 @@ export default grammar({
     // A raw block that doesn't end a paragraph, at the start of its next
     // line.
     $._paragraph_raw_block_start,
+    // Zero-width before a command that ends a paragraph in the middle of a
+    // line (`@caption`, `@titlefont`), and the names of a context command
+    // and of `@*` that start no paragraph, where one would start.
+    $._paragraph_end_before_command,
+    $._no_paragraph_context_name,
+    $._no_paragraph_symbol,
     // Valid only during error recovery, when tree-sitter marks every token
     // valid: the scanner then returns nothing.
     $._error_sentinel,
@@ -332,6 +338,18 @@ export default grammar({
     _no_paragraph_command: $ => prec.right(seq(
       field('name', alias($._no_paragraph_command_name, $.command_name)),
       optional(seq('{', optional(field('arguments', $.brace_arguments)), braceClose($))),
+    )),
+
+    // `@caption` and `@shortcaption` where a paragraph would start: like
+    // texi2any, they start none, and end one they are in (the scanner then
+    // gives a zero-width end before them, or this name at a line's start).
+    _no_paragraph_context_command: $ => prec.right(seq(
+      field('name', alias($._no_paragraph_context_name, $.command_name)),
+      optional(seq(
+        '{',
+        optional(field('arguments', alias($._context_body, $.brace_arguments))),
+        longBraceClose($),
+      )),
     )),
 
     // `@nodedescription` after a `@node`; `@nodedescriptionblock` is a block.
@@ -379,6 +397,8 @@ export default grammar({
     _body_start: $ => choice(
       $._newline,
       alias($._no_paragraph_command, $.inline_command),
+      alias($._no_paragraph_context_command, $.inline_command),
+      alias($._no_paragraph_symbol, $.symbol_command),
       // An `@end` that ends no open block, which texi2any reports and ignores.
       seq($.unmatched_end, $._line_end),
       $.paragraph,
@@ -727,9 +747,14 @@ export default grammar({
       $.macro_definition,
     ),
 
-    // Headings too, which texi2any allows in a footnote or caption.
+    // Headings too, which texi2any allows in a footnote or caption, and a
+    // command that starts no paragraph (`@anchor`, `@*`) at the start of a
+    // line, outside the paragraphs there as in texi2any (18 parser states;
+    // in `_context_body`, 176).
     _line_item: $ => choice(
       $._line_block,
+      alias($._no_paragraph_symbol, $.symbol_command),
+      alias($._no_paragraph_command, $.inline_command),
       $.line_command,
       $.heading,
       alias($._definition_continuation, $.definition_line),
@@ -977,6 +1002,7 @@ export default grammar({
       choice(
         $._line_end,
         $._paragraph_end_at_line_start,
+        $._paragraph_end_before_command,
         $._comment_lines,
         seq(choice($._newline, $._comment_lines), $._paragraph_line_commands),
       ),

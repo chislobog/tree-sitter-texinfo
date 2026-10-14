@@ -291,12 +291,11 @@ Y
       (text))
     label: (argument
       (text))
-    (paragraph
-      (inline_command
-        name: (command_name)
-        arguments: (brace_arguments
-          (paragraph
-            (text)))))
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (paragraph
+          (text))))
     end: (block_end))
   (block
     name: (command_name)

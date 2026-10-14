@@ -67,8 +67,10 @@ well with incomplete input, which is normal while editing.
   section a node line starts, the zero-width glue between the parts of a
   definition line's word, the names of the commands that start no
   paragraph (`NO_PARAGRAPH_COMMANDS`) where one would start and of raw
-  blocks at a paragraph's next line, which don't end it, and the
-  end-of-file token. Add new blocks here.
+  blocks at a paragraph's next line, which don't end it, a zero-width end
+  of a paragraph before a brace command that ends one in the middle of a
+  line (`PARAGRAPH_ENDING_BRACE_COMMANDS`), and the end-of-file token. Add
+  new blocks here.
   Its token enum lists the grammar's `externals` in order, under the same
   names, and its tables of definition layouts and section levels mirror
   the grammar's; `script/check-scanner.py` checks that they agree and that

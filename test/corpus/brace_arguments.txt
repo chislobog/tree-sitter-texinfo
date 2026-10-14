@@ -125,16 +125,15 @@ Line command inside a caption
     (command_name)
     (argument
       (text))
-    (paragraph
-      (inline_command
-        (command_name)
-        (brace_arguments
-          (paragraph
-            (text)
-            (line_command
-              (command_name)
-              (line_argument
-                (text)))))))
+    (inline_command
+      (command_name)
+      (brace_arguments
+        (paragraph
+          (text)
+          (line_command
+            (command_name)
+            (line_argument
+              (text))))))
     (block_end)))
 
 ================================================================================
@@ -241,13 +240,12 @@ Unclosed brace command ends at the end of its block
 (source_file
   (block
     (command_name)
-    (paragraph
-      (inline_command
-        (command_name)
-        (brace_arguments
-          (paragraph
-            (text)))
-        (missing_brace)))
+    (inline_command
+      (command_name)
+      (brace_arguments
+        (paragraph
+          (text)))
+      (missing_brace))
     (block_end)))
 
 ================================================================================

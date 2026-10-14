@@ -772,6 +772,84 @@
         ]
       }
     },
+    "_no_paragraph_context_command": {
+      "type": "PREC_RIGHT",
+      "value": 0,
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "FIELD",
+            "name": "name",
+            "content": {
+              "type": "ALIAS",
+              "content": {
+                "type": "SYMBOL",
+                "name": "_no_paragraph_context_name"
+              },
+              "named": true,
+              "value": "command_name"
+            }
+          },
+          {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SEQ",
+                "members": [
+                  {
+                    "type": "STRING",
+                    "value": "{"
+                  },
+                  {
+                    "type": "CHOICE",
+                    "members": [
+                      {
+                        "type": "FIELD",
+                        "name": "arguments",
+                        "content": {
+                          "type": "ALIAS",
+                          "content": {
+                            "type": "SYMBOL",
+                            "name": "_context_body"
+                          },
+                          "named": true,
+                          "value": "brace_arguments"
+                        }
+                      },
+                      {
+                        "type": "BLANK"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "CHOICE",
+                    "members": [
+                      {
+                        "type": "STRING",
+                        "value": "}"
+                      },
+                      {
+                        "type": "ALIAS",
+                        "content": {
+                          "type": "SYMBOL",
+                          "name": "_brace_close_at_block_end"
+                        },
+                        "named": true,
+                        "value": "missing_brace"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "BLANK"
+              }
+            ]
+          }
+        ]
+      }
+    },
     "_node_description": {
       "type": "SEQ",
       "members": [
@@ -1963,6 +2041,24 @@
           },
           "named": true,
           "value": "inline_command"
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_no_paragraph_context_command"
+          },
+          "named": true,
+          "value": "inline_command"
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_no_paragraph_symbol"
+          },
+          "named": true,
+          "value": "symbol_command"
         },
         {
           "type": "SEQ",
@@ -5860,6 +5956,24 @@
           "name": "_line_block"
         },
         {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_no_paragraph_symbol"
+          },
+          "named": true,
+          "value": "symbol_command"
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_no_paragraph_command"
+          },
+          "named": true,
+          "value": "inline_command"
+        },
+        {
           "type": "SYMBOL",
           "name": "line_command"
         },
@@ -7180,6 +7294,10 @@
             {
               "type": "SYMBOL",
               "name": "_paragraph_end_at_line_start"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "_paragraph_end_before_command"
             },
             {
               "type": "SYMBOL",
@@ -11857,6 +11975,18 @@
     {
       "type": "SYMBOL",
       "name": "_paragraph_raw_block_start"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_paragraph_end_before_command"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_no_paragraph_context_name"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_no_paragraph_symbol"
     },
     {
       "type": "SYMBOL",

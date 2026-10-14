@@ -198,6 +198,10 @@
           "named": true
         },
         {
+          "type": "symbol_command",
+          "named": true
+        },
+        {
           "type": "top",
           "named": true
         },
@@ -464,6 +468,10 @@
           "named": true
         },
         {
+          "type": "symbol_command",
+          "named": true
+        },
+        {
           "type": "unmatched_end",
           "named": true
         }
@@ -634,6 +642,10 @@
         },
         {
           "type": "raw_block",
+          "named": true
+        },
+        {
+          "type": "symbol_command",
           "named": true
         },
         {
@@ -1178,6 +1190,10 @@
           "named": true
         },
         {
+          "type": "symbol_command",
+          "named": true
+        },
+        {
           "type": "tab",
           "named": true
         },
@@ -1246,6 +1262,10 @@
         },
         {
           "type": "raw_block",
+          "named": true
+        },
+        {
+          "type": "symbol_command",
           "named": true
         },
         {
@@ -1488,6 +1508,10 @@
           "named": true
         },
         {
+          "type": "symbol_command",
+          "named": true
+        },
+        {
           "type": "unmatched_end",
           "named": true
         }
@@ -1657,6 +1681,10 @@
         },
         {
           "type": "raw_block",
+          "named": true
+        },
+        {
+          "type": "symbol_command",
           "named": true
         },
         {
@@ -1992,6 +2020,10 @@
           "named": true
         },
         {
+          "type": "symbol_command",
+          "named": true
+        },
+        {
           "type": "unmatched_end",
           "named": true
         }
@@ -2165,6 +2197,10 @@
           "named": true
         },
         {
+          "type": "symbol_command",
+          "named": true
+        },
+        {
           "type": "unmatched_end",
           "named": true
         }
@@ -2280,6 +2316,10 @@
         },
         {
           "type": "subsubsection",
+          "named": true
+        },
+        {
+          "type": "symbol_command",
           "named": true
         },
         {
@@ -2411,6 +2451,10 @@
           "named": true
         },
         {
+          "type": "symbol_command",
+          "named": true
+        },
+        {
           "type": "unmatched_end",
           "named": true
         }
@@ -2521,6 +2565,10 @@
           "named": true
         },
         {
+          "type": "symbol_command",
+          "named": true
+        },
+        {
           "type": "unmatched_end",
           "named": true
         }
@@ -2621,6 +2669,10 @@
           "named": true
         },
         {
+          "type": "symbol_command",
+          "named": true
+        },
+        {
           "type": "unmatched_end",
           "named": true
         }
@@ -2718,6 +2770,10 @@
         },
         {
           "type": "subsubsection",
+          "named": true
+        },
+        {
+          "type": "symbol_command",
           "named": true
         },
         {

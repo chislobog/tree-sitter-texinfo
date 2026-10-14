@@ -92,6 +92,9 @@ enum TokenType {
   DESCRIPTION_BLOCK_START,
   NO_PARAGRAPH_COMMAND_NAME,
   PARAGRAPH_RAW_BLOCK_START,
+  PARAGRAPH_END_BEFORE_COMMAND,
+  NO_PARAGRAPH_CONTEXT_NAME,
+  NO_PARAGRAPH_SYMBOL,
   ERROR_SENTINEL,
 };
 
@@ -662,6 +665,12 @@ static bool pop_block(Scanner *scanner, TSLexer *lexer) {
 static const char *const NO_PARAGRAPH_COMMANDS[] = {
     "anchor",   "errormsg", "hyphenation", "indent",
     "noindent", "refill",   "titlefont"};
+
+// The brace commands that end a paragraph, also in the middle of a line,
+// as in texi2any (its close_paragraph_commands), and start none: the
+// context commands `@caption` and `@shortcaption`, and `@titlefont`.
+static const char *const PARAGRAPH_ENDING_BRACE_COMMANDS[] = {
+    "caption", "shortcaption", "titlefont"};
 
 // Accent commands, which texi2any also accepts without braces: `@'e`,
 // `@u o`.
@@ -1258,6 +1267,24 @@ static bool scan_word_glue(TSLexer *lexer) {
  */
 static int command_token(const Scanner *scanner, const bool *valid_symbols,
                          const char *name) {
+  // A brace command that ends a paragraph, also in the middle of a line, and
+  // starts none: zero-width before it where a paragraph may end, which it
+  // then ends, or its name where a paragraph would start, also at the start
+  // of a paragraph's next line.
+  if (in_table(PARAGRAPH_ENDING_BRACE_COMMANDS,
+               TABLE_COUNT(PARAGRAPH_ENDING_BRACE_COMMANDS), name)) {
+    bool context =
+        strcmp(name, "caption") == 0 || strcmp(name, "shortcaption") == 0;
+    if (valid_symbols[PARAGRAPH_END_BEFORE_COMMAND]) {
+      return PARAGRAPH_END_BEFORE_COMMAND;
+    }
+    if (context && valid_symbols[NO_PARAGRAPH_CONTEXT_NAME]) {
+      return NO_PARAGRAPH_CONTEXT_NAME;
+    }
+    if (!context && valid_symbols[NO_PARAGRAPH_COMMAND_NAME]) {
+      return NO_PARAGRAPH_COMMAND_NAME;
+    }
+  }
   bool item = strcmp(name, "item") == 0;
   if (valid_symbols[ROW_NAME] && (item || strcmp(name, "headitem") == 0) &&
       in_multitable(scanner)) {
@@ -1459,6 +1486,14 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
     return true;
   }
 
+  // `@*` where a paragraph would start: like texi2any, it starts none. In an
+  // open paragraph, it's a symbol command in it.
+  if (lexer->lookahead == '*' && valid_symbols[NO_PARAGRAPH_SYMBOL] &&
+      !valid_symbols[PARAGRAPH_LINE_COMMAND_NAME]) {
+    advance(lexer);
+    return accept(lexer, NO_PARAGRAPH_SYMBOL);
+  }
+
   char name[MAX_NAME + 1];
   if (!read_name(lexer, name)) return false;
   start.consumed += (unsigned)strlen(name);
@@ -1506,6 +1541,11 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
   }
 
   int token = command_token(scanner, valid_symbols, name);
+  if (token == PARAGRAPH_END_BEFORE_COMMAND) {
+    // Zero-width, before the `@`: the command is read again after it.
+    lexer->result_symbol = PARAGRAPH_END_BEFORE_COMMAND;
+    return true;
+  }
   if (token >= 0) {
     if (token == BRACE_COMMAND_NAME) {
       scanner->after_accent =
