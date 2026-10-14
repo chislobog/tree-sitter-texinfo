@@ -51,23 +51,6 @@ examples/binutils-with-gold-2.46/binutils/doc/debug.options.texi
 examples/binutils-with-gold-2.46/binutils/doc/sframe.options.texi
   line 4: ours '@item', texi2any '(nothing)'
 
-# Gap (TODO.md): a macro definition doesn't end a paragraph in texi2any, but does here
-examples/coreutils-9.11/doc/coreutils.texi
-  line 4703: <p> arguments: ours 'Treat each input file as binary by reading it in binary mode and outputting a flag This is the inverse of On systems like GNU that do not distinguish between binary and text files this option merely flags each input mode as binary the checksum is unaffected This option is the default on systems like MS DOS that distinguish between binary and text files except for reading standard input when standard input is a terminal', texi2any 'Treat each input file as binary by reading it in binary mode and outputting a flag This is the inverse of On systems like GNU that do not distinguish between binary and text files this option merely flags each input mode as binary the checksum is unaffected This option is the default on systems like MS DOS that distinguish between binary and text files except for reading standard input when standard input is a terminal This option is deprecated and not documented in It is only supported by the command to support emulation of the legacy standalone checksumming utilities'
-  line 4709: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 4715: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 5702: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 5705: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 6227: <p> arguments: ours 'Output a newline before each group of repeated lines', texi2any 'Output a newline before each group of repeated lines With use a zero byte ASCII NUL instead of a newline as the delimiter'
-  line 6227: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 6232: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 8563: <p> arguments: ours 'If only one tab stop is given set the tabs spaces apart default is 8 Otherwise set the tabs at columns numbered from 0 and replace any tabs beyond the last tab stop given with single spaces', texi2any 'If only one tab stop is given set the tabs spaces apart default is 8 Otherwise set the tabs at columns numbered from 0 and replace any tabs beyond the last tab stop given with single spaces Tab stops can be separated by blanks as well as by commas'
-  line 8566: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 8582: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 11770: <p> arguments: ours 'Do not prompt the user before replacing a destination file', texi2any 'Do not prompt the user before replacing a destination file If you specify more than one of the options only the final one takes effect'
-  line 11770: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 11775: paragraphs: ours '<p>', texi2any '(nothing)'
-
 # Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
 examples/emacs-31.1/lispref/objects.texi
   line 2602: paragraphs: ours '<p>', texi2any '(nothing)'
@@ -217,12 +200,10 @@ texinfo-tests/03coverage_braces/test_image.texi
   line 35: paragraphs: ours '<p>', texi2any '(nothing)'
   line 35: paragraphs: ours '</p>', texi2any '(nothing)'
 
-# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here; and gap (TODO.md): a macro definition doesn't end a paragraph in texi2any, but does here
+# Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
 texinfo-tests/05paragraph/indent_before_macro_definition_and_other.texi
   line 4: paragraphs: ours '<p>', texi2any '(nothing)'
   line 8: paragraphs: ours '(nothing)', texi2any '<p>'
-  line 12: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 16: paragraphs: ours '<p>', texi2any '(nothing)'
 
 # Gap (TODO.md): `@image` starts no paragraph in texi2any, but does here
 texinfo-tests/05paragraph/no_paragraph_commands.texi
@@ -850,14 +831,6 @@ texinfo-tests/60macro/form_feeds.texi
   line 11: <p> arguments: ours 'g a rgline v', texi2any 'n arg2'
   line 11: paragraphs: ours '(nothing)', texi2any '</p> <p>'
 
-# Gap (TODO.md): a macro definition doesn't end a paragraph in texi2any, but does here
-texinfo-tests/60macro/glossary.texi
-  line 42: <p> arguments: ours 'The name1', texi2any 'The name1 is used in many cases while name2 is quite specific'
-  line 43: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 58: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 60: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 75: paragraphs: ours '<p>', texi2any '(nothing)'
-
 # Deliberate: a command whose name ends in `index` at the start of a line is an index entry, as a user-defined one (`@defindex`) is; here `@definfoenclose` made it a brace command, which the tree can't know
 texinfo-tests/60macro/macro_alias_definfoenclose_defindex.texi
   line 12: paragraphs: ours '(nothing)', texi2any '<p>'
@@ -906,16 +879,6 @@ texinfo-tests/60macro/macro_inlineifcond_end_in_empty_ignored.texi
 texinfo-tests/60macro/macro_inlineifcond_end_in_empty_set.texi
   2 parse errors
 
-# Gap (TODO.md): a macro definition doesn't end a paragraph in texi2any, but does here
-texinfo-tests/60macro/simple_imbricated_macro.texi
-  line 8: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 11: paragraphs: ours '(nothing)', texi2any '</p>'
-
-# Gap (TODO.md): a macro definition doesn't end a paragraph in texi2any, but does here
-texinfo-tests/60macro/simple_imbricated_macro_rmacro.texi
-  line 8: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 11: paragraphs: ours '(nothing)', texi2any '</p>'
-
 # Deliberate: a block command in the middle of a line; blocks start and end at the beginning of a line, as the Texinfo manual requires (texi2any accepts it with an error)
 texinfo-tests/60macro/text_before_after.texi
   line 1: ours '@macro', texi2any '+macro -macro'
@@ -927,11 +890,6 @@ texinfo-tests/60macro/zero_argument_comment.texi
   line 1: ours '@c', texi2any '(nothing)'
   line 5: +macro arguments: ours 'abar', texi2any 'abar comment bar comment'
   line 5: ours '@comment', texi2any '(nothing)'
-
-# Gap (TODO.md): a macro definition doesn't end a paragraph in texi2any, but does here
-texinfo-tests/65linemacro/block_begin_end_in_linemacro_call.texi
-  line 30: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 35: paragraphs: ours '(nothing)', texi2any '</p>'
 
 # Deliberate: a C preprocessor line directive (`#line 7 "k"`) is text, as the tree shows the source as written; texi2any follows it, to report lines in the file it names, and drops it
 texinfo-tests/80include/cpp_line_latin1.texi

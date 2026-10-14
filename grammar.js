@@ -287,9 +287,10 @@ export default grammar({
     $._description_block_start,
     // A command that starts no paragraph, where one would start.
     $._no_paragraph_command_name,
-    // A raw block that doesn't end a paragraph, at the start of its next
-    // line.
+    // A raw block or macro definition that doesn't end a paragraph, at the
+    // start of its next line.
     $._paragraph_raw_block_start,
+    $._paragraph_macro_start,
     // Zero-width before a command that ends a paragraph in the middle of a
     // line (`@caption`, `@titlefont`), and the names of a context command
     // and of `@*` that start no paragraph, where one would start.
@@ -436,11 +437,10 @@ export default grammar({
     // index entries, `@include`, `@set`, ... The scanner gives the others
     // their usual token, as they end it. Comment lines after one, the
     // paragraph's, start with its newline. Raw blocks but `@verbatim` don't
-    // end it either.
+    // end it either, nor do macro definitions.
     _paragraph_line_commands: $ => prec.right(repeat1(choice(
       alias($._paragraph_line_command, $.line_command),
-      seq(alias($._paragraph_raw_block, $.raw_block), $._line_end),
-      seq(alias($._paragraph_raw_block, $.raw_block), $._comment_lines),
+      $._paragraph_block,
       seq(
         alias($._paragraph_line_command_before_comments, $.line_command),
         $._comment_line_ends,
@@ -492,6 +492,15 @@ export default grammar({
 
     _vskip_argument: $ => alias(/[^\r\n]+/, $.raw_text),
     _raw_argument: $ => alias($._set_value, $.raw_text),
+
+    // A block that doesn't end the paragraph it is in, then its line's end.
+    _paragraph_block: $ => seq(
+      choice(
+        alias($._paragraph_raw_block, $.raw_block),
+        alias($._paragraph_macro_definition, $.macro_definition),
+      ),
+      choice($._line_end, $._comment_lines),
+    ),
 
     _paragraph_line_command: $ => lineCommand($, $._paragraph_line_command_name, $._line_end),
 
@@ -923,6 +932,16 @@ export default grammar({
     // texi2any reports, is left as raw text.
     macro_definition: $ => seq(
       field('name', alias($._macro_start, $.command_name)),
+      $._macro_definition_rest,
+    ),
+
+    // A macro definition in a paragraph, which texi2any doesn't end at one.
+    _paragraph_macro_definition: $ => seq(
+      field('name', alias($._paragraph_macro_start, $.command_name)),
+      $._macro_definition_rest,
+    ),
+
+    _macro_definition_rest: $ => seq(
       optional(seq(
         field('macro', alias($._word_text, $.text)),
         optional(choice($._macro_parameters, $._macro_line_rest)),

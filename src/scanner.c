@@ -92,6 +92,7 @@ enum TokenType {
   DESCRIPTION_BLOCK_START,
   NO_PARAGRAPH_COMMAND_NAME,
   PARAGRAPH_RAW_BLOCK_START,
+  PARAGRAPH_MACRO_START,
   PARAGRAPH_END_BEFORE_COMMAND,
   NO_PARAGRAPH_CONTEXT_NAME,
   NO_PARAGRAPH_SYMBOL,
@@ -860,6 +861,10 @@ static bool scan_block_start(Scanner *scanner, TSLexer *lexer,
   if (kind == KIND_RAW && valid_symbols[PARAGRAPH_RAW_BLOCK_START] &&
       strcmp(name, "verbatim") != 0) {
     token = PARAGRAPH_RAW_BLOCK_START;
+  }
+  // Nor past a macro definition.
+  if (kind == KIND_MACRO && valid_symbols[PARAGRAPH_MACRO_START]) {
+    token = PARAGRAPH_MACRO_START;
   }
   if (!valid_symbols[token]) return false;
   if (scanner->depth >= MAX_DEPTH) return false;

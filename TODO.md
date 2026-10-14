@@ -337,9 +337,11 @@ comparing arguments:
   then have states for both ways of reading it, about 1,100 parser states
   (8%), also with a zero-width token from the scanner before the keyword,
   for 29 files where a lone `@image` is in a paragraph of its own here
-- [ ] Macro definitions and conditionals don't end a paragraph in texi2any
-  either (the comparison can't see conditionals, which texi2any has
-  evaluated)
+- [x] Macro definitions don't end a paragraph either, as in texi2any (6
+  files; 88 parser states, the definition's own in a paragraph)
+- [ ] Nor do conditionals in texi2any, which evaluates them, so that the
+  text of the branch it takes goes on with the paragraph around it; the
+  comparison can't see that, as texi2any's expansion has no conditionals
 - [x] Comment lines at the end of a paragraph, before a blank line or the
   end of the file, are in it, as in texi2any; they were after it (61
   files). In a paragraph, comment lines are no longer extras between

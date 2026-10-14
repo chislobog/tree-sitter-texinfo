@@ -809,3 +809,38 @@ And@footnote{
       name: (command_name)
       arguments: (brace_arguments
         (symbol_command)))))
+
+================================================================================
+A macro definition doesn't end a paragraph, as in texi2any
+================================================================================
+
+Text before
+@macro foo {a}
+body \a\
+@end macro
+more text.
+
+@rmacro bar
+x
+@end rmacro
+Separate.
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (macro_definition
+      name: (command_name)
+      macro: (text)
+      parameter: (text)
+      body: (raw_text)
+      end: (block_end))
+    (text))
+  (macro_definition
+    name: (command_name)
+    macro: (text)
+    body: (raw_text)
+    end: (block_end))
+  (paragraph
+    (text)))
