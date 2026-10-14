@@ -916,7 +916,8 @@ static bool scan_end(Scanner *scanner, TSLexer *lexer,
  *
  * If the body is empty, scans the `@end` line itself as BLOCK_END.
  */
-static bool scan_raw(Scanner *scanner, TSLexer *lexer) {
+static bool scan_raw(Scanner *scanner, TSLexer *lexer,
+                     const bool *valid_symbols) {
   if (scanner->depth == 0) return false;
   const Block *block = &BLOCKS[scanner->stack[scanner->depth - 1]];
 
@@ -943,7 +944,9 @@ static bool scan_raw(Scanner *scanner, TSLexer *lexer) {
               lexer->result_symbol = RAW_TEXT;
               return true;
             } else {
-              return pop_block(scanner, lexer);
+              // An empty body: the grammar offers its end where it offers
+              // raw text, but check, as every other token does.
+              return valid_symbols[BLOCK_END] && pop_block(scanner, lexer);
             }
           }
         } else if (nested_depth < MAX_RAW_DEPTH &&
@@ -1321,7 +1324,7 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
     return true;
   }
 
-  if (valid_symbols[RAW_TEXT]) return scan_raw(scanner, lexer);
+  if (valid_symbols[RAW_TEXT]) return scan_raw(scanner, lexer, valid_symbols);
 
   // Only blanks are skipped before deciding, so on an empty body the other
   // tokens can still be scanned.
