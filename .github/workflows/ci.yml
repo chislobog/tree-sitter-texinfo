@@ -8,6 +8,10 @@ on:
   pull_request:
     paths-ignore: ["**.md"]
 
+# The jobs only read the repository.
+permissions:
+  contents: read
+
 # A newer push to the same branch cancels a run in progress.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -16,20 +20,26 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
+    # Runs take 10 to 15 minutes with the Nix store of an earlier run.
+    timeout-minutes: 90
     # Branches in this repository are checked on push; pull requests only
     # from forks, to avoid running twice.
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     steps:
-      - uses: actions/checkout@v7
+      # Actions are pinned to a commit, which Dependabot updates
+      # (.github/dependabot.yml): a tag can be moved to other code.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
-      - uses: cachix/install-nix-action@v31
+      - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31.11.1
 
       # The Nix store from the last run, so the checks whose inputs didn't
       # change aren't built again. Keyed by those inputs, so a run that
       # changes them saves its own; only the newest is kept.
-      - uses: nix-community/cache-nix-action@v7
+      - uses: nix-community/cache-nix-action@7df957e333c1e5da7721f60227dbba6d06080569 # v7.0.2
         with:
-          primary-key: nix-${{ runner.os }}-${{ hashFiles('flake.lock', 'flake.nix', 'grammar.js', 'src/**', 'script/**', 'test/**', 'queries/**', 'editors/**', 'eslint.config.mjs', 'package-lock.json') }}
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('flake.lock', 'flake.nix', 'grammar.js', 'tree-sitter.json', '.tsqueryrc.json', 'src/**', 'script/**', 'test/**', 'queries/**', 'editors/**', 'eslint.config.mjs', 'package-lock.json') }}
           restore-prefixes-first-match: nix-${{ runner.os }}-
           gc-max-store-size-linux: 6G
           purge: true
@@ -54,19 +64,22 @@ jobs:
     # from forks, to avoid running twice.
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       # The version nixpkgs has (`tree-sitter --version` in the dev shell).
-      - uses: tree-sitter/setup-action/cli@v2
+      - uses: tree-sitter/setup-action/cli@faab9a23fa6195da0f1cf868219cc1e89f238d3d # v2
         with:
           tree-sitter-ref: v0.26.11
 
-      - uses: tree-sitter/parser-test-action@v3
+      - uses: tree-sitter/parser-test-action@05f6ce7c7e54603c45cd87ed926725dc870bcc63 # v3
         with:
           generate: false
           test-parser: ${{ matrix.os != 'ubuntu-latest' }}
@@ -74,3 +87,5 @@ jobs:
           test-node: true
           test-python: true
           test-go: true
+          # XCTest comes with Xcode, which only the macOS runner has.
+          test-swift: ${{ matrix.os == 'macos-latest' }}
