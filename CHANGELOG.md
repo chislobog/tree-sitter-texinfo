@@ -4,13 +4,72 @@ The version follows [semantic versioning](https://semver.org/) as the
 tree-sitter documentation describes it for grammars: while it is 0.y.z, a
 change to node types or the tree's structure bumps the minor version.
 
-## Unreleased
+## 0.2.0
+
+Paragraphs where texi2any has them, each field with one kind of node, and
+a parser with 7,400 states instead of 12,400 (`parser.c` is 14.5 MB, not
+21 MB), which generates in a second.
+
+### Breaking changes
 
 - `queries/` no longer follows Helix's capture names but, where editors
   differ, uses the plainer name: `@markup.strong`, `@string.escape` and
   `@keyword.conditional` instead of `@markup.bold`,
-  `@constant.character.escape` and `@keyword.control.conditional`. Helix's
-  queries, with its names, are now in `editors/helix/queries/`.
+  `@constant.character.escape` and `@keyword.control.conditional`. Helix
+  users should take `editors/helix/queries/`, which has Helix's names.
+- A macro call is a command like any other: the scanner no longer
+  remembers the macros the file defines, so adding or renaming one no
+  longer reparses the rest of the file. A call without braces no longer
+  takes the rest of its line as its `argument`, a `@linemacro` call is no
+  longer a `line_command`, and a call's braces end at a blank line.
+- The content of a table item after its `@itemx` lines, of an itemize or
+  enumerate item, and of a definition after its `@deffnx` lines is in a
+  `body` field, an `item_body` or a `definition_body`, as in texi2any, so
+  that a query can take the body without the x lines.
+- Each field holds one kind of node. `argument` is always a
+  `line_argument`, which holds a `raw_text` or an `ignored` where the
+  field was one; an accent's argument without braces (`@'e`) is in its
+  `arguments`, a `brace_arguments`, as with braces; the inline
+  conditionals' first field is `format` or `variable`, not `condition`;
+  a definition line's `@` at the end of a line is a `line_continuation`,
+  in the word it joins or in a `continuation` field.
+
+### The tree
+
+- Paragraphs start and end where texi2any's do, which the comparison with
+  texi2any now checks, with the text of each: index entries, `@set` and
+  the other line commands that don't end a paragraph stay in it, as do
+  comment lines in and at the end of it, macro definitions, conditionals
+  of text, and raw blocks but `@verbatim`. `@caption`, `@shortcaption`
+  and `@titlefont` end one in the middle of a line, and `@anchor`,
+  `@image`, `@namedanchor`, `@*` and the like start none.
+- A `}` that closes nothing is an `unmatched_brace` node, not an error, so
+  every manual checked parses without one.
+- A node, a section or `@bye` closes the blocks left open before it, and
+  an unclosed brace closes at the end of a node line, before a section on
+  the next line and at a list's next item, as in texi2any.
+- Command names are read as texi2any reads them (from a digit, of any
+  length, and ending at `_`), and `@c` is a comment whatever character
+  follows it.
+- Menu entries start only with a `*` at the start of a line, may be inside
+  a conditional in a menu, and keep a node's trailing dots but the one
+  ending it; a heading may be inside a footnote or caption; a definition
+  word is joined across a line ending in `@`; an unclosed `@verb` and
+  small errors being typed no longer reach past their paragraph.
+
+### Queries
+
+- Highlighting of link texts, file names and alias names; Helix's tags
+  use the kinds its symbol pickers know; the highlights work in Neovim
+  and while typing; the textobjects pair an empty argument's comma
+  correctly. Folds, textobjects and injections have tests now.
+
+### Bindings
+
+- The Go and Python bindings require runtimes that load ABI 15
+  (go-tree-sitter and py-tree-sitter 0.25); the Python source
+  distribution includes the scanner; each binding's test parses a
+  document.
 
 ## 0.1.0
 
