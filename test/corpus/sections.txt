@@ -276,12 +276,11 @@ An anchor between a node and its heading
       name: (command_name)
       node: (argument
         (text)))
-    (paragraph
-      (inline_command
-        name: (command_name)
-        arguments: (brace_arguments
-          (text)))
-      (comment))
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (text)))
+    (comment)
     heading: (section_heading
       name: (command_name)
       title: (line_argument
@@ -303,11 +302,10 @@ An anchor with blanks before its brace between a node and its heading
       name: (command_name)
       node: (argument
         (text)))
-    (paragraph
-      (inline_command
-        name: (command_name)
-        arguments: (brace_arguments
-          (text))))
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (text)))
     heading: (section_heading
       name: (command_name)
       title: (line_argument

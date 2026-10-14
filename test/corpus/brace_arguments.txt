@@ -911,16 +911,15 @@ Next paragraph.
 ---
 
 (source_file
-  (paragraph
-    (inline_command
-      name: (command_name)
-      arguments: (brace_arguments
-        (text)
-        (line_command
-          name: (command_name)
-          argument: (line_argument
-            (text))))
-      (missing_brace)))
+  (inline_command
+    name: (command_name)
+    arguments: (brace_arguments
+      (text)
+      (line_command
+        name: (command_name)
+        argument: (line_argument
+          (text))))
+    (missing_brace))
   (paragraph
     (text)))
 

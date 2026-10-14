@@ -142,6 +142,10 @@
           "named": true
         },
         {
+          "type": "inline_command",
+          "named": true
+        },
+        {
           "type": "item",
           "named": true
         },
@@ -416,6 +420,10 @@
           "named": true
         },
         {
+          "type": "inline_command",
+          "named": true
+        },
+        {
           "type": "line_command",
           "named": true
         },
@@ -594,6 +602,10 @@
         },
         {
           "type": "heading",
+          "named": true
+        },
+        {
+          "type": "inline_command",
           "named": true
         },
         {
@@ -1130,6 +1142,10 @@
           "named": true
         },
         {
+          "type": "inline_command",
+          "named": true
+        },
+        {
           "type": "itemx",
           "named": true
         },
@@ -1194,6 +1210,10 @@
         },
         {
           "type": "heading",
+          "named": true
+        },
+        {
+          "type": "inline_command",
           "named": true
         },
         {
@@ -1432,6 +1452,10 @@
           "named": true
         },
         {
+          "type": "inline_command",
+          "named": true
+        },
+        {
           "type": "item",
           "named": true
         },
@@ -1597,6 +1621,10 @@
         },
         {
           "type": "heading",
+          "named": true
+        },
+        {
+          "type": "inline_command",
           "named": true
         },
         {
@@ -1848,6 +1876,10 @@
           "named": true
         },
         {
+          "type": "raw_block",
+          "named": true
+        },
+        {
           "type": "symbol_command",
           "named": true
         },
@@ -1905,6 +1937,10 @@
         },
         {
           "type": "heading",
+          "named": true
+        },
+        {
+          "type": "inline_command",
           "named": true
         },
         {
@@ -2081,6 +2117,10 @@
           "named": true
         },
         {
+          "type": "inline_command",
+          "named": true
+        },
+        {
           "type": "line_command",
           "named": true
         },
@@ -2180,6 +2220,10 @@
         },
         {
           "type": "heading",
+          "named": true
+        },
+        {
+          "type": "inline_command",
           "named": true
         },
         {
@@ -2323,6 +2367,10 @@
           "named": true
         },
         {
+          "type": "inline_command",
+          "named": true
+        },
+        {
           "type": "line_command",
           "named": true
         },
@@ -2433,6 +2481,10 @@
           "named": true
         },
         {
+          "type": "inline_command",
+          "named": true
+        },
+        {
           "type": "line_command",
           "named": true
         },
@@ -2529,6 +2581,10 @@
           "named": true
         },
         {
+          "type": "inline_command",
+          "named": true
+        },
+        {
           "type": "line_command",
           "named": true
         },
@@ -2610,6 +2666,10 @@
         },
         {
           "type": "heading",
+          "named": true
+        },
+        {
+          "type": "inline_command",
           "named": true
         },
         {

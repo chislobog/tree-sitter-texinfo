@@ -309,6 +309,21 @@ comparing arguments:
   newline may close can return it as well. Comment lines before a line
   holding only a command (`@item`) had been taken for ones before a blank
   line (53 files)
+- [x] Paragraphs start and end where texi2any's do, found by comparing
+  them: a command that starts no paragraph in texi2any (`@anchor`,
+  `@noindent`, `@titlefont`, ...: NO_PARAGRAPH_COMMANDS in the scanner) is
+  outside one where one would start, also before the text on its line, and
+  inside an open one (12,910 of the manuals' 16,623 differences in
+  paragraphs, most of them an `@anchor` line before a definition or an
+  item; 90 parser states); a raw block but `@verbatim` (`@tex`, `@html`,
+  `@ignore`) doesn't end a paragraph (1,611 more, most in Maxima's
+  manuals; 53 parser states)
+- [ ] Also `@image`, `@namedanchor`, `@caption`, `@shortcaption` and `@*`
+  start no paragraph in texi2any; the first two are keywords in the
+  grammar, the next two context commands, the last a symbol
+- [ ] Macro definitions and conditionals don't end a paragraph in texi2any
+  either (the comparison can't see conditionals, which texi2any has
+  evaluated)
 
 Deliberate, so the tree shows the source as it is written and edited:
 

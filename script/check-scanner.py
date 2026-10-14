@@ -19,7 +19,10 @@
   line commands are its line commands, those that end a paragraph its
   `close_paragraph_commands` and the others not; the brace commands its
   brace commands; the blocks all its blocks, each of the kind its category
-  makes it, and the preformatted ones and conditionals as it has them.
+  makes it, and the preformatted ones and conditionals as it has them, and
+  of the raw blocks only `@verbatim` ends a paragraph; and the commands that
+  start no paragraph its `no_paragraph_commands`, but for the line and
+  block commands and those the grammar recognises otherwise.
 
 Usage: script/check-scanner.py [--scanner FILE] [--grammar FILE]
 """
@@ -52,6 +55,23 @@ BLOCK_KIND_EXCEPTIONS = {
     "linemacro": "KIND_MACRO",
     # Holds `@defline` lines, and has no definition line of its own.
     "defblock": "KIND_BLOCK",
+}
+
+
+# texi2any's commands that start no paragraph which NO_PARAGRAPH_COMMANDS
+# leaves out, as the grammar recognises them otherwise.
+NO_PARAGRAPH_ELSEWHERE = {
+    # Items and cells, which start no paragraph anyway.
+    "item",
+    "headitem",
+    "tab",
+    # Not yet: a keyword in the grammar (`@image`, `@namedanchor`), a context
+    # command (`@caption`, `@shortcaption`) and a symbol (`@*`). TODO.md.
+    "image",
+    "namedanchor",
+    "caption",
+    "shortcaption",
+    "*",
 }
 
 
@@ -191,6 +211,7 @@ def check_texi2any(source: str) -> list[str]:
     blocks = texi2any_table("Commands", "block_commands")
     closing = texi2any_table("Commands", "close_paragraph_commands")
     preformatted = texi2any_table("Commands", "preformatted_commands")
+    no_paragraph = texi2any_table("Commands", "no_paragraph_commands")
     problems = []
     for table, known, kind in (
         ("LINE_COMMANDS", line, "line"),
@@ -218,8 +239,19 @@ def check_texi2any(source: str) -> list[str]:
             problems.append(f"@{name} is {kind}, but texi2any's {blocks[name]} makes it {expected}")
     for name in sorted(blocks.keys() - ours.keys()):
         problems.append(f"texi2any's block @{name} isn't in BLOCKS")
+    # Of the raw blocks, only `@verbatim` ends a paragraph (scan_block_start).
+    raw = {name for name, kind in ours.items() if kind == "KIND_RAW"}
+    for name in sorted((raw & closing.keys()) ^ {"verbatim"}):
+        problems.append(f"@{name} ends a paragraph on one side only, scan_block_start or texi2any")
     for name in sorted(set(c_strings(source, "PREFORMATTED")) ^ preformatted.keys()):
         problems.append(f"@{name} is preformatted on one side only, in_preformatted or texi2any")
+    starts_none = {n for n in no_paragraph if n not in line and n not in blocks}
+    for name in sorted(
+        set(c_strings(source, "NO_PARAGRAPH_COMMANDS")) ^ (starts_none - NO_PARAGRAPH_ELSEWHERE)
+    ):
+        problems.append(
+            f"@{name} starts no paragraph on one side only, NO_PARAGRAPH_COMMANDS or texi2any"
+        )
     for name in sorted(blocks):
         if (blocks[name] == "conditional") != name.startswith("if"):
             problems.append(

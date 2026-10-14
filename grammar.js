@@ -285,6 +285,11 @@ export default grammar({
     $._menu_entry_start,
     // A block other than a conditional in a menu entry's description.
     $._description_block_start,
+    // A command that starts no paragraph, where one would start.
+    $._no_paragraph_command_name,
+    // A raw block that doesn't end a paragraph, at the start of its next
+    // line.
+    $._paragraph_raw_block_start,
     // Valid only during error recovery, when tree-sitter marks every token
     // valid: the scanner then returns nothing.
     $._error_sentinel,
@@ -310,6 +315,7 @@ export default grammar({
           repeat(choice(
             $._newline,
             alias($._node_description, $.line_command),
+            alias($._no_paragraph_command, $.inline_command),
             $.block,
             $.paragraph,
           )),
@@ -318,6 +324,15 @@ export default grammar({
         repeat(choice($._content, ...contains.map((section) => $[section]))),
       )),
     ])),
+
+    // A command that starts no paragraph, as in texi2any (`@anchor`,
+    // `@noindent`; NO_PARAGRAPH_COMMANDS in src/scanner.c), where one would
+    // start: alone on a line, or before the text that starts it. Inside an
+    // open paragraph, it's one of its inline commands.
+    _no_paragraph_command: $ => prec.right(seq(
+      field('name', alias($._no_paragraph_command_name, $.command_name)),
+      optional(seq('{', optional(field('arguments', $.brace_arguments)), braceClose($))),
+    )),
 
     // `@nodedescription` after a `@node`; `@nodedescriptionblock` is a block.
     _node_description: $ => seq(
@@ -363,6 +378,7 @@ export default grammar({
     // is part of the head.
     _body_start: $ => choice(
       $._newline,
+      alias($._no_paragraph_command, $.inline_command),
       // An `@end` that ends no open block, which texi2any reports and ignores.
       seq($.unmatched_end, $._line_end),
       $.paragraph,
@@ -399,9 +415,11 @@ export default grammar({
     // Line commands inside a paragraph, which they don't end, as in texi2any:
     // index entries, `@include`, `@set`, ... The scanner gives the others
     // their usual token, as they end it. Comment lines after one, the
-    // paragraph's, start with its newline.
+    // paragraph's, start with its newline. Raw blocks but `@verbatim` don't
+    // end it either.
     _paragraph_line_commands: $ => prec.right(repeat1(choice(
       alias($._paragraph_line_command, $.line_command),
+      seq(alias($._paragraph_raw_block, $.raw_block), $._line_end),
       prec.right(seq(
         alias($._paragraph_line_command_before_comments, $.line_command),
         repeat1($._newline),
@@ -854,6 +872,17 @@ export default grammar({
     // plain text.
     raw_block: $ => seq(
       field('name', alias($._raw_block_start, $.command_name)),
+      $._raw_block_rest,
+    ),
+
+    // A raw block in a paragraph, which texi2any doesn't end at one but
+    // `@verbatim`.
+    _paragraph_raw_block: $ => seq(
+      field('name', alias($._paragraph_raw_block_start, $.command_name)),
+      $._raw_block_rest,
+    ),
+
+    _raw_block_rest: $ => seq(
       optional(field('argument', $.line_argument)),
       $._line_end,
       optional(field('body', $.raw_text)),

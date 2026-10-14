@@ -151,11 +151,10 @@ Content before the first item
       (command_name)
       (line_argument
         (text)))
-    (paragraph
-      (inline_command
-        (command_name)
-        (brace_arguments
-          (text))))
+    (inline_command
+      (command_name)
+      (brace_arguments
+        (text)))
     (item
       (command_name)
       (line_argument

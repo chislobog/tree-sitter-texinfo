@@ -90,6 +90,8 @@ enum TokenType {
   MENU_ENTRY_START,
   // A block other than a conditional in a menu entry's description.
   DESCRIPTION_BLOCK_START,
+  NO_PARAGRAPH_COMMAND_NAME,
+  PARAGRAPH_RAW_BLOCK_START,
   ERROR_SENTINEL,
 };
 
@@ -653,6 +655,14 @@ static bool pop_block(Scanner *scanner, TSLexer *lexer) {
   return accept(lexer, BLOCK_END);
 }
 
+// Commands that don't start a paragraph, as in texi2any (its
+// `%no_paragraph_commands`, but the line and block commands, and those the
+// grammar recognises otherwise): where one would start, they are outside it.
+// Some are in BRACE_COMMANDS, which they are where a paragraph is open.
+static const char *const NO_PARAGRAPH_COMMANDS[] = {
+    "anchor",   "errormsg", "hyphenation", "indent",
+    "noindent", "refill",   "titlefont"};
+
 // Accent commands, which texi2any also accepts without braces: `@'e`,
 // `@u o`.
 static const char *const LETTER_ACCENTS[] = {
@@ -838,6 +848,12 @@ static bool scan_block_start(Scanner *scanner, TSLexer *lexer,
   if (kind == KIND_BLOCK && valid_symbols[DESCRIPTION_BLOCK_START] &&
       !is_conditional(name)) {
     token = DESCRIPTION_BLOCK_START;
+  }
+  // At the start of a paragraph's next line, which goes on past a raw block
+  // but `@verbatim`, the one of them in texi2any's close_paragraph_commands.
+  if (kind == KIND_RAW && valid_symbols[PARAGRAPH_RAW_BLOCK_START] &&
+      strcmp(name, "verbatim") != 0) {
+    token = PARAGRAPH_RAW_BLOCK_START;
   }
   if (!valid_symbols[token]) return false;
   if (scanner->depth >= MAX_DEPTH) return false;
@@ -1256,6 +1272,14 @@ static int command_token(const Scanner *scanner, const bool *valid_symbols,
   }
   if (valid_symbols[LINE_COMMAND_NAME] && is_line_command(name)) {
     return LINE_COMMAND_NAME;
+  }
+  // Where a paragraph's next line may go on with it (line commands inside it
+  // are valid), a paragraph is open, which a command that starts none is in.
+  if (valid_symbols[NO_PARAGRAPH_COMMAND_NAME] &&
+      !valid_symbols[PARAGRAPH_LINE_COMMAND_NAME] &&
+      in_table(NO_PARAGRAPH_COMMANDS, TABLE_COUNT(NO_PARAGRAPH_COMMANDS),
+               name)) {
+    return NO_PARAGRAPH_COMMAND_NAME;
   }
   if (valid_symbols[BRACE_COMMAND_NAME] &&
       in_table(BRACE_COMMANDS, TABLE_COUNT(BRACE_COMMANDS), name)) {

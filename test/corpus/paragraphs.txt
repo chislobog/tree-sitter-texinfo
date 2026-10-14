@@ -376,7 +376,7 @@ A definition line ending in @ at the end of a file
     end: (missing_end)))
 
 ================================================================================
-Text after @noindent is a paragraph
+Text after @noindent is a paragraph, which @noindent is outside, as in texi2any
 ================================================================================
 
 @noindent You can check @kbd{C-h v
@@ -385,9 +385,9 @@ load-path}.
 ---
 
 (source_file
+  (inline_command
+    name: (command_name))
   (paragraph
-    (inline_command
-      name: (command_name))
     (text)
     (inline_command
       name: (command_name)
@@ -395,6 +395,79 @@ load-path}.
         (text)
         (text)))
     (text)))
+
+================================================================================
+Commands that start no paragraph are outside one, unless one is open, as in texi2any
+================================================================================
+
+@node Top
+@anchor{old}
+@top Title
+
+@anchor{x}
+Text after it.
+
+Before @anchor{y} inside.
+
+Open paragraph
+@anchor{z}
+goes on.
+
+@anchor{w} Text on its line.
+
+@titlefont{T}
+@hyphenation{a-b}
+
+---
+
+(source_file
+  (top
+    node: (node_line
+      name: (command_name)
+      node: (argument
+        (text)))
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (text)))
+    heading: (top_heading
+      name: (command_name)
+      title: (line_argument
+        (text)))
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (text)))
+    (paragraph
+      (text))
+    (paragraph
+      (text)
+      (inline_command
+        name: (command_name)
+        arguments: (brace_arguments
+          (text)))
+      (text))
+    (paragraph
+      (text)
+      (inline_command
+        name: (command_name)
+        arguments: (brace_arguments
+          (text)))
+      (text))
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (text)))
+    (paragraph
+      (text))
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (text)))
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (text)))))
 
 ================================================================================
 Spaces other than ASCII ones are text: a node name of em spaces, a line starting with a no-break space
@@ -508,5 +581,66 @@ Text
     (command_name)
     (line_argument
       (text)))
+  (paragraph
+    (text)))
+
+================================================================================
+A raw block other than @verbatim doesn't end a paragraph, as in texi2any
+================================================================================
+
+Text before
+@tex
+$x$
+@end tex
+text after.
+
+@ignore
+x
+@end ignore
+Separate.
+
+Text
+@verbatim
+v
+@end verbatim
+after.
+
+Last
+@html
+<b>
+@end html
+
+Next.
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (raw_block
+      name: (command_name)
+      body: (raw_text)
+      end: (block_end))
+    (text))
+  (raw_block
+    name: (command_name)
+    body: (raw_text)
+    end: (block_end))
+  (paragraph
+    (text))
+  (paragraph
+    (text))
+  (raw_block
+    name: (command_name)
+    body: (raw_text)
+    end: (block_end))
+  (paragraph
+    (text))
+  (paragraph
+    (text)
+    (raw_block
+      name: (command_name)
+      body: (raw_text)
+      end: (block_end)))
   (paragraph
     (text)))

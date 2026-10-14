@@ -321,6 +321,11 @@ def check_scanner(checker: Checker):
             ('    {"smallquotation", KIND_BLOCK},\n', ""),
             "texi2any's block @smallquotation isn't in BLOCKS",
         ),
+        (
+            "a command that starts no paragraph missing",
+            ('"noindent", "refill",', '"noindent",'),
+            "@refill starts no paragraph on one side only, NO_PARAGRAPH_COMMANDS or texi2any",
+        ),
     ]
     for title, (old, new), message in changes:
         changed = (
