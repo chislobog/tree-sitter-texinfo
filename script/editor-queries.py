@@ -12,8 +12,10 @@ names (editors/NAME/tsqueryrc.json), and `--check` fails if one isn't what
 this script would write.
 
 - Helix (editors/helix/queries/): `markup.bold`,
-  `constant.character.escape` and `keyword.control.conditional`. Helix
-  doesn't fold.
+  `constant.character.escape` and `keyword.control.conditional`; in tags,
+  the kinds its symbol pickers know, which ignore any other: a node or
+  anchor is a section, a documented variable a constant (as in Helix's
+  Python queries). Helix reads no references from tags, and doesn't fold.
 - Neovim (editors/neovim/queries/): nvim-treesitter-textobjects' `outer`/
   `inner` instead of `around`/`inside`, without `entry`. Neovim doesn't use
   tags.
@@ -36,8 +38,10 @@ EDITORS = {
             "markup.strong": "markup.bold",
             "string.escape": "constant.character.escape",
             "keyword.conditional": "keyword.control.conditional",
+            r"definition\.(node|anchor)": "definition.section",
+            "definition.variable": "definition.constant",
         },
-        "drop": [],
+        "drop": [r"reference\.\w+"],
     },
     "neovim": {
         "files": ["highlights.scm", "injections.scm", "folds.scm", "textobjects.scm"],

@@ -94,7 +94,8 @@ disagree, they use the plainer name (`@markup.strong`, like Texinfo's
 textobjects' `around` and `inside`, as Helix's and Zed's). Each editor gets
 the same queries with its own names, generated from them:
 `editors/helix/queries/` (`@markup.bold`, `@constant.character.escape`,
-`@keyword.control.conditional`) and `editors/neovim/queries/`
+`@keyword.control.conditional`, and in tags the kinds of its symbol
+pickers: nodes and anchors are sections) and `editors/neovim/queries/`
 (nvim-treesitter-textobjects' `outer` and `inner`). Use an editor's own
 directory when there is one; `queries/` is for the tree-sitter CLI and
 editors without one.

@@ -140,16 +140,20 @@
       "fold": ""
     },
     "tags": {
-      "definition.anchor": "",
+      "definition.class": "",
       "definition.constant": "",
+      "definition.enum": "",
+      "definition.field": "",
       "definition.function": "",
+      "definition.interface": "",
       "definition.macro": "",
-      "definition.node": "",
+      "definition.module": "",
+      "definition.section": "",
+      "definition.struct": "",
       "definition.type": "",
-      "definition.variable": "",
       "name": "",
-      "reference.constant": "",
-      "reference.node": ""
+      "reference.call": "",
+      "reference.class": ""
     }
   }
 }

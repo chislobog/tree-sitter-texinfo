@@ -3,28 +3,22 @@
 ; captures are allowed here, so predicates test the text of the whole
 ; command.
 (node_line
-  node: (argument) @name) @definition.node
+  node: (argument) @name) @definition.section
 
 ((inline_command
-  arguments: (brace_arguments) @name) @definition.anchor
-  (#match? @definition.anchor "^[@]anchor[ \t]*[{]"))
+  arguments: (brace_arguments) @name) @definition.section
+  (#match? @definition.section "^[@]anchor[ \t]*[{]"))
 
 (inline_command
-  anchor: (argument) @name) @definition.anchor
+  anchor: (argument) @name) @definition.section
 
 (block
-  label: (argument) @name) @definition.anchor
-
-(inline_command
-  node: (argument) @name) @reference.node
-
-(menu_entry
-  node: (menu_node) @name) @reference.node
+  label: (argument) @name) @definition.section
 
 ; Documented functions, variables and data types.
 ((definition_line
-  entity: (_) @name) @definition.variable
-  (#match? @definition.variable "^[@]def(type)?(vr|var|opt|cv|ivar)x?[ \t]"))
+  entity: (_) @name) @definition.constant
+  (#match? @definition.constant "^[@]def(type)?(vr|var|opt|cv|ivar)x?[ \t]"))
 
 ((definition_line
   entity: (_) @name) @definition.type
@@ -44,7 +38,3 @@
 ((line_command
   variable: (text) @name) @definition.constant
   (#match? @definition.constant "^[@]set[ \t]"))
-
-((inline_command
-  arguments: (brace_arguments) @name) @reference.constant
-  (#match? @reference.constant "^[@]value[ \t]*[{]"))
