@@ -49,7 +49,7 @@ texinfo-tests/02coverage/command_in_end.texi
   line 13: ours '+quotation', texi2any '(nothing)'
   line 17: ours '+quotation -quotation +quotation -quotation +quotation -quotation +verbatim -verbatim', texi2any '(nothing)'
 
-# Deliberate: a DEL character is text; the Texinfo manual makes it a comment character to the end of the line, merging the next line into it, which texi2any deletes before parsing and a tree of the source as written can't show
+# Deliberate: a DEL character is text; the Texinfo manual makes it a comment character for TeX, and texi2any deletes it with the rest of its line and the line end before parsing, which merges the next line into this one, here into the @c comment; the tree keeps the two lines as written
 texinfo-tests/02coverage/delcomment_on_comment.texi
   line 3: @c arguments: ours 'a comment with del after del', texi2any 'a comment with del next line'
 
@@ -89,7 +89,7 @@ texinfo-tests/08misc_commands/bad_documentlanguage.texi
   line 2: @documentlanguage arguments: ours '(none)', texi2any 'en'
   line 4: @documentlanguage arguments: ours '(none)', texi2any 'en'
 
-# Deliberate: texi2any takes an @comment right after @clickstyle (obsolete) as its argument; here a comment is a comment
+# Deliberate: texi2any takes a comment right after @clickstyle (obsolete) as its argument, warning of the rest of the line ("remaining argument on @clickstyle line"), and the other words of the line too; here a comment is a comment, which changes the arguments and the commands of each of its lines
 texinfo-tests/08misc_commands/clickstyle_and_comments.texi
   line 1: ours '(nothing)', texi2any '@clickstyle @clickstyle @clickstyle @clickstyle'
   line 1: @clickstyle arguments: ours '(none)', texi2any 'result'
@@ -271,7 +271,7 @@ texinfo-tests/21multitable/multitable_two_columns_too_much_cells.texi
   line 2: ours '@tab @tab @tab', texi2any '(nothing)'
   line 4: ours '@tab', texi2any '(nothing)'
 
-# Deliberate: multitable cells texi2any drops with a warning are kept as written
+# Invalid input; texi2any reports at line 1: empty multitable, a prototype without braces (the Texinfo manual's are in braces), and drops the cells after it, which are kept as written
 texinfo-tests/21multitable/not_letters_in_prototype.texi
   line 2: ours '@item @tab', texi2any '(nothing)'
 
@@ -613,7 +613,7 @@ texinfo-tests/converters_tests/multitable_prototypes.texi
 texinfo-tests/epub_tests/setfilename_on_top_and_after_node_epub.texi
   line 2: @setfilename arguments: ours '(none)', texi2any 'very badly placed setfilename'
 
-# Deliberate: the file is in Shift-JIS, not UTF-8; an editor converts it
+# Deliberate: the file is in Shift-JIS, not UTF-8, which tree-sitter reads, so an editor converts it; read as UTF-8, a byte `@` inside a character starts a command
 texinfo-tests/formats_encodings/japanese_shift_jis.texi
   line 19: ours '@�', texi2any '(nothing)'
   line 33: ours '@�', texi2any '(nothing)'

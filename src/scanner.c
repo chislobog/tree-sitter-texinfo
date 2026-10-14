@@ -308,7 +308,8 @@ static inline bool is_name_char(int32_t c) {
 
 /**
  * Reads a command or block name whole, as texi2any does: a letter or digit
- * followed by letters, digits, `-` or `_`, of any length. Returns false if
+ * followed by letters, digits and `-`, of any length (`_` ends it: `@c_x` is
+ * a comment). Returns false if
  * there is none or it is too long to be a built-in name; `name` holds it
  * otherwise.
  */
@@ -1046,13 +1047,6 @@ static bool closes_brace(const char *name) {
 }
 
 /**
- * Closes an unclosed brace command before the end of the current line if
- * texi2any would close it there: the next line is blank or opens a block
- * other than a conditional (ordinary brace commands only), or it is the `@end`
- * of an open block, or the file ends. The lexer is at the line
- * end, after any blanks.
- */
-/**
  * Scans a run of dots in a menu node, as texi2any reads it: before `,`, `@`
  * or `{` the node takes all of it; before whitespace or the end of the line,
  * all but the last, which ends the node. Otherwise, as in `foo.bar`, the
@@ -1078,6 +1072,13 @@ static bool scan_menu_node_dots(TSLexer *lexer) {
   return false;
 }
 
+/**
+ * Closes an unclosed brace command before the end of the current line if
+ * texi2any would close it there: the next line is blank or opens a block
+ * other than a conditional (ordinary brace commands only), or it is the `@end`
+ * of an open block, or the file ends. The lexer is at the line
+ * end, after any blanks.
+ */
 static bool scan_missing_brace(Scanner *scanner, TSLexer *lexer,
                                const bool *valid_symbols) {
   bool paragraph_end = valid_symbols[BRACE_CLOSE_AT_PARAGRAPH_END];

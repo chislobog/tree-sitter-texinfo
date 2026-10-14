@@ -3,7 +3,7 @@
 
 Each grammar feature adds a few percent of states, too little to notice one
 at a time: the parser went from 5,623 states to 12,387 in steps of 1-8%,
-none of which a check against the previous commit would flag. So the budget
+none of which a check against the previous commit would flag (13,794 now). So the budget
 is fixed, and raised only on purpose, in the commit that needs it: the check
 fails when the parser has more states. It also fails when the parser has
 more than 10% fewer, so that the budget follows a reduction down rather than
@@ -18,8 +18,9 @@ import re
 import sys
 from pathlib import Path
 
-# About 5% over the state count. Raise it with the grammar change that needs
-# it, after measuring what makes the change cost what it does (CLAUDE.md).
+# A few percent over the state count. Raise it with the grammar change that
+# needs it, after measuring what makes the change cost what it does
+# (CLAUDE.md).
 BUDGET = 14_200
 
 STATE_COUNT = re.compile(r"^#define STATE_COUNT (\d+)", re.M)

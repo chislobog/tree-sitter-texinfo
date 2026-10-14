@@ -27,7 +27,8 @@ sources, which is what `texi2any` itself uses.
 - [x] Raw blocks, body as plain text: `@verbatim`, `@ignore` (nested `@ignore`
   counted), `@macro`, `@rmacro`, `@linemacro`
 - [x] Format-raw blocks, body as text for injections: `@tex`, `@latex`, `@html`,
-  `@xml`, `@docbook`. `@` still introduces commands inside them; not parsed yet
+  `@xml`, `@docbook`. texi2any still reads commands inside them; the tree
+  keeps the body raw, for the injected language
 - [x] Parse commands inside `@displaymath`, as texi2any does (it is a normal
   block now, not raw)
 - [x] `@verb{xTEXTx}` with an arbitrary delimiter character
@@ -198,7 +199,11 @@ of a line.
   Gnus's `@iftex` blocks) can't be represented: the brace closes at the
   conditional's end, and the later `}` is an `unmatched_brace` node, as is
   any `}` that closes nothing, which texi2any reports and ignores. It was a
-  one-character parse error, the last in the manuals
+  one-character parse error, the last in the manuals. Five manuals still
+  hold such recovery nodes, all where texi2any doesn't parse: TeX braces in
+  Calc's, Gnus's and gawk's `@iftex` blocks (gawk's `@center @i{` takes a
+  second line, as TeX allows), and a macro call in `texinfo-tex-test.texi`
+  whose braces hold a blank line
 - [x] TeX lines before `\input texinfo` (e.g. gawk's Italian manual): text,
   as in texi2any, which only recognises `\input` on the first line
 - [x] The `@macro` line has `macro` and `parameter` fields, as texi2any
@@ -246,8 +251,6 @@ Gaps, where we give a parse error and texi2any recovers:
   with a warning, and an empty node name (`* ::`), which was the node `:`.
   `@` before a character other than ASCII is a lone `@`, as in texi2any:
   the character was part of the symbol command (found by review)
-- [ ] Files not in UTF-8 (`@documentencoding ISO-8859-1`, Shift-JIS): the
-  editor has to convert them, as tree-sitter reads UTF-8
 
 Gaps where the tree differs from texi2any's and the Texinfo manual, found by
 comparing arguments:
@@ -307,6 +310,9 @@ Deliberate, so the tree shows the source as it is written and edited:
   by text; and a macro named like a built-in command (`@linemacro code`)
   is parsed as the built-in
 - `@click` stays `@click`; texi2any outputs the command `@clickstyle` chose
+- Files not in UTF-8 (`@documentencoding ISO-8859-1`, Shift-JIS) are for the
+  editor to convert, as tree-sitter reads UTF-8; read as UTF-8, a Shift-JIS
+  character holding the byte `@` starts a command
 - Block commands and `@end` only count at the start of a line, as the Texinfo
   manual requires ("at the beginning of a line by itself"). texi2any's error
   recovery also accepts them in the middle of one, with a warning
@@ -347,7 +353,8 @@ Deliberate, so the tree shows the source as it is written and edited:
   as definitions; cross-references and menu entries as references
 - [x] Tag `@anchor {target}` and `@value {var}`, with blanks before the
   brace (as in `info-stnd.texi`)
-- [x] Register queries in `tree-sitter.json`
+- [x] Register queries in `tree-sitter.json` (highlights, injections and
+  tags: it has no key for folds and textobjects)
 - [x] Queries for several editors, favouring none: `queries/` uses the
   plainer capture name where editors differ (`.tsqueryrc.json`
   enforces them), and `editors/helix/queries/` and `editors/neovim/queries/`
@@ -372,7 +379,7 @@ Deliberate, so the tree shows the source as it is written and edited:
 
 - [x] `script/compare-texi2any.py`: compare trees with texi2any's
 - [x] Run the comparison on the inputs of texi2any's own parser tests
-  (`texinfo-tests/`): 1,446 of 1,755 match exactly
+  (`texinfo-tests/`): 1,446 of 1,755 matched exactly then
 - [x] Triage the test inputs that differ: 1,579 of 1,755 then matched exactly.
   The remaining 176 are the macro and value suites (the script's simple
   macro expansion), invalid input that texi2any discards (unknown commands,
@@ -421,7 +428,8 @@ Deliberate, so the tree shows the source as it is written and edited:
 - [x] Reduce the parser's size: `src/parser.c` was 29 MB. The line and brace
   command keywords, now recognised by the scanner, made each parser state
   where a command can start carry about 200 entries; it went to 6 MB, with
-  the same tree
+  the same tree. Features added since have taken it back to 23 MB (13,800
+  states), each with its cost measured against the budget
 - [x] Tree snapshots of every manual and test input
   (`script/tree-snapshots.py`), and a simulation of typing mistakes in the
   manuals that checks error locality and incremental parsing
