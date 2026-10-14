@@ -57,4 +57,18 @@ mod tests {
             .set_language(&super::LANGUAGE.into())
             .expect("Error loading GNU Texinfo parser");
     }
+
+    #[test]
+    fn test_parses_a_document() {
+        let mut parser = tree_sitter::Parser::new();
+        parser
+            .set_language(&super::LANGUAGE.into())
+            .expect("Error loading GNU Texinfo parser");
+        let tree = parser
+            .parse("@node Top\n@top Title\n\nSome @code{x}.\n", None)
+            .expect("No tree");
+        let tree = tree.root_node().to_sexp();
+        assert!(tree.starts_with("(source_file (top "), "{tree}");
+        assert!(!tree.contains("ERROR"), "{tree}");
+    }
 }
