@@ -25,7 +25,14 @@ def run(root: Path, *command: str) -> subprocess.CompletedProcess:
     didn't inherit them."""
     if shutil.which("tree-sitter") is None:
         command = ("direnv", "exec", str(root), *command)
-    return subprocess.run(command, cwd=root, capture_output=True, text=True, check=False)
+    try:
+        return subprocess.run(command, cwd=root, capture_output=True, text=True, check=False)
+    except FileNotFoundError as error:
+        # Reported as a failure, which blocks: an uncaught exception exits
+        # with 1, which Claude Code doesn't treat as one.
+        return subprocess.CompletedProcess(
+            command, 127, "", f"{error}: the dev shell's tools aren't on the path (direnv)\n"
+        )
 
 
 def labelled(output: str) -> list[str]:
@@ -56,8 +63,8 @@ def main() -> int:
     file = event.get("tool_input", {}).get("file_path") or event.get("tool_response", {}).get(
         "filePath", ""
     )
-    root = Path(os.environ.get("CLAUDE_PROJECT_DIR", os.getcwd()))
-    path = Path(file)
+    root = Path(os.environ.get("CLAUDE_PROJECT_DIR", os.getcwd())).resolve()
+    path = (root / file).resolve()
     watched = path in (root / "grammar.js", root / "src" / "scanner.c") or (
         path.parent == root / "test" / "corpus"
     )

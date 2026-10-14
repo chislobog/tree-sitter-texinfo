@@ -52,6 +52,18 @@
       "comment.inside": "",
       "entry.around": "",
       "entry.inside": ""
+    },
+    "tags": {
+      "definition.anchor": "",
+      "definition.constant": "",
+      "definition.function": "",
+      "definition.macro": "",
+      "definition.node": "",
+      "definition.type": "",
+      "definition.variable": "",
+      "name": "",
+      "reference.constant": "",
+      "reference.node": ""
     }
   }
 }
