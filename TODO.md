@@ -446,6 +446,9 @@ Deliberate, so the tree shows the source as it is written and edited:
   in heading titles, `@defvar` entities, `@emph`/`@var` arguments
 - [x] `queries/injections.scm`: TeX/LaTeX, HTML, XML, DocBook raw blocks
 - [x] Inject LaTeX into `@math` and `@displaymath`
+- [x] Inject Emacs Lisp into `@lisp` and `@smalllisp`: 1,152 of the
+  manuals' 1,185 `@lisp` blocks are in Emacs's manuals (SBCL's 31 are
+  Common Lisp, which no query can tell apart)
 - [x] `queries/folds.scm`
 - [x] `queries/tags.scm`: nodes, anchors and documented functions and variables
   as definitions; cross-references and menu entries as references

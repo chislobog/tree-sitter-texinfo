@@ -54,6 +54,15 @@
   (#set! injection.language "latex")
   (#set! injection.include-children))
 
+; Lisp code, which in GNU manuals is mostly Emacs Lisp. Its commands, such
+; as `@var`, are parsed, so include them, as in `@displaymath`.
+((block
+  name: (command_name) @_name
+  (paragraph) @injection.content)
+  (#any-of? @_name "@lisp" "@smalllisp")
+  (#set! injection.language "elisp")
+  (#set! injection.include-children))
+
 ; Comments
 ((comment) @injection.content
   (#set! injection.language "comment"))

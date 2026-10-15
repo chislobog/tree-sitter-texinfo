@@ -22,6 +22,25 @@ a^2
 @c <- injection.latex
 @end displaymath
 
+@lisp
+@c <- !injection.elisp
+(setq x @var{value})
+@c <- injection.elisp
+
+;; A second paragraph.
+@c <- injection.elisp
+@end lisp
+
+@smalllisp
+(car x)
+@c <- injection.elisp
+@end smalllisp
+
+@example
+(car x)
+@c <- !injection.elisp
+@end example
+
 Raw @inlineraw{html, <i>i</i>} and @inlineraw{tex, $y$} here.
 @c                   ^ injection.html
 @c                                                 ^ injection.latex
