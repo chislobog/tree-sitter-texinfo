@@ -60,6 +60,13 @@ sources, which is what `texi2any` itself uses.
   (`test/fuzz/checked_scanner.c`): a newline in the padding before a
   token, a zero-width token with a length, a token not valid where it is
   returned and a read past the end of the file
+- [x] A `@node`'s look ahead for its section skips a node description
+  block only to the next node, section or `@bye`, where one left open
+  closes, as in texi2any (found by review): it read to the end of the
+  file, so a parse of many nodes with one open was quadratic (273 KB in
+  6 s) and each keystroke after one cost a parse of the rest of the file.
+  A section there is the node's; the parse check times such an input
+  (`--stress`)
 - [x] Keep the preformatted context through blocks nested in `@example`
   and the other preformatted blocks (`@group`, `@quotation`, even `@menu`),
   where a blank line doesn't close a brace command, as in texi2any

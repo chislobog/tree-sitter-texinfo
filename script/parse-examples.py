@@ -45,6 +45,9 @@ STRESS = {
     "long-line-groups.texi": "a {b} c " * 25000,
     "long-line-references.texi": "see @xref{Node, Label}, " * 8000,
     "long-heading.texi": "@chapter " + "a @emph{b} " * 18000,
+    # Each `@node` looks ahead for its section, past a node description
+    # block, which, left open, once took it to the end of the file.
+    "unclosed-node-descriptions.texi": "@node X\n@nodedescriptionblock\ntext\n" * 4000,
 }
 
 

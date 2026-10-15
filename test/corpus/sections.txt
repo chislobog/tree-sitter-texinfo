@@ -261,6 +261,65 @@ Longer.
         (text)))))
 
 ================================================================================
+A node description block left open closes at the section, which the node starts
+================================================================================
+
+@node Overview
+@nodedescriptionblock
+Longer.
+@chapter Overview
+
+---
+
+(source_file
+  (chapter
+    node: (node_line
+      name: (command_name)
+      node: (argument
+        (text)))
+    (block
+      name: (command_name)
+      (paragraph
+        (text))
+      end: (missing_end))
+    heading: (chapter_heading
+      name: (command_name)
+      title: (line_argument
+        (text)))))
+
+================================================================================
+A node description block left open closes at the next node
+================================================================================
+
+@node First
+@nodedescriptionblock
+Longer.
+@node Second
+@chapter Second
+
+---
+
+(source_file
+  (node_line
+    name: (command_name)
+    node: (argument
+      (text)))
+  (block
+    name: (command_name)
+    (paragraph
+      (text))
+    end: (missing_end))
+  (chapter
+    node: (node_line
+      name: (command_name)
+      node: (argument
+        (text)))
+    heading: (chapter_heading
+      name: (command_name)
+      title: (line_argument
+        (text)))))
+
+================================================================================
 An anchor between a node and its heading
 ================================================================================
 

@@ -562,6 +562,34 @@ static const struct {
 
 #define SECTIONING_COUNT (sizeof(SECTIONING) / sizeof(SECTIONING[0]))
 
+// `@node`, the sectioning commands and `@bye`, which close the brace
+// commands and blocks left open before them, as in texi2any ("@node seen
+// before @end menu").
+static bool is_root_command(const char *name) {
+  if (strcmp(name, "node") == 0 || strcmp(name, "bye") == 0) return true;
+  for (unsigned i = 0; i < SECTIONING_COUNT; i++) {
+    if (strcmp(SECTIONING[i].name, name) == 0) return true;
+  }
+  return false;
+}
+
+/**
+ * Accepts the token of a `@node` line before the sectioning command `name`,
+ * if it is one: the node token for that section's level.
+ */
+static bool accept_node_before(TSLexer *lexer, const bool *valid_symbols,
+                               const char *name) {
+  for (unsigned i = 0; i < SECTIONING_COUNT; i++) {
+    if (strcmp(SECTIONING[i].name, name) == 0) {
+      enum TokenType token = NODE_BEFORE + SECTIONING[i].level;
+      if (!valid_symbols[token]) return false;
+      lexer->result_symbol = (TSSymbol)token;
+      return true;
+    }
+  }
+  return false;
+}
+
 /**
  * Scans `@node` when the next line, after blank and comment lines, the
  * node's description (`@nodedescription`, `@nodedescriptionblock`) and
@@ -609,16 +637,22 @@ static bool scan_node_before_section(TSLexer *lexer,
     }
 
     if (strcmp(name, "nodedescriptionblock") == 0) {
-      // Skip to the line after its `@end`.
+      // Skip to the line after its `@end`. Left open, it closes at the next
+      // node, section or `@bye`, as in texi2any, where this scan stops too:
+      // read to the end of the file, it made a parse of many such nodes
+      // quadratic. A section there is still the node's.
       for (;;) {
         skip_to_next_line(lexer);
         if (lexer->eof(lexer)) return false;
         skip_blanks(lexer);
         if (lexer->lookahead != '@') continue;
         advance(lexer);
+        if (!read_name(lexer, name)) continue;
+        if (is_root_command(name)) {
+          return accept_node_before(lexer, valid_symbols, name);
+        }
         char end_name[MAX_NAME + 1];
-        if (read_name(lexer, name) && strcmp(name, "end") == 0 &&
-            read_end_name(lexer, end_name) &&
+        if (strcmp(name, "end") == 0 && read_end_name(lexer, end_name) &&
             strcmp(end_name, "nodedescriptionblock") == 0) {
           break;
         }
@@ -627,32 +661,13 @@ static bool scan_node_before_section(TSLexer *lexer,
       continue;
     }
 
-    for (unsigned i = 0; i < SECTIONING_COUNT; i++) {
-      if (strcmp(SECTIONING[i].name, name) == 0) {
-        enum TokenType token = NODE_BEFORE + SECTIONING[i].level;
-        if (!valid_symbols[token]) return false;
-        lexer->result_symbol = (TSSymbol)token;
-        return true;
-      }
-    }
-    return false;
+    return accept_node_before(lexer, valid_symbols, name);
   }
 }
 
 // Conditionals, which texi2any evaluates before parsing.
 static inline bool is_conditional(const char *name) {
   return strncmp(name, "if", 2) == 0;
-}
-
-// `@node`, the sectioning commands and `@bye`, which close the brace
-// commands and blocks left open before them, as in texi2any ("@node seen
-// before @end menu").
-static bool is_root_command(const char *name) {
-  if (strcmp(name, "node") == 0 || strcmp(name, "bye") == 0) return true;
-  for (unsigned i = 0; i < SECTIONING_COUNT; i++) {
-    if (strcmp(SECTIONING[i].name, name) == 0) return true;
-  }
-  return false;
 }
 
 /** The name of the innermost open block; there must be one. */
