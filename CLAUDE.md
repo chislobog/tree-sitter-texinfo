@@ -180,8 +180,11 @@ runs the commit ones as its `pre-commit` check, and the others as its
 `generated` and `tests` checks.
 
 The `fuzz-scanner` check runs libFuzzer with sanitizers on the parser and
-scanner for 60,000 runs from a fixed seed, about two minutes (harness `test/fuzz/harness.c`, dictionary from
-`script/fuzz-dict.py`, seeds from `script/corpus-inputs.py`); `just
+scanner for 60,000 runs from a fixed seed, about two minutes (harness
+`test/fuzz/harness.c`; the scanner built with `test/fuzz/checked_scanner.c`,
+which aborts on what no tree shows, such as a newline left in a token's
+padding; dictionary from `script/fuzz-dict.py`, seeds from
+`script/corpus-inputs.py`); `just
 fuzz-scanner [SECONDS] [JOBS]` runs it longer and on several cores, keeping
 what it covers in `build/fuzz/out`. LLVM is version 23, not nixpkgs' default
 21, whose AddressSanitizer deadlocks at startup on macOS 27. `just fuzz-deep`

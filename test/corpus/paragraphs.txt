@@ -254,6 +254,48 @@ n
       end: (missing_end))))
 
 ================================================================================
+An accent at the end of a line before a comment line has no argument
+================================================================================
+
+foo @u
+@c comment
+bar
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (inline_command
+      name: (command_name))
+    (comment)
+    (text)))
+
+================================================================================
+An accent at the end of a line in an unclosed brace before an @end
+================================================================================
+
+@quotation
+foo @code{a @u
+@end quotation
+
+---
+
+(source_file
+  (block
+    name: (command_name)
+    (paragraph
+      (text)
+      (inline_command
+        name: (command_name)
+        arguments: (brace_arguments
+          (text)
+          (inline_command
+            name: (command_name)))
+        (missing_brace)))
+    end: (block_end)))
+
+================================================================================
 Comment lines inside a paragraph don't end it
 ================================================================================
 
@@ -949,6 +991,31 @@ after.
                 (text))))
           end: (block_end))))
     end: (block_end)))
+
+================================================================================
+A bare comment after the end of a conditional in a paragraph
+================================================================================
+
+foo
+@ifinfo
+bar
+@end ifinfo @c
+@c y
+baz
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (block
+      name: (command_name)
+      (paragraph
+        (text))
+      end: (block_end))
+    (comment)
+    (comment)
+    (text)))
 
 ================================================================================
 Text after the end of a block in a paragraph goes on with the paragraph

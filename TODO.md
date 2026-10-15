@@ -50,6 +50,16 @@ sources, which is what `texi2any` itself uses.
   body, where an edit had left no x line after it, stayed one when the
   `@deffnx` came back. The rules are inlined (4 parser states); a corpus
   test of each fails the `fuzz` check without that
+- [x] A scan of the first stage that reads past blanks and fails no longer
+  leaves the second to go on from where it stopped (found by review): an
+  accent at the end of a line read past the newline to look for its
+  argument, so a comment line after it ended the paragraph and a brace
+  left open closed on the next line; `@end ifinfo @c` lost its comment,
+  and `name@c@code{x}` on a definition line was one command. The fuzzer
+  builds the scanner with checks of what no tree shows
+  (`test/fuzz/checked_scanner.c`): a newline in the padding before a
+  token, a zero-width token with a length, a token not valid where it is
+  returned and a read past the end of the file
 - [x] Keep the preformatted context through blocks nested in `@example`
   and the other preformatted blocks (`@group`, `@quotation`, even `@menu`),
   where a blank line doesn't close a brace command, as in texi2any

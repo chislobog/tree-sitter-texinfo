@@ -563,6 +563,24 @@ A comment after a word is not glued to it
     (block_end)))
 
 ================================================================================
+A comment right before a command after a word is not glued to it
+================================================================================
+
+@deffn Cat name@c@code{x}
+@end deffn
+
+---
+
+(source_file
+  (definition_block
+    (definition_line
+      (command_name)
+      (text)
+      (text)
+      (comment))
+    (block_end)))
+
+================================================================================
 Every definition layout
 ================================================================================
 

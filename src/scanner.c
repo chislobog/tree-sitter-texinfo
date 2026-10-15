@@ -250,6 +250,10 @@ typedef struct {
   bool after_accent;
 } Scanner;
 
+// The outcome of a scan of the first stage (see the scan function), after
+// which the second stage may only go on if nothing but blanks was read.
+typedef enum { SCAN_NONE, SCAN_FAILED, SCAN_FOUND } ScanResult;
+
 static inline void advance(TSLexer *lexer) { lexer->advance(lexer, false); }
 
 static inline void skip(TSLexer *lexer) { lexer->advance(lexer, true); }
@@ -709,15 +713,32 @@ static bool more_comment_lines(TSLexer *lexer) {
 }
 
 /**
+ * Whether the lookahead, after any blanks, may be the argument of an accent
+ * command without braces: not `@`, a brace, a line end or the end of the
+ * file.
+ */
+static bool is_accent_argument(TSLexer *lexer) {
+  int32_t c = lexer->lookahead;
+  return !lexer->eof(lexer) && c != '@' && c != '{' && c != '}' && c != '\n' &&
+         c != '\r';
+}
+
+/**
  * Scans the zero-width token before a paragraph's newline when comment lines
  * follow it: as in texi2any, they don't end the paragraph, also before a
- * blank line or the end of the file.
+ * blank line or the end of the file. After an accent at the end of the line
+ * (`accent`), the next line's first character may be its argument instead.
+ * The line end is skipped, so that the argument's token starts after it.
  */
-static bool scan_newline_before_comments(TSLexer *lexer) {
+static bool scan_newline_before_comments(TSLexer *lexer, bool accent) {
   lexer->mark_end(lexer);
-  advance(lexer);
+  skip(lexer);
   while (is_blank(lexer->lookahead) || lexer->lookahead == '\r') {
+    skip(lexer);
+  }
+  if (accent && is_accent_argument(lexer)) {
     advance(lexer);
+    return accept(lexer, ACCENT_ARGUMENT);
   }
   if (lexer->lookahead != '@') return false;
   advance(lexer);
@@ -734,24 +755,36 @@ static bool scan_newline_before_comments(TSLexer *lexer) {
  * Scans the argument of an accent command without braces: one character
  * after any blanks and at most one newline, as in texi2any, but none in a
  * line command's line, which the newline ends. Not `@`, a brace or a blank
- * line.
+ * line. Only blanks are read on the accent's line: at its end, sets
+ * `next_line` if the argument may be on the next line, which the scans that
+ * read past the line end decide, as the tokens that end there do.
  */
-static bool scan_accent_argument(TSLexer *lexer, const bool *valid_symbols) {
+static bool scan_accent_argument(TSLexer *lexer, const bool *valid_symbols,
+                                 bool *next_line) {
   bool across_lines = valid_symbols[ACCENT_ARGUMENT];
   while (is_blank(lexer->lookahead)) skip(lexer);
-  if (lexer->lookahead == '\r') skip(lexer);
+  if (lexer->lookahead == '\n' || lexer->lookahead == '\r') {
+    *next_line = across_lines;
+    return false;
+  }
+  if (!is_accent_argument(lexer)) return false;
+  advance(lexer);
+  return accept(lexer, across_lines ? ACCENT_ARGUMENT : LINE_ACCENT_ARGUMENT);
+}
+
+/**
+ * Scans an accent's argument on the next line, where no token ends the line:
+ * as `scan_newline_before_comments` does, where it may.
+ */
+static bool scan_next_line_accent_argument(TSLexer *lexer) {
+  while (is_blank(lexer->lookahead) || lexer->lookahead == '\r') skip(lexer);
   if (lexer->lookahead == '\n') {
-    if (!across_lines) return false;
     skip(lexer);
     while (is_blank(lexer->lookahead)) skip(lexer);
   }
-  int32_t c = lexer->lookahead;
-  if (lexer->eof(lexer) || c == '@' || c == '{' || c == '}' || c == '\n' ||
-      c == '\r') {
-    return false;
-  }
+  if (!is_accent_argument(lexer)) return false;
   advance(lexer);
-  return accept(lexer, across_lines ? ACCENT_ARGUMENT : LINE_ACCENT_ARGUMENT);
+  return accept(lexer, ACCENT_ARGUMENT);
 }
 
 /**
@@ -839,9 +872,10 @@ static bool starts_item(const Scanner *scanner, const char *name) {
 /**
  * Scans the rest of the line after the `@end` of a block in a paragraph, up
  * to a comment, as one text: texi2any reports it, keeping it in the `@end`
- * line.
+ * line. A comment right after the blanks fails the scan, as the second stage
+ * would at it: the internal lexer takes it.
  */
-static bool scan_end_line_text(TSLexer *lexer) {
+static ScanResult scan_end_line_text(TSLexer *lexer) {
   while (is_blank(lexer->lookahead)) skip(lexer);
   bool found = false;
   for (;;) {
@@ -854,6 +888,7 @@ static bool scan_end_line_text(TSLexer *lexer) {
       char name[MAX_NAME + 1];
       if (read_name(lexer, name) &&
           (strcmp(name, "c") == 0 || strcmp(name, "comment") == 0)) {
+        if (!found) return SCAN_FAILED;
         break;
       }
       found = true;
@@ -865,7 +900,7 @@ static bool scan_end_line_text(TSLexer *lexer) {
     if (!is_blank(c)) lexer->mark_end(lexer);
   }
   lexer->result_symbol = END_LINE_TEXT;
-  return found;
+  return found ? SCAN_FOUND : SCAN_NONE;
 }
 
 /**
@@ -1175,23 +1210,29 @@ static bool scan_menu_node_dots(TSLexer *lexer) {
  * at the line end, after any blanks.
  */
 static bool scan_missing_brace(Scanner *scanner, TSLexer *lexer,
-                               const bool *valid_symbols) {
+                               const bool *valid_symbols, bool accent) {
   bool paragraph_end = valid_symbols[BRACE_CLOSE_AT_PARAGRAPH_END];
   bool block_end = valid_symbols[BRACE_CLOSE_AT_BLOCK_END];
 
+  // The line end is skipped, so that an accent's argument after it starts
+  // after it (see scan_newline_before_comments).
   lexer->mark_end(lexer);
   if (lexer->lookahead == '\r') {
-    advance(lexer);
+    skip(lexer);
     if (lexer->lookahead != '\n') {
       // Lone carriage returns are blanks, at the end of the file too.
-      while (lexer->lookahead == '\r') advance(lexer);
+      while (lexer->lookahead == '\r') skip(lexer);
       if (!lexer->eof(lexer)) return false;
     }
   }
   if (!lexer->eof(lexer)) {
     if (lexer->lookahead != '\n') return false;
+    skip(lexer);
+    while (is_blank(lexer->lookahead)) skip(lexer);
+  }
+  if (accent && is_accent_argument(lexer)) {
     advance(lexer);
-    skip_blanks(lexer);
+    return accept(lexer, ACCENT_ARGUMENT);
   }
 
   if (lexer->eof(lexer)) {
@@ -1292,41 +1333,41 @@ void tree_sitter_texinfo_external_scanner_deserialize(void *payload,
  * continues the word if the next line starts with it, as in texi2any; with
  * a blank before the `@` or after the line end, it is a space. Only the next
  * characters are read, never the column, so incremental parsing re-scans it
- * when they change.
+ * when they change. Once past the `@`, no glue fails the scan, as the second
+ * stage would at the `@`: the internal lexer takes it.
  */
-static bool scan_word_glue(TSLexer *lexer) {
+static ScanResult scan_word_glue(TSLexer *lexer) {
   int32_t c = lexer->lookahead;
   if (lexer->eof(lexer) || is_blank(c) || c == '\n' || c == '\r' || c == '}') {
-    return false;
+    return SCAN_NONE;
   }
   lexer->mark_end(lexer);
+  lexer->result_symbol = WORD_GLUE;
   if (c == '@') {
     advance(lexer);
     c = lexer->lookahead;
     if (c == '\r') {
       advance(lexer);
       c = lexer->lookahead;
-      if (c != '\n') return false;
+      if (c != '\n') return SCAN_FAILED;
     }
     if (c == '\n') {
       advance(lexer);
       c = lexer->lookahead;
       if (lexer->eof(lexer) || is_blank(c) || c == '\n' || c == '\r' ||
           c == '}') {
-        return false;
+        return SCAN_FAILED;
       }
-      lexer->result_symbol = WORD_GLUE;
-      return true;
+      return SCAN_FOUND;
     }
-    if (lexer->eof(lexer)) return false;
+    if (lexer->eof(lexer)) return SCAN_FAILED;
     char name[MAX_NAME + 1];
     if (read_name(lexer, name) &&
         (strcmp(name, "c") == 0 || strcmp(name, "comment") == 0)) {
-      return false;
+      return SCAN_FAILED;
     }
   }
-  lexer->result_symbol = WORD_GLUE;
-  return true;
+  return SCAN_FOUND;
 }
 
 /**
@@ -1409,7 +1450,8 @@ static int command_token(const Scanner *scanner, const bool *valid_symbols,
  * accent's argument, `@verb`'s parts, the glue in a definition word, raw
  * text, and the zero-width ends of a brace, paragraph or block left open.
  * Then a command at `@`, by its name. The first stage only skips blanks
- * before giving up, so the second sees the same text.
+ * before giving up, so the second sees the same text; a scan of it that has
+ * read further fails the whole scan, as a scan can't go back.
  */
 bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
                                                const bool *valid_symbols) {
@@ -1423,20 +1465,29 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
   // before each scan, so this is only set right after an accent's name.
   bool after_accent = scanner->after_accent;
   scanner->after_accent = false;
+  // Whether an accent at the end of its line may take the next line's first
+  // character, which the scans of the line end below decide.
+  bool accent_next_line = false;
   if (after_accent &&
       (valid_symbols[ACCENT_ARGUMENT] || valid_symbols[LINE_ACCENT_ARGUMENT]) &&
-      scan_accent_argument(lexer, valid_symbols)) {
+      scan_accent_argument(lexer, valid_symbols, &accent_next_line)) {
     return true;
   }
 
-  if (valid_symbols[END_LINE_TEXT] && scan_end_line_text(lexer)) return true;
+  if (valid_symbols[END_LINE_TEXT]) {
+    ScanResult result = scan_end_line_text(lexer);
+    if (result != SCAN_NONE) return result == SCAN_FOUND;
+  }
 
   if (valid_symbols[VERB_OPEN] || valid_symbols[VERB_TEXT] ||
       valid_symbols[VERB_CLOSE]) {
     return scan_verb(scanner, lexer, valid_symbols);
   }
 
-  if (valid_symbols[WORD_GLUE] && scan_word_glue(lexer)) return true;
+  if (valid_symbols[WORD_GLUE]) {
+    ScanResult result = scan_word_glue(lexer);
+    if (result != SCAN_NONE) return result == SCAN_FOUND;
+  }
 
   // A menu entry inside a conditional in a menu, which texi2any sees once it
   // has evaluated the conditional. At the start of the line, where the scan
@@ -1505,7 +1556,9 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
   // missing brace looks for comment lines too.
   if (valid_symbols[NEWLINE_BEFORE_COMMENTS] && !brace_close) {
     skip_counted(&start, true);
-    if (lexer->lookahead == '\n') return scan_newline_before_comments(lexer);
+    if (lexer->lookahead == '\n') {
+      return scan_newline_before_comments(lexer, accent_next_line);
+    }
   }
 
   // A brace still open at the start of a line closes on that line as it
@@ -1523,9 +1576,12 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
       if (valid_symbols[BRACE_CLOSE_AT_LINE_END]) {
         return accept(lexer, BRACE_CLOSE_AT_LINE_END);
       }
-      return scan_missing_brace(scanner, lexer, valid_symbols);
+      return scan_missing_brace(scanner, lexer, valid_symbols,
+                                accent_next_line);
     }
   }
+  // At a line end, no other token can be scanned below.
+  if (accent_next_line) return scan_next_line_accent_argument(lexer);
 
   // Leading blanks are left out of the token. The grammar only allows block
   // openers and `@end` at the start of a line; checking the column here

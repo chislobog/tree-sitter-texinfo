@@ -231,11 +231,13 @@
             fun:tree_sitter_*_external_scanner_deserialize
           '';
           # Builds the libFuzzer target for the parser and scanner, with
-          # AddressSanitizer and UndefinedBehaviorSanitizer, into OUTPUT.
+          # AddressSanitizer and UndefinedBehaviorSanitizer, into OUTPUT. The
+          # scanner is built with checks of the tokens it returns that no tree
+          # shows (test/fuzz/checked_scanner.c).
           buildFuzzer = output: ''
             ${llvm.clang}/bin/clang -std=c11 -Og -g -Isrc -I${pkgs.tree-sitter}/include \
               -fsanitize=fuzzer,address,undefined -fsanitize-ignorelist=${fuzzIgnorelist} \
-              test/fuzz/harness.c src/parser.c src/scanner.c \
+              test/fuzz/harness.c src/parser.c test/fuzz/checked_scanner.c \
               -L${pkgs.tree-sitter}/lib -ltree-sitter -Wl,-rpath,${pkgs.tree-sitter}/lib -o ${output}
           '';
         in
