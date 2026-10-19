@@ -235,11 +235,16 @@ def check_parse_errors(checker: Checker):
         [*command, checker.file("errors.txt", f"# A reason\n{PARSE_ERROR}\n"), PARSE_ERROR, SAME],
         True,
     )
+    spec = importlib.util.spec_from_file_location(
+        "parse_examples", ROOT / "script" / "parse-examples.py"
+    )
+    parse_examples = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(parse_examples)
     checker.expect(
         "parse speed: --stress adds the generated inputs",
         [*command, checker.file("stress-errors.txt", ""), "--stress", SAME],
         True,
-        "5 files, 0 with parse errors",
+        f"{len(parse_examples.STRESS) + 1} files, 0 with parse errors",
     )
     # Of two files, the slower is slower than the median by any factor above 1.
     plain = checker.file("plain.texi", "Plain text in a paragraph.\n\n" * 1000)
