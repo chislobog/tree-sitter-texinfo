@@ -1,15 +1,21 @@
 """Texinfo grammar for tree-sitter"""
 
 from importlib.resources import files as _files
+from pathlib import Path as _Path
 
 from ._binding import language
 
 
 def _get_query(name, file):
-    try:
-        query = _files(f"{__package__}") / file
-        globals()[name] = query.read_text()
-    except FileNotFoundError:
+    # A wheel holds a copy of the queries (setup.py); an editable install
+    # has the repository's own, three directories up.
+    for query in (_files(f"{__package__}") / file, _Path(__file__).parents[3] / file):
+        try:
+            globals()[name] = query.read_text()
+            break
+        except FileNotFoundError:
+            continue
+    else:
         globals()[name] = None
     return globals()[name]
 
