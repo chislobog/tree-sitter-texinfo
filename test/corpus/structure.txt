@@ -436,3 +436,22 @@ Raw arguments of @vskip, @clickstyle and @unmacro
     name: (command_name)
     argument: (line_argument
       (raw_text))))
+
+================================================================================
+A user-defined index command of any length is a line command
+================================================================================
+
+@defindex averyveryveryveryverylongindexname
+@averyveryveryveryverylongindexnameindex entry
+
+---
+
+(source_file
+  (line_command
+    name: (command_name)
+    argument: (line_argument
+      (text)))
+  (line_command
+    name: (command_name)
+    argument: (line_argument
+      (text))))

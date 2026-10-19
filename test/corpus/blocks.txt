@@ -897,3 +897,20 @@ An include at the end of the file without a newline
     (command_name)
     (line_argument
       (text))))
+
+================================================================================
+A NUL is a blank before an @end too, as texi2any drops it
+================================================================================
+
+@example
+foo
+ @end example
+
+---
+
+(source_file
+  (block
+    name: (command_name)
+    (paragraph
+      (text))
+    end: (block_end)))

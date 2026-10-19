@@ -75,6 +75,13 @@ sources, which is what `texi2any` itself uses.
   6 s) and each keystroke after one cost a parse of the rest of the file.
   A section there is the node's; the parse check times such an input
   (`--stress`)
+- [x] Edge cases found by review: a `@verb` delimiter that isn't UTF-8,
+  which tree-sitter reads as -1, was taken for none, as the scanner marked
+  that with -1; nested `@ignore` blocks were counted to 64, now to any
+  depth (macro definitions nested in a macro still to 64); a user-defined
+  index command of 32 characters or more wasn't a line command; a NUL,
+  which the grammar and texi2any take as a blank, wasn't one to the
+  scanner, so `@end` after one ended no block
 - [x] A paragraph's line end reads the first line of a conditional on the
   next line, as the conditional's own scan does (found by review, by
   chains of random edits): after one edit and then another on that first

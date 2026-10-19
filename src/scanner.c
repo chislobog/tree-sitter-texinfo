@@ -225,14 +225,21 @@ static const Block BLOCKS[] = {
 
 #define BLOCK_COUNT (sizeof(BLOCKS) / sizeof(BLOCKS[0]))
 
-// Longest block name is "nodedescriptionblock"; longer words never match.
+// The block stack holds indices into BLOCKS as bytes.
+typedef char block_index_fits_a_byte[BLOCK_COUNT <= 256 ? 1 : -1];
+
+// Longer than any built-in name ("nodedescriptionblock" is the longest
+// block name): a longer one can only be a user-defined index command
+// (read_name).
 #define MAX_NAME 32
 
 // The `@verb` delimiter after a `@verb{` at the end of a line, which has
-// none: no character is negative.
-#define NO_VERB_DELIMITER (-1)
+// none: no lookahead is, not even the -1 of a byte that isn't UTF-8, which
+// may be a delimiter.
+#define NO_VERB_DELIMITER INT32_MIN
 
-// Deepest nesting tracked inside a single raw block body.
+// Deepest nesting of macro definitions tracked inside a single macro's
+// body; nested raw blocks of the block's own name are counted to any depth.
 #define MAX_RAW_DEPTH 64
 
 // Serialized state: the `@verb` delimiter and the accent flag, then the
@@ -275,8 +282,16 @@ static inline bool is_blank(int32_t c) {
   return c == ' ' || c == '\t' || c == '\v' || c == '\f';
 }
 
+// Whether the lookahead is a blank or a NUL, which texi2any drops, as the
+// grammar's `extras` do; not the end of the file, where the lookahead is 0
+// too.
+static inline bool at_blank(TSLexer *lexer) {
+  return is_blank(lexer->lookahead) ||
+         (lexer->lookahead == 0 && !lexer->eof(lexer));
+}
+
 static void skip_blanks(TSLexer *lexer) {
-  while (is_blank(lexer->lookahead)) advance(lexer);
+  while (at_blank(lexer)) advance(lexer);
 }
 
 static void skip_to_next_line(TSLexer *lexer) {
@@ -310,7 +325,7 @@ static bool starts_line(LineStart *start) {
 // Skips the blanks, and carriage returns if `returns`, counting them.
 static void skip_counted(LineStart *start, bool returns) {
   TSLexer *lexer = start->lexer;
-  while (is_blank(lexer->lookahead) || (returns && lexer->lookahead == '\r')) {
+  while (at_blank(lexer) || (returns && lexer->lookahead == '\r')) {
     if (lexer->lookahead == '\f') start->form_feed = true;
     skip(lexer);
     start->consumed++;
@@ -325,20 +340,32 @@ static inline bool is_name_char(int32_t c) {
 /**
  * Reads a command or block name whole, as texi2any does: a letter or digit
  * followed by letters, digits and `-`, of any length (`_` ends it: `@c_x` is
- * a comment). Returns false if
- * there is none or it is too long to be a built-in name; `name` holds it
- * otherwise.
+ * a comment). Returns false if there is none or it is too long to be a
+ * built-in name; `name` holds it otherwise. A longer name ending in `index`
+ * may still be a user-defined index command (`@defindex`), which only that
+ * end tells: `name` is then `-index`, which no other name can be.
  */
 static bool read_name(TSLexer *lexer, char *name) {
   unsigned length = 0;
+  char tail[5] = {0};
   if (!is_alpha(lexer->lookahead) && !is_digit(lexer->lookahead)) return false;
   while (is_name_char(lexer->lookahead)) {
     if (length < MAX_NAME) name[length] = (char)lexer->lookahead;
+    memmove(tail, tail + 1, sizeof(tail) - 1);
+    tail[sizeof(tail) - 1] = (char)lexer->lookahead;
     length++;
     advance(lexer);
   }
-  name[length < MAX_NAME ? length : MAX_NAME] = '\0';
-  return length < MAX_NAME;
+  if (length < MAX_NAME) {
+    name[length] = '\0';
+    return true;
+  }
+  if (memcmp(tail, "index", sizeof(tail)) == 0) {
+    strcpy(name, "-index");
+    return true;
+  }
+  name[MAX_NAME] = '\0';
+  return false;
 }
 
 static int find_block(const char *name) {
@@ -353,7 +380,7 @@ static int find_block(const char *name) {
  * if there is no name.
  */
 static bool read_end_name(TSLexer *lexer, char *name) {
-  if (!is_blank(lexer->lookahead)) return false;
+  if (!at_blank(lexer)) return false;
   skip_blanks(lexer);
   return read_name(lexer, name);
 }
@@ -629,7 +656,7 @@ static bool scan_node_before_section(TSLexer *lexer,
       continue;
     }
     if (strcmp(name, "nodedescription") == 0) {
-      if (!is_blank(lexer->lookahead) && lexer->lookahead != '\n' &&
+      if (!at_blank(lexer) && lexer->lookahead != '\n' &&
           lexer->lookahead != '\r' && !lexer->eof(lexer)) {
         return false;
       }
@@ -722,7 +749,7 @@ static bool is_symbol_accent(int32_t c) {
  */
 static bool more_comment_lines(TSLexer *lexer) {
   for (;;) {
-    while (is_blank(lexer->lookahead) || lexer->lookahead == '\r') {
+    while (at_blank(lexer) || lexer->lookahead == '\r') {
       advance(lexer);
     }
     if (lexer->lookahead != '@') break;
@@ -791,7 +818,7 @@ static bool is_accent_argument(TSLexer *lexer) {
 static bool scan_newline_before_comments(TSLexer *lexer, bool accent) {
   lexer->mark_end(lexer);
   skip(lexer);
-  while (is_blank(lexer->lookahead) || lexer->lookahead == '\r') {
+  while (at_blank(lexer) || lexer->lookahead == '\r') {
     skip(lexer);
   }
   if (accent && is_accent_argument(lexer)) {
@@ -821,7 +848,7 @@ static bool scan_newline_before_comments(TSLexer *lexer, bool accent) {
 static bool scan_accent_argument(TSLexer *lexer, const bool *valid_symbols,
                                  bool *next_line) {
   bool across_lines = valid_symbols[ACCENT_ARGUMENT];
-  while (is_blank(lexer->lookahead)) skip(lexer);
+  while (at_blank(lexer)) skip(lexer);
   if (lexer->lookahead == '\n' || lexer->lookahead == '\r') {
     *next_line = across_lines;
     return false;
@@ -836,10 +863,10 @@ static bool scan_accent_argument(TSLexer *lexer, const bool *valid_symbols,
  * as `scan_newline_before_comments` does, where it may.
  */
 static bool scan_next_line_accent_argument(TSLexer *lexer) {
-  while (is_blank(lexer->lookahead) || lexer->lookahead == '\r') skip(lexer);
+  while (at_blank(lexer) || lexer->lookahead == '\r') skip(lexer);
   if (lexer->lookahead == '\n') {
     skip(lexer);
-    while (is_blank(lexer->lookahead)) skip(lexer);
+    while (at_blank(lexer)) skip(lexer);
   }
   if (!is_accent_argument(lexer)) return false;
   advance(lexer);
@@ -852,7 +879,7 @@ static bool scan_next_line_accent_argument(TSLexer *lexer) {
  * blanks are left out.
  */
 static bool scan_inline_raw(TSLexer *lexer) {
-  while (is_blank(lexer->lookahead)) skip(lexer);
+  while (at_blank(lexer)) skip(lexer);
   unsigned depth = 0;
   bool has_text = false;
   while (!lexer->eof(lexer)) {
@@ -945,7 +972,7 @@ static bool starts_item(const Scanner *scanner, const char *name) {
  * would at it: the internal lexer takes it.
  */
 static ScanResult scan_end_line_text(TSLexer *lexer) {
-  while (is_blank(lexer->lookahead)) skip(lexer);
+  while (at_blank(lexer)) skip(lexer);
   bool found = false;
   for (;;) {
     int32_t c = lexer->lookahead;
@@ -1096,7 +1123,9 @@ static bool scan_raw(Scanner *scanner, TSLexer *lexer,
   if (scanner->depth == 0) return false;
   const Block *block = &BLOCKS[scanner->stack[scanner->depth - 1]];
 
-  // Names expected by nested `@end`s, innermost last.
+  // Names expected by nested `@end`s, innermost last: a macro definition's
+  // nested macros' names; in another raw block, its own, which only needs
+  // counting.
   const char *nested[MAX_RAW_DEPTH];
   unsigned nested_depth = 0;
   bool has_text = false;
@@ -1110,8 +1139,9 @@ static bool scan_raw(Scanner *scanner, TSLexer *lexer,
       if (read_name(lexer, name)) {
         char end_name[MAX_NAME + 1];
         if (strcmp(name, "end") == 0 && read_end_name(lexer, end_name)) {
-          const char *expected =
-              nested_depth > 0 ? nested[nested_depth - 1] : block->name;
+          const char *expected = nested_depth > 0 && block->kind == KIND_MACRO
+                                     ? nested[nested_depth - 1]
+                                     : block->name;
           if (strcmp(end_name, expected) == 0) {
             if (nested_depth > 0) {
               nested_depth--;
@@ -1124,18 +1154,18 @@ static bool scan_raw(Scanner *scanner, TSLexer *lexer,
               return valid_symbols[BLOCK_END] && pop_block(scanner, lexer);
             }
           }
-        } else if (nested_depth < MAX_RAW_DEPTH &&
-                   (is_blank(lexer->lookahead) || lexer->lookahead == '\n' ||
-                    lexer->lookahead == '\r' || lexer->lookahead == '@')) {
+        } else if (at_blank(lexer) || lexer->lookahead == '\n' ||
+                   lexer->lookahead == '\r' || lexer->lookahead == '@') {
           // `texi2any` requires a separator after a nested opener.
           if (block->kind == KIND_MACRO) {
             int index = find_block(name);
-            if (index >= 0 && BLOCKS[index].kind == KIND_MACRO) {
+            if (index >= 0 && BLOCKS[index].kind == KIND_MACRO &&
+                nested_depth < MAX_RAW_DEPTH) {
               nested[nested_depth++] = BLOCKS[index].name;
             }
           } else if (strcmp(name, block->name) == 0) {
             // KIND_RAW, the only other kind with a raw body.
-            nested[nested_depth++] = block->name;
+            nested_depth++;
           }
         }
       }
@@ -1276,7 +1306,7 @@ static bool scan_missing_brace(Scanner *scanner, TSLexer *lexer,
   if (!lexer->eof(lexer)) {
     if (lexer->lookahead != '\n') return false;
     skip(lexer);
-    while (is_blank(lexer->lookahead)) skip(lexer);
+    while (at_blank(lexer)) skip(lexer);
   }
   if (accent && is_accent_argument(lexer)) {
     advance(lexer);
@@ -1374,6 +1404,7 @@ void tree_sitter_texinfo_external_scanner_deserialize(void *payload,
   size += sizeof(int32_t);
   scanner->after_accent = buffer[size++];
   scanner->depth = length - size;
+  if (scanner->depth > MAX_DEPTH) scanner->depth = MAX_DEPTH;
   memcpy(scanner->stack, buffer + size, scanner->depth);
 }
 
@@ -1549,7 +1580,7 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
     if (block != NULL && block->kind == KIND_MENU) {
       lexer->mark_end(lexer);
       advance(lexer);
-      if (!is_blank(lexer->lookahead)) return false;
+      if (!at_blank(lexer)) return false;
       lexer->result_symbol = MENU_ENTRY_START;
       return true;
     }
@@ -1558,7 +1589,7 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
   // Valid only in a menu node, after the entry's `:`, never at column 0, so
   // skipping blanks here changes nothing below.
   if (valid_symbols[MENU_NODE_DOTS]) {
-    while (is_blank(lexer->lookahead)) skip(lexer);
+    while (at_blank(lexer)) skip(lexer);
     if (lexer->lookahead == '.') return scan_menu_node_dots(lexer);
   }
 
@@ -1574,7 +1605,7 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
   // Only blanks are skipped before deciding, so on an empty body the other
   // tokens can still be scanned.
   if (valid_symbols[INLINE_RAW_TEXT]) {
-    while (is_blank(lexer->lookahead)) skip(lexer);
+    while (at_blank(lexer)) skip(lexer);
     if (!lexer->eof(lexer) && lexer->lookahead != '}') {
       return scan_inline_raw(lexer);
     }

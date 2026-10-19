@@ -328,3 +328,160 @@ Text \a\.
     (text)
     (raw_text)
     (missing_end)))
+
+================================================================================
+Nested @ignore blocks are counted to any depth, as in texi2any
+================================================================================
+
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+@ignore
+text
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+@end ignore
+after
+
+---
+
+(source_file
+  (raw_block
+    name: (command_name)
+    body: (raw_text)
+    end: (block_end))
+  (paragraph
+    (text)))
