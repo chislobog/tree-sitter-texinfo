@@ -46,6 +46,10 @@ Raw @inlineraw{html, <i>i</i>} and @inlineraw{tex, $y$} here.
 @c                                                 ^ injection.latex
 @c                                                 ^ !injection.tex
 
+Raw @inlineraw{docbook, <x/>} here.
+@c                      ^ injection.xml
+@c                      ^ !injection.docbook
+
 @macro name{arg}
 Some @code{\arg\}.
 @end macro

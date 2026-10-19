@@ -24,7 +24,8 @@
   body: (raw_text) @injection.content
   (#set! injection.language "texinfo"))
 
-; `@inlineraw{FORMAT, TEXT}`: the format names the language, `tex` aside.
+; `@inlineraw{FORMAT, TEXT}`: the format names the language, `tex` and
+; `docbook` aside, as for the raw blocks.
 ((inline_command
   name: (command_name) @_name
   format: (argument) @_format
@@ -35,10 +36,18 @@
 
 ((inline_command
   name: (command_name) @_name
+  format: (argument) @_format
+  body: (raw_text) @injection.content)
+  (#eq? @_name "@inlineraw")
+  (#eq? @_format "docbook")
+  (#set! injection.language "xml"))
+
+((inline_command
+  name: (command_name) @_name
   format: (argument) @injection.language
   body: (raw_text) @injection.content)
   (#eq? @_name "@inlineraw")
-  (#not-any-of? @injection.language "tex" "latex"))
+  (#not-any-of? @injection.language "tex" "latex" "docbook"))
 
 ; Math. The contents are made of text and command nodes, so include them.
 ((inline_command
