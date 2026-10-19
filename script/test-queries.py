@@ -72,9 +72,14 @@ def as_regex(text: str) -> str:
     `#not-match?` ones."""
 
     def regex(match: re.Match) -> str:
-        values = re.findall(r'"((?:[^"\\]|\\.)*)"', match.group(2))
+        # Each value as written in the query, its escapes undone.
+        values = [
+            re.sub(r"\\(.)", r"\1", value)
+            for value in re.findall(r'"((?:[^"\\]|\\.)*)"', match.group(2))
+        ]
         pattern = "^(?:" + "|".join(re.escape(value) for value in values) + ")$"
-        return f'(#not-match? {match.group(1)} "{pattern.replace(chr(92), chr(92) * 2)}")'
+        literal = pattern.replace("\\", "\\\\").replace('"', '\\"')
+        return f'(#not-match? {match.group(1)} "{literal}")'
 
     return NOT_ANY_OF.sub(regex, text)
 

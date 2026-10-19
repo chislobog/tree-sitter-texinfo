@@ -67,3 +67,13 @@ after.
 
 @noindent
 @c <- keyword
+
+@display
+@c <- keyword
+In the font of the text.
+@end display
+
+@deffn {Operator} @@
+@c                ^ string.escape
+@c                ^ !function
+@end deffn

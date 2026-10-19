@@ -123,9 +123,15 @@
 
 ; Definitions
 ; Three exclusive patterns, as each node can only be highlighted by one match.
+; A word but a symbol command, which is an escape (`@deffn Operator @@`).
 ((definition_line
   name: (command_name) @keyword
-  entity: (_)? @variable)
+  entity: [
+    (text)
+    (word)
+    (brace_group)
+    (inline_command)
+  ]? @variable)
   (#any-of? @keyword
     "@defvr" "@defvrx" "@defvar" "@defvarx" "@defopt" "@defoptx" "@defcv" "@defcvx" "@defivar"
     "@defivarx" "@deftypevr" "@deftypevrx" "@deftypevar" "@deftypevarx" "@deftypecv" "@deftypecvx"
@@ -133,12 +139,22 @@
 
 ((definition_line
   name: (command_name) @keyword
-  entity: (_)? @type)
+  entity: [
+    (text)
+    (word)
+    (brace_group)
+    (inline_command)
+  ]? @type)
   (#any-of? @keyword "@deftp" "@deftpx"))
 
 ((definition_line
   name: (command_name) @keyword
-  entity: (_)? @function)
+  entity: [
+    (text)
+    (word)
+    (brace_group)
+    (inline_command)
+  ]? @function)
   (#not-any-of? @keyword
     "@defvr" "@defvrx" "@defvar" "@defvarx" "@defopt" "@defoptx" "@defcv" "@defcvx" "@defivar"
     "@defivarx" "@deftypevr" "@deftypevrx" "@deftypevar" "@deftypevarx" "@deftypecv" "@deftypecvx"
@@ -146,12 +162,27 @@
 
 (definition_line
   [
-    type: (_)
-    class: (_)
+    type: [
+      (text)
+      (word)
+      (brace_group)
+      (inline_command)
+    ]
+    class: [
+      (text)
+      (word)
+      (brace_group)
+      (inline_command)
+    ]
   ] @type)
 
 (definition_line
-  category: (_) @attribute)
+  category: [
+    (text)
+    (word)
+    (brace_group)
+    (inline_command)
+  ] @attribute)
 
 (definition_arguments) @variable.parameter
 
@@ -166,27 +197,22 @@
   (#match? @keyword.conditional "^[@]end[ \t]*if"))
 
 ; The whole block, so every paragraph and nested block in it is raw or
-; quoted, around their own highlights.
+; quoted, around their own highlights. Not `@display` and `@format`, which
+; keep the font of the text, as the Texinfo manual says.
 ((block
   name: (command_name) @keyword) @markup.raw.block
-  (#any-of? @keyword
-    "@example" "@smallexample" "@lisp" "@smalllisp" "@display" "@smalldisplay" "@format"
-    "@smallformat"))
+  (#any-of? @keyword "@example" "@smallexample" "@lisp" "@smalllisp"))
 
 ((block
   name: (command_name) @keyword) @markup.quote
   (#any-of? @keyword "@quotation" "@smallquotation"))
-
-(raw_block
-  body: (raw_text) @markup.raw.block)
 
 ; Not the blocks matched above.
 ((block
   name: (command_name) @keyword)
   (#not-match? @keyword "^[@]if")
   (#not-any-of? @keyword
-    "@example" "@smallexample" "@lisp" "@smalllisp" "@display" "@smalldisplay" "@format"
-    "@smallformat" "@quotation" "@smallquotation"))
+    "@example" "@smallexample" "@lisp" "@smalllisp" "@quotation" "@smallquotation"))
 
 (list
   name: (command_name) @keyword)
@@ -194,8 +220,22 @@
 (menu
   name: (command_name) @keyword)
 
+; A raw block's body: `@ignore`'s is a comment, the others' raw text. Each
+; pattern captures the name, its predicate's, so the last one only takes a
+; block without a body.
+((raw_block
+  name: (command_name) @keyword
+  body: (raw_text) @comment)
+  (#eq? @keyword "@ignore"))
+
+((raw_block
+  name: (command_name) @keyword
+  body: (raw_text) @markup.raw.block)
+  (#not-eq? @keyword "@ignore"))
+
 (raw_block
-  name: (command_name) @keyword)
+  name: (command_name) @keyword
+  !body)
 
 (macro_definition
   name: (command_name) @keyword

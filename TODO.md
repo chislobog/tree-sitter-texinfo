@@ -509,6 +509,14 @@ Deliberate, so the tree shows the source as it is written and edited:
 - [x] `queries/highlights.scm`, with tests in `test/highlight/`
 - [x] Highlight gaps from overlapping patterns: `@example` contents, markup
   in heading titles, `@defvar` entities, `@emph`/`@var` arguments
+- [x] Highlights found by review: `@ignore`'s body is a comment, not raw
+  text; `@display` and `@format` keep the font of the text, as the Texinfo
+  manual says, not highlighted as code; a definition word that is a symbol
+  command (`@deffn Operator @@`) is only an escape, as the patterns of a
+  definition's words no longer overlap it. Tested by
+  `script/test-queries.py` (`test/queries/highlights/`), which sees a
+  raw block's body and every capture, as `tree-sitter test` checks only
+  the innermost highlight
 - [x] `queries/injections.scm`: TeX/LaTeX, HTML, XML, DocBook raw blocks
 - [x] Inject LaTeX into `@math` and `@displaymath`
 - [x] Inject Emacs Lisp into `@lisp` and `@smalllisp`: 1,152 of the

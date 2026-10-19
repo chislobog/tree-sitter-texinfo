@@ -1,0 +1,21 @@
+@ignore
+ignored text
+@end ignore
+@c <- comment 2 lines up
+@c <- !markup.raw.block 3 lines up
+
+@verbatim
+raw text
+@end verbatim
+@c <- markup.raw.block 2 lines up
+@c <- !comment 3 lines up
+
+@display
+In the font of the text.
+@c <- !markup.raw.block
+@end display
+
+@format
+Neither in a font of code.
+@c <- !markup.raw.block
+@end format
