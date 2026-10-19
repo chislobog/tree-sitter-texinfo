@@ -25,6 +25,10 @@
 (definition_block
   body: (_) @function.inside)
 
+; In `@defblock`, the body after each `@defline`.
+(block
+  body: (definition_body) @function.inside)
+
 (macro_definition) @function.around
 
 (macro_definition

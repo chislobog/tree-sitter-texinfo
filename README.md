@@ -37,7 +37,8 @@ line, which `texi2any` accepts and this grammar doesn't.
 - Menus: `menu_entry` with `label`, `node` and `description` fields.
 - Definitions: `@deffn` and friends, with `category`, `class`, `type`,
   `entity` (the defined name) and `arguments` fields, and a `body` (a
-  `definition_body`) after the `@deffnx` lines.
+  `definition_body`) after the `@deffnx` lines; in `@defblock`, a `body`
+  after each `@defline`.
 - Arguments of cross-references and other multi-argument commands, in fields
   named by position: `@xref{Top, , Title}` gives `node` and `title` fields.
 

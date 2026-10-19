@@ -13,16 +13,9 @@ Found by review (October 2026), left for a decision or for later:
   them, as they do in texi2any (in the Texinfo manual itself): the level
   of each section would depend on every such command before it in the
   file, state the scanner doesn't keep (Conventions in CLAUDE.md)
-- [ ] `@defblock`: the text after each `@defline` isn't a body of its own,
-  as a definition's after its `@deffnx` lines is (texi2any's `def_item`)
 - [ ] Text between a node and its heading leaves the node on its own,
   where texi2any still associates them (README); index entries and other
   line commands there don't
-- [ ] A block left open before a conditional that holds `@node Top` runs
-  past the node, which texi2any closes it at once it has evaluated the
-  conditional (`gawkinet.texi` with its `@end direntry` deleted)
-- [ ] A stray `@deffnx` outside a definition is a `definition_line`, as a
-  stray `@itemx` stays one, though texi2any reports it
 - [ ] Paragraphs in `@example` and the other preformatted blocks are
   `paragraph` nodes, where texi2any has preformatted text, so an editor's
   paragraph motions take code for prose
@@ -499,6 +492,15 @@ comparing arguments:
 
 Deliberate, so the tree shows the source as it is written and edited:
 
+- A block left open before a conditional whose first line is `@node Top`
+  runs past the node into the conditional, where texi2any, which has
+  evaluated the conditional, closes it at the node (`gawkinet.texi` with
+  its `@end direntry` deleted). The scanner can't decide it at the
+  conditional: a token's end can't move back over the line it read to
+  decide, between a zero-width end of the block and the conditional's
+  name; a zero-width token before every conditional in a block would,
+  for about 200 parser states, as the menu entry's did, for a mistake
+  being typed
 - Macros, `@value`, `@alias`, `@linemacro` and conditionals aren't expanded or
   evaluated, so input whose structure only works after expansion (a macro
   that opens a brace the text after its call closes) has parse errors
@@ -548,6 +550,14 @@ Deliberate, so the tree shows the source as it is written and edited:
 - [x] `queries/highlights.scm`, with tests in `test/highlight/`
 - [x] Highlight gaps from overlapping patterns: `@example` contents, markup
   in heading titles, `@defvar` entities, `@emph`/`@var` arguments
+- [x] `@defblock`: the text after each `@defline` or `@deftypeline` is its
+  `body`, a `definition_body`, as texi2any's `def_item` (the text before the
+  first is the block's own), and a function's inside for the textobjects
+  (+19 parser states). The two are no longer content anywhere else, as in
+  texi2any, which allows them only in `@defblock`
+- [x] A stray `@deffnx` (outside a definition, or after its body's text)
+  stays a `definition_line`: texi2any, which reports it, makes it a
+  definition line too
 - [x] A command after a macro's name (`@macro aaa @node X`) is raw text, as
   in texi2any: it was an error that lost the whole definition, which also
   made one chain of random edits differ from a fresh parse

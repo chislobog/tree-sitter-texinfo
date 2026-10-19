@@ -4624,6 +4624,10 @@
               },
               {
                 "type": "SYMBOL",
+                "name": "_block_definition"
+              },
+              {
+                "type": "SYMBOL",
                 "name": "item"
               },
               {
@@ -5630,10 +5634,6 @@
                     {
                       "type": "STRING",
                       "value": "@deftpx"
-                    },
-                    {
-                      "type": "STRING",
-                      "value": "@defline"
                     }
                   ]
                 },
@@ -5677,10 +5677,6 @@
                     {
                       "type": "STRING",
                       "value": "@deftypevrx"
-                    },
-                    {
-                      "type": "STRING",
-                      "value": "@deftypeline"
                     }
                   ]
                 },
@@ -5964,6 +5960,118 @@
                 {
                   "type": "SYMBOL",
                   "name": "_definition_fields_class_type_entity"
+                },
+                {
+                  "type": "BLANK"
+                }
+              ]
+            },
+            {
+              "type": "SYMBOL",
+              "name": "_line_end"
+            }
+          ]
+        }
+      ]
+    },
+    "_block_definition": {
+      "type": "PREC_RIGHT",
+      "value": 0,
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "ALIAS",
+            "content": {
+              "type": "SYMBOL",
+              "name": "_block_definition_line"
+            },
+            "named": true,
+            "value": "definition_line"
+          },
+          {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "FIELD",
+                "name": "body",
+                "content": {
+                  "type": "ALIAS",
+                  "content": {
+                    "type": "SYMBOL",
+                    "name": "_definition_body"
+                  },
+                  "named": true,
+                  "value": "definition_body"
+                }
+              },
+              {
+                "type": "BLANK"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "_block_definition_line": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SEQ",
+          "members": [
+            {
+              "type": "FIELD",
+              "name": "name",
+              "content": {
+                "type": "ALIAS",
+                "content": {
+                  "type": "STRING",
+                  "value": "@defline"
+                },
+                "named": true,
+                "value": "command_name"
+              }
+            },
+            {
+              "type": "CHOICE",
+              "members": [
+                {
+                  "type": "SYMBOL",
+                  "name": "_definition_fields_category_entity"
+                },
+                {
+                  "type": "BLANK"
+                }
+              ]
+            },
+            {
+              "type": "SYMBOL",
+              "name": "_line_end"
+            }
+          ]
+        },
+        {
+          "type": "SEQ",
+          "members": [
+            {
+              "type": "FIELD",
+              "name": "name",
+              "content": {
+                "type": "ALIAS",
+                "content": {
+                  "type": "STRING",
+                  "value": "@deftypeline"
+                },
+                "named": true,
+                "value": "command_name"
+              }
+            },
+            {
+              "type": "CHOICE",
+              "members": [
+                {
+                  "type": "SYMBOL",
+                  "name": "_definition_fields_category_type_entity"
                 },
                 {
                   "type": "BLANK"

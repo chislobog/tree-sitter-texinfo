@@ -160,8 +160,8 @@ const commandArgument = (names, line) => ($, i) => {
 // and the line commands with that layout. The block commands for each layout
 // (`@deffn`, ...) are in src/scanner.c, which numbers them in this order.
 const DEFINITION_LAYOUTS = [
-  {fields: ['category', 'entity'], lines: ['deffnx', 'defvrx', 'deftpx', 'defline']},
-  {fields: ['category', 'type', 'entity'], lines: ['deftypefnx', 'deftypevrx', 'deftypeline']},
+  {fields: ['category', 'entity'], lines: ['deffnx', 'defvrx', 'deftpx'], blockLine: 'defline'},
+  {fields: ['category', 'type', 'entity'], lines: ['deftypefnx', 'deftypevrx'], blockLine: 'deftypeline'},
   {fields: ['category', 'class', 'entity'], lines: ['defopx', 'defcvx']},
   {fields: ['category', 'class', 'type', 'entity'], lines: ['deftypeopx', 'deftypecvx']},
   {fields: ['entity'], lines: ['defunx', 'defmacx', 'defspecx', 'defvarx', 'defoptx']},
@@ -756,6 +756,7 @@ export default grammar({
     _block_rest: $ => seq(
       repeat(choice(
         $._content,
+        $._block_definition,
         $.item,
         alias($._container_item, $.item),
         $.menu_entry,
@@ -907,12 +908,27 @@ export default grammar({
       $._line_end,
     ))),
 
-    // `@deffnx` and friends, and `@defline` in `@defblock`.
+    // `@deffnx` and friends.
     _definition_continuation: $ => choice(...DEFINITION_LAYOUTS.map(({fields, lines}) => seq(
       field('name', command($, lines)),
       definitionFields($, fields),
       $._line_end,
     ))),
+
+    // `@defline` and `@deftypeline`, in `@defblock`, each with the text after
+    // it as its body, as in texi2any (`def_item`).
+    _block_definition: $ => prec.right(seq(
+      alias($._block_definition_line, $.definition_line),
+      optional(field('body', alias($._definition_body, $.definition_body))),
+    )),
+
+    _block_definition_line: $ => choice(...DEFINITION_LAYOUTS.filter(({blockLine}) => blockLine).map(
+      ({fields, blockLine}) => seq(
+        field('name', command($, [blockLine])),
+        definitionFields($, fields),
+        $._line_end,
+      ),
+    )),
 
     // Blocks and line commands recognised at the start of a line inside
     // braces.

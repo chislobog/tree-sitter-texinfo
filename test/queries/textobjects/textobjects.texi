@@ -32,6 +32,12 @@ Body.
 @c <- function.inside
 @end deffn
 
+@defblock
+@defline Command name
+Body.
+@c <- function.inside
+@end defblock
+
 @macro name{param}
 Body.
 @end macro

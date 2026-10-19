@@ -861,8 +861,9 @@ Text.
       (command_name)
       (text)
       (text))
-    (paragraph
-      (text))
+    (definition_body
+      (paragraph
+        (text)))
     (missing_end)))
 
 ================================================================================

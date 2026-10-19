@@ -224,12 +224,17 @@ More.
     end: (block_end)))
 
 ================================================================================
-Definition lines in a defblock
+Definition lines in a defblock, each with its body, as in texi2any
 ================================================================================
 
 @defblock
+Intro.
 @defline Function foo bar
 Text.
+@deftypeline Function int g
+@defline Function h
+
+More text.
 @end defblock
 
 ---
@@ -237,14 +242,29 @@ Text.
 (source_file
   (block
     name: (command_name)
+    (paragraph
+      (text))
     (definition_line
       name: (command_name)
       category: (text)
       entity: (text)
       arguments: (definition_arguments
         (text)))
-    (paragraph
-      (text))
+    body: (definition_body
+      (paragraph
+        (text)))
+    (definition_line
+      name: (command_name)
+      category: (text)
+      type: (text)
+      entity: (text))
+    (definition_line
+      name: (command_name)
+      category: (text)
+      entity: (text))
+    body: (definition_body
+      (paragraph
+        (text)))
     end: (block_end)))
 
 ================================================================================
