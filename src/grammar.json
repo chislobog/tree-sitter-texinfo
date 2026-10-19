@@ -1602,7 +1602,15 @@
                         },
                         {
                           "type": "SYMBOL",
+                          "name": "_no_paragraph_argument_command"
+                        },
+                        {
+                          "type": "SYMBOL",
                           "name": "line_command"
+                        },
+                        {
+                          "type": "SYMBOL",
+                          "name": "standalone_heading"
                         },
                         {
                           "type": "SYMBOL",
@@ -1715,7 +1723,15 @@
                         },
                         {
                           "type": "SYMBOL",
+                          "name": "_no_paragraph_argument_command"
+                        },
+                        {
+                          "type": "SYMBOL",
                           "name": "line_command"
+                        },
+                        {
+                          "type": "SYMBOL",
+                          "name": "standalone_heading"
                         },
                         {
                           "type": "SYMBOL",
@@ -1820,7 +1836,15 @@
                         },
                         {
                           "type": "SYMBOL",
+                          "name": "_no_paragraph_argument_command"
+                        },
+                        {
+                          "type": "SYMBOL",
                           "name": "line_command"
+                        },
+                        {
+                          "type": "SYMBOL",
+                          "name": "standalone_heading"
                         },
                         {
                           "type": "SYMBOL",
@@ -1921,7 +1945,15 @@
                         },
                         {
                           "type": "SYMBOL",
+                          "name": "_no_paragraph_argument_command"
+                        },
+                        {
+                          "type": "SYMBOL",
                           "name": "line_command"
+                        },
+                        {
+                          "type": "SYMBOL",
+                          "name": "standalone_heading"
                         },
                         {
                           "type": "SYMBOL",
@@ -2093,7 +2125,15 @@
                         },
                         {
                           "type": "SYMBOL",
+                          "name": "_no_paragraph_argument_command"
+                        },
+                        {
+                          "type": "SYMBOL",
                           "name": "line_command"
+                        },
+                        {
+                          "type": "SYMBOL",
+                          "name": "standalone_heading"
                         },
                         {
                           "type": "SYMBOL",
@@ -2232,7 +2272,15 @@
               },
               {
                 "type": "SYMBOL",
+                "name": "_no_paragraph_argument_command"
+              },
+              {
+                "type": "SYMBOL",
                 "name": "line_command"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "standalone_heading"
               },
               {
                 "type": "SYMBOL",

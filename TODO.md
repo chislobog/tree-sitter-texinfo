@@ -13,9 +13,6 @@ Found by review (October 2026), left for a decision or for later:
   them, as they do in texi2any (in the Texinfo manual itself): the level
   of each section would depend on every such command before it in the
   file, state the scanner doesn't keep (Conventions in CLAUDE.md)
-- [ ] Text between a node and its heading leaves the node on its own,
-  where texi2any still associates them (README); index entries and other
-  line commands there don't
 - [ ] Paragraphs in `@example` and the other preformatted blocks are
   `paragraph` nodes, where texi2any has preformatted text, so an editor's
   paragraph motions take code for prose
@@ -544,6 +541,11 @@ Deliberate, so the tree shows the source as it is written and edited:
 - [x] `queries/highlights.scm`, with tests in `test/highlight/`
 - [x] Highlight gaps from overlapping patterns: `@example` contents, markup
   in heading titles, `@defvar` entities, `@emph`/`@var` arguments
+- [x] Text and headings between a node and its section: the node line still
+  starts the section, as texi2any associates them (+54 parser states). Its
+  look ahead stops at a block, an `@end`, an item or a definition line, as
+  skipping a block would mean matching its `@end`; the longest one in the
+  manuals is 45 lines, through which a keystroke takes 0.16 ms
 - [x] Names for queries (found by review): the node of `@heading` and the
   like is `standalone_heading`, as sections have a `heading` field holding
   others; an argument separated by commas is a `comma_argument`, as the

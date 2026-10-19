@@ -88,10 +88,11 @@ the heading is conditional (as for the Top node, often inside `@ifnottex`), the
 content after the conditional belongs to the enclosing level.
 
 A `@node` line starts the section whose heading follows it past blank and
-comment lines, the node's description, `@anchor` lines and line commands
-such as index entries. `texi2any` associates them past any text too, but
-here text between them leaves the node a `node_line` of its own: a node
-would otherwise look ahead to its section through all of its text.
+comment lines, the node's description, `@anchor` lines, line commands such
+as index entries, headings and text, as `texi2any` associates them. A
+block between them leaves the node a `node_line` of its own, where
+`texi2any` still associates them: the node would have to look ahead past
+the block's `@end`, through raw text that may hold anything.
 
 Block commands only start, and `@end` only ends a block, at the beginning of a
 line; `texi2any` tolerates them elsewhere with a warning. `TODO.md` lists what

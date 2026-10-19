@@ -616,7 +616,7 @@ Text.
           (text))))))
 
 ================================================================================
-Text between a node and its heading separates them
+Text between a node and its heading, as texi2any associates them
 ================================================================================
 
 @node Entry
@@ -624,7 +624,15 @@ Text between a node and its heading separates them
 
 @node Cfoo
 @cfoo
+Some text, @code{with} commands.
+
 @section Cfoo
+
+@node Example
+@example
+A block between them separates them.
+@end example
+@section Example
 
 ---
 
@@ -637,14 +645,34 @@ Text between a node and its heading separates them
     (section_heading
       (command_name)
       (line_argument
-        (text)))
+        (text))))
+  (section
     (node_line
       (command_name)
       (comma_argument
         (text)))
     (paragraph
       (inline_command
-        (command_name))))
+        (command_name))
+      (text)
+      (inline_command
+        (command_name)
+        (brace_arguments
+          (text)))
+      (text))
+    (section_heading
+      (command_name)
+      (line_argument
+        (text)))
+    (node_line
+      (command_name)
+      (comma_argument
+        (text)))
+    (block
+      (command_name)
+      (paragraph
+        (text))
+      (block_end)))
   (section
     (section_heading
       (command_name)

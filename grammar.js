@@ -35,9 +35,9 @@ const SECTIONS = [
 /**
  * The `@node` line before the heading of a section `name`, and what may
  * come between them: blank and comment lines, the node's description,
- * `@anchor` lines (old names of the node) and line commands, such as index
- * entries, as in texi2any. The scanner only starts a section with the node
- * if nothing else does.
+ * `@anchor` lines (old names of the node), line commands, such as index
+ * entries, headings that start no section and paragraphs, as in texi2any.
+ * The scanner only starts a section with the node if nothing else does.
  *
  * @param {GrammarSymbols<string>} $
  * @param {string} name
@@ -48,7 +48,9 @@ const nodeBefore = ($, name) => seq(
     $._newline,
     alias($._node_description, $.line_command),
     alias($._no_paragraph_command, $.inline_command),
+    $._no_paragraph_argument_command,
     $.line_command,
+    $.standalone_heading,
     $.block,
     $.paragraph,
   )),

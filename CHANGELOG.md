@@ -29,8 +29,8 @@ a part's chapters, a section's node), so the next version is 0.3.0.
   appendix after a part's chapters ends the part, with the appendices
   after it, as in texi2any.
 - A node starts the section after it past index entries and other line
-  commands, as in texi2any (52 sections in the manuals were left without
-  their node).
+  commands, headings and text, as in texi2any (52 sections in the manuals
+  were left without their node).
 - A form feed in the middle of a paragraph's line ends the paragraph, as
   the Texinfo manual says and texi2any does.
 - Only texi2any's symbol commands are symbol commands: an `@` before any

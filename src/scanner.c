@@ -627,10 +627,13 @@ static bool accept_node_before(TSLexer *lexer, const bool *valid_symbols,
 /**
  * Scans `@node` when the next line, after blank and comment lines, the
  * node's description (`@nodedescription`, `@nodedescriptionblock`),
- * `@anchor` lines and line commands such as index entries, is a sectioning
- * command: emits the node token for that section's level, so the node line
- * starts the section, as texi2any associates them. The `@node` has already
- * been read; otherwise it is left to the grammar as a plain node line.
+ * `@anchor` lines, line commands such as index entries, and lines of text,
+ * is a sectioning command: emits the node token for that section's level,
+ * so the node line starts the section, as texi2any associates them. A block,
+ * an `@end` or an item between them leaves the node on its own: skipping one
+ * would mean matching its `@end`, past raw text that may hold anything. The
+ * `@node` has already been read; otherwise it is left to the grammar as a
+ * plain node line.
  */
 static bool scan_node_before_section(TSLexer *lexer,
                                      const bool *valid_symbols) {
@@ -643,10 +646,17 @@ static bool scan_node_before_section(TSLexer *lexer,
       skip_to_next_line(lexer);
       continue;
     }
-    if (lexer->lookahead != '@') return false;
+    // A line of text, which may start with a symbol command.
+    if (lexer->lookahead != '@') {
+      skip_to_next_line(lexer);
+      continue;
+    }
     advance(lexer);
     char name[MAX_NAME + 1];
-    if (!read_name(lexer, name)) return false;
+    if (!read_name(lexer, name)) {
+      skip_to_next_line(lexer);
+      continue;
+    }
 
     // A comment, whatever follows its name, as in texi2any, or a line
     // command, such as an index entry (`@cindex`, `@need 5000`).
@@ -660,15 +670,6 @@ static bool scan_node_before_section(TSLexer *lexer,
           lexer->lookahead != '\r' && !lexer->eof(lexer)) {
         return false;
       }
-      skip_to_next_line(lexer);
-      continue;
-    }
-
-    // `@anchor{Old name}` lines keep old node names working. Blanks may come
-    // before the brace, as in texi2any.
-    if (strcmp(name, "anchor") == 0) {
-      skip_blanks(lexer);
-      if (lexer->lookahead != '{') return false;
       skip_to_next_line(lexer);
       continue;
     }
@@ -698,7 +699,20 @@ static bool scan_node_before_section(TSLexer *lexer,
       continue;
     }
 
-    return accept_node_before(lexer, valid_symbols, name);
+    if (is_root_command(name)) {
+      return accept_node_before(lexer, valid_symbols, name);
+    }
+    // Nor a definition line (`@deffnx`, `@defline`), whose names but the
+    // blocks' and index commands' start with `def`.
+    if (find_block(name) >= 0 || strcmp(name, "end") == 0 ||
+        strcmp(name, "item") == 0 || strcmp(name, "itemx") == 0 ||
+        strcmp(name, "headitem") == 0 || strcmp(name, "tab") == 0 ||
+        strncmp(name, "def", 3) == 0) {
+      return false;
+    }
+    // Text that starts with a command, such as `@anchor{Old name}`, which
+    // keeps an old node name working.
+    skip_to_next_line(lexer);
   }
 }
 
