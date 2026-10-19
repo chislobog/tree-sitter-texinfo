@@ -735,6 +735,39 @@ static bool more_comment_lines(TSLexer *lexer) {
 }
 
 /**
+ * Whether the line after the current one starts with text: not a blank line,
+ * an `@end`, an item, a node, a section, a block, a line command or a
+ * comment.
+ */
+static bool starts_with_text(TSLexer *lexer) {
+  skip_to_next_line(lexer);
+  skip_blanks(lexer);
+  int32_t c = lexer->lookahead;
+  if (lexer->eof(lexer) || c == '\n' || c == '\r') return false;
+  if (c != '@') return true;
+  advance(lexer);
+  char name[MAX_NAME + 1];
+  if (!read_name(lexer, name)) return true;
+  return strcmp(name, "end") != 0 && strcmp(name, "c") != 0 &&
+         strcmp(name, "comment") != 0 && strcmp(name, "item") != 0 &&
+         strcmp(name, "itemx") != 0 && strcmp(name, "headitem") != 0 &&
+         strcmp(name, "tab") != 0 && find_block(name) < 0 &&
+         !is_root_command(name) && !is_line_command(name);
+}
+
+/**
+ * After the name of a block at the start of the line after a paragraph's,
+ * which ends the paragraph or goes on with it: reads a conditional's first
+ * line, as the conditional's own scan does (scan_block_start), so that an
+ * edit there makes tree-sitter scan the paragraph's line end again too.
+ * Otherwise it reused the paragraph, ended, where the conditional now
+ * starts with text and goes on with it.
+ */
+static void read_conditional_line(TSLexer *lexer, const char *name) {
+  if (is_conditional(name) && find_block(name) >= 0) starts_with_text(lexer);
+}
+
+/**
  * Whether the lookahead, after any blanks, may be the argument of an accent
  * command without braces: not `@`, a brace, a line end or the end of the
  * file.
@@ -765,8 +798,9 @@ static bool scan_newline_before_comments(TSLexer *lexer, bool accent) {
   if (lexer->lookahead != '@') return false;
   advance(lexer);
   char name[MAX_NAME + 1];
-  if (!read_name(lexer, name) ||
-      (strcmp(name, "c") != 0 && strcmp(name, "comment") != 0)) {
+  if (!read_name(lexer, name)) return false;
+  if (strcmp(name, "c") != 0 && strcmp(name, "comment") != 0) {
+    read_conditional_line(lexer, name);
     return false;
   }
   lexer->result_symbol = NEWLINE_BEFORE_COMMENTS;
@@ -923,27 +957,6 @@ static ScanResult scan_end_line_text(TSLexer *lexer) {
   }
   lexer->result_symbol = END_LINE_TEXT;
   return found ? SCAN_FOUND : SCAN_NONE;
-}
-
-/**
- * Whether the line after the current one starts with text: not a blank line,
- * an `@end`, an item, a node, a section, a block, a line command or a
- * comment.
- */
-static bool starts_with_text(TSLexer *lexer) {
-  skip_to_next_line(lexer);
-  skip_blanks(lexer);
-  int32_t c = lexer->lookahead;
-  if (lexer->eof(lexer) || c == '\n' || c == '\r') return false;
-  if (c != '@') return true;
-  advance(lexer);
-  char name[MAX_NAME + 1];
-  if (!read_name(lexer, name)) return true;
-  return strcmp(name, "end") != 0 && strcmp(name, "c") != 0 &&
-         strcmp(name, "comment") != 0 && strcmp(name, "item") != 0 &&
-         strcmp(name, "itemx") != 0 && strcmp(name, "headitem") != 0 &&
-         strcmp(name, "tab") != 0 && find_block(name) < 0 &&
-         !is_root_command(name) && !is_line_command(name);
 }
 
 /**
@@ -1308,7 +1321,10 @@ static bool scan_missing_brace(Scanner *scanner, TSLexer *lexer,
     return paragraph_end || block_end;
   }
 
-  if (!paragraph_end || !closes_brace(name)) return false;
+  if (!paragraph_end || !closes_brace(name)) {
+    read_conditional_line(lexer, name);
+    return false;
+  }
   lexer->result_symbol = BRACE_CLOSE_AT_PARAGRAPH_END;
   return true;
 }

@@ -67,6 +67,11 @@ sources, which is what `texi2any` itself uses.
   6 s) and each keystroke after one cost a parse of the rest of the file.
   A section there is the node's; the parse check times such an input
   (`--stress`)
+- [x] A paragraph's line end reads the first line of a conditional on the
+  next line, as the conditional's own scan does (found by review, by
+  chains of random edits): after one edit and then another on that first
+  line, which made the conditional start with text, the paragraph was
+  reused, ended before the conditional that now goes on with it
 - [x] A menu entry starts with the scanner's zero-width token, which it
   gives only where the innermost block other than a conditional is a menu
   (found by review): the grammar's `*`, which takes precedence over text,
