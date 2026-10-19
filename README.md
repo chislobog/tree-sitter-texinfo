@@ -146,10 +146,23 @@ vim.api.nvim_create_autocmd("User", {
     }
   end,
 })
-vim.treesitter.language.register("texinfo", "texinfo")
+-- The main branch doesn't start highlighting or folding by itself.
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "texinfo",
+  callback = function()
+    vim.treesitter.start()
+    vim.wo[0][0].foldexpr = "v:lua.vim.treesitter.foldexpr()"
+    vim.wo[0][0].foldmethod = "expr"
+  end,
+})
 ```
 
-Helix, in `languages.toml`:
+Then install the parser and its queries with `:TSInstall texinfo`. Its
+parser has Neovim's name for the filetype, so nothing needs registering.
+
+Helix, in `languages.toml`, with `rev` a commit of this repository: Helix
+fetches `rev` and checks it out, so a branch name stays at the commit first
+fetched, and a tag isn't fetched at all.
 
 ```toml
 [[language]]
@@ -160,11 +173,14 @@ comment-token = "@c"
 
 [[grammar]]
 name = "texinfo"
-source = { git = "https://github.com/chislobog/tree-sitter-texinfo", rev = "main" }
+source = { git = "https://github.com/chislobog/tree-sitter-texinfo", rev = "COMMIT" }
 ```
 
 Then build the grammar with `hx --grammar fetch` and `hx --grammar build`, and
-link or copy `editors/helix/queries/` as Helix's `runtime/queries/texinfo/`.
+link Helix's `runtime/queries/texinfo/` to the queries of the same checkout,
+`runtime/grammars/sources/texinfo/editors/helix/queries/`, so that they
+always match the parser: queries that name a node the parser doesn't have
+fail to load, and Helix then highlights nothing.
 
 ## Bindings
 
