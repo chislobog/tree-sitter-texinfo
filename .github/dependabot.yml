@@ -16,3 +16,12 @@ updates:
     groups:
       npm:
         patterns: ["*"]
+    ignore:
+      # eslint-config-treesitter 1.0.2, the last (2024), doesn't work with
+      # ESLint 10: its eslint-plugin-jsdoc allows ESLint 9 at most, and it
+      # imports `globals`, which only ESLint 9 brings.
+      - dependency-name: eslint
+        update-types: ["version-update:semver-major"]
+      # The CLI is nixpkgs' (flake.nix) and CI's pinned one, which move
+      # together, with `src/` generated again.
+      - dependency-name: tree-sitter-cli
