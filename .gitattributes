@@ -4,12 +4,14 @@
 # ends in `\r\r\n` before its `---`, so its input ends in a lone `\r`.
 test/corpus/carriage_returns.txt -text
 
-# Generated source files
+# Generated source files. parser.c's diff, of thousands of lines for any
+# change to the grammar, is left out of `git diff` and `git log -p` too.
 src/*.json linguist-generated
-src/parser.c linguist-generated
+src/parser.c linguist-generated -diff
 src/tree_sitter/* linguist-generated
 
 # This repository's generated files
+editors/helix/queries/* linguist-generated
 editors/neovim/queries/* linguist-generated
 test/tree-snapshots.txt linguist-generated
 
