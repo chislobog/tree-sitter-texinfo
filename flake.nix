@@ -328,7 +328,9 @@
                     pkgs.ts_query_ls
                   ]
                   ''
-                    work=$(mktemp -d)/tree-sitter-texinfo
+                    temporary=$(mktemp -d)
+                    trap 'rm -rf "$temporary"' EXIT
+                    work=$temporary/tree-sitter-texinfo
                     mkdir -p "$work"
                     cp -r queries editors .tsqueryrc.json "$work"
                     tree-sitter build -o "$work/texinfo.so" >/dev/null
@@ -338,7 +340,8 @@
                       ts_query_ls check -f -c "$(cat "$editor/tsqueryrc.json")" "$editor/queries"
                     done
                   '';
-              files = "^(queries|editors)/|tsqueryrc\\.json$";
+              # The grammar too, as renaming a node breaks the queries.
+              files = "^(queries|editors|src)/|^grammar\\.js$|tsqueryrc\\.json$";
               pass_filenames = false;
             };
             editor-queries = {
