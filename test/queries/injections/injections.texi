@@ -44,6 +44,7 @@ a^2
 Raw @inlineraw{html, <i>i</i>} and @inlineraw{tex, $y$} here.
 @c                   ^ injection.html
 @c                                                 ^ injection.latex
+@c                                                 ^ !injection.tex
 
 @macro name{arg}
 Some @code{\arg\}.

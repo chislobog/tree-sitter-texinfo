@@ -30,6 +30,10 @@ from texinfo_language import ROOT, load_language
 from tree_sitter import Parser, Query, QueryCursor
 
 TESTS = ROOT / "test" / "queries"
+# A `#not-any-of?` predicate: py-tree-sitter 0.25.2 lets through a capture
+# that is one of its values but the first, so it runs them as the regex of a
+# `#not-match?`, which it gets right.
+NOT_ANY_OF = re.compile(r'\(#not-any-of\? (@[\w.]+)((?:\s+"(?:[^"\\]|\\.)*")+)\)')
 ASSERTION = re.compile(r"^(\s*)@c(?:omment)?(\s+)(\^+|<-)\s*(!?)(\S+)(?:\s+(\d+) lines? up)?\s*$")
 
 
@@ -59,6 +63,18 @@ def comment_rows(root) -> set[int]:
             rows.add(node.start_point.row)
         stack.extend(node.children)
     return rows
+
+
+def as_regex(text: str) -> str:
+    """The query `text`, its `#not-any-of?` predicates written as
+    `#not-match?` ones."""
+
+    def regex(match: re.Match) -> str:
+        values = re.findall(r'"((?:[^"\\]|\\.)*)"', match.group(2))
+        pattern = "^(?:" + "|".join(re.escape(value) for value in values) + ")$"
+        return f'(#not-match? {match.group(1)} "{pattern.replace(chr(92), chr(92) * 2)}")'
+
+    return NOT_ANY_OF.sub(regex, text)
 
 
 def check(parser: Parser, query: Query, file: Path) -> tuple[int, list[str]]:
@@ -111,8 +127,12 @@ def main() -> int:
     if not directories:
         raise SystemExit(f"no tests in {TESTS}")
     for directory in directories:
-        query = Query(language, (ROOT / "queries" / f"{directory.name}.scm").read_text())
-        for path in sorted(directory.glob("*.texi")):
+        query = Query(language, as_regex((ROOT / "queries" / f"{directory.name}.scm").read_text()))
+        paths = sorted(directory.glob("*.texi"))
+        if not paths:
+            print(f"FAILED: {directory.name}: no tests")
+            failures += 1
+        for path in paths:
             count, problems = check(parser, query, path)
             for problem in problems:
                 print(problem)
