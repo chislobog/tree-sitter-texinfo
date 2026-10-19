@@ -17,8 +17,10 @@ this script would write.
   anchor is a section, a documented variable a constant (as in Helix's
   Python queries). Helix reads no references from tags, and doesn't fold.
 - Neovim (editors/neovim/queries/): nvim-treesitter-textobjects' `outer`/
-  `inner` instead of `around`/`inside`, without `entry`. Neovim doesn't use
-  tags. Its highlights end with the spell checking patterns of
+  `inner` instead of `around`/`inside` (with `entry`, not one of its names,
+  which its keymaps take as any other), and `markup.link`
+  for the text a link shows, which it has no name of its own for. Neovim
+  doesn't use tags. Its highlights end with the spell checking patterns of
   editors/neovim/spell.scm, which are Neovim's alone.
 
 Usage: script/editor-queries.py [--check]
@@ -49,8 +51,9 @@ EDITORS = {
         "rename": {
             r"(\w+)\.around": r"\1.outer",
             r"(\w+)\.inside": r"\1.inner",
+            "markup.link.text": "markup.link",
         },
-        "drop": [r"entry\.\w+"],
+        "drop": [],
         # Patterns of the editor's own, after those of a file.
         "append": {"highlights.scm": ROOT / "editors" / "neovim" / "spell.scm"},
     },

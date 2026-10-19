@@ -42,9 +42,6 @@ Found by review (October 2026), left for a decision or for later:
   unrelated; `label` is a cross-reference target in `@float` but text in
   `@xref`; no supertypes (`_section` would cost 2 states); a multitable's
   first cell isn't a node
-- [ ] Highlights: table item terms (`@item --foo` in `@table @code`),
-  index entries and the flags of `@ifset`/`@ifclear` have none; Helix's
-  `markup.link.text` for a link's text; Neovim's `entry` textobjects
 - [ ] Incremental parsing in chains of random edits on texi2any's test
   inputs: one of 3,504 differs from a fresh parse, both trees holding
   `ERROR` nodes (`@macro aaa @node X`)
@@ -554,6 +551,13 @@ Deliberate, so the tree shows the source as it is written and edited:
 - [x] `queries/highlights.scm`, with tests in `test/highlight/`
 - [x] Highlight gaps from overlapping patterns: `@example` contents, markup
   in heading titles, `@defvar` entities, `@emph`/`@var` arguments
+- [x] Highlights for table item terms (`@markup.strong`), the text of index
+  entries and subentries (`@string.special`), and the flags of `@ifset`,
+  `@ifclear` and the inline conditionals (`@variable`, as for `@set` and
+  `@value`); the text a link shows is `@markup.link.text`, Helix's name,
+  which Neovim, without one, gets as `@markup.link`. Neovim gets the
+  `entry` textobjects too, which its keymaps take though
+  nvim-treesitter-textobjects doesn't name them
 - [x] Spell checking in Neovim, which checks only what highlights capture as
   `@spell` (found by review: it checked nothing): paragraphs, comments,
   headings and menu descriptions, but not command names, symbols, raw

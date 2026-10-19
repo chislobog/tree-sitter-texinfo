@@ -142,7 +142,9 @@
       "scopename.inner": "",
       "number.inner": "",
       "assignment.lhs": "",
-      "assignment.rhs": ""
+      "assignment.rhs": "",
+      "entry.inner": "not nvim-treesitter-textobjects' own, which keymaps take as any other",
+      "entry.outer": "not nvim-treesitter-textobjects' own, which keymaps take as any other"
     }
   }
 }

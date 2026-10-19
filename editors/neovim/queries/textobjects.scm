@@ -234,6 +234,29 @@
 (macro_definition
   parameter: (text) @parameter.inner @parameter.outer)
 
+; Entries: list and table items, multitable rows and their cells, and menu
+; entries; inside an item, its body after the `@itemx` lines, and inside a
+; row or a cell, its content after the command.
+[
+  (item)
+  (tab)
+  (menu_entry)
+] @entry.outer
+
+(item
+  body: (_) @entry.inner)
+
+(item
+  !body
+  name: (_)
+  .
+  (_)+ @entry.inner)
+
+(tab
+  name: (_)
+  .
+  (_)+ @entry.inner)
+
 (comment) @comment.inner
 
 (comment)+ @comment.outer

@@ -19,7 +19,7 @@ raw @code{x}
 * Overview::    What it is.
 @c ^ markup.link.label
 * Start: Overview.   Read first.
-@c ^ markup.link
+@c ^ markup.link.text
 @c       ^ markup.link.label
 @end menu
 @deftypefn {Library Function} int foo (int @var{n})
@@ -77,3 +77,27 @@ In the font of the text.
 @c                ^ string.escape
 @c                ^ !function
 @end deffn
+
+@table @code
+@item --verbose
+@c <- markup.list
+@c    ^ markup.strong
+@itemx -v
+@c     ^ markup.strong
+Be verbose.
+@end table
+
+@cindex verbose output
+@c <- keyword
+@c      ^ string.special
+@printindex cp
+@c <- keyword
+
+@ifset DEBUG
+@c <- keyword.conditional
+@c     ^ variable
+Debugging.
+@end ifset
+
+An @inlineifset{DEBUG, inline} here.
+@c              ^ variable

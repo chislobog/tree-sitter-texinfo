@@ -86,17 +86,18 @@
   ] @markup.link.url)
 
 ; The other arguments of a cross-reference, a URL or an address: the text a
-; link shows, or a manual's file. An inline conditional's `text` is text.
+; link shows (Helix's `markup.link.text`), or a manual's title. An inline
+; conditional's `text` is text.
 (inline_command
   [
     label: (argument)
     title: (argument)
     manual: (argument)
-  ] @markup.link)
+  ] @markup.link.text)
 
 ((inline_command
   name: (command_name) @function
-  text: (argument)? @markup.link)
+  text: (argument)? @markup.link.text)
   (#any-of? @function "@uref" "@url" "@email"))
 
 (inline_command
@@ -120,7 +121,7 @@
   label: (argument) @markup.link.label)
 
 (menu_entry
-  label: (menu_label) @markup.link)
+  label: (menu_label) @markup.link.text)
 
 ; Definitions
 ; Three exclusive patterns, as each node can only be highlighted by one match.
@@ -192,7 +193,17 @@
 ; Blocks
 ((block
   name: (command_name) @keyword.control.conditional)
-  (#match? @keyword.control.conditional "^[@]if"))
+  (#match? @keyword.control.conditional "^[@]if")
+  (#not-any-of? @keyword.control.conditional "@ifset" "@ifclear"))
+
+; The flag a conditional tests, a variable as for `@set` and `@value`.
+((block
+  name: (command_name) @keyword.control.conditional
+  argument: (line_argument)? @variable)
+  (#any-of? @keyword.control.conditional "@ifset" "@ifclear"))
+
+(inline_command
+  variable: (argument) @variable)
 
 ((block_end) @keyword.control.conditional
   (#match? @keyword.control.conditional "^[@]end[ \t]*if"))
@@ -250,21 +261,35 @@
 
 (unmatched_end) @keyword
 
-; Lists
+; Lists. A table item's term.
 (item
-  name: (command_name) @markup.list)
+  name: (command_name) @markup.list
+  argument: (line_argument)? @markup.bold)
 
 (itemx
-  name: (command_name) @markup.list)
+  name: (command_name) @markup.list
+  argument: (line_argument)? @markup.bold)
 
 (tab
   name: (command_name) @markup.list)
 
 ; Line commands. The generic pattern excludes the commands with their own
-; pattern.
+; pattern: files, and index entries (the commands ending in `index` but
+; those that define, merge or print an index).
 ((line_command
   name: (command_name) @keyword)
-  (#not-any-of? @keyword "@include" "@verbatiminclude" "@setfilename"))
+  (#not-any-of? @keyword "@include" "@verbatiminclude" "@setfilename")
+  (#not-match? @keyword "index$"))
+
+((line_command
+  name: (command_name) @keyword)
+  (#any-of? @keyword "@printindex" "@defindex" "@defcodeindex" "@synindex" "@syncodeindex"))
+
+((line_command
+  name: (command_name) @keyword
+  argument: (line_argument)? @string.special)
+  (#match? @keyword "index$")
+  (#not-any-of? @keyword "@printindex" "@defindex" "@defcodeindex" "@synindex" "@syncodeindex"))
 
 ((line_command
   name: (command_name) @keyword
@@ -272,7 +297,8 @@
   (#any-of? @keyword "@include" "@verbatiminclude" "@setfilename"))
 
 (subentry
-  name: (command_name) @keyword)
+  name: (command_name) @keyword
+  argument: (line_argument)? @string.special)
 
 (line_command
   variable: (text) @variable)
