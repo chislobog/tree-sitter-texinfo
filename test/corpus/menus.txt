@@ -228,6 +228,39 @@ Unfinished menu entry
     end: (block_end)))
 
 ================================================================================
+A tab ends a menu node name, as a comma does
+================================================================================
+
+@menu
+* Lab: Some Node	The description.
+* Other: @code{node}	Its description.
+@end menu
+
+---
+
+(source_file
+  (menu
+    name: (command_name)
+    (menu_entry
+      label: (menu_label
+        (text))
+      node: (menu_node
+        (text))
+      description: (menu_description
+        (text)))
+    (menu_entry
+      label: (menu_label
+        (text))
+      node: (menu_node
+        (inline_command
+          name: (command_name)
+          arguments: (brace_arguments
+            (text))))
+      description: (menu_description
+        (text)))
+    end: (block_end)))
+
+================================================================================
 Spaces in a menu node name
 ================================================================================
 

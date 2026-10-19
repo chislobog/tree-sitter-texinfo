@@ -219,6 +219,8 @@ of a line.
   the last, as in texi2any: `* Label: foo... desc` is node `foo..` and
   description `desc`, not `foo` and `.. desc`; before `,` or a command it
   keeps them all
+- [x] A tab ends a menu node, as a comma does, as in the Texinfo manual and
+  texi2any (found by review): `* Label: Node<TAB>Description` was all node
 - [x] Sections nest by level (`part`, `top`, `chapter`, `section`,
   `subsection`, `subsubsection`), each with its `node` line and `heading`.
   A section inside a conditional ends at its `@end`; the Top node in

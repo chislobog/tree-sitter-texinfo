@@ -758,7 +758,8 @@ export default grammar({
           $._line_end,
           seq(
             field('node', $.menu_node),
-            choice($._line_end, seq(choice('.', ','), $._menu_entry_end)),
+            // A tab ends the node too, as in the Texinfo manual and texi2any.
+            choice($._line_end, seq(choice('.', ',', '\t'), $._menu_entry_end)),
           ),
         ),
       ),
@@ -791,9 +792,9 @@ export default grammar({
       $.brace_group,
     )),
 
-    // Stops before `,` and before a `.` that is followed by whitespace; may
+    // Stops before `,`, a tab and a `.` that is followed by whitespace; may
     // contain spaces, but doesn't start or end with one.
-    _menu_node_text: _ => /([^@{}., \t\n\r\v\f]|\.+[^@{}., \t\n\r\v\f])(([^@{}.,\n]|\.+[^@{}., \t\n\r\v\f])*([^@{}., \t\n\r\v\f]|\.+[^@{}., \t\n\r\v\f]))?/,
+    _menu_node_text: _ => /([^@{}., \t\n\r\v\f]|\.+[^@{}., \t\n\r\v\f])(([^@{}.,\t\n]|\.+[^@{}., \t\n\r\v\f])*([^@{}., \t\n\r\v\f]|\.+[^@{}., \t\n\r\v\f]))?/,
 
     // The rest of the line, and following lines up to a blank line or the
     // next entry, as in the Texinfo manual and texi2any, blocks among them.
