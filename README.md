@@ -81,6 +81,12 @@ A section inside a conditional ends at the conditional's `@end`, so when only
 the heading is conditional (as for the Top node, often inside `@ifnottex`), the
 content after the conditional belongs to the enclosing level.
 
+A `@node` line starts the section whose heading follows it past blank and
+comment lines, the node's description, `@anchor` lines and line commands
+such as index entries. `texi2any` associates them past any text too, but
+here text between them leaves the node a `node_line` of its own: a node
+would otherwise look ahead to its section through all of its text.
+
 Block commands only start, and `@end` only ends a block, at the beginning of a
 line; `texi2any` tolerates them elsewhere with a warning. `TODO.md` lists what
 is not done yet.

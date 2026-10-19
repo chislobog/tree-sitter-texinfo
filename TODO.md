@@ -228,6 +228,11 @@ of a line.
   contain the content after the conditional
 - [x] `@anchor {old}`, with blanks before the brace, between `@node` and its
   section, as texi2any takes it: the node line still starts the section
+- [x] Line commands between `@node` and its section, such as index entries
+  (50 in SBCL's manuals) and `@need` (glibc's): the node line still starts
+  the section, as texi2any associates them (found by review; +60 parser
+  states). Text between them still leaves the node line on its own, unlike
+  in texi2any: the node would look ahead through all of its text
 - [x] `@majorheading`, `@chapheading`, `@heading`, `@subheading` and
   `@subsubheading` are `heading` nodes, not sections
 - [x] Every command node names its command field `name` (headings used

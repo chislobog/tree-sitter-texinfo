@@ -1602,6 +1602,10 @@
                         },
                         {
                           "type": "SYMBOL",
+                          "name": "line_command"
+                        },
+                        {
+                          "type": "SYMBOL",
                           "name": "block"
                         },
                         {
@@ -1708,6 +1712,10 @@
                           },
                           "named": true,
                           "value": "inline_command"
+                        },
+                        {
+                          "type": "SYMBOL",
+                          "name": "line_command"
                         },
                         {
                           "type": "SYMBOL",
@@ -1820,6 +1828,10 @@
                         },
                         {
                           "type": "SYMBOL",
+                          "name": "line_command"
+                        },
+                        {
+                          "type": "SYMBOL",
                           "name": "block"
                         },
                         {
@@ -1925,6 +1937,10 @@
                         },
                         {
                           "type": "SYMBOL",
+                          "name": "line_command"
+                        },
+                        {
+                          "type": "SYMBOL",
                           "name": "block"
                         },
                         {
@@ -2026,6 +2042,10 @@
                         },
                         {
                           "type": "SYMBOL",
+                          "name": "line_command"
+                        },
+                        {
+                          "type": "SYMBOL",
                           "name": "block"
                         },
                         {
@@ -2120,6 +2140,10 @@
                           },
                           "named": true,
                           "value": "inline_command"
+                        },
+                        {
+                          "type": "SYMBOL",
+                          "name": "line_command"
                         },
                         {
                           "type": "SYMBOL",

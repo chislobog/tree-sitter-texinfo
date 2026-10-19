@@ -320,6 +320,36 @@ Longer.
         (text)))))
 
 ================================================================================
+Line commands between a node and its heading, such as index entries
+================================================================================
+
+@node Options
+@cindex options
+@need 5000
+@section Options
+
+---
+
+(source_file
+  (section
+    node: (node_line
+      name: (command_name)
+      node: (argument
+        (text)))
+    (line_command
+      name: (command_name)
+      argument: (line_argument
+        (text)))
+    (line_command
+      name: (command_name)
+      argument: (line_argument
+        (text)))
+    heading: (section_heading
+      name: (command_name)
+      title: (line_argument
+        (text)))))
+
+================================================================================
 An anchor between a node and its heading
 ================================================================================
 
@@ -477,11 +507,10 @@ Text.
           (text))))))
 
 ================================================================================
-Only comment lines may come between a node and its heading
+Text between a node and its heading separates them
 ================================================================================
 
 @node Entry
-@cindex entry
 @section Entry
 
 @node Cfoo
@@ -491,15 +520,11 @@ Only comment lines may come between a node and its heading
 ---
 
 (source_file
-  (node_line
-    (command_name)
-    (argument
-      (text)))
-  (line_command
-    (command_name)
-    (line_argument
-      (text)))
   (section
+    (node_line
+      (command_name)
+      (argument
+        (text)))
     (section_heading
       (command_name)
       (line_argument

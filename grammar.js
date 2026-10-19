@@ -420,15 +420,17 @@ export default grammar({
     ...Object.fromEntries(SECTIONS.map(({name, heading, contains}) => [
       name,
       $ => prec.right(seq(
-        // Blank and comment lines, the node's description and `@anchor` lines
-        // (old names of the node) may separate the node from its heading. The
-        // scanner only starts a section with the node if nothing else does.
+        // Blank and comment lines, the node's description, `@anchor` lines
+        // (old names of the node) and line commands, such as index entries,
+        // may separate the node from its heading, as in texi2any. The scanner
+        // only starts a section with the node if nothing else does.
         optional(seq(
           field('node', alias($[`_node_line_before_${name}`], $.node_line)),
           repeat(choice(
             $._newline,
             alias($._node_description, $.line_command),
             alias($._no_paragraph_command, $.inline_command),
+            $.line_command,
             $.block,
             $.paragraph,
           )),

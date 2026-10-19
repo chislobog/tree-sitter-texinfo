@@ -592,9 +592,10 @@ static bool accept_node_before(TSLexer *lexer, const bool *valid_symbols,
 
 /**
  * Scans `@node` when the next line, after blank and comment lines, the
- * node's description (`@nodedescription`, `@nodedescriptionblock`) and
- * `@anchor` lines, is a sectioning command: emits the node token for that
- * section's level, so the node line starts the section. The `@node` has already
+ * node's description (`@nodedescription`, `@nodedescriptionblock`),
+ * `@anchor` lines and line commands such as index entries, is a sectioning
+ * command: emits the node token for that section's level, so the node line
+ * starts the section, as texi2any associates them. The `@node` has already
  * been read; otherwise it is left to the grammar as a plain node line.
  */
 static bool scan_node_before_section(TSLexer *lexer,
@@ -613,8 +614,10 @@ static bool scan_node_before_section(TSLexer *lexer,
     char name[MAX_NAME + 1];
     if (!read_name(lexer, name)) return false;
 
-    // A comment, whatever follows its name, as in texi2any.
-    if (strcmp(name, "c") == 0 || strcmp(name, "comment") == 0) {
+    // A comment, whatever follows its name, as in texi2any, or a line
+    // command, such as an index entry (`@cindex`, `@need 5000`).
+    if (strcmp(name, "c") == 0 || strcmp(name, "comment") == 0 ||
+        is_line_command(name)) {
       skip_to_next_line(lexer);
       continue;
     }
