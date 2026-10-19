@@ -18,9 +18,9 @@ Usage: script/fuzz-corpus.py [--manuals] [--test-inputs] [--compared-manuals]
 import argparse
 import sys
 
-from texinfo_language import ROOT, add_files_argument, files_argument, load_language
-
 from tree_sitter import Parser
+
+from texinfo_language import ROOT, add_files_argument, files_argument, load_language
 
 OUTPUT = ROOT / "test" / "corpus" / "fuzz-inputs.txt"
 # A delimiter suffix, so lines of `=` or `-` in an input end nothing.

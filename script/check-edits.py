@@ -39,9 +39,9 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-from texinfo_language import BLOCK_NAMES, add_files_argument, dump, files_argument, load_language
-
 from tree_sitter import Node, Parser, Point, Tree
+
+from texinfo_language import BLOCK_NAMES, add_files_argument, dump, files_argument, load_language
 
 INSERTIONS = ["{", "}", "@", "@code{", "@xref{"]
 # Blocks in which, as in texi2any, a blank line doesn't end a brace command,

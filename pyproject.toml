@@ -31,6 +31,9 @@ build-frontend = "build"
 # For the scripts in script/.
 [tool.ruff]
 line-length = 100
+# The scripts' modules are the first-party ones: src/ holds tree_sitter/,
+# the headers, which made py-tree-sitter's `tree_sitter` look like one.
+src = ["script"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "B", "I", "UP", "PLW1510"]

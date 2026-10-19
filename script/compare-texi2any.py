@@ -100,6 +100,8 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 
+from tree_sitter import Parser
+
 from texinfo_language import (
     ARGUMENT_FIELDS,
     BLOCK_NAMES,
@@ -108,8 +110,6 @@ from texinfo_language import (
     load_language,
     texi2any_table,
 )
-
-from tree_sitter import Parser
 
 HEADINGS = (
     "part_heading",
@@ -1296,6 +1296,14 @@ def write_expected(path: Path, entries: dict[str, Expected]):
     path.write_text("\n".join(lines) + "\n")
 
 
+def stale_entries(entries: dict[str, Expected], compared: dict[str, list[str]]) -> list[str]:
+    """The listed files no longer compared, in a directory that was, as in
+    the snapshots: a corpus test renamed or removed, a manual gone with a
+    new version of the reference."""
+    directories = {Path(name).parts[0] for name in compared}
+    return [name for name in entries if Path(name).parts[0] in directories and name not in compared]
+
+
 def main() -> int:
     arguments = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     add_files_argument(arguments)
@@ -1331,8 +1339,9 @@ def main() -> int:
     found: dict[str, list[str]] = {}
     how_compared: Counter[str] = Counter()
     # texi2any is the slow part: run it for all files in parallel, and report
-    # in file order.
-    with ThreadPoolExecutor(max_workers=os.cpu_count()) as pool:
+    # in file order. In a Nix check, on the cores Nix gives it (0 for all).
+    cores = int(os.environ.get("NIX_BUILD_CORES") or 0) or os.cpu_count()
+    with ThreadPoolExecutor(max_workers=cores) as pool:
         sides = [pool.submit(texi2any_side, path, line_commands) for path in options.files]
         for path, side in zip(options.files, sides, strict=True):
             texi2any = side.result()
@@ -1389,6 +1398,8 @@ def main() -> int:
 
     if options.write_expected:
         entries = read_expected(options.write_expected)
+        for name in stale_entries(entries, found):
+            del entries[name]
         for name, file_differences in found.items():
             if file_differences:
                 comment = entries[name].comment if name in entries else []
@@ -1404,6 +1415,9 @@ def main() -> int:
             if name in entries and not entries[name].comment:
                 print(f"No reason given: {name}", file=sys.stderr)
                 failed = True
+        for name in stale_entries(entries, found):
+            print(f"No longer compared: {name}", file=sys.stderr)
+            failed = True
         for name, file_differences in found.items():
             expected = entries[name].differences if name in entries else []
             unexpected = Counter(file_differences) - Counter(expected)

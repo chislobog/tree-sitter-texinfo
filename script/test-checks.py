@@ -17,9 +17,9 @@ import sys
 import tempfile
 from pathlib import Path
 
-from texinfo_language import ROOT, load_language
-
 from tree_sitter import Parser
+
+from texinfo_language import ROOT, load_language
 
 CHECKS = Path("test/checks")
 TAB = CHECKS / "tab-outside-multitable.texi"
@@ -166,6 +166,13 @@ def check_comparison(checker: Checker):
         False,
         f"No longer found: {SAME}: line 4",
     )
+    renamed = CHECKS / "renamed.texi"
+    checker.expect(
+        "comparison: a listed file no longer compared fails",
+        [*compare, checker.file("renamed.txt", f"# A reason\n{renamed}\n  line 1: x\n"), SAME],
+        False,
+        f"No longer compared: {renamed}",
+    )
     checker.expect(
         "comparison: listed differences pass",
         [*compare, checker.file("listed.txt", listed), *COMPARED, ARGUMENTS],
@@ -208,6 +215,17 @@ def check_snapshots(checker: Checker):
         False,
         f"no longer checked: {stale_file}",
     )
+    # Recording drops it, so the check passes after.
+    checker.expect(
+        "snapshots: recording drops a stale digest",
+        [*command, "--snapshots", stale_snapshots, "--write", other_file],
+        True,
+    )
+    checker.expect(
+        "snapshots: no stale digest is left",
+        [*command, "--snapshots", stale_snapshots, "--check", other_file],
+        True,
+    )
 
 
 def check_parse_errors(checker: Checker):
@@ -229,6 +247,12 @@ def check_parse_errors(checker: Checker):
         [*command, checker.file("parses.txt", f"# A reason\n{SAME}\n"), SAME],
         False,
         f"No longer fails to parse: {SAME}",
+    )
+    checker.expect(
+        "parse errors: a listed file no longer checked fails",
+        [*command, checker.file("renamed.txt", f"# A reason\n{CHECKS / 'renamed.texi'}\n"), SAME],
+        False,
+        f"No longer checked: {CHECKS / 'renamed.texi'}",
     )
     checker.expect(
         "parse errors: listed files pass",
@@ -393,21 +417,26 @@ def check_parser_size(checker: Checker):
 
 def check_fuzz(checker: Checker):
     """script/fuzz.py, which the fuzz checks run, fails on what tree-sitter
-    fuzz reports, as its exit status doesn't tell."""
-    from fuzz import failures
+    fuzz reports, as its exit status doesn't tell, and if it fuzzed nothing."""
+    from fuzz import problems
 
     failing = (
         "  0. texinfo - corpus - fuzz-inputs - a.texi\n"
         "Incorrect parse for texinfo - corpus - fuzz-inputs - a.texi - seed 31\n\n"
         "1 texinfo corpus tests failed fuzzing\n"
     )
-    found = failures(failing)
+    found = problems(failing)
     checker.report(
         "fuzz: an incorrect parse fails",
         [] if len(found) == 2 else [f"found {found!r}"],
     )
-    found = failures("  0. texinfo - corpus - fuzz-inputs - a.texi\n")
+    found = problems("  0. texinfo - corpus - fuzz-inputs - a.texi\n")
     checker.report("fuzz: no failure passes", [f"found {found!r}"] if found else [])
+    found = problems("Seed: 1\n")
+    checker.report(
+        "fuzz: fuzzing no test fails",
+        [] if found == ["no test fuzzed"] else [f"found {found!r}"],
+    )
 
 
 def main() -> int:

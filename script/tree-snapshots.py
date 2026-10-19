@@ -22,9 +22,9 @@ import sys
 import tempfile
 from pathlib import Path
 
-from texinfo_language import ROOT, add_files_argument, dump, files_argument, load_language
-
 from tree_sitter import Parser
+
+from texinfo_language import ROOT, add_files_argument, dump, files_argument, load_language
 
 SNAPSHOTS = ROOT / "test" / "tree-snapshots.txt"
 
@@ -102,18 +102,20 @@ def main() -> int:
 
     snapshots = read_snapshots(options.snapshots)
     current = {str(path): digest(parser, path) for path in options.files}
+    # A file gone from a directory that was checked, such as a manual removed
+    # from the examples, leaves a stale digest, which --write drops.
+    directories = {str(Path(name).parts[0]) for name in current}
+    gone = [
+        name for name in snapshots if Path(name).parts[0] in directories and name not in current
+    ]
     if options.write:
+        for name in gone:
+            del snapshots[name]
         snapshots.update(current)
         write_snapshots(options.snapshots, snapshots)
         return 0
 
     changed = [name for name, value in current.items() if snapshots.get(name) != value]
-    # A file gone from a directory that was checked, such as a manual removed
-    # from the examples, leaves a stale digest.
-    directories = {str(Path(name).parts[0]) for name in current}
-    gone = [
-        name for name in snapshots if Path(name).parts[0] in directories and name not in current
-    ]
     for name in changed:
         state = "no digest" if name not in snapshots else "tree changed"
         print(f"{state}: {name}", file=sys.stderr)

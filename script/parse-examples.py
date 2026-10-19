@@ -27,9 +27,9 @@ import tempfile
 import time
 from pathlib import Path
 
-from texinfo_language import ROOT, add_files_argument, files_argument, load_language
-
 from tree_sitter import Parser
+
+from texinfo_language import ROOT, add_files_argument, files_argument, load_language
 
 EXPECTED = ROOT / "test" / "parse-errors.txt"
 MIN_BYTES = 20_000
@@ -137,8 +137,16 @@ def main() -> int:
     for name in sorted(failed & expected.keys()):
         if not expected[name]:
             print(f"No reason given: {name}", file=sys.stderr)
-    if failed != expected.keys() & checked or any(
-        not expected[n] for n in failed & expected.keys()
+    # Listed, in a directory that was checked, but not checked: a manual
+    # gone with a new version of the reference.
+    directories = {Path(name).parts[0] for name in checked}
+    stale = sorted(n for n in expected.keys() - checked if Path(n).parts[0] in directories)
+    for name in stale:
+        print(f"No longer checked: {name}", file=sys.stderr)
+    if (
+        failed != expected.keys() & checked
+        or any(not expected[n] for n in failed & expected.keys())
+        or stale
     ):
         print(
             f"The files that fail to parse don't match {options.expected}.",

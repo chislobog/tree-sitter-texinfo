@@ -28,9 +28,9 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-from texinfo_language import ROOT, load_language
-
 from tree_sitter import Parser, Query, QueryCursor
+
+from texinfo_language import ROOT, load_language
 
 TESTS = ROOT / "test" / "queries"
 # A `#not-any-of?` predicate: py-tree-sitter 0.25.2 lets through a capture
