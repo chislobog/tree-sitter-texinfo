@@ -748,12 +748,6 @@ texinfo-tests/60macro/cpp_directives_line_value_macro.texi
   line 18: paragraphs: ours '<p> </p>', texi2any '(nothing)'
   line 22: paragraphs: ours '<p> </p>', texi2any '(nothing)'
 
-# Deliberate: a form feed is a blank, like a vertical tab; texi2any makes it an empty line, which ends a paragraph
-texinfo-tests/60macro/form_feeds.texi
-  line 9: <p> arguments: ours 'f arg1 n arg2', texi2any 'f arg1'
-  line 11: <p> arguments: ours 'g a rgline v', texi2any 'n arg2'
-  line 11: paragraphs: ours '(nothing)', texi2any '</p> <p>'
-
 # Deliberate: a command whose name ends in `index` at the start of a line is an index entry, as a user-defined one (`@defindex`) is; here `@definfoenclose` made it a brace command, which the tree can't know
 texinfo-tests/60macro/macro_alias_definfoenclose_defindex.texi
   line 12: paragraphs: ours '(nothing)', texi2any '<p>'
@@ -855,19 +849,6 @@ texinfo-tests/80include/value_expansion_in_include.texi
   line 25: paragraphs: ours '(nothing)', texi2any '</p>'
   line 25: paragraphs: ours '</p>', texi2any '(nothing)'
 
-# Deliberate: a form feed is a blank, like a vertical tab; texi2any makes it an empty line, which ends a paragraph
-texinfo-tests/converters_tests/form_feeds.texi
-  line 3: paragraphs: ours '(nothing)', texi2any '<p> </p> <p> </p>'
-  line 7: <p> arguments: ours 'aa bb', texi2any 'cc'
-  line 9: <p> arguments: ours 'cc dd', texi2any 'dd'
-  line 18: paragraphs: ours '(nothing)', texi2any '<p> </p>'
-  line 18: <p> arguments: ours 'gg jj', texi2any 'jj'
-  line 38: <p> arguments: ours 'within cation', texi2any 'within'
-  line 38: <p> arguments: ours 'Toto', texi2any 'cation'
-  line 38: paragraphs: ours '(nothing)', texi2any '<p> </p>'
-  line 39: paragraphs: ours '(nothing)', texi2any '<p> </p>'
-  line 39: <p> arguments: ours 'shc within shortcaption', texi2any 'shortcaption'
-
 # Deliberate: a brace or argument on the line after its command doesn't belong to it (texi2any reports at line 1: command `@inlineifclear' must not be followed by new line, and takes it)
 texinfo-tests/converters_tests/inlineifsetifclearspaces.texi
   line 1: @inlineifclear arguments: ours '(none)', texi2any 'aaa | iclear first'
@@ -887,32 +868,6 @@ texinfo-tests/epub_tests/setfilename_on_top_and_after_node_epub.texi
 texinfo-tests/formats_encodings/japanese_shift_jis.texi
   line 19: ours '@\n', texi2any '(nothing)'
   line 33: ours '@\n', texi2any '(nothing)'
-
-# Deliberate: a form feed is a blank, like a vertical tab; texi2any makes it an empty line, which ends a paragraph
-texinfo-tests/plaintext_tests/all_spaces.texi
-  line 15: <p> arguments: ours 'CARRIAGE RETURN CR', texi2any '(none)'
-  line 17: <p> arguments: ours 'SPACE', texi2any 'CARRIAGE RETURN CR'
-  line 19: <p> arguments: ours 'NEXT LINE NEL', texi2any 'SPACE'
-  line 21: <p> arguments: ours 'NO BREAK SPACE', texi2any 'NEXT LINE NEL'
-  line 23: <p> arguments: ours 'OGHAM SPACE MARK', texi2any 'NO BREAK SPACE'
-  line 25: <p> arguments: ours 'MONGOLIAN VOWEL SEPARATOR', texi2any 'OGHAM SPACE MARK'
-  line 27: <p> arguments: ours 'EN QUAD', texi2any 'MONGOLIAN VOWEL SEPARATOR'
-  line 29: <p> arguments: ours 'EM QUAD', texi2any 'EN QUAD'
-  line 31: <p> arguments: ours 'EN SPACE', texi2any 'EM QUAD'
-  line 33: <p> arguments: ours 'EM SPACE', texi2any 'EN SPACE'
-  line 35: <p> arguments: ours 'THREE PER EM SPACE', texi2any 'EM SPACE'
-  line 37: <p> arguments: ours 'FOUR PER EM SPACE', texi2any 'THREE PER EM SPACE'
-  line 39: <p> arguments: ours 'SIX PER EM SPACE', texi2any 'FOUR PER EM SPACE'
-  line 41: <p> arguments: ours 'FIGURE SPACE', texi2any 'SIX PER EM SPACE'
-  line 43: <p> arguments: ours 'PUNCTUATION SPACE', texi2any 'FIGURE SPACE'
-  line 45: <p> arguments: ours 'THIN SPACE', texi2any 'PUNCTUATION SPACE'
-  line 47: <p> arguments: ours 'HAIR SPACE', texi2any 'THIN SPACE'
-  line 49: <p> arguments: ours 'LINE SEPARATOR', texi2any 'HAIR SPACE'
-  line 51: <p> arguments: ours 'PARAGRAPH SEPARATOR', texi2any 'LINE SEPARATOR'
-  line 53: <p> arguments: ours 'NARROW NO BREAK SPACE', texi2any 'PARAGRAPH SEPARATOR'
-  line 55: <p> arguments: ours 'MEDIUM MATHEMATICAL SPACE', texi2any 'NARROW NO BREAK SPACE'
-  line 57: <p> arguments: ours 'IDEOGRAPHIC SPACE', texi2any 'MEDIUM MATHEMATICAL SPACE'
-  line 57: paragraphs: ours '(nothing)', texi2any '<p> </p>'
 
 # Deliberate: a line command in the middle of a line; line commands occupy a whole line, as the Texinfo manual requires (texi2any accepts it with a warning, taking the rest of the line as its argument)
 texinfo-tests/plaintext_tests/at_commands_glued_in_example.texi

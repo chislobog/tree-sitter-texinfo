@@ -306,7 +306,9 @@ const inlinefmtifelseArgument = ($, i) => [
 export default grammar({
   name: 'texinfo',
 
-  // Spaces as texi2any has them: space, tab, vertical tab and form feed.
+  // Spaces as texi2any has them: space, tab, vertical tab and form feed,
+  // but that a form feed in the middle of a paragraph's line ends it, as in
+  // texi2any (the scanner).
   // A carriage return is a blank, also before the `\n` of a line end, as no
   // token starts with one: one that did would take a lone `\r` before it.
   // A `}` that closes nothing may be anywhere, as texi2any reports and
@@ -1574,7 +1576,8 @@ export default grammar({
 
     // Only ASCII spaces count, as in texi2any: a text may start with a
     // no-break space. A carriage return not before a newline is part of it.
-    text: _ => /[^@{} \t\n\r\v\f]([^@{}\n]*[^@{} \t\n\r\v\f])?/,
+    // A form feed ends it, which the scanner may make the paragraph's end.
+    text: _ => /[^@{} \t\n\r\v\f]([^@{}\n\f]*[^@{} \t\n\r\v\f])?/,
 
     // The `\r` of a `\r\n` is a blank before it (`extras`).
     _newline: _ => /\n/,

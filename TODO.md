@@ -15,6 +15,10 @@ sources, which is what `texi2any` itself uses.
 - [x] Paragraphs separated by blank lines
 - [x] Brace commands, nested, with arguments spanning lines
 - [x] Symbol commands: `@@`, `@{`, `@}`, `@*`, `@.`, `@ `, accents like `@'`
+- [x] A form feed in the middle of a paragraph's line ends the paragraph,
+  as the Texinfo manual says and texi2any does (found by review: the
+  differences listed it as deliberate); elsewhere it is a blank, as at the
+  start of a line, in braces, a line command or a preformatted block
 - [x] Only texi2any's symbol commands and accents are symbol commands
   (found by review): `@#`, `@%`, `@_` and the like were, which texi2any
   reports as "unexpected @"; the `@` is alone now, as before a character
@@ -156,8 +160,8 @@ sources, which is what `texi2any` itself uses.
 - [x] `@set NAME VALUE` and `@clear NAME` split into `variable` and `value`
   fields. As in texi2any, the value is raw text up to a comment; its
   commands are parsed where `@value` uses it
-- [x] Form feeds and vertical tabs as spaces, as in texi2any. Unlike
-  texi2any, a form feed in the middle of a line doesn't end the paragraph
+- [x] Form feeds and vertical tabs as spaces, as in texi2any, but that a
+  form feed in the middle of a paragraph's line ends it (below)
 - [x] Spaces between a built-in brace command and its brace (`@code {a}`),
   which texi2any accepts. Not for other commands, which may be macros or
   commands without braces (`@tab {b}`); not across a newline, which
@@ -436,8 +440,8 @@ comparing arguments:
 - [x] The comparison compares paragraphs too: where they start and end
   among the commands, and their text outside commands. 148,650 of 148,912
   paragraphs match texi2any's; the other differences are listed, by the
-  gaps above or as deliberate (a form feed is a blank here, an empty line
-  to texi2any; a `#line` directive is text). Where texi2any's paragraphs
+  gaps above or as deliberate (a `#line` directive is text). Where
+  texi2any's paragraphs
   differ for want of what another file defines (a line of commands it
   doesn't know is empty to it, an `@value` of a variable not set starts no
   paragraph), our side splits them as texi2any does or the difference is

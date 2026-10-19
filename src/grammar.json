@@ -11068,7 +11068,7 @@
     },
     "text": {
       "type": "PATTERN",
-      "value": "[^@{} \\t\\n\\r\\v\\f]([^@{}\\n]*[^@{} \\t\\n\\r\\v\\f])?"
+      "value": "[^@{} \\t\\n\\r\\v\\f]([^@{}\\n\\f]*[^@{} \\t\\n\\r\\v\\f])?"
     },
     "_newline": {
       "type": "PATTERN",

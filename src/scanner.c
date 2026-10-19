@@ -296,6 +296,8 @@ typedef struct {
   TSLexer *lexer;
   unsigned consumed;
   int8_t at_start;  // -1 until asked
+  // Whether a form feed was among the blanks skipped.
+  bool form_feed;
 } LineStart;
 
 static bool starts_line(LineStart *start) {
@@ -309,6 +311,7 @@ static bool starts_line(LineStart *start) {
 static void skip_counted(LineStart *start, bool returns) {
   TSLexer *lexer = start->lexer;
   while (is_blank(lexer->lookahead) || (returns && lexer->lookahead == '\r')) {
+    if (lexer->lookahead == '\f') start->form_feed = true;
     skip(lexer);
     start->consumed++;
   }
@@ -902,6 +905,16 @@ static bool in_preformatted(const Scanner *scanner) {
     }
   }
   return false;
+}
+
+// Whether a form feed among the blanks skipped ends a paragraph: in the
+// middle of its line, as in texi2any, where it is an empty line. Not at the
+// start of a line, where it is a blank, nor in a preformatted block or in
+// braces, where it is text.
+static bool form_feed_ends_paragraph(const Scanner *scanner, LineStart *start,
+                                     const bool *valid_symbols) {
+  return start->form_feed && valid_symbols[PARAGRAPH_END_BEFORE_COMMAND] &&
+         !in_preformatted(scanner) && !starts_line(start);
 }
 
 // `@itemize` and `@enumerate`, where the text after `@item` is a paragraph,
@@ -1573,7 +1586,7 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
   // line. Nothing comes before them on their line, and an edit that puts
   // something there touches the newline right before it, which tree-sitter
   // re-scans.
-  LineStart start = {lexer, 0, -1};
+  LineStart start = {lexer, 0, -1, false};
   bool paragraph_end = valid_symbols[PARAGRAPH_END_AT_LINE_START];
   bool brace_close = valid_symbols[BRACE_CLOSE_AT_PARAGRAPH_END] ||
                      valid_symbols[BRACE_CLOSE_AT_BLOCK_END] ||
@@ -1595,6 +1608,9 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
   // missing brace looks for comment lines too.
   if (valid_symbols[NEWLINE_BEFORE_COMMENTS] && !brace_close) {
     skip_counted(&start, true);
+    if (form_feed_ends_paragraph(scanner, &start, valid_symbols)) {
+      return accept(lexer, PARAGRAPH_END_BEFORE_COMMAND);
+    }
     if (lexer->lookahead == '\n') {
       return scan_newline_before_comments(lexer, accent_next_line);
     }
@@ -1645,6 +1661,11 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
       lexer->result_symbol = missing_end ? MISSING_END : END_OF_FILE;
       return true;
     }
+  }
+
+  // Zero-width, after the blanks (and before what follows the form feed).
+  if (form_feed_ends_paragraph(scanner, &start, valid_symbols)) {
+    return accept(lexer, PARAGRAPH_END_BEFORE_COMMAND);
   }
 
   if (lexer->lookahead != '@') return false;
