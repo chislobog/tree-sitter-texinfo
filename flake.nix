@@ -487,6 +487,7 @@
                     ./test/neovim
                     ./test/highlight
                     ./test/tags
+                    ./test/queries
                   ]
                 )
                 ''
@@ -494,7 +495,7 @@
                   tree-sitter build -o runtime/parser/texinfo.so >/dev/null
                   ln -s "$PWD/editors/neovim/queries" runtime/queries/texinfo
                   ${lib.getExe pkgs.neovim} --headless -l test/neovim/check-queries.lua runtime \
-                    test/highlight/*.texi test/tags/*.texi
+                    test/highlight/*.texi test/tags/*.texi test/queries/*/*.texi
                 '';
             # libFuzzer with sanitizers on the parser and scanner, for a fixed
             # number of runs from a fixed seed (about two minutes), seeded with
