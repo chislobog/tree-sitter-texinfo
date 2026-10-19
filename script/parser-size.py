@@ -21,11 +21,9 @@ from pathlib import Path
 
 # A few percent over the state count. Raise it with the grammar change that
 # needs it, after measuring what makes the change cost what it does
-# (CLAUDE.md). 7,614: a menu entry starts with the scanner's token, which
-# keeps the states of a line end that an entry may follow from merging with
-# others (211 states). 7,700: a part tells its appendices from its other
-# chapters, whose headings are two sets of keywords (26 states).
-BUDGET = 7_800
+# (CLAUDE.md). 5,447 since each block's, list's, menu's, macro's and
+# command's head became a rule of its own (7,775 before).
+BUDGET = 5_600
 
 STATE_COUNT = re.compile(r"^#define STATE_COUNT (\d+)", re.M)
 

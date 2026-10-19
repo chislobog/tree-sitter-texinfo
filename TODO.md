@@ -21,10 +21,6 @@ Found by review (October 2026), left for a decision or for later:
   every token after it; a keystroke in a raw block left open re-lexes the
   rest of the file, its body being one token; opening a block re-parses
   up to the next node
-- [ ] The parser's states: moving the head of each block, list, menu, raw
-  block, macro and command into a hidden rule of its own leaves the trees
-  the same, with 30% fewer (measured by review, before the menu entry and
-  part changes)
 
 ## Done
 
@@ -541,6 +537,11 @@ Deliberate, so the tree shows the source as it is written and edited:
 - [x] `queries/highlights.scm`, with tests in `test/highlight/`
 - [x] Highlight gaps from overlapping patterns: `@example` contents, markup
   in heading titles, `@defvar` entities, `@emph`/`@var` arguments
+- [x] The head of each block, list, menu, raw block, macro and command with
+  arguments is a hidden rule of its own, ending in its line's end, and so
+  are a line command's argument and a definition line's words (found by
+  review): 7,775 parser states became 5,447, `parser.c` 15.6 MB 11.6 MB, with
+  every tree the same
 - [x] Text and headings between a node and its section: the node line still
   starts the section, as texi2any associates them (+54 parser states). Its
   look ahead stops at a block, an `@end`, an item or a definition line, as

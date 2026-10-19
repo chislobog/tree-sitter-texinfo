@@ -592,11 +592,6 @@
     }
   },
   {
-    "type": "command_name",
-    "named": true,
-    "fields": {}
-  },
-  {
     "type": "definition_arguments",
     "named": true,
     "fields": {},
@@ -2835,6 +2830,10 @@
   },
   {
     "type": "block_end",
+    "named": true
+  },
+  {
+    "type": "command_name",
     "named": true
   },
   {

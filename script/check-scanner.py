@@ -170,7 +170,7 @@ def check_tokens(source: str, grammar: dict) -> list[str]:
 def check_layouts(source: str, grammar: dict) -> list[str]:
     layouts = [
         set(string_choices(name_field(member)))
-        for member in grammar["rules"]["_definition_continuation"]["members"]
+        for member in grammar["rules"]["_definition_continuation_words"]["members"]
     ]
     problems = []
     for block, offset in re.findall(r'\{"(\w+)", KIND_DEFINITION(?: \+ (\d+))?\}', source):

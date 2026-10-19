@@ -306,7 +306,11 @@ from the same LLVM version as the compiler (the profile format differs).
   into states for each: write them as a chain of hidden rules, one for each
   position, holding the next (`commaArguments`, and a definition line's
   words): 13,748 states became 7,139, with the same trees, and generation
-  went from ten seconds to one. A change in nested optional sequences once
+  went from ten seconds to one. Likewise the head of a construct (a block's
+  name, argument and line end) in the rule the outer context follows has
+  states for each set of tokens that may follow the construct: as a hidden
+  rule of its own, ending in `_line_end`, it has one (`_block_head`,
+  `_xref_open`): 7,775 states became 5,447, with the same trees. A change in nested optional sequences once
   made generation run for over 13 minutes. `tree-sitter generate
   --report-states-for-rule -` counts the states that each rule's items are
   in, which shows where they go.

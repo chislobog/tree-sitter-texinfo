@@ -96,11 +96,7 @@ const NO_PARAGRAPH_ARGUMENT_COMMANDS = ['image', 'namedanchor'];
  */
 const argumentCommand = ($, names, commands) => prec.right(seq(
   field('name', command($, commands)),
-  optional(seq(
-    '{',
-    commaArguments($, `_${commands[0]}_arguments`, names.split(' '), commandArgument(names.split(' '), false)),
-    braceClose($),
-  )),
+  optional(seq($[`_${commands[0]}_open`], braceClose($))),
 ));
 
 /**
@@ -245,15 +241,13 @@ const command = ($, names) => {
  * @param {RuleOrLiteral} name
  * @param {RuleOrLiteral} end
  */
-const lineCommand = ($, name, end) => choice(
+const lineCommand = ($, name, end) => seq(choice(
   seq(
     field('name', alias(name, $.command_name)),
-    optional(field('argument', $.line_argument)),
-    optional($.subentry),
-    end,
+    optional($._line_command_rest),
   ),
-  seq($._keyword_line_command, end),
-);
+  $._keyword_line_command,
+), end);
 
 /**
  * The end of an ordinary brace command's braces: its `}`, or a zero-width
@@ -443,6 +437,21 @@ export default grammar({
           optional($[definitionFieldsRule(fields.slice(1))]) :
           optional(field('arguments', $.definition_arguments)),
       ),
+    ])),
+
+    // A command of ARGUMENT_COMMANDS's brace and arguments, in a paragraph and
+    // in a line, each a rule of its own, which the brace's close follows.
+    ...Object.fromEntries(Object.entries(ARGUMENT_COMMANDS).flatMap(([names, commands]) => [
+      [`_${commands[0]}_open`, $ => seq(
+        '{',
+        commaArguments($, `_${commands[0]}_arguments`, names.split(' '), commandArgument(names.split(' '), false)),
+      )],
+      [`_${commands[0]}_line_open`, $ => seq(
+        '{',
+        commaArguments(
+          $, `_${commands[0]}_line_arguments`, names.split(' '), commandArgument(names.split(' '), true),
+        ),
+      )],
     ])),
 
     ...commaArgumentRules('_inlinefmtifelse_arguments', ['format', 'then', 'else'], inlinefmtifelseArgument),
@@ -734,7 +743,9 @@ export default grammar({
     // otherwise it is the `node` of a section.
     node_line: $ => nodeLine($, alias('@node', $.command_name)),
 
-    block: $ => seq(
+    block: $ => seq($._block_head, $._block_rest),
+
+    _block_head: $ => seq(
       choice(
         seq(
           field('name', alias($._block_start, $.command_name)),
@@ -751,7 +762,6 @@ export default grammar({
         ),
       ),
       $._line_end,
-      $._block_rest,
     ),
 
     // Items and multitable rows, for conditionals that wrap some of a list's
@@ -782,9 +792,7 @@ export default grammar({
     // `@menu`, `@detailmenu` and `@direntry`: menu entries, and other content
     // as menu comments.
     menu: $ => seq(
-      field('name', alias($._menu_start, $.command_name)),
-      optional(field('argument', $.line_argument)),
-      $._line_end,
+      $._menu_head,
       repeat(choice($._content, $.menu_entry)),
       field('end', $._block_end),
     ),
@@ -913,10 +921,11 @@ export default grammar({
     ))),
 
     // `@deffnx` and friends.
-    _definition_continuation: $ => choice(...DEFINITION_LAYOUTS.map(({fields, lines}) => seq(
+    _definition_continuation: $ => seq($._definition_continuation_words, $._line_end),
+
+    _definition_continuation_words: $ => choice(...DEFINITION_LAYOUTS.map(({fields, lines}) => seq(
       field('name', command($, lines)),
       definitionFields($, fields),
-      $._line_end,
     ))),
 
     // `@defline` and `@deftypeline`, in `@defblock`, each with the text after
@@ -1007,8 +1016,8 @@ export default grammar({
     // longer value piece. It starts after the blanks, which aren't part of
     // the value in texi2any either.
     _set_value: _ => seq(
-      choice(/[^@ \t\v\f\r\n][^@\r\n]*/, /@[a-zA-Z0-9][a-zA-Z0-9-]*/, /@[^a-zA-Z0-9\r\n]/),
-      repeat(choice(/[^@\r\n]+/, /@[a-zA-Z0-9][a-zA-Z0-9-]*/, /@[^a-zA-Z0-9\r\n]/)),
+      choice(/[^@ \t\v\f\r\n][^@\r\n]*/, /@[a-zA-Z0-9][-a-zA-Z0-9]*/, /@[^a-zA-Z0-9\r\n]/),
+      repeat(choice(/[^@\r\n]+/, /@[a-zA-Z0-9][-a-zA-Z0-9]*/, /@[^a-zA-Z0-9\r\n]/)),
     ),
 
     definition_arguments: $ => prec.right(repeat1(choice(
@@ -1033,9 +1042,7 @@ export default grammar({
 
     list: $ => choice(
       seq(
-        field('name', alias($._list_start, $.command_name)),
-        optional(field('argument', $.line_argument)),
-        $._line_end,
+        $._list_head,
         repeat($._content),
         repeat(choice($.item, alias($._container_item, $.item))),
         field('end', $._block_end),
@@ -1043,12 +1050,7 @@ export default grammar({
       // `@multitable`: each `@item` or `@headitem` is a row, holding its first
       // cell's content and a `tab` for each further cell, as in texi2any.
       seq(
-        field('name', alias($._multitable_start, $.command_name)),
-        optional(field('argument', choice(
-          $.line_argument,
-          alias($._column_fractions, $.line_argument),
-        ))),
-        $._line_end,
+        $._multitable_head,
         repeat($._content),
         repeat(alias($._row, $.item)),
         field('end', $._block_end),
@@ -1112,8 +1114,7 @@ export default grammar({
     ),
 
     _raw_block_rest: $ => seq(
-      optional(field('argument', $.line_argument)),
-      $._line_end,
+      $._raw_block_head,
       optional(field('body', $.raw_text)),
       field('end', $._block_end),
     ),
@@ -1136,13 +1137,52 @@ export default grammar({
     ),
 
     _macro_definition_rest: $ => seq(
+      $._macro_head,
+      optional(field('body', $.raw_text)),
+      field('end', $._block_end),
+    ),
+
+    // The heads of blocks, each a rule of its own, ending in its line's end:
+    // in the rule of the block, it had states for each set of tokens that
+    // may follow the block, 30% of the parser's.
+    _macro_head: $ => seq(
       optional(seq(
         field('macro', alias($._word_text, $.text)),
         optional(choice($._macro_parameters, $._macro_line_rest)),
       )),
       $._line_end,
-      optional(field('body', $.raw_text)),
-      field('end', $._block_end),
+    ),
+
+    _raw_block_head: $ => seq(
+      optional(field('argument', $.line_argument)),
+      $._line_end,
+    ),
+
+    _list_head: $ => seq(
+      field('name', alias($._list_start, $.command_name)),
+      optional(field('argument', $.line_argument)),
+      $._line_end,
+    ),
+
+    _multitable_head: $ => seq(
+      field('name', alias($._multitable_start, $.command_name)),
+      optional(field('argument', choice(
+        $.line_argument,
+        alias($._column_fractions, $.line_argument),
+      ))),
+      $._line_end,
+    ),
+
+    _menu_head: $ => seq(
+      field('name', alias($._menu_start, $.command_name)),
+      optional(field('argument', $.line_argument)),
+      $._line_end,
+    ),
+
+    // A line command's argument and subentry, a rule of its own.
+    _line_command_rest: $ => choice(
+      seq(field('argument', $.line_argument), optional($.subentry)),
+      $.subentry,
     ),
 
     // A rule of its own, which lets the parser share its states: inline, it
@@ -1394,10 +1434,7 @@ export default grammar({
       ...Object.entries(ARGUMENT_COMMANDS).map(([names, commands]) => prec.right(seq(
         field('name', command($, commands)),
         optional(seq(
-          '{',
-          commaArguments(
-            $, `_${commands[0]}_line_arguments`, names.split(' '), commandArgument(names.split(' '), true),
-          ),
+          $[`_${commands[0]}_line_open`],
           choice('}', alias($._brace_close_at_line_end, $.missing_brace)),
         )),
       ))),
