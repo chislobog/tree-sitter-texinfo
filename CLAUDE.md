@@ -100,7 +100,9 @@ well with incomplete input, which is normal while editing.
   test`); those of folds, textobjects and injections in
   `test/queries/QUERY/`, run by `script/test-queries.py` (in the `tests`
   check), as tree-sitter 0.26.11 reads a test in `test/QUERY/` as the
-  query itself: the same assertions, which it fails, rather than skips,
+  query itself, and so are tags assertions that a tag is absent (`!NAME`),
+  which its tags tests read as present. The script's assertions are
+  tree-sitter's: the same assertions, which it fails, rather than skips,
   where they aren't comments, and `N lines up` for a raw block's body. `ts_query_ls format queries/` formats them; `ts_query_ls check`
   validates them against the grammar (built with `tree-sitter build`). Tags
   queries only allow tag captures, so their predicates test the

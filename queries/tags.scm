@@ -14,11 +14,16 @@
 (block
   label: (argument) @name) @definition.anchor
 
+; Not to a node of another manual: a cross-reference with a file or manual,
+; a menu entry's `(manual)node`.
 (inline_command
-  node: (argument) @name) @reference.node
+  node: (argument) @name
+  !file
+  !manual) @reference.node
 
-(menu_entry
+((menu_entry
   node: (menu_node) @name) @reference.node
+  (#not-match? @name "^[(]"))
 
 ; Documented functions, variables and data types.
 ((definition_line

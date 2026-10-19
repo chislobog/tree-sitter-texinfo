@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Run the tests of the queries `tree-sitter test` can't test: folds,
-textobjects and injections, on the files in test/queries/QUERY/.
+textobjects and injections, on the files in test/queries/QUERY/, and the
+tags tests asserting that a tag is absent, which its tags tests read as
+present.
 
 `tree-sitter test` would run the tests in test/QUERY/, but tree-sitter
 0.26.11 reads each such test file as the query itself, so the tests live

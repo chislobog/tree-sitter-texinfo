@@ -519,6 +519,11 @@ Deliberate, so the tree shows the source as it is written and edited:
   as definitions; cross-references and menu entries as references
 - [x] Tag `@anchor {target}` and `@value {var}`, with blanks before the
   brace (as in `info-stnd.texi`)
+- [x] No reference tag for a cross-reference to another manual (with a
+  file or manual argument) or a menu entry's `(manual)node`, which named a
+  local node of the same name (found by review). Their tests are in
+  `test/queries/tags/`, as tree-sitter 0.26.11's tags tests read `!NAME`
+  as `NAME`
 - [x] Register queries in `tree-sitter.json` (highlights, injections and
   tags: it has no key for folds and textobjects)
 - [x] Queries for several editors, favouring none: `queries/` uses the
