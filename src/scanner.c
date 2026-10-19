@@ -43,7 +43,10 @@ enum TokenType {
   // `@node` lines followed by a sectioning command, one per level, in the
   // order of SECTIONS in grammar.js, then one followed by `@appendix`.
   NODE_BEFORE = DEFINITION_START + 8,
-  LINE_COMMAND_NAME = NODE_BEFORE + 7,
+  // A sectioning command but `@part` and `@top`, by its level, from 2 in
+  // SECTIONING.
+  SECTION_COMMAND = NODE_BEFORE + 7,
+  LINE_COMMAND_NAME = SECTION_COMMAND + 5,
   BRACE_COMMAND_NAME,
   MULTITABLE_START,
   // `@tab` between the cells of a multitable row.
@@ -243,9 +246,10 @@ typedef char block_index_fits_a_byte[BLOCK_COUNT <= 256 ? 1 : -1];
 // body; nested raw blocks of the block's own name are counted to any depth.
 #define MAX_RAW_DEPTH 64
 
-// Serialized state: the `@verb` delimiter and the accent flag, then the
-// block stack, which takes the rest of tree-sitter's buffer.
-#define STATE_HEADER (sizeof(int32_t) + 1)
+// Serialized state: the `@verb` delimiter, the accent flag and the count of
+// `@raisesections`, then the block stack, which takes the rest of
+// tree-sitter's buffer.
+#define STATE_HEADER (sizeof(int32_t) + 2)
 #define MAX_DEPTH (TREE_SITTER_SERIALIZATION_BUFFER_SIZE - STATE_HEADER)
 
 typedef struct {
@@ -256,6 +260,9 @@ typedef struct {
   int32_t verb_delimiter;
   // Whether the last token was the name of an accent command.
   bool after_accent;
+  // The `@raisesections` so far less the `@lowersections`, texi2any's
+  // sections_level_modifier, which moves the sections after them.
+  int8_t section_shift;
 } Scanner;
 
 // The outcome of a scan of the first stage (see the scan function), after
@@ -607,22 +614,45 @@ static bool is_root_command(const char *name) {
 }
 
 /**
+ * The level of the sectioning command `name` in SECTIONING, or -1 if it is
+ * none, moved by `shift`, the `@raisesections` before it less the
+ * `@lowersections`, as in texi2any: no higher than a chapter nor lower
+ * than a subsubsection, `@appendix` staying one at the chapter's level, and
+ * `@part` and `@top` not at all.
+ */
+static int section_level(const char *name, int shift) {
+  for (unsigned i = 0; i < SECTIONING_COUNT; i++) {
+    if (strcmp(SECTIONING[i].name, name) != 0) continue;
+    int level = SECTIONING[i].level;
+    if (level < 2 || shift == 0) return level;
+    // texi2any's level, from the chapter's 1 to the subsubsection's 4.
+    int moved = (level == 6 ? 1 : level - 1) - shift;
+    if (moved <= 1) return level == 6 ? 6 : 2;
+    return moved >= 4 ? 5 : moved + 1;
+  }
+  return -1;
+}
+
+// Counts `@raisesections` and `@lowersections` into `shift`.
+static void count_section_shift(int8_t *shift, const char *name) {
+  if (strcmp(name, "raisesections") == 0 && *shift < INT8_MAX) (*shift)++;
+  if (strcmp(name, "lowersections") == 0 && *shift > INT8_MIN) (*shift)--;
+}
+
+/**
  * Accepts the token of a `@node` line before the sectioning command `name`,
- * if it is one: the node token for that section's level. Not before a part,
- * which no node is associated with (the Texinfo manual), as the grammar
- * knows.
+ * if it is one, moved by `shift`: the node token for that section's level.
+ * Not before a part, which no node is associated with (the Texinfo manual),
+ * as the grammar knows.
  */
 static bool accept_node_before(TSLexer *lexer, const bool *valid_symbols,
-                               const char *name) {
-  for (unsigned i = 0; i < SECTIONING_COUNT; i++) {
-    if (strcmp(SECTIONING[i].name, name) == 0 && SECTIONING[i].level > 0) {
-      enum TokenType token = NODE_BEFORE + SECTIONING[i].level;
-      if (!valid_symbols[token]) return false;
-      lexer->result_symbol = (TSSymbol)token;
-      return true;
-    }
-  }
-  return false;
+                               const char *name, int shift) {
+  int level = section_level(name, shift);
+  if (level <= 0) return false;
+  enum TokenType token = NODE_BEFORE + level;
+  if (!valid_symbols[token]) return false;
+  lexer->result_symbol = (TSSymbol)token;
+  return true;
 }
 
 /**
@@ -636,8 +666,10 @@ static bool accept_node_before(TSLexer *lexer, const bool *valid_symbols,
  * `@node` has already been read; otherwise it is left to the grammar as a
  * plain node line.
  */
-static bool scan_node_before_section(TSLexer *lexer,
+static bool scan_node_before_section(const Scanner *scanner, TSLexer *lexer,
                                      const bool *valid_symbols) {
+  // With the `@raisesections` and `@lowersections` between them.
+  int8_t shift = scanner->section_shift;
   lexer->mark_end(lexer);
   skip_to_next_line(lexer);
   for (;;) {
@@ -663,6 +695,7 @@ static bool scan_node_before_section(TSLexer *lexer,
     // command, such as an index entry (`@cindex`, `@need 5000`).
     if (strcmp(name, "c") == 0 || strcmp(name, "comment") == 0 ||
         is_line_command(name)) {
+      count_section_shift(&shift, name);
       skip_to_next_line(lexer);
       continue;
     }
@@ -688,7 +721,7 @@ static bool scan_node_before_section(TSLexer *lexer,
         advance(lexer);
         if (!read_name(lexer, name)) continue;
         if (is_root_command(name)) {
-          return accept_node_before(lexer, valid_symbols, name);
+          return accept_node_before(lexer, valid_symbols, name, shift);
         }
         char end_name[MAX_NAME + 1];
         if (strcmp(name, "end") == 0 && read_end_name(lexer, end_name) &&
@@ -701,7 +734,7 @@ static bool scan_node_before_section(TSLexer *lexer,
     }
 
     if (is_root_command(name)) {
-      return accept_node_before(lexer, valid_symbols, name);
+      return accept_node_before(lexer, valid_symbols, name, shift);
     }
     // Nor a definition line (`@deffnx`, `@defline`), whose names but the
     // blocks' and index commands' start with `def`.
@@ -1439,6 +1472,7 @@ unsigned tree_sitter_texinfo_external_scanner_serialize(void *payload,
   memcpy(buffer, &scanner->verb_delimiter, sizeof(int32_t));
   size += sizeof(int32_t);
   buffer[size++] = (char)scanner->after_accent;
+  buffer[size++] = (char)scanner->section_shift;
   memcpy(buffer + size, scanner->stack, scanner->depth);
   return size + scanner->depth;
 }
@@ -1449,12 +1483,14 @@ void tree_sitter_texinfo_external_scanner_deserialize(void *payload,
   Scanner *scanner = payload;
   scanner->verb_delimiter = 0;
   scanner->after_accent = false;
+  scanner->section_shift = 0;
   scanner->depth = 0;
   if (length < STATE_HEADER) return;
   unsigned size = 0;
   memcpy(&scanner->verb_delimiter, buffer, sizeof(int32_t));
   size += sizeof(int32_t);
   scanner->after_accent = buffer[size++];
+  scanner->section_shift = (int8_t)buffer[size++];
   scanner->depth = length - size;
   if (scanner->depth > MAX_DEPTH) scanner->depth = MAX_DEPTH;
   memcpy(scanner->stack, buffer + size, scanner->depth);
@@ -1842,7 +1878,11 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
   }
 
   if (strcmp(name, "node") == 0) {
-    return scan_node_before_section(lexer, valid_symbols);
+    return scan_node_before_section(scanner, lexer, valid_symbols);
+  }
+  int level = section_level(name, scanner->section_shift);
+  if (level >= 2 && valid_symbols[SECTION_COMMAND + level - 2]) {
+    return accept(lexer, SECTION_COMMAND + level - 2);
   }
 
   int token = command_token(scanner, valid_symbols, name);
@@ -1856,6 +1896,7 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
     return true;
   }
   if (token >= 0) {
+    count_section_shift(&scanner->section_shift, name);
     if (token == BRACE_COMMAND_NAME) {
       scanner->after_accent =
           in_table(LETTER_ACCENTS, TABLE_COUNT(LETTER_ACCENTS), name);

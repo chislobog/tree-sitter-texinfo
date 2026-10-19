@@ -8,10 +8,12 @@
   name (`NODE_BEFORE`), so its size must be the gap.
 - Each definition block's layout (`KIND_DEFINITION + N` in `BLOCKS`) is the
   one whose line commands include its `x` form (`@deffn`, `@deffnx`).
-- Each sectioning command's level (`SECTIONING`) is that of the section
-  whose heading has it.
-- Each sectioning command in a heading rule of the grammar is in
-  `SECTIONING`, so that a `@node` before it starts its section.
+- Each sectioning command's level (`SECTIONING`) is texi2any's (its
+  `command_structuring_level`), and `@part`'s and `@top`'s those of the
+  grammar's headings that name them; every sectioning command of
+  texi2any's is in `SECTIONING`, so that it starts its section.
+- The keywords of the grammar's rules of a line's command are in
+  `LINE_KEYWORDS`, so that preformatted text doesn't start at them.
 - The tables of command names don't overlap, nor end in `index` (which
   makes a line command), so the order in which the scanner tries them
   doesn't matter; and the accents without braces are brace commands.
@@ -181,35 +183,14 @@ def check_layouts(source: str, grammar: dict) -> list[str]:
     return problems
 
 
-def heading_commands(grammar: dict, section: str) -> set[str] | None:
-    """The sectioning commands of a section's heading: in the rule
-    `SECTION_heading`, or in the rules aliased to it (a part tells a
-    chapter's two kinds apart), or None if there are none."""
-    name = f"{section}_heading"
-    for rule in (name, f"_{name}"):
-        if rule in grammar["rules"]:
-            return set(string_choices(name_field(grammar["rules"][rule])))
-    aliased = set()
-
-    def walk(node):
-        if isinstance(node, dict):
-            content = node.get("content", {})
-            if node.get("type") == "ALIAS" and node.get("value") == name:
-                if content.get("type") == "SYMBOL":
-                    aliased.add(content["name"])
-            for value in node.values():
-                walk(value)
-        elif isinstance(node, list):
-            for value in node:
-                walk(value)
-
-    walk(grammar["rules"])
-    if not aliased:
-        return None
-    return {c for rule in aliased for c in string_choices(name_field(grammar["rules"][rule]))}
+# texi2any's level of each level in SECTIONING (command_structuring_level):
+# part, top, chapter, section, subsection, subsubsection, appendix.
+TEXI2ANY_LEVELS = (0, 0, 1, 2, 3, 4, 1)
 
 
 def check_sections(source: str, grammar: dict) -> list[str]:
+    """SECTIONING has texi2any's sectioning commands, each at its level, and
+    the commands the grammar's part and top headings name at theirs."""
     sections = [
         name.removeprefix("_node_before_")
         for name in (e["name"] for e in grammar["externals"])
@@ -218,21 +199,29 @@ def check_sections(source: str, grammar: dict) -> list[str]:
     match = re.search(r"\} SECTIONING\[\] = \{(.*?)\};", source, re.S)
     if not match:
         raise SystemExit("no table SECTIONING in the scanner")
+    headings = keywords(grammar["rules"]["standalone_heading"])
+    texi2any = {
+        name: int(level)
+        for name, level in texi2any_table("CommandsValues", "command_structuring_level").items()
+        if name not in headings
+    }
     problems = []
-    levels = re.findall(r'\{"(\w+)", (\d+)\}', match.group(1))
-    for command, level in levels:
-        level = int(level)
-        commands = heading_commands(grammar, sections[level]) if level < len(sections) else None
-        if commands is None or command not in commands:
+    levels = {
+        command: int(level) for command, level in re.findall(r'\{"(\w+)", (\d+)\}', match.group(1))
+    }
+    for command, level in levels.items():
+        fixed = level < 2 and command not in keywords(
+            grammar["rules"][f"{sections[level]}_heading"]
+        )
+        if (
+            level >= len(TEXI2ANY_LEVELS)
+            or texi2any.get(command) != TEXI2ANY_LEVELS[level]
+            or fixed
+        ):
             problems.append(f"@{command} has level {level}, which isn't its section's")
-    listed = {command for command, _ in levels}
-    for section in sections:
-        commands = heading_commands(grammar, section)
-        if commands is None:
-            problems.append(f"the grammar has no rule {section}_heading")
-            continue
-        for command in sorted(commands - listed):
-            problems.append(f"@{command} starts a {section} but isn't in SECTIONING")
+    for command in sorted(set(texi2any) - set(levels)):
+        section = sections[TEXI2ANY_LEVELS.index(texi2any[command])]
+        problems.append(f"@{command} starts a {section} but isn't in SECTIONING")
     return problems
 
 

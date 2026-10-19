@@ -966,3 +966,106 @@ An unclosed brace in a node line closes at the end of the line
       name: (command_name)
       title: (line_argument
         (text)))))
+
+================================================================================
+Raised and lowered sections move by level, as in texi2any
+================================================================================
+
+@chapter One
+@raisesections
+@subsection Raised
+@lowersections
+@subsection Not raised
+
+---
+
+(source_file
+  (chapter
+    heading: (chapter_heading
+      name: (command_name)
+      title: (line_argument
+        (text)))
+    (line_command
+      name: (command_name))
+    (section
+      heading: (section_heading
+        name: (command_name)
+        title: (line_argument
+          (text)))
+      (line_command
+        name: (command_name))
+      (subsection
+        heading: (subsection_heading
+          name: (command_name)
+          title: (line_argument
+            (text)))))))
+
+================================================================================
+Sections move no further than chapter and subsubsection, with their nodes
+================================================================================
+
+@raisesections
+@raisesections
+@node Top
+@top Top
+@node One
+@section One
+@lowersections
+@lowersections
+@lowersections
+@appendix Deep
+@section Deeper
+@subsection Deepest
+@subsubsection Last
+
+---
+
+(source_file
+  (line_command
+    name: (command_name))
+  (line_command
+    name: (command_name))
+  (top
+    node: (node_line
+      name: (command_name)
+      node: (comma_argument
+        (text)))
+    heading: (top_heading
+      name: (command_name)
+      title: (line_argument
+        (text)))
+    (chapter
+      node: (node_line
+        name: (command_name)
+        node: (comma_argument
+          (text)))
+      heading: (chapter_heading
+        name: (command_name)
+        title: (line_argument
+          (text)))
+      (line_command
+        name: (command_name))
+      (line_command
+        name: (command_name))
+      (line_command
+        name: (command_name))
+      (section
+        heading: (section_heading
+          name: (command_name)
+          title: (line_argument
+            (text)))
+        (subsection
+          heading: (subsection_heading
+            name: (command_name)
+            title: (line_argument
+              (text)))
+          (subsubsection
+            heading: (subsubsection_heading
+              name: (command_name)
+              title: (line_argument
+                (text))))
+          (subsubsection
+            heading: (subsubsection_heading
+              name: (command_name)
+              title: (line_argument
+                (text)))))))))

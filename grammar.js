@@ -7,16 +7,23 @@
 /// <reference types="tree-sitter-cli/dsl" />
 // @ts-check
 
-// Sectioning commands, grouped by level as in texi2any.
+// The levels `@raisesections` and `@lowersections` move sectioning
+// commands between, as in texi2any, and `@appendix`, a chapter a part tells
+// apart: the scanner names each command by its level as they move it
+// (SECTIONING in src/scanner.c), with a token for each.
+const MOVING_LEVELS = ['chapter', 'section', 'subsection', 'subsubsection', 'appendix'];
+
+// The headings of sections, with their commands: `@part` and `@top`, which
+// don't move, or the scanner's token for a level of MOVING_LEVELS.
 const HEADINGS = {
   part_heading: ['part'],
   top_heading: ['top'],
   // Both `chapter_heading` nodes: a part tells appendices apart.
-  _appendix_heading: ['appendix'],
-  _other_chapter_heading: ['chapter', 'unnumbered', 'centerchap'],
-  section_heading: ['section', 'unnumberedsec', 'appendixsec', 'appendixsection'],
-  subsection_heading: ['subsection', 'unnumberedsubsec', 'appendixsubsec'],
-  subsubsection_heading: ['subsubsection', 'unnumberedsubsubsec', 'appendixsubsubsec'],
+  _appendix_heading: 'appendix',
+  _other_chapter_heading: 'chapter',
+  section_heading: 'section',
+  subsection_heading: 'subsection',
+  subsubsection_heading: 'subsubsection',
 };
 
 // Sections by level, as in texi2any: each contains the lower levels and ends
@@ -357,6 +364,8 @@ export default grammar({
     // `@appendix` has its own, as a part's other chapters can't follow it.
     ...SECTIONS.map(({name}) => $[`_node_before_${name}`]),
     $._node_before_appendix,
+    // A sectioning command but `@part` and `@top`, by its level.
+    ...MOVING_LEVELS.map((level) => $[`_section_command_${level}`]),
     // Command names the scanner recognises from its tables: recognising them
     // with keywords in the grammar would make the parser several times larger.
     $._line_command_name,
@@ -591,7 +600,9 @@ export default grammar({
     ...Object.fromEntries(Object.entries(HEADINGS).map(([name, commands]) => [
       name,
       $ => seq(
-        field('name', command($, commands)),
+        field('name', Array.isArray(commands) ?
+          command($, commands) :
+          alias($[`_section_command_${commands}`], $.command_name)),
         optional(field('title', $.line_argument)),
         $._line_end,
       ),

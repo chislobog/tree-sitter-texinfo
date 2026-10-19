@@ -7,17 +7,7 @@ what is done, with how and why, after it.
 
 ## Open
 
-Found by review (October 2026), left for a decision or for later:
-
-- [ ] `@raisesections` and `@lowersections` don't move the sections after
-  them, as they do in texi2any (in the Texinfo manual itself): the level
-  of each section would depend on every such command before it in the
-  file, state the scanner doesn't keep (Conventions in CLAUDE.md)
-- [ ] Speed while editing: typing `@ifset` or its `@end` reparses the rest
-  of the file, as the stack of open blocks changes the scanner's state of
-  every token after it; a keystroke in a raw block left open re-lexes the
-  rest of the file, its body being one token; opening a block re-parses
-  up to the next node
+Nothing: what review found (October 2026) is done, below.
 
 ## Done
 
@@ -132,6 +122,15 @@ Found by review (October 2026), left for a decision or for later:
   0.3 ms for a word typed), and parsing gawk's manual with 128 macros took
   61 MB, not 43 MB. Macro calls are now commands like any other
   (Deliberate, below); the parser lost 787 states
+- [x] Speed while editing, measured in gdb's manual (1.9 MB, 98 ms for a
+  fresh parse), a quarter of the way in (found by review): a keystroke in
+  a paragraph takes 0.2 ms; typing `@ifset` or `@quotation`, 1 ms, as a
+  block left open ends at the next node; a keystroke in a raw block left
+  open, 9 ms, as its body runs to the end of the file, as in texi2any, and
+  typing its `@end`, 75 ms, a parse of what was raw text. A token for each
+  line of the body was no faster (8 ms): tree-sitter reuses each line's,
+  but no node of the repeat that holds them, a repeat's being fragile, so
+  it shifts every line after the edit
 
 ## Commands and arguments
 
@@ -327,6 +326,16 @@ of a line.
 - [x] The `@macro` line has `macro` and `parameter` fields, as texi2any
   reads it, rather than an argument parsed for commands; anything else on it
   but a comment is raw text. Tags and highlighting use the fields
+- [x] `@raisesections` and `@lowersections` move the sections after them,
+  as in texi2any (found by review: the Texinfo manual itself uses them):
+  the scanner counts them in its state, and names each sectioning command
+  but `@part` and `@top` with a token for its level, which the headings
+  take instead of keywords; a `@node`'s token looks at the level too. Each
+  section in the nine manuals that use them has texi2any's level now,
+  checked against its HTML output. Editing one of them reparses the rest of
+  the file (32 ms in the Texinfo manual), as it moves every section after
+  it. texi2any also raises a section that skips a level (a subsection
+  right in a chapter), which the tree doesn't: a chapter holds it
 
 ## Differences from texi2any
 

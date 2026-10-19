@@ -28,7 +28,7 @@ fa15dc48f44ce05247acc49745d9666ab41566f34dfff6d4955aa87ff50de777  examples/binut
 d4092886a8fa2887d74dab976ff3a504d93e9a72c763ce0a8491cd8421665007  examples/binutils-with-gold-2.46/binutils/doc/fdl.texi
 37dbaac5c5f3151286a6c3123218322a7b77804ce19a8de3b27717a8586b4512  examples/binutils-with-gold-2.46/binutils/doc/sframe.options.texi
 4474defb2132cbd5aaeadad535d0cb16802e324b7d325155e9307811e8395f3a  examples/binutils-with-gold-2.46/gas/doc/all.texi
-195ff323a5edb242e7a76b6899879cdd9d40e57b34a4cb9838835c9451fcd3b1  examples/binutils-with-gold-2.46/gas/doc/as.texi
+63d600b5a6bf629b47663efa12ce3e2a56d3eb9f5bfee3195e1a058f578596fc  examples/binutils-with-gold-2.46/gas/doc/as.texi
 4474defb2132cbd5aaeadad535d0cb16802e324b7d325155e9307811e8395f3a  examples/binutils-with-gold-2.46/gas/doc/asconfig.texi
 e012bc815521c38ed3ccb7651c4163d72482005a885d5d88fb208c6b1802c582  examples/binutils-with-gold-2.46/gas/doc/c-aarch64.texi
 cd467fabffd8dd771f46aef1b00a10363df4f0a679955af3aa9568d9e434a37d  examples/binutils-with-gold-2.46/gas/doc/c-alpha.texi
@@ -91,12 +91,12 @@ c1725e646b7e4a8f752d34be0438806aa256641cbd4807dd5271ee5f45d422a4  examples/binut
 121d74c3d09ccf9b1b9b4d8470d22ac45707678b516369071a6cfbc1ba3564ce  examples/binutils-with-gold-2.46/gas/doc/c-z8k.texi
 d4092886a8fa2887d74dab976ff3a504d93e9a72c763ce0a8491cd8421665007  examples/binutils-with-gold-2.46/gas/doc/fdl.texi
 22fe7347040203ab7f89e07d0fa55884cf80e3e200be5fc3ee1d86d2a454d1ba  examples/binutils-with-gold-2.46/gas/doc/h8.texi
-39e69e1bd309271b733b7d3ae0939ea8125eeaa4ab8b1cd19b24f97c74198dec  examples/binutils-with-gold-2.46/gas/doc/internals.texi
+b84fdefe0598d8c5e0fa52d492846c007685525232bb3702100e4291f845df78  examples/binutils-with-gold-2.46/gas/doc/internals.texi
 8b96163181fff2e8b111ee45dd3a16c918a0f893088b590ee31cc226ce15d8ba  examples/binutils-with-gold-2.46/ld/configdoc.texi
 a961a32cc9def886c40f126e867ad9d34415e5cd23ccacc714465238f221da89  examples/binutils-with-gold-2.46/ld/fdl.texi
 8b96163181fff2e8b111ee45dd3a16c918a0f893088b590ee31cc226ce15d8ba  examples/binutils-with-gold-2.46/ld/gen-doc.texi
 10df473d4baf69976650f65c592fad398dc913bf9d548a3897d168aef384b552  examples/binutils-with-gold-2.46/ld/h8-doc.texi
-24b55473917ea6777c8c55d5edc4adf9eba9150218e7749c087d7513151cc7e6  examples/binutils-with-gold-2.46/ld/ld.texi
+65e922edc2c98ce220ac185e23b44362def67a31ffc330626924321acfa734fc  examples/binutils-with-gold-2.46/ld/ld.texi
 841bf5ff1d5af9e63c934c4a14ae8e326d8e3b2007193f32da7c98f48438d60d  examples/binutils-with-gold-2.46/ld/ldint.texi
 8f3bbd2637380184382e2123c2236f3d9093f3709693026f2ecc816981d43b04  examples/coreutils-9.11/doc/constants.texi
 62e058ee36879dfd5241b0eb682d8945d5f8a3a7fe3bc810745e8f7e1f2659f0  examples/coreutils-9.11/doc/coreutils.texi
@@ -118,7 +118,7 @@ ce34b2e1c802976a5096f96550f90e2e66513d00d9a5f8778fe829216c77d50b  examples/emacs
 1edf2c6071e49ad033064e5c51c302555e772947776ccb8f480505cb4fbd3b35  examples/emacs-31.1/emacs/cal-xtra.texi
 976a28d83668e3e879868bb4ea047a15fc6635a12b7413dd2f1a951e97d19bff  examples/emacs-31.1/emacs/calendar.texi
 363106dcd286d25e34889f25fd90b83cb2847eb827563f242019c3b0b62ea087  examples/emacs-31.1/emacs/cmdargs.texi
-39d8ff51fd687194ccc734331f76d9e25ce2f28d0e1658837eebcb97b8f98d20  examples/emacs-31.1/emacs/commands.texi
+2cf290916bedd6f5d9f17c2632e81f55d14de0f8d26f081c54ab8f42682b18bf  examples/emacs-31.1/emacs/commands.texi
 96271b6419b39e0c4d0a1ca7998949339a201f03cbd3d4eabf9802352cf2ca9c  examples/emacs-31.1/emacs/custom.texi
 e56de39d1674dc051011288dc6bda3a82bba4333eb5b6598ff457de1633a80bc  examples/emacs-31.1/emacs/dired-xtra.texi
 3a029217103f66d3db573561dddfa200b4b39c90178d461257b165955a136689  examples/emacs-31.1/emacs/dired.texi
@@ -128,7 +128,7 @@ a5c8420fa27138b1b5e4d4890525d683fee5599827fe71bb6c7ad71e02904381  examples/emacs
 c1db65271d4e7b1b5bf80a2e3e4cc8ceb18d41452a628934c3dbe34500eb760d  examples/emacs-31.1/emacs/emacs-xtra.texi
 a019472c9919c3f39be0d28182d15b6906c58aee7db616f50e43671056d2af60  examples/emacs-31.1/emacs/emacs.texi
 0a2e79b443759a255f016227e0b8277456432e00bf6a36f8c5bf195aabb00c23  examples/emacs-31.1/emacs/emerge-xtra.texi
-d1fc954ba9668fd20124443cd5aac937ebf93bc2a8b1c87a33b8d0afe9184ca5  examples/emacs-31.1/emacs/entering.texi
+fc5f5c6f0a092b2b4e742abe085750c3df93cba16c37d6a6a5d16b1186669f36  examples/emacs-31.1/emacs/entering.texi
 e518867d5734047cfc77c7926ce99b67288c4c5fbe333f7fa1506e7d8972037f  examples/emacs-31.1/emacs/files.texi
 510a1c29c959580bf784cf5fb85ef6ba5292d530ecd986815c3d0875bddad586  examples/emacs-31.1/emacs/fixit.texi
 2a5cae5bccadf66f956aed8b3e12a8b7ac05c8f4a32eeafb51ab158a3ae8debc  examples/emacs-31.1/emacs/fortran-xtra.texi
@@ -147,7 +147,7 @@ b09519a4adb161a16b39f1e7bf9ea2bca101474c80b91e2dd8a36919e61dd5bc  examples/emacs
 5eae465468bdde630a5fa99e8d41678010db41f49d9e781d7473210e543397b4  examples/emacs-31.1/emacs/maintaining.texi
 4f345c218dd863817d03e0574bf3ab7a8cacf61284123dcdd6dca452e2a9943c  examples/emacs-31.1/emacs/mark.texi
 33e069e06f47a757beea90dcbf58dd8f5db2747994c50b009b3742dfe0d2c7ad  examples/emacs-31.1/emacs/mini.texi
-8e797a7093af24f8750fda7a103606a7e8cc2b6e1148da809a6043a9a54122b0  examples/emacs-31.1/emacs/misc.texi
+b6713b433a7cfb99d0480d495d2dd5cede34f3646a0f095983718bd4a25f6cf3  examples/emacs-31.1/emacs/misc.texi
 01b6dbf4b39816c7ab49622a565026835821fc46abbea52d0e096a35aa95e425  examples/emacs-31.1/emacs/modes.texi
 911c227409bb242c6509001f7b49300b2cbec3a5149f8a0c1a8a6276cb6199fc  examples/emacs-31.1/emacs/msdos-xtra.texi
 beaabd714f1e753e533b6d2610835260e3c179e2be32ad008e2f33bcb1260927  examples/emacs-31.1/emacs/msdos.texi
@@ -161,7 +161,7 @@ d16fc6b641c460e5558461de2a17323a16afc71d466dfdfb59ad518eb778bc3d  examples/emacs
 36d205b5dfb9dd291be6ca11bf3f1e70a9ae9e99186e7ebb26492e6f262cf5a2  examples/emacs-31.1/emacs/search.texi
 f2281d2fdafb181ce2d5c4cefba308a5ff0dc90045f8ea97f8041116a5ca7b79  examples/emacs-31.1/emacs/sending.texi
 57f220dca6d66b723b299ff912aa7420956342163bb938f674dbaa8ea4b35f21  examples/emacs-31.1/emacs/text.texi
-97b0fc5b3233c1cf0f841c01b16d8312561ca3b4b07c9311ebcf2bfda797c7b0  examples/emacs-31.1/emacs/trouble.texi
+824a12caab06868bfa0cec8331d57dea0fd4b0eec49d012b4b24d120c3e1bd5c  examples/emacs-31.1/emacs/trouble.texi
 15de68d7011dfacd7f581fc4e5704a66c139dbe5e938c5dd29911e168992898e  examples/emacs-31.1/emacs/vc-xtra.texi
 9a4f2205c07d96ad221a8f33a93d0af3824521c93059c6b9c775ae83685be372  examples/emacs-31.1/emacs/vc1-xtra.texi
 27d4f09b7a3b5b825b27b7256c1141c7d09b02113f0588e6fa62055036c8e14e  examples/emacs-31.1/emacs/windows.texi
@@ -266,7 +266,7 @@ b063760133aa8694c231d4d93879288ee906ce6d8cb16a9e976a7454fa1f31a3  examples/emacs
 130a7b317be97cfba6241c63af34e17e2f4f6e436e44b276701b0177b293f6d0  examples/emacs-31.1/misc/pcl-cvs.texi
 8b4dfe1d1e3818c72cc6bc0642d35d587d6a6392331aeaa1d3a0825170f9b1cc  examples/emacs-31.1/misc/pgg.texi
 06ae4738f747955c109a7183aeed3e34b3f6fb40252bc826c1aee2f419b17614  examples/emacs-31.1/misc/rcirc.texi
-b4e6807e865034419756f8a891789ddf284889104506f1e7b3660f09d7db943b  examples/emacs-31.1/misc/reftex.texi
+ff8837424be8673d616372f2fbaa9d74a43348df0a002386595f59b621af0de8  examples/emacs-31.1/misc/reftex.texi
 7653e3dfb26598357ee5aaa09ab0c127342db1ce849a0d588ef5becaf60f47dd  examples/emacs-31.1/misc/remember.texi
 e883484eaa50c5608dd2e21b2d1a9d2e135c321c2f51daa0f1cf9bf6c005de79  examples/emacs-31.1/misc/sasl.texi
 247412b047a58def9d198df6de543ad85e486ad68ca4884500c01b14a496459e  examples/emacs-31.1/misc/sc.texi
@@ -650,7 +650,7 @@ b452423e1bb7081be95df4a446aa9513dd4b7d023681837449dc0619302a8f2a  examples/texin
 20752133049923a7782d63f8b2523719090597332d1b033570e415330622a9cc  examples/texinfo-7.3/short-sample-zh.texi
 6726af6619f4908aea63c0bde3f543a678904e4b49d6458ea0ffc3efc899929e  examples/texinfo-7.3/texi2any_api.texi
 876c752a1ab97fb503ac5e1bee6392e14f4f4419044bd6e371768293c099e222  examples/texinfo-7.3/texinfo-tex-test.texi
-e65142754919a470b030199999b6dce390a9b1c67b9cd3bdc9a536e70e1bcb3c  examples/texinfo-7.3/texinfo.texi
+75c9d3ed1863af9fda91432a6844e67fc90e6d365bf771224fde26a62e1ecd26  examples/texinfo-7.3/texinfo.texi
 3f7c2d872459ae4977f82c72ab703ab14a4785a6cb2a649d1f28f1ee92a9c1da  examples/texinfo-7.3/tta_api/api_includes/Texinfo-Commands.texi
 ff2c227168e39ef719586d140d9ecf332a2f379fe1878b78edda001a37ae4213  examples/texinfo-7.3/tta_api/api_includes/Texinfo-CommandsValues.texi
 7315272ddcffeaea89bcfae8d2732725bc567ad62e82ddc92eeb093267fab4e0  examples/texinfo-7.3/tta_api/api_includes/Texinfo-Common.texi
@@ -1467,8 +1467,8 @@ c66d0101b37f59f3a08b140865e073d44366ac7428783867653223daee686d58  texinfo-tests/
 98d17b6bb532296ff08232f994ca15daca84da36af614102c543843170a73a98  texinfo-tests/40moresectioning/equivalent_nodes_defined_linked.texi
 8b736824811ed665d400f4192e310a5bb4af921bd4a41014f3988e92fa19aeeb  texinfo-tests/40moresectioning/internal_top_node_up.texi
 a0704b0e8a5e11b38a09fafc2ef1b10c9a68b110e7212ad9cf39d0c07279f74c  texinfo-tests/40moresectioning/lone_chapter_between_nodes.texi
-ca65978937e51ce8002dccd6fb20768717573622471044c0f8842613a536b150  texinfo-tests/40moresectioning/lowered_subsubsection.texi
-85e568f29f26f4e81544f9240d08a00fa8fae1504f386685fc051dbb8a1a3f41  texinfo-tests/40moresectioning/loweredheading.texi
+487277bd1d52fc03ef86a23b94cd9cf5b88e7dc58edddae1ac02276ab54bed81  texinfo-tests/40moresectioning/lowered_subsubsection.texi
+39d1ae5d8760f84f294e835c5bffef17fcea4e0afb62b28d4668f1a8781f59a2  texinfo-tests/40moresectioning/loweredheading.texi
 cc3d810e9a6bf9e3d3211b09ac706283c94d7287c495ed2a6a65106dc3857458  texinfo-tests/40moresectioning/more_sections_than_nodes.texi
 cc3d810e9a6bf9e3d3211b09ac706283c94d7287c495ed2a6a65106dc3857458  texinfo-tests/40moresectioning/more_sections_than_nodes_texi2html.texi
 5f917aa0cf610b6ca593969141994fc18abf01623ced0334c84a1fbaa203d784  texinfo-tests/40moresectioning/no_element.texi

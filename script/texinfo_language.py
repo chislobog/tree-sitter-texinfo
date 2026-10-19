@@ -63,7 +63,9 @@ def texi2any_table(module: str, table: str) -> dict[str, str]:
     match = re.search(rf"our %{table} = \((.*?)\n\);", source, re.S)
     if match is None:
         raise SystemExit(f"texi2any's {module}.pm has no %{table} table")
-    return dict(re.findall(r'"([^"]+)"\s*=>\s*\'?([^\',\n]*)', match.group(1)))
+    # Names in either quotes, as `"'"`, the accent.
+    entries = re.findall(r'(?:"([^"]+)"|\'([^\']+)\')\s*=>\s*\'?([^\',\n]*)', match.group(1))
+    return {double or single: value for double, single, value in entries}
 
 
 def load_language(root: Path = ROOT) -> Language:

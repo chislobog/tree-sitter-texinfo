@@ -3852,8 +3852,8 @@
           "content": {
             "type": "ALIAS",
             "content": {
-              "type": "STRING",
-              "value": "@appendix"
+              "type": "SYMBOL",
+              "name": "_section_command_appendix"
             },
             "named": true,
             "value": "command_name"
@@ -3890,21 +3890,8 @@
           "content": {
             "type": "ALIAS",
             "content": {
-              "type": "CHOICE",
-              "members": [
-                {
-                  "type": "STRING",
-                  "value": "@chapter"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@unnumbered"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@centerchap"
-                }
-              ]
+              "type": "SYMBOL",
+              "name": "_section_command_chapter"
             },
             "named": true,
             "value": "command_name"
@@ -3941,25 +3928,8 @@
           "content": {
             "type": "ALIAS",
             "content": {
-              "type": "CHOICE",
-              "members": [
-                {
-                  "type": "STRING",
-                  "value": "@section"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@unnumberedsec"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@appendixsec"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@appendixsection"
-                }
-              ]
+              "type": "SYMBOL",
+              "name": "_section_command_section"
             },
             "named": true,
             "value": "command_name"
@@ -3996,21 +3966,8 @@
           "content": {
             "type": "ALIAS",
             "content": {
-              "type": "CHOICE",
-              "members": [
-                {
-                  "type": "STRING",
-                  "value": "@subsection"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@unnumberedsubsec"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@appendixsubsec"
-                }
-              ]
+              "type": "SYMBOL",
+              "name": "_section_command_subsection"
             },
             "named": true,
             "value": "command_name"
@@ -4047,21 +4004,8 @@
           "content": {
             "type": "ALIAS",
             "content": {
-              "type": "CHOICE",
-              "members": [
-                {
-                  "type": "STRING",
-                  "value": "@subsubsection"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@unnumberedsubsubsec"
-                },
-                {
-                  "type": "STRING",
-                  "value": "@appendixsubsubsec"
-                }
-              ]
+              "type": "SYMBOL",
+              "name": "_section_command_subsubsection"
             },
             "named": true,
             "value": "command_name"
@@ -11544,6 +11488,26 @@
     {
       "type": "SYMBOL",
       "name": "_node_before_appendix"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_section_command_chapter"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_section_command_section"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_section_command_subsection"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_section_command_subsubsection"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_section_command_appendix"
     },
     {
       "type": "SYMBOL",

@@ -6,9 +6,10 @@ change to node types or the tree's structure bumps the minor version.
 
 ## Unreleased
 
-Fixes found by a review of the whole project, and spell checking in
-Neovim. The tree changes shape in places (a part's node, appendices after
-a part's chapters, a section's node), so the next version is 0.3.0.
+Fixes found by a review of the whole project, spell checking in Neovim,
+and a parser with 5,490 states instead of 7,400 (`parser.c` is 11.4 MB, not
+14.5 MB). The tree changes shape in places (a part's node, appendices
+after a part's chapters, a section's node), so the next version is 0.3.0.
 
 ### Breaking changes
 
@@ -31,6 +32,9 @@ a part's chapters, a section's node), so the next version is 0.3.0.
 - No node is associated with a part, as the Texinfo manual says, and an
   appendix after a part's chapters ends the part, with the appendices
   after it, as in texi2any.
+- `@raisesections` and `@lowersections` move the sections after them, as
+  in texi2any, in the Texinfo manual itself among nine manuals that use
+  them.
 - A node starts the section after it past index entries and other line
   commands, headings and text, as in texi2any (52 sections in the manuals
   were left without their node).
