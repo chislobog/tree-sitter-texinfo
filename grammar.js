@@ -314,7 +314,9 @@ export default grammar({
   // A `}` that closes nothing may be anywhere, as texi2any reports and
   // ignores it.
   // A NUL is a blank too: texi2any drops it.
-  extras: $ => [/[ \t\v\f\r\x00]/, $.comment, $.unmatched_brace],
+  // An `@` that starts no command, which texi2any reports, may be anywhere
+  // too, as an `unexpected_at`.
+  extras: $ => [/[ \t\v\f\r\x00]/, $.comment, $.unmatched_brace, $.unexpected_at],
 
   // Rules whose node would hold only what the tokens after it decide, so
   // that an incremental parse could reuse it where those tokens changed.
@@ -1603,6 +1605,12 @@ export default grammar({
 
     // The `\r` of a `\r\n` is a blank before it (`extras`).
     _newline: _ => /\n/,
+
+    // An `@` before a character that starts no command, a symbol or an
+    // accent, such as `#` or one other than ASCII, with that character:
+    // texi2any reports "unexpected @". Listed last, so that a token of a
+    // context where it is text, such as `@set`'s value, takes it first.
+    unexpected_at: _ => /@[^a-zA-Z0-9\t\n\r !"&'*,\-.\/:=?@\\^`{|}~]/,
 
     // A newline, or the end of a file that doesn't end in one.
     _line_end: $ => choice($._newline, $._end_of_file),

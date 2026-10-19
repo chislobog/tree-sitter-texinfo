@@ -56,10 +56,8 @@ Typing @code or @code{} or @emph.
 @end macro
 @c <- keyword
 
-Symbols @@ and @{ are escapes, but not a letter after an at sign: @emph{@é}.
+Symbols @@ and @{ are escapes.
 @c      ^ string.escape
-@c                                                                      ^ string.escape
-@c                                                                       ^ markup.italic
 
 @c Aliases name commands; cross-references' other arguments are link text or files.
 @alias strong = emph

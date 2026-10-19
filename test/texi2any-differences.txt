@@ -864,11 +864,6 @@ texinfo-tests/converters_tests/multitable_prototypes.texi
 texinfo-tests/epub_tests/setfilename_on_top_and_after_node_epub.texi
   line 2: @setfilename arguments: ours '(none)', texi2any 'very badly placed setfilename'
 
-# Deliberate: the file is in Shift-JIS, not UTF-8, which tree-sitter reads, so an editor converts it; read as UTF-8, a byte `@` inside a character starts a command
-texinfo-tests/formats_encodings/japanese_shift_jis.texi
-  line 19: ours '@\n', texi2any '(nothing)'
-  line 33: ours '@\n', texi2any '(nothing)'
-
 # Deliberate: a line command in the middle of a line; line commands occupy a whole line, as the Texinfo manual requires (texi2any accepts it with a warning, taking the rest of the line as its argument)
 texinfo-tests/plaintext_tests/at_commands_glued_in_example.texi
   line 13: @sp arguments: ours '(none)', texi2any '4'

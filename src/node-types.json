@@ -2906,6 +2906,11 @@
     "named": true
   },
   {
+    "type": "unexpected_at",
+    "named": true,
+    "extra": true
+  },
+  {
     "type": "unmatched_brace",
     "named": true,
     "extra": true

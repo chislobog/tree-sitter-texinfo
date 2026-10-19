@@ -11195,6 +11195,10 @@
       "type": "PATTERN",
       "value": "\\n"
     },
+    "unexpected_at": {
+      "type": "PATTERN",
+      "value": "@[^a-zA-Z0-9\\t\\n\\r !\"&'*,\\-.\\/:=?@\\\\^`{|}~]"
+    },
     "_line_end": {
       "type": "CHOICE",
       "members": [
@@ -11221,6 +11225,10 @@
     {
       "type": "SYMBOL",
       "name": "unmatched_brace"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "unexpected_at"
     }
   ],
   "conflicts": [

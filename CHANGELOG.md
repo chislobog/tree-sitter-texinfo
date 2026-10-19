@@ -20,8 +20,9 @@ a part's chapters, a section's node), so the next version is 0.3.0.
   their node).
 - A form feed in the middle of a paragraph's line ends the paragraph, as
   the Texinfo manual says and texi2any does.
-- Only texi2any's symbol commands are symbol commands: before any other
-  character (`@#`), an `@` is alone.
+- Only texi2any's symbol commands are symbol commands: an `@` before any
+  other character (`@#`) is an `unexpected_at` node, which editors should
+  report, as texi2any does.
 - In menus: a tab ends a node name; comment lines after an entry without
   a description start its description; and a line starting with `* ` in
   a definition's body is text, no longer an error.

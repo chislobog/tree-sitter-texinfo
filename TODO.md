@@ -19,8 +19,6 @@ Found by review (October 2026), left for a decision or for later:
 - [ ] Paragraphs in `@example` and the other preformatted blocks are
   `paragraph` nodes, where texi2any has preformatted text, so an editor's
   paragraph motions take code for prose
-- [ ] An `@` that starts no command (`@#`), which texi2any reports, is a
-  lone `@` and the character after it text, which no editor reports
 - [ ] Speed while editing: typing `@ifset` or its `@end` reparses the rest
   of the file, as the stack of open blocks changes the scanner's state of
   every token after it; a keystroke in a raw block left open re-lexes the
@@ -550,6 +548,10 @@ Deliberate, so the tree shows the source as it is written and edited:
 - [x] `queries/highlights.scm`, with tests in `test/highlight/`
 - [x] Highlight gaps from overlapping patterns: `@example` contents, markup
   in heading titles, `@defvar` entities, `@emph`/`@var` arguments
+- [x] An `@` that starts no command, a symbol or an accent (`@#`, or before
+  a character other than ASCII) is an `unexpected_at` node, with the
+  character, an extra like `unmatched_brace`, for editors to report, as
+  texi2any reports it; it was a lone `@` and text. No parser state more
 - [x] `@defblock`: the text after each `@defline` or `@deftypeline` is its
   `body`, a `definition_body`, as texi2any's `def_item` (the text before the
   first is the block's own), and a function's inside for the textobjects
