@@ -16,6 +16,7 @@ Cargo.lock
 prebuilds/
 
 # Python
+.venv/
 __pycache__/
 *.egg-info/
 dist/

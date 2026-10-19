@@ -4,6 +4,63 @@ The version follows [semantic versioning](https://semver.org/) as the
 tree-sitter documentation describes it for grammars: while it is 0.y.z, a
 change to node types or the tree's structure bumps the minor version.
 
+## Unreleased
+
+Fixes found by a review of the whole project, and spell checking in
+Neovim. The tree changes shape in places (a part's node, appendices after
+a part's chapters, a section's node), so the next version is 0.3.0.
+
+### The tree
+
+- No node is associated with a part, as the Texinfo manual says, and an
+  appendix after a part's chapters ends the part, with the appendices
+  after it, as in texi2any.
+- A node starts the section after it past index entries and other line
+  commands, as in texi2any (52 sections in the manuals were left without
+  their node).
+- A form feed in the middle of a paragraph's line ends the paragraph, as
+  the Texinfo manual says and texi2any does.
+- Only texi2any's symbol commands are symbol commands: before any other
+  character (`@#`), an `@` is alone.
+- In menus: a tab ends a node name; comment lines after an entry without
+  a description start its description; and a line starting with `* ` in
+  a definition's body is text, no longer an error.
+- An accent at the end of a line no longer makes a comment line after it
+  end its paragraph; a bare comment after `@end` in a paragraph and a
+  comment right after a definition word are comments again.
+- Edge cases: a `@verb` delimiter that isn't UTF-8, more than 64 nested
+  `@ignore` blocks, a user-defined index command of 32 characters or
+  more, and a NUL before `@end`.
+
+### Editing
+
+- A node with a node description block left open after it no longer
+  makes each keystroke parse to the end of the file, nor a file of many
+  such nodes parse in quadratic time.
+- An incremental parse no longer differs from a fresh one after edits on
+  a conditional's first line after a paragraph, or before an accent at
+  the end of a line.
+
+### Queries
+
+- Emacs Lisp is injected into `@lisp` and `@smalllisp`, XML into
+  `@inlineraw{docbook, ...}`.
+- `@ignore`'s body is highlighted as a comment; `@display` and `@format`
+  no longer as code.
+- Tags no longer reference a local node for a cross-reference or menu
+  entry to another manual.
+- Neovim checks the spelling of the prose, but not of the code in it
+  (`editors/neovim/spell.scm`): it checked nothing once it highlighted a
+  buffer with tree-sitter.
+- The README's Neovim setup starts highlighting and folding, and Helix's
+  pins the grammar to a commit, with the queries of the same checkout.
+
+### Bindings
+
+- An editable install of the Python package has its queries; Node.js no
+  longer warns of a deprecated entry point. CI builds the C library and
+  tests the Python package from its sdist.
+
 ## 0.2.0
 
 Paragraphs where texi2any has them, each field with one kind of node, and

@@ -293,7 +293,7 @@ from the same LLVM version as the compiler (the profile format differs).
 - Recognise long lists of command names in the scanner, not with keywords in
   the grammar: every keyword is an entry in every parser state where a
   command can start. Moving 199 keywords to the scanner took `parser.c` from
-  29 MB to 6 MB (it is 14 MB now, with 7,100 states).
+  29 MB to 6 MB (`script/parser-size.py` gives its size now).
   That is the table's size: a few keywords in place of one cost no states.
 - Watch `tree-sitter generate` time (normally about a second) and the
   parser's state count, which has a budget: the `parser-size` check

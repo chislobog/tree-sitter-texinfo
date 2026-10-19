@@ -2,7 +2,52 @@
 
 Coverage of the [Texinfo manual](https://www.gnu.org/software/texinfo/manual/texinfo/texinfo.html)
 (version 7.3). Command classes follow `tta/data/command_data.txt` in the Texinfo
-sources, which is what `texi2any` itself uses.
+sources, which is what `texi2any` itself uses. What is open comes first;
+what is done, with how and why, after it.
+
+## Open
+
+Found by review (October 2026), left for a decision or for later:
+
+- [ ] `@raisesections` and `@lowersections` don't move the sections after
+  them, as they do in texi2any (in the Texinfo manual itself): the level
+  of each section would depend on every such command before it in the
+  file, state the scanner doesn't keep (Conventions in CLAUDE.md)
+- [ ] `@defblock`: the text after each `@defline` isn't a body of its own,
+  as a definition's after its `@deffnx` lines is (texi2any's `def_item`)
+- [ ] Text between a node and its heading leaves the node on its own,
+  where texi2any still associates them (README); index entries and other
+  line commands there don't
+- [ ] A block left open before a conditional that holds `@node Top` runs
+  past the node, which texi2any closes it at once it has evaluated the
+  conditional (`gawkinet.texi` with its `@end direntry` deleted)
+- [ ] A stray `@deffnx` outside a definition is a `definition_line`, as a
+  stray `@itemx` stays one, though texi2any reports it
+- [ ] Paragraphs in `@example` and the other preformatted blocks are
+  `paragraph` nodes, where texi2any has preformatted text, so an editor's
+  paragraph motions take code for prose
+- [ ] An `@` that starts no command (`@#`), which texi2any reports, is a
+  lone `@` and the character after it text, which no editor reports
+- [ ] Speed while editing: typing `@ifset` or its `@end` reparses the rest
+  of the file, as the stack of open blocks changes the scanner's state of
+  every token after it; a keystroke in a raw block left open re-lexes the
+  rest of the file, its body being one token; opening a block re-parses
+  up to the next node
+- [ ] The parser's states: moving the head of each block, list, menu, raw
+  block, macro and command into a hidden rule of its own leaves the trees
+  the same, with 30% fewer (measured by review, before the menu entry and
+  part changes)
+- [ ] The tree for queries: `heading` is a node (`@heading`) and a field of
+  sections holding other nodes; the `argument` field and node are
+  unrelated; `label` is a cross-reference target in `@float` but text in
+  `@xref`; no supertypes (`_section` would cost 2 states); a multitable's
+  first cell isn't a node
+- [ ] Highlights: table item terms (`@item --foo` in `@table @code`),
+  index entries and the flags of `@ifset`/`@ifclear` have none; Helix's
+  `markup.link.text` for a link's text; Neovim's `entry` textobjects
+- [ ] Incremental parsing in chains of random edits on texi2any's test
+  inputs: one of 3,504 differs from a fresh parse, both trees holding
+  `ERROR` nodes (`@macro aaa @node X`)
 
 ## Done
 
@@ -449,7 +494,7 @@ comparing arguments:
   differences come from those already listed, and an example of a literal
   `\n`, which texi2any's dump writes as a newline
 - [x] The comparison compares paragraphs too: where they start and end
-  among the commands, and their text outside commands. 148,650 of 148,912
+  among the commands, and their text outside commands. 165,618 of 165,620
   paragraphs match texi2any's; the other differences are listed, by the
   gaps above or as deliberate (a `#line` directive is text). Where
   texi2any's paragraphs
