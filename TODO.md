@@ -67,6 +67,14 @@ sources, which is what `texi2any` itself uses.
   6 s) and each keystroke after one cost a parse of the rest of the file.
   A section there is the node's; the parse check times such an input
   (`--stress`)
+- [x] A menu entry starts with the scanner's zero-width token, which it
+  gives only where the innermost block other than a conditional is a menu
+  (found by review): the grammar's `*`, which takes precedence over text,
+  was lexed wherever a paragraph's line end could be followed by an entry
+  in some context, so a line starting with `* ` in a definition's body was
+  an error, and an edit before it made an incremental parse differ
+  (+211 parser states: the scanner's token keeps the states of a line end
+  an entry may follow from merging with others)
 - [x] Keep the preformatted context through blocks nested in `@example`
   and the other preformatted blocks (`@group`, `@quotation`, even `@menu`),
   where a blank line doesn't close a brace command, as in texi2any

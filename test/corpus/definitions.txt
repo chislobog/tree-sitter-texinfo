@@ -845,3 +845,28 @@ Body.
         (paragraph
           (text))))
     end: (block_end)))
+
+================================================================================
+A line starting with a star in a definition's body is text, outside a menu
+================================================================================
+
+@deffn Command foo
+Returns:
+* the first
+* the second
+@end deffn
+
+---
+
+(source_file
+  (definition_block
+    (definition_line
+      name: (command_name)
+      category: (text)
+      entity: (text))
+    body: (definition_body
+      (paragraph
+        (text)
+        (text)
+        (text)))
+    end: (block_end)))

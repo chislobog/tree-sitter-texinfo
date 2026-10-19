@@ -323,7 +323,11 @@ from the same LLVM version as the compiler (the profile format differs).
   a heap copy per token, and macros defined in another file (`@include`)
   were unknown anyway.
 - Token precedence doesn't stop a longer match by another token valid in the
-  same state; make the grammar allow only one of them there instead.
+  same state; make the grammar allow only one of them there instead. And a
+  token with precedence is lexed wherever it is valid as the lookahead of a
+  reduction, even where the state the reduction leads to has no use for it:
+  a menu entry's `*` made a `* ` line in a definition's body an error, until
+  the scanner gave an entry's start only in a menu.
 - The scanner may choose a token by which others are valid, but the choice
   must be the same before a reduction and after it: a fresh parse lexes the
   token after a node before reducing it, and an incremental one that reuses

@@ -4489,13 +4489,8 @@
                 "value": "item"
               },
               {
-                "type": "ALIAS",
-                "content": {
-                  "type": "SYMBOL",
-                  "name": "_menu_entry_in_block"
-                },
-                "named": true,
-                "value": "menu_entry"
+                "type": "SYMBOL",
+                "name": "menu_entry"
               },
               {
                 "type": "ALIAS",
@@ -4628,19 +4623,6 @@
       ]
     },
     "menu_entry": {
-      "type": "SEQ",
-      "members": [
-        {
-          "type": "SYMBOL",
-          "name": "_menu_star"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "_menu_entry_rest"
-        }
-      ]
-    },
-    "_menu_entry_in_block": {
       "type": "SEQ",
       "members": [
         {

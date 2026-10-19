@@ -360,8 +360,8 @@ export default grammar({
     // A run of dots in a menu node, but for the last one before whitespace,
     // which ends the node.
     $._menu_node_dots,
-    // Zero-width before a menu entry in a block, such as a conditional,
-    // inside a menu.
+    // Zero-width before a menu entry, where the innermost block other than
+    // a conditional is a menu.
     $._menu_entry_start,
     // A block other than a conditional in a menu entry's description.
     $._description_block_start,
@@ -706,7 +706,7 @@ export default grammar({
         $._content,
         $.item,
         alias($._container_item, $.item),
-        alias($._menu_entry_in_block, $.menu_entry),
+        $.menu_entry,
         alias($._row, $.item),
         $._section,
       )),
@@ -733,12 +733,12 @@ export default grammar({
     ),
 
     // `* Node::  Description` or `* Label: Node.  Description`. As in texi2any,
-    // a `.` only ends the node when whitespace follows it.
-    menu_entry: $ => seq($._menu_star, $._menu_entry_rest),
-
-    // In a block, such as a conditional, the scanner only allows an entry
-    // where the innermost block other than a conditional is a menu.
-    _menu_entry_in_block: $ => seq($._menu_entry_start, $._menu_star, $._menu_entry_rest),
+    // a `.` only ends the node when whitespace follows it. The scanner only
+    // starts an entry where the innermost block other than a conditional is
+    // a menu: the `*` alone, which takes precedence over text, was lexed
+    // wherever a paragraph's line end could be followed by an entry in some
+    // context, such as in a definition's body, where it was an error.
+    menu_entry: $ => seq($._menu_entry_start, $._menu_star, $._menu_entry_rest),
 
     _menu_entry_rest: $ => choice(
       // The node may be empty, as texi2any reports and accepts.

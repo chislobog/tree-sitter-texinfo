@@ -85,8 +85,8 @@ enum TokenType {
   // A run of dots in a menu node, but for the last one before whitespace,
   // which ends the node.
   MENU_NODE_DOTS,
-  // Zero-width before a menu entry in a block, such as a conditional, whose
-  // innermost enclosing block other than a conditional is a menu.
+  // Zero-width before a menu entry, where the innermost enclosing block
+  // other than a conditional is a menu.
   MENU_ENTRY_START,
   // A block other than a conditional in a menu entry's description.
   DESCRIPTION_BLOCK_START,
@@ -1504,9 +1504,10 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
     if (result != SCAN_NONE) return result == SCAN_FOUND;
   }
 
-  // A menu entry inside a conditional in a menu, which texi2any sees once it
-  // has evaluated the conditional. At the start of the line, where the scan
-  // starts; the grammar then reads the `*` as in a menu.
+  // A menu entry, where the innermost block other than a conditional is a
+  // menu: in a conditional in a menu too, which texi2any has evaluated. At
+  // the start of the line, where the scan starts; the grammar then reads the
+  // `*`. Elsewhere, a `*` at the start of a line is text.
   if (valid_symbols[MENU_ENTRY_START] && lexer->lookahead == '*') {
     const Block *block = innermost_structure(scanner);
     if (block != NULL && block->kind == KIND_MENU) {
