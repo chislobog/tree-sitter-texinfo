@@ -187,10 +187,13 @@ fail to load, and Helix then highlights nothing.
 ## Bindings
 
 The bindings that tree-sitter generates (C, Go, Node.js, Python, Rust and
-Swift) are built and tested in CI on Linux, macOS and Windows, each test
-parsing a document. They aren't published to a package registry: depend on
-this repository, as a git dependency, at a commit or tag. They need a
-tree-sitter runtime that reads ABI 15, version 0.25 or later.
+Swift) are built in CI on Linux, macOS and Windows, and tested there,
+each test parsing a document, but for Swift, tested on macOS only, and C,
+built with CMake. Python is tested as a user installs it, from its sdist.
+They aren't published to a package registry: depend on this repository,
+as a git dependency, at a commit or tag. They need a tree-sitter runtime
+that reads ABI 15, version 0.25 or later. Node.js builds the parser from
+source, so it needs a C compiler.
 
 ## Development
 
