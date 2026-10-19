@@ -5065,8 +5065,17 @@
                     "type": "SEQ",
                     "members": [
                       {
-                        "type": "SYMBOL",
-                        "name": "_newline"
+                        "type": "CHOICE",
+                        "members": [
+                          {
+                            "type": "SYMBOL",
+                            "name": "_newline"
+                          },
+                          {
+                            "type": "SYMBOL",
+                            "name": "_comment_lines"
+                          }
+                        ]
                       },
                       {
                         "type": "CHOICE",
@@ -5183,6 +5192,10 @@
               }
             ]
           }
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_comment_lines"
         }
       ]
     },

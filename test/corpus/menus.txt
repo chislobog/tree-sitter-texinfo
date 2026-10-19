@@ -550,6 +550,41 @@ goes on.
     end: (block_end)))
 
 ================================================================================
+Comment lines after an entry without a description start its description
+================================================================================
+
+@menu
+* Node one::
+@c comment in menu
+
+Menu comment text.
+* Node two::
+@c comment
+more description
+
+@end menu
+
+---
+
+(source_file
+  (menu
+    name: (command_name)
+    (menu_entry
+      node: (menu_node
+        (text))
+      description: (menu_description
+        (comment)))
+    (paragraph
+      (text))
+    (menu_entry
+      node: (menu_node
+        (text))
+      description: (menu_description
+        (comment)
+        (text)))
+    end: (block_end)))
+
+================================================================================
 Blocks other than conditionals inside a menu entry's description
 ================================================================================
 

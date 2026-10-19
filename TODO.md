@@ -232,6 +232,10 @@ of a line.
   the last, as in texi2any: `* Label: foo... desc` is node `foo..` and
   description `desc`, not `foo` and `.. desc`; before `,` or a command it
   keeps them all
+- [x] Comment lines after a menu entry without a description start its
+  description, as in texi2any, which goes on with the lines after them up
+  to a blank line (found by review): they were menu comments, and so was
+  the text after them (+4 parser states)
 - [x] A tab ends a menu node, as a comma does, as in the Texinfo manual and
   texi2any (found by review): `* Label: Node<TAB>Description` was all node
 - [x] Sections nest by level (`part`, `top`, `chapter`, `section`,

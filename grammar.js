@@ -854,10 +854,11 @@ export default grammar({
     // sees after evaluating it, nor a menu.
     menu_description: $ => choice(
       seq(
-        // As in texi2any, the description may start on the next line.
+        // As in texi2any, the description may start on the next line, also
+        // after comment lines.
         choice(
           $._line,
-          prec(1, seq($._newline, optional($._description_blocks), $._line)),
+          prec(1, seq(choice($._newline, $._comment_lines), optional($._description_blocks), $._line)),
         ),
         repeat(prec(1, seq(
           choice($._newline, $._comment_lines),
@@ -872,6 +873,8 @@ export default grammar({
       ),
       // Or only blocks, which a line after them would go on with.
       prec.right(1, seq($._newline, $._description_blocks)),
+      // Or only comment lines, as in texi2any.
+      $._comment_lines,
     ),
 
     _description_blocks: $ => prec.right(repeat1(seq(
