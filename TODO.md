@@ -509,6 +509,14 @@ Deliberate, so the tree shows the source as it is written and edited:
 - [x] `queries/highlights.scm`, with tests in `test/highlight/`
 - [x] Highlight gaps from overlapping patterns: `@example` contents, markup
   in heading titles, `@defvar` entities, `@emph`/`@var` arguments
+- [x] Spell checking in Neovim, which checks only what highlights capture as
+  `@spell` (found by review: it checked nothing): paragraphs, comments,
+  headings and menu descriptions, but not command names, symbols, raw
+  text, definition lines, code arguments or preformatted blocks
+  (`@nospell`, which takes priority). Neovim's alone
+  (`editors/neovim/spell.scm`): `(command_name) @nospell` would overlap
+  the patterns of `queries/highlights.scm`; tested by
+  `test/queries/neovim-highlights/`
 - [x] Highlights found by review: `@ignore`'s body is a comment, not raw
   text; `@display` and `@format` keep the font of the text, as the Texinfo
   manual says, not highlighted as code; a definition word that is a symbol

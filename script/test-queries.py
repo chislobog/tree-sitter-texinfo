@@ -2,7 +2,8 @@
 """Run the tests of the queries `tree-sitter test` can't test: folds,
 textobjects and injections, on the files in test/queries/QUERY/, and the
 tags tests asserting that a tag is absent, which its tags tests read as
-present.
+present. test/queries/EDITOR-QUERY/ tests an editor's generated query,
+editors/EDITOR/queries/QUERY.scm, for the patterns of its own.
 
 `tree-sitter test` would run the tests in test/QUERY/, but tree-sitter
 0.26.11 reads each such test file as the query itself, so the tests live
@@ -134,7 +135,9 @@ def main() -> int:
     if not directories:
         raise SystemExit(f"no tests in {TESTS}")
     for directory in directories:
-        query = Query(language, as_regex((ROOT / "queries" / f"{directory.name}.scm").read_text()))
+        editor, _, name = directory.name.rpartition("-")
+        queries = ROOT / "editors" / editor / "queries" if editor else ROOT / "queries"
+        query = Query(language, as_regex((queries / f"{name}.scm").read_text()))
         paths = sorted(directory.glob("*.texi"))
         if not paths:
             print(f"FAILED: {directory.name}: no tests")

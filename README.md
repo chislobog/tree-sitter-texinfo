@@ -159,6 +159,8 @@ vim.api.nvim_create_autocmd("FileType", {
 
 Then install the parser and its queries with `:TSInstall texinfo`. Its
 parser has Neovim's name for the filetype, so nothing needs registering.
+With `:set spell`, Neovim checks the spelling of the prose but not of the
+code in it, which only its highlights tell it (`editors/neovim/spell.scm`).
 
 Helix, in `languages.toml`, with `rev` a commit of this repository: Helix
 fetches `rev` and checks it out, so a branch name stays at the commit first

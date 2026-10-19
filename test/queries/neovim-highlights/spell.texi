@@ -1,0 +1,18 @@
+A paragraph with @code{code} in it, and @file{a.txt}.
+@c    ^ spell
+@c    ^ !nospell
+@c                     ^ nospell
+@c                                            ^ nospell
+
+@example
+code here
+@c <- nospell
+@end example
+
+@deffn Command forward-word
+@c             ^ nospell
+@end deffn
+
+@heading A heading
+@c       ^ spell
+

@@ -18,7 +18,8 @@ this script would write.
   Python queries). Helix reads no references from tags, and doesn't fold.
 - Neovim (editors/neovim/queries/): nvim-treesitter-textobjects' `outer`/
   `inner` instead of `around`/`inside`, without `entry`. Neovim doesn't use
-  tags.
+  tags. Its highlights end with the spell checking patterns of
+  editors/neovim/spell.scm, which are Neovim's alone.
 
 Usage: script/editor-queries.py [--check]
 """
@@ -50,6 +51,8 @@ EDITORS = {
             r"(\w+)\.inside": r"\1.inner",
         },
         "drop": [r"entry\.\w+"],
+        # Patterns of the editor's own, after those of a file.
+        "append": {"highlights.scm": ROOT / "editors" / "neovim" / "spell.scm"},
     },
 }
 
@@ -126,6 +129,10 @@ def main() -> int:
         for file in editor["files"]:
             header = f"; Generated from queries/{file} by script/editor-queries.py.\n"
             text = header + generate((QUERIES / file).read_text(), editor)
+            extra = editor.get("append", {}).get(file)
+            if extra is not None:
+                origin = extra.relative_to(ROOT)
+                text += f"\n; From {origin}.\n" + extra.read_text()
             target = directory / file
             if options.check:
                 if not target.exists() or target.read_text() != text:

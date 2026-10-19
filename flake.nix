@@ -385,11 +385,13 @@
               tree-sitter generate
               diff -r ../src.committed src
             '';
-            # Corpus, highlight and tags tests, and the other queries' tests.
+            # Corpus, highlight and tags tests, and the other queries' tests,
+            # with those of Neovim's own patterns.
             tests = mkCheck "tests" (
               scriptFiles
               ++ [
                 ./queries
+                ./editors/neovim/queries
                 ./test/corpus
                 ./test/highlight
                 ./test/tags

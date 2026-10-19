@@ -94,7 +94,9 @@ well with incomplete input, which is normal while editing.
   from Helix's book (`themes.md`, the textobject and injection guides) and
   from nvim-treesitter's and nvim-treesitter-textobjects' `.tsqueryrc.json`;
   refresh them when an editor adds names. To support another editor, add its
-  table and list. Edit only `queries/`. `tree-sitter query queries/textobjects.scm FILE` shows what a
+  table and list. Edit only `queries/`, and `editors/neovim/spell.scm`, the
+  spell checking patterns of Neovim's alone, which the generator appends to
+  its highlights. `tree-sitter query queries/textobjects.scm FILE` shows what a
   textobject captures; highlight and tags
   tests are in `test/highlight/` and `test/tags/` (run by `tree-sitter
   test`); those of folds, textobjects and injections in
