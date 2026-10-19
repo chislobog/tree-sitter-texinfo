@@ -28,10 +28,11 @@
   outputs =
     inputs:
     inputs.flake-parts.lib.mkFlake { inherit inputs; } {
+      # Not x86_64-darwin, which nixpkgs 26.11 no longer supports. CI
+      # evaluates every check of each (`--all-systems --no-build`).
       systems = [
         "x86_64-linux"
         "aarch64-linux"
-        "x86_64-darwin"
         "aarch64-darwin"
       ];
       imports = [
@@ -244,6 +245,12 @@
         {
           packages.examples = examples;
           packages.texinfo-tests = texinfoTests;
+          # Every check's result, which CI keeps as a garbage collector root
+          # in the Nix store it caches, so that the next run with the same
+          # inputs builds none of them again.
+          packages.checks = pkgs.linkFarm "checks" (
+            lib.mapAttrsToList (name: path: { inherit name path; }) config.checks
+          );
 
           # `nix fmt`. Only the files written by hand: src/ and the bindings
           # are generated. Its check is the pre-commit hook's.
@@ -514,6 +521,7 @@
           # [SECONDS] [JOBS]`.
           apps.fuzz-scanner = {
             type = "app";
+            meta.description = "libFuzzer with sanitizers on the scanner, longer than its check";
             program = lib.getExe (
               pkgs.writeShellApplication {
                 name = "fuzz-scanner";

@@ -1,4 +1,5 @@
-# Keeps the commits that the workflows pin their actions to up to date.
+# Keeps the commits that the workflows pin their actions to up to date, and
+# the ESLint of package-lock.json, which the pre-commit hook runs.
 version: 2
 updates:
   - package-ecosystem: github-actions
@@ -7,4 +8,11 @@ updates:
       interval: weekly
     groups:
       actions:
+        patterns: ["*"]
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      npm:
         patterns: ["*"]

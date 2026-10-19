@@ -1,5 +1,6 @@
 result
 result-*
+.gcroots/
 .direnv/
 node_modules/
 build/

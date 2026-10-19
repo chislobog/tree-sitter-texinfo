@@ -1,9 +1,11 @@
 name: CI
 
 # Changes to the documentation alone aren't checked (`nix flake check` runs
-# the same checks locally before pushing).
+# the same checks locally before pushing), nor tags, whose commit a branch
+# has had checked.
 on:
   push:
+    branches: ["**"]
     paths-ignore: ["**.md"]
   pull_request:
     paths-ignore: ["**.md"]
@@ -22,6 +24,11 @@ jobs:
     runs-on: ubuntu-latest
     # Runs take 10 to 15 minutes with the Nix store of an earlier run.
     timeout-minutes: 90
+    # Purging the caches of earlier runs deletes them through the API. A
+    # pull request from a fork gets a read-only token anyway.
+    permissions:
+      contents: read
+      actions: write
     # Branches in this repository are checked on push; pull requests only
     # from forks, to avoid running twice.
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
@@ -53,6 +60,18 @@ jobs:
       # comparisons, the snapshots and the editing simulation.
       - name: Checks
         run: nix flake check -L
+
+      # The cache action collects garbage before saving the store, which
+      # took every check's result, built without a root, and the tools:
+      # the next run built them all again. Their roots keep them.
+      - name: Keep the checks' results and tools
+        run: |
+          nix build .#checks --out-link .gcroots/checks
+          nix develop --profile .gcroots/dev --command true
+
+      # The other systems' checks, which no runner builds, must evaluate.
+      - name: Evaluate every system's checks
+        run: nix flake check --all-systems --no-build
 
   # The scanner is compiled on users' machines by every editor, including
   # with MSVC on Windows, and the bindings are how most projects use the
