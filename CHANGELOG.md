@@ -22,6 +22,9 @@ a part's chapters, a section's node), so the next version is 0.3.0.
 - In `@defblock`, the text after each `@defline` is its `body`, a
   `definition_body`, and `@defline` is no longer content elsewhere.
 - An `@` that starts no command (`@#`) is an `unexpected_at` node.
+- Paragraphs in `@example` and the other preformatted blocks are
+  `preformatted` nodes, texi2any's preformatted text, so that an editor's
+  paragraph motions and spell checking can tell code from prose.
 
 ### The tree
 

@@ -20,7 +20,7 @@ x
           (text))
         (block
           (command_name)
-          (paragraph
+          (preformatted
             (text))
           (block_end))))
     (text)))
@@ -266,7 +266,7 @@ After.
     name: (command_name)
     (block
       name: (command_name)
-      (paragraph
+      (preformatted
         (text)
         (inline_command
           name: (command_name)
@@ -788,7 +788,7 @@ Next.
 (source_file
   (block
     name: (command_name)
-    (paragraph
+    (preformatted
       (text)
       (inline_command
         name: (command_name)
@@ -836,7 +836,7 @@ two}
     name: (command_name)
     (block
       name: (command_name)
-      (paragraph
+      (preformatted
         (inline_command
           name: (command_name)
           arguments: (brace_arguments
@@ -850,7 +850,7 @@ two}
       name: (command_name)
       (block
         name: (command_name)
-        (paragraph
+        (preformatted
           (inline_command
             name: (command_name)
             arguments: (brace_arguments
@@ -1001,7 +1001,7 @@ code
             (missing_brace)))
         (block
           (command_name)
-          (paragraph
+          (preformatted
             (text))
           (block_end))))
     (block_end)))

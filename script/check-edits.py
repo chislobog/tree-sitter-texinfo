@@ -84,7 +84,7 @@ def paragraphs(node: Node) -> list[Node]:
     stack = [node]
     while stack:
         current = stack.pop()
-        if current.type == "paragraph":
+        if current.type in ("paragraph", "preformatted"):
             found.append(current)
         else:
             stack.extend(current.children)

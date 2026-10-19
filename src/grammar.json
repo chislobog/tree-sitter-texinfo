@@ -3727,6 +3727,10 @@
         },
         {
           "type": "SYMBOL",
+          "name": "preformatted"
+        },
+        {
+          "type": "SYMBOL",
           "name": "node_line"
         },
         {
@@ -7287,13 +7291,8 @@
                 "type": "CHOICE",
                 "members": [
                   {
-                    "type": "ALIAS",
-                    "content": {
-                      "type": "SYMBOL",
-                      "name": "_cell_paragraph"
-                    },
-                    "named": true,
-                    "value": "paragraph"
+                    "type": "SYMBOL",
+                    "name": "_last_cell_paragraph"
                   },
                   {
                     "type": "BLANK"
@@ -7303,16 +7302,47 @@
             ]
           },
           {
-            "type": "ALIAS",
-            "content": {
-              "type": "SYMBOL",
-              "name": "_cell_paragraph"
-            },
-            "named": true,
-            "value": "paragraph"
+            "type": "SYMBOL",
+            "name": "_last_cell_paragraph"
           }
         ]
       }
+    },
+    "_last_cell_paragraph": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_cell_paragraph"
+          },
+          "named": true,
+          "value": "paragraph"
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_cell_preformatted"
+          },
+          "named": true,
+          "value": "preformatted"
+        }
+      ]
+    },
+    "_cell_preformatted": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "_preformatted_start"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_cell_paragraph"
+        }
+      ]
     },
     "_cell_paragraph": {
       "type": "PREC_RIGHT",
@@ -8135,6 +8165,23 @@
       ]
     },
     "paragraph": {
+      "type": "SYMBOL",
+      "name": "_paragraph_lines"
+    },
+    "preformatted": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "_preformatted_start"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_paragraph_lines"
+        }
+      ]
+    },
+    "_paragraph_lines": {
       "type": "SEQ",
       "members": [
         {
@@ -11621,6 +11668,10 @@
     {
       "type": "SYMBOL",
       "name": "_end_line_text"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_preformatted_start"
     },
     {
       "type": "SYMBOL",

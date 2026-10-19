@@ -282,7 +282,7 @@ Text with @tab outside a multitable.
             (text))
           (block
             name: (command_name)
-            (paragraph
+            (preformatted
               (text))
             end: (block_end))))
       (tab

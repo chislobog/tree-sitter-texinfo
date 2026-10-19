@@ -670,7 +670,7 @@ A block between them separates them.
         (text)))
     (block
       (command_name)
-      (paragraph
+      (preformatted
         (text))
       (block_end)))
   (section
@@ -792,7 +792,7 @@ code
         (text)))
     (block
       name: (command_name)
-      (paragraph
+      (preformatted
         (text))
       end: (missing_end)))
   (chapter

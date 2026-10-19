@@ -355,6 +355,11 @@ def check_scanner(checker: Checker):
             "@centerchap starts a chapter but isn't in SECTIONING",
         ),
         (
+            "a line keyword missing",
+            ('"unmacro",', ""),
+            "@unmacro starts a line in the grammar but isn't in LINE_KEYWORDS",
+        ),
+        (
             "a name texi2any doesn't have",
             ('"include",', '"include", "foo",'),
             "@foo in LINE_COMMANDS isn't one of texi2any's line commands",

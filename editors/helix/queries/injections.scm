@@ -68,7 +68,7 @@
 ; as `@var`, are parsed, so include them, as in `@displaymath`.
 ((block
   name: (command_name) @_name
-  (paragraph) @injection.content)
+  (preformatted) @injection.content)
   (#any-of? @_name "@lisp" "@smalllisp")
   (#set! injection.language "elisp")
   (#set! injection.include-children))

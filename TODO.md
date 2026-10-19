@@ -13,9 +13,6 @@ Found by review (October 2026), left for a decision or for later:
   them, as they do in texi2any (in the Texinfo manual itself): the level
   of each section would depend on every such command before it in the
   file, state the scanner doesn't keep (Conventions in CLAUDE.md)
-- [ ] Paragraphs in `@example` and the other preformatted blocks are
-  `paragraph` nodes, where texi2any has preformatted text, so an editor's
-  paragraph motions take code for prose
 - [ ] Speed while editing: typing `@ifset` or its `@end` reparses the rest
   of the file, as the stack of open blocks changes the scanner's state of
   every token after it; a keystroke in a raw block left open re-lexes the
@@ -116,6 +113,15 @@ Found by review (October 2026), left for a decision or for later:
 - [x] Keep the preformatted context through blocks nested in `@example`
   and the other preformatted blocks (`@group`, `@quotation`, even `@menu`),
   where a blank line doesn't close a brace command, as in texi2any
+- [x] Paragraphs in `@example` and the other preformatted blocks are
+  `preformatted` nodes, texi2any's preformatted text, so an editor's
+  paragraph motions no longer take code for prose (found by review). The
+  scanner starts one with a zero-width token where a paragraph would start
+  in a preformatted context, but not after a newline that may go on with
+  an open one, nor at a `{` in the middle of a line, the braces of the
+  `@caption` before it, say: a `{` after `@anchor{...}` starts a
+  `paragraph`, as before. A cell's last one has a rule of its own (43
+  parser states)
 - [x] Command names as texi2any reads them, `[[:alnum:]][[:alnum:]-]*` of any
   length, so `@0` or a name longer than 32 characters is one (unknown)
   command, and `_` ends one: `@code_x` is `@code`, then `_x` (it continued

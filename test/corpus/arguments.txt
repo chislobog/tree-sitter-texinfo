@@ -320,7 +320,7 @@ x
         (text)
         (block
           name: (command_name)
-          (paragraph
+          (preformatted
             (text))
           end: (block_end)))
       else: (comma_argument

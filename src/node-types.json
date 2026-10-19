@@ -155,6 +155,10 @@
           "named": true
         },
         {
+          "type": "preformatted",
+          "named": true
+        },
+        {
           "type": "raw_block",
           "named": true
         },
@@ -388,6 +392,10 @@
           "named": true
         },
         {
+          "type": "preformatted",
+          "named": true
+        },
+        {
           "type": "raw_block",
           "named": true
         },
@@ -473,6 +481,10 @@
         },
         {
           "type": "paragraph",
+          "named": true
+        },
+        {
+          "type": "preformatted",
           "named": true
         },
         {
@@ -716,6 +728,10 @@
         },
         {
           "type": "paragraph",
+          "named": true
+        },
+        {
+          "type": "preformatted",
           "named": true
         },
         {
@@ -1269,6 +1285,10 @@
           "named": true
         },
         {
+          "type": "preformatted",
+          "named": true
+        },
+        {
           "type": "raw_block",
           "named": true
         },
@@ -1512,6 +1532,10 @@
           "named": true
         },
         {
+          "type": "preformatted",
+          "named": true
+        },
+        {
           "type": "raw_block",
           "named": true
         },
@@ -1685,6 +1709,10 @@
         },
         {
           "type": "paragraph",
+          "named": true
+        },
+        {
+          "type": "preformatted",
           "named": true
         },
         {
@@ -2010,6 +2038,10 @@
           "named": true
         },
         {
+          "type": "preformatted",
+          "named": true
+        },
+        {
           "type": "raw_block",
           "named": true
         },
@@ -2064,6 +2096,53 @@
           }
         ]
       }
+    }
+  },
+  {
+    "type": "preformatted",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "block",
+          "named": true
+        },
+        {
+          "type": "brace_group",
+          "named": true
+        },
+        {
+          "type": "comment",
+          "named": true
+        },
+        {
+          "type": "inline_command",
+          "named": true
+        },
+        {
+          "type": "line_command",
+          "named": true
+        },
+        {
+          "type": "macro_definition",
+          "named": true
+        },
+        {
+          "type": "raw_block",
+          "named": true
+        },
+        {
+          "type": "symbol_command",
+          "named": true
+        },
+        {
+          "type": "text",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -2191,6 +2270,10 @@
           "named": true
         },
         {
+          "type": "preformatted",
+          "named": true
+        },
+        {
           "type": "raw_block",
           "named": true
         },
@@ -2302,6 +2385,10 @@
         },
         {
           "type": "paragraph",
+          "named": true
+        },
+        {
+          "type": "preformatted",
           "named": true
         },
         {
@@ -2455,6 +2542,10 @@
           "named": true
         },
         {
+          "type": "preformatted",
+          "named": true
+        },
+        {
           "type": "raw_block",
           "named": true
         },
@@ -2570,6 +2661,10 @@
         },
         {
           "type": "paragraph",
+          "named": true
+        },
+        {
+          "type": "preformatted",
           "named": true
         },
         {
@@ -2714,6 +2809,10 @@
         },
         {
           "type": "paragraph",
+          "named": true
+        },
+        {
+          "type": "preformatted",
           "named": true
         },
         {

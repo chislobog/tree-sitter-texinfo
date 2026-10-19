@@ -99,6 +99,7 @@ enum TokenType {
   NO_PARAGRAPH_SYMBOL,
   NO_PARAGRAPH_START,
   END_LINE_TEXT,
+  PREFORMATTED_START,
   ERROR_SENTINEL,
 };
 
@@ -948,6 +949,43 @@ static bool in_preformatted(const Scanner *scanner) {
   return false;
 }
 
+// The grammar's keywords of commands that start no paragraph, which the
+// scanner gives no token: a line's command (`@set`, `@item` in a table,
+// `@heading`). Definition lines (`@deffnx`, `@defline`) start with `def`,
+// and sectioning commands and `@node` are root commands.
+// script/check-scanner.py checks them against the grammar.
+static const char *const LINE_KEYWORDS[] = {
+    "alias",   "bye",          "chapheading",
+    "clear",   "clickstyle",   "columnfractions",
+    "heading", "headitem",     "item",
+    "itemx",   "majorheading", "nodedescription",
+    "set",     "subheading",   "subsubheading",
+    "unmacro", "vskip"};
+
+/**
+ * Whether the command `@name`, whose token is `token`, starts a paragraph
+ * where one may start: a brace command, `@math`, `@footnote`, or a command
+ * the scanner gives no token, but a block, a line's command, a comment or a
+ * command that starts none (`@image`).
+ */
+static bool starts_paragraph(const char *name, int token) {
+  if (token == BRACE_COMMAND_NAME || token == MATH_NAME ||
+      token == CONTEXT_COMMAND_NAME) {
+    return true;
+  }
+  return token < 0 && find_block(name) < 0 && !is_root_command(name) &&
+         strcmp(name, "end") != 0 && strcmp(name, "c") != 0 &&
+         strcmp(name, "comment") != 0 && strncmp(name, "def", 3) != 0 &&
+         strcmp(name, "image") != 0 && strcmp(name, "namedanchor") != 0 &&
+         !in_table(LINE_KEYWORDS, TABLE_COUNT(LINE_KEYWORDS), name);
+}
+
+// A symbol command's character after its `@` (the grammar's
+// `symbol_command`).
+static bool is_symbol_char(int32_t c) {
+  return c != 0 && strchr("\t !\"&'*,-./:=?@\\^`{|}~", (int)c) != NULL;
+}
+
 // Whether a form feed among the blanks skipped ends a paragraph: in the
 // middle of its line, as in texi2any, where it is an empty line. Not at the
 // start of a line, where it is a blank, nor in a preformatted block or in
@@ -1713,11 +1751,37 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
     return accept(lexer, PARAGRAPH_END_BEFORE_COMMAND);
   }
 
+  // In a preformatted block, a paragraph is preformatted text, which a
+  // zero-width token starts: before text, here after the blanks, or a
+  // command that starts a paragraph, before its `@`. Not after a newline
+  // that may continue an open one, as the line commands in a paragraph may.
+  bool preformatted = valid_symbols[PREFORMATTED_START] &&
+                      !valid_symbols[PARAGRAPH_LINE_COMMAND_NAME] &&
+                      in_preformatted(scanner);
+  // A `{` in the middle of the line follows a command that starts none,
+  // such as `@caption`, whose braces it may be: only one at the start of a
+  // line starts it, which any edit that puts something before it touches.
+  if (preformatted && lexer->lookahead != '@' && lexer->lookahead != '\n' &&
+      lexer->lookahead != '\r' && lexer->lookahead != '}' &&
+      !lexer->eof(lexer) && (lexer->lookahead != '{' || starts_line(&start))) {
+    return accept(lexer, PREFORMATTED_START);
+  }
+
   if (lexer->lookahead != '@') return false;
   // Zero-width tokens end here; every other token marks its own end.
   lexer->mark_end(lexer);
   advance(lexer);
   start.consumed++;
+
+  // A symbol command, or an `@` alone at the end of a line or the file, but
+  // `@*`, which starts no paragraph.
+  int32_t after = lexer->lookahead;
+  if (preformatted && after != '*' &&
+      (is_symbol_char(after) || after == '\n' || after == '\r' ||
+       lexer->eof(lexer))) {
+    lexer->result_symbol = PREFORMATTED_START;
+    return true;
+  }
 
   if (valid_symbols[BRACE_COMMAND_NAME] && is_symbol_accent(lexer->lookahead)) {
     advance(lexer);
@@ -1782,6 +1846,10 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
   }
 
   int token = command_token(scanner, valid_symbols, name);
+  if (preformatted && starts_paragraph(name, token)) {
+    lexer->result_symbol = PREFORMATTED_START;
+    return true;
+  }
   if (token == PARAGRAPH_END_BEFORE_COMMAND || token == NO_PARAGRAPH_START) {
     // Zero-width, before the `@`: the command is read again after it.
     lexer->result_symbol = (TSSymbol)token;

@@ -299,6 +299,52 @@ def check_texi2any(source: str) -> list[str]:
     return problems
 
 
+# The grammar's rules of a line's command, whose keywords start no paragraph
+# (LINE_KEYWORDS in the scanner).
+LINE_KEYWORD_RULES = (
+    "standalone_heading",
+    "_keyword_line_command",
+    "item",
+    "itemx",
+    "_column_fractions_command",
+    "_node_description",
+    "bye",
+)
+
+
+def keywords(rule) -> set[str]:
+    """The command keywords (`@set`) in a rule of grammar.json."""
+    found = set()
+
+    def walk(node):
+        if isinstance(node, dict):
+            if node.get("type") == "STRING" and node["value"].startswith("@"):
+                found.add(node["value"][1:])
+            for value in node.values():
+                walk(value)
+        elif isinstance(node, list):
+            for value in node:
+                walk(value)
+
+    walk(rule)
+    return found
+
+
+def check_keywords(source: str, grammar: dict) -> list[str]:
+    listed = set(c_strings(source, "LINE_KEYWORDS"))
+    lines = set().union(*(keywords(grammar["rules"][rule]) for rule in LINE_KEYWORD_RULES))
+    return [
+        *(
+            f"@{n} starts a line in the grammar but isn't in LINE_KEYWORDS"
+            for n in sorted(lines - listed)
+        ),
+        *(
+            f"@{n} is in LINE_KEYWORDS but starts no line in the grammar"
+            for n in sorted(listed - lines)
+        ),
+    ]
+
+
 def check_names(source: str) -> list[str]:
     tables = {
         "LINE_COMMANDS": set(c_strings(source, "LINE_COMMANDS")),
@@ -335,6 +381,7 @@ def main() -> int:
         *check_layouts(source, grammar),
         *check_sections(source, grammar),
         *check_names(source),
+        *check_keywords(source, grammar),
         *check_texi2any(source),
     ]
     for problem in problems:

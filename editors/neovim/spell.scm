@@ -5,7 +5,10 @@
 ; they are Neovim's alone, and `(command_name) @nospell` would overlap the
 ; patterns of queries/highlights.scm, which the tree-sitter CLI doesn't
 ; allow.
-(paragraph) @spell
+[
+  (paragraph)
+  (preformatted)
+] @spell
 
 (comment) @spell
 

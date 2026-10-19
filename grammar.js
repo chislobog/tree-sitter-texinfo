@@ -410,6 +410,8 @@ export default grammar({
     $._no_paragraph_start,
     // The rest of the line after the `@end` of a block in a paragraph.
     $._end_line_text,
+    // Zero-width where a paragraph starts in a preformatted block.
+    $._preformatted_start,
     // Valid only during error recovery, when tree-sitter marks every token
     // valid: the scanner then returns nothing.
     $._error_sentinel,
@@ -574,6 +576,7 @@ export default grammar({
       // An `@end` that ends no open block, which texi2any reports and ignores.
       seq($.unmatched_end, $._line_end),
       $.paragraph,
+      $.preformatted,
       $.node_line,
       $.line_command,
       $.standalone_heading,
@@ -1085,9 +1088,16 @@ export default grammar({
     // A cell's content. Its last paragraph may end in the middle of a line,
     // before the next `@tab`.
     _cell: $ => prec.right(choice(
-      seq(repeat1($._content), optional(alias($._cell_paragraph, $.paragraph))),
-      alias($._cell_paragraph, $.paragraph),
+      seq(repeat1($._content), optional($._last_cell_paragraph)),
+      $._last_cell_paragraph,
     )),
+
+    _last_cell_paragraph: $ => choice(
+      alias($._cell_paragraph, $.paragraph),
+      alias($._cell_preformatted, $.preformatted),
+    ),
+
+    _cell_preformatted: $ => seq($._preformatted_start, $._cell_paragraph),
 
     // A newline after the paragraph's text always belongs to the paragraph.
     _cell_paragraph: $ => prec.right(seq(
@@ -1241,7 +1251,14 @@ export default grammar({
       $._line_end,
     ),
 
-    paragraph: $ => seq(
+    paragraph: $ => $._paragraph_lines,
+
+    // A paragraph's lines in a preformatted block (`@example`, `@display`,
+    // ...), texi2any's preformatted text, which the scanner starts with a
+    // zero-width token: code, not prose, for an editor's paragraph motions.
+    preformatted: $ => seq($._preformatted_start, $._paragraph_lines),
+
+    _paragraph_lines: $ => seq(
       $._line,
       // A newline followed by more inline content continues the paragraph,
       // also past comment lines and the line commands that don't end it, as

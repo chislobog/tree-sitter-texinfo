@@ -11,11 +11,127 @@ foo @{bar@}
 (source_file
   (block
     (command_name)
-    (paragraph
+    (preformatted
       (text)
       (symbol_command)
       (text)
       (symbol_command))
+    (block_end)))
+
+================================================================================
+Preformatted text after comments, starting with commands
+================================================================================
+
+@example
+@c a comment
+@comment another
+@code{x} = 1;
+@@ y
+@end example
+
+---
+
+(source_file
+  (block
+    (command_name)
+    (comment)
+    (comment)
+    (preformatted
+      (inline_command
+        (command_name)
+        (brace_arguments
+          (text)))
+      (text)
+      (symbol_command)
+      (text))
+    (block_end)))
+
+================================================================================
+A caption in a preformatted block, with its braces
+================================================================================
+
+@float
+@example
+In example.
+
+@caption{C}
+@caption {D}
+
+@anchor{a}{b}
+@end example
+@end float
+
+---
+
+(source_file
+  (block
+    (command_name)
+    (block
+      (command_name)
+      (preformatted
+        (text))
+      (inline_command
+        (command_name)
+        (brace_arguments
+          (paragraph
+            (text))))
+      (inline_command
+        (command_name)
+        (brace_arguments
+          (paragraph
+            (text))))
+      (inline_command
+        (command_name)
+        (brace_arguments
+          (text)))
+      (paragraph
+        (brace_group
+          (text)))
+      (block_end))
+    (block_end)))
+
+================================================================================
+A multitable in a preformatted block
+================================================================================
+
+@example
+@multitable {a} {b} {c}
+@item a @tab b
+c @tab d
+@end multitable
+@end example
+
+---
+
+(source_file
+  (block
+    (command_name)
+    (list
+      (command_name)
+      (line_argument
+        (brace_group
+          (text))
+        (brace_group
+          (text))
+        (brace_group
+          (text)))
+      (item
+        (command_name)
+        (cell
+          (preformatted
+            (text)))
+        (tab
+          (command_name)
+          (cell
+            (preformatted
+              (text)
+              (text))))
+        (tab
+          (command_name)
+          (cell
+            (preformatted
+              (text)))))
+      (block_end))
     (block_end)))
 
 ================================================================================
@@ -83,7 +199,7 @@ x
 (source_file
   (block
     (command_name)
-    (paragraph
+    (preformatted
       (text))
     (block_end)))
 
@@ -104,7 +220,7 @@ Indented blocks
     (command_name)
     (block
       (command_name)
-      (paragraph
+      (preformatted
         (text))
       (block_end))
     (block_end)))
@@ -129,7 +245,7 @@ z
 (source_file
   (block
     (command_name)
-    (paragraph
+    (preformatted
       (text))
     (missing_end))
   (unmatched_end)
@@ -139,7 +255,7 @@ z
       (text))
     (block
       (command_name)
-      (paragraph
+      (preformatted
         (text))
       (missing_end))
     (unmatched_end)
@@ -224,7 +340,7 @@ code
 (source_file
   (block
     (command_name)
-    (paragraph
+    (preformatted
       (text))
     (missing_end)))
 
@@ -395,7 +511,7 @@ b.
 (source_file
   (block
     name: (command_name)
-    (paragraph
+    (preformatted
       (text)
       (symbol_command)
       (symbol_command))
@@ -435,7 +551,7 @@ After.
         body: (item_body
           (block
             name: (command_name)
-            (paragraph
+            (preformatted
               (text))
             end: (missing_end))))
       end: (missing_end))
@@ -616,7 +732,22 @@ An item.
 (source_file
   (block
     (command_name)
-    (paragraph
+    (preformatted
+      (text))
+    (block_end))
+  (block
+    (command_name)
+    (preformatted
+      (text))
+    (block_end))
+  (block
+    (command_name)
+    (preformatted
+      (text))
+    (block_end))
+  (block
+    (command_name)
+    (preformatted
       (text))
     (block_end))
   (block
@@ -626,22 +757,7 @@ An item.
     (block_end))
   (block
     (command_name)
-    (paragraph
-      (text))
-    (block_end))
-  (block
-    (command_name)
-    (paragraph
-      (text))
-    (block_end))
-  (block
-    (command_name)
-    (paragraph
-      (text))
-    (block_end))
-  (block
-    (command_name)
-    (paragraph
+    (preformatted
       (text))
     (block_end))
   (block
@@ -914,6 +1030,6 @@ foo
 (source_file
   (block
     name: (command_name)
-    (paragraph
+    (preformatted
       (text))
     end: (block_end)))
