@@ -1561,13 +1561,16 @@ export default grammar({
     // `@code_x` is `@code` followed by `_x`, and `@c_x` a comment.
     command_name: _ => /@[a-zA-Z0-9][a-zA-Z0-9-]*/,
 
-    // `@@`, `@{`, `@}`, accents like `@'`, spacing like `@*`, `@ ` and `@` at end of line.
-    // `@` at the end of a line, like at the end of the file, is a lone `@`:
-    // the newline stays outside it, so the next line still starts a line (an
-    // `@end` there ends its block). Elsewhere a following command name makes
-    // the longer match. Before a character other than ASCII, the `@` is
-    // alone too, and the character text, as in texi2any ("unexpected @").
-    symbol_command: _ => /@[\x00-\x09\x0b\x0c\x0e-\x2f\x3a-\x40\x5b-\x60\x7b-\x7f]?/,
+    // `@@`, `@{`, `@}`, accents like `@'`, spacing like `@*`, `@ ` and `@` at
+    // end of line: texi2any's symbol commands and accents (its
+    // `%nobrace_commands` and `%accent_commands`). `@` at the end of a line,
+    // like at the end of the file, is a lone `@`: the newline stays outside
+    // it, so the next line still starts a line (an `@end` there ends its
+    // block). Elsewhere a following command name makes the longer match.
+    // Before any other character, such as `#` or one other than ASCII, the
+    // `@` is alone too, and the character text, as in texi2any
+    // ("unexpected @").
+    symbol_command: _ => /@[\t !"&'*,\-.\/:=?@\\^`{|}~]?/,
 
     // Only ASCII spaces count, as in texi2any: a text may start with a
     // no-break space. A carriage return not before a newline is part of it.

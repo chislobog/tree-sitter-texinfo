@@ -885,8 +885,8 @@ texinfo-tests/epub_tests/setfilename_on_top_and_after_node_epub.texi
 
 # Deliberate: the file is in Shift-JIS, not UTF-8, which tree-sitter reads, so an editor converts it; read as UTF-8, a byte `@` inside a character starts a command
 texinfo-tests/formats_encodings/japanese_shift_jis.texi
-  line 19: ours '@�', texi2any '(nothing)'
-  line 33: ours '@�', texi2any '(nothing)'
+  line 19: ours '@\n', texi2any '(nothing)'
+  line 33: ours '@\n', texi2any '(nothing)'
 
 # Deliberate: a form feed is a blank, like a vertical tab; texi2any makes it an empty line, which ends a paragraph
 texinfo-tests/plaintext_tests/all_spaces.texi

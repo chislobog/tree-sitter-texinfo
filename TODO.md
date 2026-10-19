@@ -15,6 +15,10 @@ sources, which is what `texi2any` itself uses.
 - [x] Paragraphs separated by blank lines
 - [x] Brace commands, nested, with arguments spanning lines
 - [x] Symbol commands: `@@`, `@{`, `@}`, `@*`, `@.`, `@ `, accents like `@'`
+- [x] Only texi2any's symbol commands and accents are symbol commands
+  (found by review): `@#`, `@%`, `@_` and the like were, which texi2any
+  reports as "unexpected @"; the `@` is alone now, as before a character
+  other than ASCII, and the character text
 - [x] Bare brace groups
 - [x] Blocks with optional line argument, nested
 - [x] Lists: `@itemize`, `@enumerate`, `@table`, `@ftable`, `@vtable`, `@multitable`

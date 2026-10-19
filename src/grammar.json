@@ -11064,7 +11064,7 @@
     },
     "symbol_command": {
       "type": "PATTERN",
-      "value": "@[\\x00-\\x09\\x0b\\x0c\\x0e-\\x2f\\x3a-\\x40\\x5b-\\x60\\x7b-\\x7f]?"
+      "value": "@[\\t !\"&'*,\\-.\\/:=?@\\\\^`{|}~]?"
     },
     "text": {
       "type": "PATTERN",

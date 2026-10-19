@@ -104,6 +104,26 @@ Symbol commands
         (text)))))
 
 ================================================================================
+An @ before a character that makes no symbol command is alone, as in texi2any
+================================================================================
+
+a @# b @% c @_ d @<
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (symbol_command)
+    (text)
+    (symbol_command)
+    (text)
+    (symbol_command)
+    (text)
+    (symbol_command)
+    (text)))
+
+================================================================================
 Brace groups
 ================================================================================
 
