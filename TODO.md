@@ -42,9 +42,6 @@ Found by review (October 2026), left for a decision or for later:
   unrelated; `label` is a cross-reference target in `@float` but text in
   `@xref`; no supertypes (`_section` would cost 2 states); a multitable's
   first cell isn't a node
-- [ ] Incremental parsing in chains of random edits on texi2any's test
-  inputs: one of 3,504 differs from a fresh parse, both trees holding
-  `ERROR` nodes (`@macro aaa @node X`)
 
 ## Done
 
@@ -551,6 +548,9 @@ Deliberate, so the tree shows the source as it is written and edited:
 - [x] `queries/highlights.scm`, with tests in `test/highlight/`
 - [x] Highlight gaps from overlapping patterns: `@example` contents, markup
   in heading titles, `@defvar` entities, `@emph`/`@var` arguments
+- [x] A command after a macro's name (`@macro aaa @node X`) is raw text, as
+  in texi2any: it was an error that lost the whole definition, which also
+  made one chain of random edits differ from a fresh parse
 - [x] Highlights for table item terms (`@markup.strong`), the text of index
   entries and subentries (`@string.special`), and the flags of `@ifset`,
   `@ifclear` and the inline conditionals (`@variable`, as for `@set` and

@@ -7066,7 +7066,7 @@
       "type": "ALIAS",
       "content": {
         "type": "PATTERN",
-        "value": "[^@{\\s][^\\r\\n]*"
+        "value": "[^{\\s][^\\r\\n]*"
       },
       "named": true,
       "value": "raw_text"

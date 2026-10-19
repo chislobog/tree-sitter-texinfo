@@ -128,6 +128,41 @@ in bar
     end: (block_end)))
 
 ================================================================================
+A command after a macro's name stays raw text, as in texi2any
+================================================================================
+
+@macro aaa @node X
+body
+@end macro
+
+@macro bbb {p} @cfoo
+body
+@end macro
+
+Text.
+
+---
+
+(source_file
+  (macro_definition
+    name: (command_name)
+    macro: (text)
+    argument: (line_argument
+      (raw_text))
+    body: (raw_text)
+    end: (block_end))
+  (macro_definition
+    name: (command_name)
+    macro: (text)
+    parameter: (text)
+    argument: (line_argument
+      (raw_text))
+    body: (raw_text)
+    end: (block_end))
+  (paragraph
+    (text)))
+
+================================================================================
 Bad macro parameters stay raw text
 ================================================================================
 

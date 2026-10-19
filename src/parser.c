@@ -11988,7 +11988,7 @@ static bool ts_lex(TSLexer *lexer, TSStateId state) {
     case 27:
       if ((!eof && lookahead == 00)) ADVANCE(872);
       if (lookahead == '\n') ADVANCE(969);
-      if (lookahead == '@') ADVANCE(114);
+      if (lookahead == '@') ADVANCE(874);
       if (lookahead == '{') ADVANCE(266);
       if (lookahead == '}') ADVANCE(880);
       if (('\t' <= lookahead && lookahead <= '\r') ||
@@ -12128,7 +12128,7 @@ static bool ts_lex(TSLexer *lexer, TSStateId state) {
     case 38:
       if ((!eof && lookahead == 00)) ADVANCE(873);
       if (lookahead == '\n') ADVANCE(969);
-      if (lookahead == '@') ADVANCE(114);
+      if (lookahead == '@') ADVANCE(874);
       if (lookahead == '}') ADVANCE(880);
       if (('\t' <= lookahead && lookahead <= '\r') ||
           lookahead == ' ') SKIP(38);

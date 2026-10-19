@@ -1130,9 +1130,12 @@ export default grammar({
 
     // A macro parameter, spaces inside included (texi2any reports them).
     _macro_parameter: _ => /[^,}\s]([^,}\r\n]*[^,}\s])?/,
-    // What follows a macro's name or parameters other than a comment.
+    // What follows a macro's name or parameters other than a comment, such
+    // as another command (`@node X`), which texi2any keeps raw too. A
+    // comment, listed before it, takes the rest of the line where both
+    // would; `@cfoo` is no comment, and the longer match.
     _macro_line_rest: $ => field('argument', alias($._macro_line_argument, $.line_argument)),
-    _macro_line_argument: $ => alias(/[^@{\s][^\r\n]*/, $.raw_text),
+    _macro_line_argument: $ => alias(/[^{\s][^\r\n]*/, $.raw_text),
 
     // A block still open at the end of the file ends with a zero-width
     // `missing_end`, so it keeps its structure.
