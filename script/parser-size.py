@@ -23,7 +23,8 @@ from pathlib import Path
 # needs it, after measuring what makes the change cost what it does
 # (CLAUDE.md). 7,614: a menu entry starts with the scanner's token, which
 # keeps the states of a line end that an entry may follow from merging with
-# others (211 states).
+# others (211 states). 7,700: a part tells its appendices from its other
+# chapters, whose headings are two sets of keywords (26 states).
 BUDGET = 7_800
 
 STATE_COUNT = re.compile(r"^#define STATE_COUNT (\d+)", re.M)

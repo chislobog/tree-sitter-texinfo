@@ -41,9 +41,9 @@ enum TokenType {
   // the order of DEFINITION_LAYOUTS in grammar.js.
   DEFINITION_START,
   // `@node` lines followed by a sectioning command, one per level, in the
-  // order of SECTIONS in grammar.js.
+  // order of SECTIONS in grammar.js, then one followed by `@appendix`.
   NODE_BEFORE = DEFINITION_START + 8,
-  LINE_COMMAND_NAME = NODE_BEFORE + 6,
+  LINE_COMMAND_NAME = NODE_BEFORE + 7,
   BRACE_COMMAND_NAME,
   MULTITABLE_START,
   // `@tab` between the cells of a multitable row.
@@ -537,7 +537,9 @@ static bool is_line_command(const char *name) {
 }
 
 // Sectioning commands by level: the index of the section in SECTIONS in
-// grammar.js (part, top, chapter, section, subsection, subsubsection).
+// grammar.js (part, top, chapter, section, subsection, subsubsection), or
+// 6 for `@appendix`, a chapter whose node has a token of its own, as a part
+// tells it from its other chapters.
 static const struct {
   const char *name;
   uint8_t level;
@@ -546,7 +548,7 @@ static const struct {
     {"top", 1},
     {"chapter", 2},
     {"unnumbered", 2},
-    {"appendix", 2},
+    {"appendix", 6},
     {"centerchap", 2},
     {"section", 3},
     {"unnumberedsec", 3},
@@ -575,12 +577,14 @@ static bool is_root_command(const char *name) {
 
 /**
  * Accepts the token of a `@node` line before the sectioning command `name`,
- * if it is one: the node token for that section's level.
+ * if it is one: the node token for that section's level. Not before a part,
+ * which no node is associated with (the Texinfo manual), as the grammar
+ * knows.
  */
 static bool accept_node_before(TSLexer *lexer, const bool *valid_symbols,
                                const char *name) {
   for (unsigned i = 0; i < SECTIONING_COUNT; i++) {
-    if (strcmp(SECTIONING[i].name, name) == 0) {
+    if (strcmp(SECTIONING[i].name, name) == 0 && SECTIONING[i].level > 0) {
       enum TokenType token = NODE_BEFORE + SECTIONING[i].level;
       if (!valid_symbols[token]) return false;
       lexer->result_symbol = (TSSymbol)token;

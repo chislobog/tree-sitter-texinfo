@@ -181,6 +181,34 @@ def check_layouts(source: str, grammar: dict) -> list[str]:
     return problems
 
 
+def heading_commands(grammar: dict, section: str) -> set[str] | None:
+    """The sectioning commands of a section's heading: in the rule
+    `SECTION_heading`, or in the rules aliased to it (a part tells a
+    chapter's two kinds apart), or None if there are none."""
+    name = f"{section}_heading"
+    for rule in (name, f"_{name}"):
+        if rule in grammar["rules"]:
+            return set(string_choices(name_field(grammar["rules"][rule])))
+    aliased = set()
+
+    def walk(node):
+        if isinstance(node, dict):
+            content = node.get("content", {})
+            if node.get("type") == "ALIAS" and node.get("value") == name:
+                if content.get("type") == "SYMBOL":
+                    aliased.add(content["name"])
+            for value in node.values():
+                walk(value)
+        elif isinstance(node, list):
+            for value in node:
+                walk(value)
+
+    walk(grammar["rules"])
+    if not aliased:
+        return None
+    return {c for rule in aliased for c in string_choices(name_field(grammar["rules"][rule]))}
+
+
 def check_sections(source: str, grammar: dict) -> list[str]:
     sections = [
         name.removeprefix("_node_before_")
@@ -194,18 +222,16 @@ def check_sections(source: str, grammar: dict) -> list[str]:
     levels = re.findall(r'\{"(\w+)", (\d+)\}', match.group(1))
     for command, level in levels:
         level = int(level)
-        heading = (
-            grammar["rules"].get(f"{sections[level]}_heading") if level < len(sections) else None
-        )
-        if heading is None or command not in string_choices(name_field(heading)):
+        commands = heading_commands(grammar, sections[level]) if level < len(sections) else None
+        if commands is None or command not in commands:
             problems.append(f"@{command} has level {level}, which isn't its section's")
     listed = {command for command, _ in levels}
     for section in sections:
-        heading = grammar["rules"].get(f"{section}_heading")
-        if heading is None:
+        commands = heading_commands(grammar, section)
+        if commands is None:
             problems.append(f"the grammar has no rule {section}_heading")
             continue
-        for command in sorted(set(string_choices(name_field(heading))) - listed):
+        for command in sorted(commands - listed):
             problems.append(f"@{command} starts a {section} but isn't in SECTIONING")
     return problems
 

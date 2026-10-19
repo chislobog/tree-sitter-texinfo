@@ -228,6 +228,15 @@ of a line.
   contain the content after the conditional
 - [x] `@anchor {old}`, with blanks before the brace, between `@node` and its
   section, as texi2any takes it: the node line still starts the section
+- [x] No node is associated with a part, as the Texinfo manual says and
+  texi2any warns: a `@node` before `@part` was the part's. And as in
+  texi2any, an appendix after a part's chapters ends the part, with the
+  appendices after it, but those before its first other chapter are in it
+  (found by review, in 22 of texi2any's test inputs, whose sections now all
+  have texi2any's parents; +26 parser states: an appendix's node has a
+  token of its own, as the part can't hold the appendix it starts).
+  texi2any only moves the first appendix of the document out of a part,
+  which a grammar can't count
 - [x] Line commands between `@node` and its section, such as index entries
   (50 in SBCL's manuals) and `@need` (glibc's): the node line still starts
   the section, as texi2any associates them (found by review; +60 parser

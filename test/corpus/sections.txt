@@ -401,7 +401,7 @@ An anchor with blanks before its brace between a node and its heading
         (text)))))
 
 ================================================================================
-@part contains the chapters after it
+@part contains the chapters after it, but no node before it
 ================================================================================
 
 @node Top
@@ -426,12 +426,12 @@ Text.
     (top_heading
       (command_name)
       (line_argument
-        (text))))
-  (part
+        (text)))
     (node_line
       (command_name)
       (argument
-        (text)))
+        (text))))
+  (part
     (part_heading
       (command_name)
       (line_argument
@@ -447,6 +447,115 @@ Text.
           (text)))
       (paragraph
         (text)))))
+
+================================================================================
+An appendix after a part's chapter ends the part, as in texi2any
+================================================================================
+
+@part Part One
+@chapter First
+@appendix App
+@appendix Second
+@part Part Two
+@chapter Other
+
+---
+
+(source_file
+  (part
+    (part_heading
+      (command_name)
+      (line_argument
+        (text)))
+    (chapter
+      (chapter_heading
+        (command_name)
+        (line_argument
+          (text)))))
+  (chapter
+    (chapter_heading
+      (command_name)
+      (line_argument
+        (text))))
+  (chapter
+    (chapter_heading
+      (command_name)
+      (line_argument
+        (text))))
+  (part
+    (part_heading
+      (command_name)
+      (line_argument
+        (text)))
+    (chapter
+      (chapter_heading
+        (command_name)
+        (line_argument
+          (text))))))
+
+================================================================================
+An appendix with its node after a part's chapter ends the part
+================================================================================
+
+@part Part One
+@node First
+@chapter First
+@node App
+@appendix App
+
+---
+
+(source_file
+  (part
+    heading: (part_heading
+      name: (command_name)
+      title: (line_argument
+        (text)))
+    (chapter
+      node: (node_line
+        name: (command_name)
+        node: (argument
+          (text)))
+      heading: (chapter_heading
+        name: (command_name)
+        title: (line_argument
+          (text)))))
+  (chapter
+    node: (node_line
+      name: (command_name)
+      node: (argument
+        (text)))
+    heading: (chapter_heading
+      name: (command_name)
+      title: (line_argument
+        (text)))))
+
+================================================================================
+A part's appendices before any of its chapters are in it
+================================================================================
+
+@part Appendices
+@appendix First
+@appendix Second
+
+---
+
+(source_file
+  (part
+    (part_heading
+      (command_name)
+      (line_argument
+        (text)))
+    (chapter
+      (chapter_heading
+        (command_name)
+        (line_argument
+          (text))))
+    (chapter
+      (chapter_heading
+        (command_name)
+        (line_argument
+          (text))))))
 
 ================================================================================
 Blank and comment lines between a node and its heading at lower levels

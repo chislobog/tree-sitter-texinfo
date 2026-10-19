@@ -20,8 +20,10 @@ line, which `texi2any` accepts and this grammar doesn't.
 
 - Document structure: `\input texinfo`, sections nested by level (`top`,
   `part`, `chapter`, `section`, `subsection`, `subsubsection`), each with its
-  `@node` line (with `node`, `next`, `previous` and `up` fields) and heading;
-  heading-only commands such as `@heading`; `@bye`.
+  `@node` line (with `node`, `next`, `previous` and `up` fields) and heading,
+  but a part, which no node is associated with; as in `texi2any`, an
+  appendix after a part's chapters ends the part; heading-only commands
+  such as `@heading`; `@bye`.
 - Paragraphs, comments, line commands, brace commands and symbol commands.
 - Blocks, matched by name (`@example` … `@end example`), nested to any depth,
   including conditionals.

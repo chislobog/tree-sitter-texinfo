@@ -11,7 +11,9 @@
 const HEADINGS = {
   part_heading: ['part'],
   top_heading: ['top'],
-  chapter_heading: ['chapter', 'unnumbered', 'appendix', 'centerchap'],
+  // Both `chapter_heading` nodes: a part tells appendices apart.
+  _appendix_heading: ['appendix'],
+  _other_chapter_heading: ['chapter', 'unnumbered', 'centerchap'],
   section_heading: ['section', 'unnumberedsec', 'appendixsec', 'appendixsection'],
   subsection_heading: ['subsection', 'unnumberedsubsec', 'appendixsubsec'],
   subsubsection_heading: ['subsubsection', 'unnumberedsubsubsec', 'appendixsubsubsec'],
@@ -29,6 +31,28 @@ const SECTIONS = [
   {name: 'subsection', heading: 'subsection_heading', contains: ['subsubsection']},
   {name: 'subsubsection', heading: 'subsubsection_heading', contains: []},
 ];
+
+/**
+ * The `@node` line before the heading of a section `name`, and what may
+ * come between them: blank and comment lines, the node's description,
+ * `@anchor` lines (old names of the node) and line commands, such as index
+ * entries, as in texi2any. The scanner only starts a section with the node
+ * if nothing else does.
+ *
+ * @param {GrammarSymbols<string>} $
+ * @param {string} name
+ */
+const nodeBefore = ($, name) => seq(
+  field('node', alias($[`_node_line_before_${name}`], $.node_line)),
+  repeat(choice(
+    $._newline,
+    alias($._node_description, $.line_command),
+    alias($._no_paragraph_command, $.inline_command),
+    $.line_command,
+    $.block,
+    $.paragraph,
+  )),
+);
 
 /**
  * A `@node` line, whose command is given as a rule.
@@ -329,8 +353,11 @@ export default grammar({
     $._missing_end,
     $._menu_start,
     ...DEFINITION_LAYOUTS.map((_, i) => $[`_definition_start_${i}`]),
-    // `@node` followed by the sectioning command of this section.
+    // `@node` followed by the sectioning command of this section; never
+    // before a part, which no node is associated with. One followed by
+    // `@appendix` has its own, as a part's other chapters can't follow it.
     ...SECTIONS.map(({name}) => $[`_node_before_${name}`]),
+    $._node_before_appendix,
     // Command names the scanner recognises from its tables: recognising them
     // with keywords in the grammar would make the parser several times larger.
     $._line_command_name,
@@ -417,28 +444,49 @@ export default grammar({
 
     _section: $ => choice(...SECTIONS.map(({name}) => $[name])),
 
-    ...Object.fromEntries(SECTIONS.map(({name, heading, contains}) => [
-      name,
-      $ => prec.right(seq(
-        // Blank and comment lines, the node's description, `@anchor` lines
-        // (old names of the node) and line commands, such as index entries,
-        // may separate the node from its heading, as in texi2any. The scanner
-        // only starts a section with the node if nothing else does.
-        optional(seq(
-          field('node', alias($[`_node_line_before_${name}`], $.node_line)),
-          repeat(choice(
-            $._newline,
-            alias($._node_description, $.line_command),
-            alias($._no_paragraph_command, $.inline_command),
-            $.line_command,
-            $.block,
-            $.paragraph,
-          )),
+    ...Object.fromEntries(SECTIONS.filter(({name}) => !['part', 'chapter'].includes(name)).map(
+      ({name, heading, contains}) => [
+        name,
+        $ => prec.right(seq(
+          optional(nodeBefore($, name)),
+          field('heading', $[heading]),
+          repeat(choice($._content, ...contains.map((section) => $[section]))),
         )),
-        field('heading', $[heading]),
-        repeat(choice($._content, ...contains.map((section) => $[section]))),
-      )),
-    ])),
+      ],
+    )),
+
+    // As the Texinfo manual says, no node is associated with a part, and
+    // texi2any warns about one before it: the scanner starts no part with
+    // one. As in texi2any, a part holds the appendices before its first
+    // other chapter, and an appendix after one ends it, with those after it
+    // (texi2any only moves the first appendix of the document: one after a
+    // part's appendices and another chapter stays in its part there).
+    part: $ => prec.right(seq(
+      field('heading', $.part_heading),
+      repeat(choice($._content, $.section, $.subsection, $.subsubsection, alias($._appendix, $.chapter))),
+      repeat(alias($._other_chapter, $.chapter)),
+    )),
+
+    // A chapter, an appendix or another command of the chapter level. The
+    // node before the heading and the content after it are hidden rules of
+    // their own, shared by the two kinds a part tells apart.
+    chapter: $ => choice($._appendix, $._other_chapter),
+
+    _appendix: $ => prec.right(seq(
+      optional(nodeBefore($, 'appendix')),
+      field('heading', alias($._appendix_heading, $.chapter_heading)),
+      optional($._chapter_content),
+    )),
+
+    _other_chapter: $ => prec.right(seq(
+      optional($._chapter_node),
+      field('heading', alias($._other_chapter_heading, $.chapter_heading)),
+      optional($._chapter_content),
+    )),
+
+    _chapter_node: $ => nodeBefore($, 'chapter'),
+
+    _chapter_content: $ => prec.right(repeat1(choice($._content, $.section, $.subsection, $.subsubsection))),
 
     // A command that starts no paragraph, as in texi2any (`@anchor`,
     // `@noindent`; NO_PARAGRAPH_COMMANDS in src/scanner.c), where one would
@@ -468,7 +516,7 @@ export default grammar({
       $._line_end,
     ),
 
-    ...Object.fromEntries(SECTIONS.map(({name}) => [
+    ...Object.fromEntries([...SECTIONS.map(({name}) => name).filter((name) => name !== 'part'), 'appendix'].map((name) => [
       `_node_line_before_${name}`,
       $ => nodeLine($, alias($[`_node_before_${name}`], $.command_name)),
     ])),

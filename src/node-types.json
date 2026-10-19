@@ -1947,16 +1947,6 @@
             "named": true
           }
         ]
-      },
-      "node": {
-        "multiple": false,
-        "required": false,
-        "types": [
-          {
-            "type": "node_line",
-            "named": true
-          }
-        ]
       }
     },
     "children": {
