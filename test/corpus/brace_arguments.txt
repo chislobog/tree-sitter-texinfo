@@ -74,7 +74,7 @@ More.}
       (brace_arguments
         (paragraph
           (text))
-        (heading
+        (standalone_heading
           (command_name)
           (line_argument
             (text)))
@@ -123,7 +123,7 @@ Line command inside a caption
 (source_file
   (block
     (command_name)
-    (argument
+    (comma_argument
       (text))
     (inline_command
       (command_name)
@@ -371,9 +371,9 @@ b}
   (paragraph
     (inline_command
       (command_name)
-      (argument
+      (comma_argument
         (text))
-      (argument
+      (comma_argument
         (text)
         (text)))))
 
@@ -415,7 +415,7 @@ q
   (paragraph
     (inline_command
       name: (command_name)
-      node: (argument
+      node: (comma_argument
         (text))
       (missing_brace)))
   (block
@@ -470,9 +470,9 @@ TeX title
     (text)
     (inline_command
       name: (command_name)
-      node: (argument
+      node: (comma_argument
         (text))
-      label: (argument
+      label: (comma_argument
         (block
           name: (command_name)
           (paragraph
@@ -506,7 +506,7 @@ Info.
     (text)
     (inline_command
       name: (command_name)
-      node: (argument
+      node: (comma_argument
         (text)
         (block
           name: (command_name)
@@ -542,9 +542,9 @@ A @code {a} b @xref {N, L}. @mymacro {x}
     (text)
     (inline_command
       name: (command_name)
-      node: (argument
+      node: (comma_argument
         (text))
-      label: (argument
+      label: (comma_argument
         (text)))
     (text)
     (inline_command
@@ -611,9 +611,9 @@ Next line.
         (text)
         (inline_command
           name: (command_name)
-          node: (argument
+          node: (comma_argument
             (text))
-          label: (argument
+          label: (comma_argument
             (text))
           (missing_brace))))
     (paragraph
@@ -670,8 +670,9 @@ Text.
         (missing_brace)))
     (item
       name: (command_name)
-      (paragraph
-        (text)))
+      (cell
+        (paragraph
+          (text))))
     end: (block_end))
   (chapter
     heading: (chapter_heading

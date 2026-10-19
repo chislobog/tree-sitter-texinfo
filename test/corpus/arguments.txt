@@ -11,13 +11,13 @@ See @xref{Top, , Title, info, Manual}.
     (text)
     (inline_command
       name: (command_name)
-      node: (argument
+      node: (comma_argument
         (text))
-      title: (argument
+      title: (comma_argument
         (text))
-      file: (argument
+      file: (comma_argument
         (text))
-      manual: (argument
+      manual: (comma_argument
         (text)))
     (text)))
 
@@ -33,11 +33,11 @@ The last argument keeps extra commas
   (paragraph
     (inline_command
       name: (command_name)
-      address: (argument
+      address: (comma_argument
         (text)
         (symbol_command)
         (text))
-      text: (argument
+      text: (comma_argument
         (text)))))
 
 ================================================================================
@@ -52,13 +52,13 @@ Commas inside nested braces do not split
   (paragraph
     (inline_command
       name: (command_name)
-      node: (argument
+      node: (comma_argument
         (text)
         (inline_command
           name: (command_name)
           arguments: (brace_arguments
             (text))))
-      label: (argument
+      label: (comma_argument
         (text)))))
 
 ================================================================================
@@ -89,10 +89,10 @@ Name, Label}
   (paragraph
     (inline_command
       name: (command_name)
-      node: (argument
+      node: (comma_argument
         (text)
         (text))
-      label: (argument
+      label: (comma_argument
         (text)))))
 
 ================================================================================
@@ -106,9 +106,9 @@ Image arguments
 (source_file
   (inline_command
     name: (command_name)
-    file: (argument
+    file: (comma_argument
       (text))
-    alt: (argument
+    alt: (comma_argument
       (text))))
 
 ================================================================================
@@ -125,9 +125,9 @@ Next.
   (paragraph
     (inline_command
       name: (command_name)
-      node: (argument
+      node: (comma_argument
         (text))
-      label: (argument
+      label: (comma_argument
         (text))
       (missing_brace)))
   (paragraph
@@ -144,11 +144,11 @@ Node line
 (source_file
   (node_line
     name: (command_name)
-    node: (argument
+    node: (comma_argument
       (text))
-    next: (argument
+    next: (comma_argument
       (text))
-    up: (argument
+    up: (comma_argument
       (text))))
 
 ================================================================================
@@ -162,7 +162,7 @@ Node line with only a name
 (source_file
   (node_line
     name: (command_name)
-    node: (argument
+    node: (comma_argument
       (text))))
 
 ================================================================================
@@ -179,10 +179,10 @@ see @ref{Features,
     (text)
     (inline_command
       name: (command_name)
-      node: (argument
+      node: (comma_argument
         (text))
-      label: (argument)
-      title: (argument
+      label: (comma_argument)
+      title: (comma_argument
         (text)
         (inline_command
           name: (command_name)
@@ -203,9 +203,9 @@ Inline conditionals
   (paragraph
     (inline_command
       name: (command_name)
-      format: (argument
+      format: (comma_argument
         (text))
-      text: (argument
+      text: (comma_argument
         (text)
         (inline_command
           name: (command_name)
@@ -213,18 +213,18 @@ Inline conditionals
             (text)))))
     (inline_command
       name: (command_name)
-      variable: (argument
+      variable: (comma_argument
         (text))
-      text: (argument
+      text: (comma_argument
         (text)))
     (inline_command
       name: (command_name)
-      format: (argument
+      format: (comma_argument
         (text))
       body: (raw_text))
     (inline_command
       name: (command_name)
-      format: (argument
+      format: (comma_argument
         (text)))))
 
 ================================================================================
@@ -243,9 +243,9 @@ ignore me
   (paragraph
     (inline_command
       name: (command_name)
-      node: (argument
+      node: (comma_argument
         (text))
-      label: (argument
+      label: (comma_argument
         (raw_block
           name: (command_name)
           body: (raw_text)
@@ -269,14 +269,14 @@ Comment lines inside a cross-reference's arguments
   (paragraph
     (inline_command
       name: (command_name)
-      node: (argument
+      node: (comma_argument
         (text))
       (comment)
-      label: (argument
+      label: (comma_argument
         (symbol_command)
         (comment))
       (comment)
-      title: (argument
+      title: (comma_argument
         (comment)))))
 
 ================================================================================
@@ -299,23 +299,23 @@ x
   (paragraph
     (inline_command
       name: (command_name)
-      format: (argument
+      format: (comma_argument
         (text))
-      then: (argument
+      then: (comma_argument
         (text)
         (inline_command
           name: (command_name)
           arguments: (brace_arguments
             (text)))
         (text))
-      else: (argument
+      else: (comma_argument
         (text))))
   (paragraph
     (inline_command
       name: (command_name)
-      format: (argument
+      format: (comma_argument
         (text))
-      then: (argument
+      then: (comma_argument
         (text)
         (text)
         (block
@@ -323,7 +323,7 @@ x
           (paragraph
             (text))
           end: (block_end)))
-      else: (argument
+      else: (comma_argument
         (text)))))
 
 ================================================================================
@@ -341,58 +341,58 @@ Abbreviations, URLs, e-mail addresses, named anchors and images
   (paragraph
     (inline_command
       (command_name)
-      (argument
+      (comma_argument
         (text))
-      (argument
+      (comma_argument
         (text)))
     (text)
     (inline_command
       (command_name)
-      (argument
+      (comma_argument
         (text))
-      (argument
+      (comma_argument
         (text)))
     (text)
     (inline_command
       (command_name)
-      (argument
+      (comma_argument
         (text))
-      (argument
+      (comma_argument
         (text))
-      (argument
+      (comma_argument
         (text)))
     (text)
     (inline_command
       (command_name)
-      (argument
+      (comma_argument
         (text)))
     (text)
     (inline_command
       (command_name)
-      (argument
+      (comma_argument
         (text)
         (symbol_command)
         (text))
-      (argument
+      (comma_argument
         (text)))
     (text)
     (inline_command
       (command_name)
-      (argument
+      (comma_argument
         (text))
-      (argument
+      (comma_argument
         (text)))
     (text)
     (inline_command
       (command_name)
-      (argument
+      (comma_argument
         (text))
-      (argument
+      (comma_argument
         (text))
-      (argument
+      (comma_argument
         (text))
-      (argument
+      (comma_argument
         (text))
-      (argument
+      (comma_argument
         (text)))
     (text)))

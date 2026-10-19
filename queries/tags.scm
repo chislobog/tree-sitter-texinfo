@@ -2,22 +2,22 @@
 ; captures are allowed here, so predicates test the text of the whole
 ; command.
 (node_line
-  node: (argument) @name) @definition.node
+  node: (comma_argument) @name) @definition.node
 
 ((inline_command
   arguments: (brace_arguments) @name) @definition.anchor
   (#match? @definition.anchor "^[@]anchor[ \t]*[{]"))
 
 (inline_command
-  anchor: (argument) @name) @definition.anchor
+  anchor: (comma_argument) @name) @definition.anchor
 
 (block
-  label: (argument) @name) @definition.anchor
+  anchor: (comma_argument) @name) @definition.anchor
 
 ; Not to a node of another manual: a cross-reference with a file or manual,
 ; a menu entry's `(manual)node`.
 (inline_command
-  node: (argument) @name
+  node: (comma_argument) @name
   !file
   !manual) @reference.node
 

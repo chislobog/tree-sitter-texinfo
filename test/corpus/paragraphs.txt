@@ -508,7 +508,7 @@ goes on.
   (top
     node: (node_line
       name: (command_name)
-      node: (argument
+      node: (comma_argument
         (text)))
     (inline_command
       name: (command_name)
@@ -565,7 +565,7 @@ Spaces other than ASCII ones are text: a node name of em spaces, a line starting
 (source_file
   (node_line
     name: (command_name)
-    node: (argument
+    node: (comma_argument
       (text)))
   (paragraph
     (text)))
@@ -816,7 +816,7 @@ Text @* in.
 (source_file
   (block
     name: (command_name)
-    type: (argument
+    type: (comma_argument
       (text))
     (paragraph
       (text))
@@ -947,11 +947,11 @@ More.
 (source_file
   (inline_command
     name: (command_name)
-    file: (argument
+    file: (comma_argument
       (text)))
   (inline_command
     name: (command_name)
-    file: (argument
+    file: (comma_argument
       (text)))
   (paragraph
     (text))
@@ -959,14 +959,14 @@ More.
     (text)
     (inline_command
       name: (command_name)
-      file: (argument
+      file: (comma_argument
         (text)))
     (text))
   (inline_command
     name: (command_name)
-    anchor: (argument
+    anchor: (comma_argument
       (text))
-    label: (argument
+    label: (comma_argument
       (text)))
   (paragraph
     (text)))
@@ -982,11 +982,11 @@ Several images on a line start no paragraph, as in texi2any
 (source_file
   (inline_command
     name: (command_name)
-    file: (argument
+    file: (comma_argument
       (text)))
   (inline_command
     name: (command_name)
-    file: (argument
+    file: (comma_argument
       (text))))
 
 ================================================================================
@@ -1113,7 +1113,7 @@ T@footnote{
       arguments: (brace_arguments
         (inline_command
           name: (command_name)
-          file: (argument
+          file: (comma_argument
             (text)))))))
 
 ================================================================================
@@ -1147,20 +1147,20 @@ U@footnote{
       arguments: (brace_arguments
         (inline_command
           name: (command_name)
-          file: (argument
+          file: (comma_argument
             (text)))))
     (inline_command
       name: (command_name)
       arguments: (brace_arguments
         (inline_command
           name: (command_name)
-          file: (argument
+          file: (comma_argument
             (text)))
         (paragraph
           (text)
           (inline_command
             name: (command_name)
-            file: (argument
+            file: (comma_argument
               (text))))))
     end: (block_end))
   (block
@@ -1170,11 +1170,11 @@ U@footnote{
       arguments: (brace_arguments
         (inline_command
           name: (command_name)
-          file: (argument
+          file: (comma_argument
             (text)))
         (inline_command
           name: (command_name)
-          file: (argument
+          file: (comma_argument
             (text)))))
     end: (block_end))
   (paragraph
@@ -1186,7 +1186,7 @@ U@footnote{
           (text)
           (inline_command
             name: (command_name)
-            file: (argument
+            file: (comma_argument
               (text)))))))
   (paragraph
     (text)
@@ -1195,13 +1195,13 @@ U@footnote{
       arguments: (brace_arguments
         (inline_command
           name: (command_name)
-          file: (argument
+          file: (comma_argument
             (text)))
         (paragraph
           (text)))))
   (inline_command
     name: (command_name)
-    file: (argument
+    file: (comma_argument
       (text)))
   (unmatched_brace))
 
@@ -1230,7 +1230,7 @@ D @code{a
         (text)
         (inline_command
           name: (command_name)
-          file: (argument
+          file: (comma_argument
             (text)))
         (text)
         (text))))
@@ -1238,13 +1238,13 @@ D @code{a
     (text)
     (inline_command
       name: (command_name)
-      format: (argument
+      format: (comma_argument
         (text))
-      text: (argument
+      text: (comma_argument
         (text)
         (inline_command
           name: (command_name)
-          file: (argument
+          file: (comma_argument
             (text)))
         (text))))
   (paragraph
@@ -1255,7 +1255,7 @@ D @code{a
         (text)
         (inline_command
           name: (command_name)
-          file: (argument
+          file: (comma_argument
             (text)))))))
 
 ================================================================================
@@ -1317,6 +1317,6 @@ more
         (text)))
     (inline_command
       name: (command_name)
-      file: (argument
+      file: (comma_argument
         (text)))
     (text)))

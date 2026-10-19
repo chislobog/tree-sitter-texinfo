@@ -10,6 +10,19 @@ Fixes found by a review of the whole project, and spell checking in
 Neovim. The tree changes shape in places (a part's node, appendices after
 a part's chapters, a section's node), so the next version is 0.3.0.
 
+### Breaking changes
+
+- Names for queries: the node of `@heading`, `@subheading`, `@majorheading`
+  and `@chapheading` is `standalone_heading` (`heading` was also the field
+  of a section's heading); an argument separated by commas is a
+  `comma_argument` (`argument` was also the field holding a
+  `line_argument`); a float's target is in its `anchor` field, as
+  `@namedanchor`'s, not `label`; each multitable cell's content is a
+  `cell` node; `_section` is a supertype.
+- In `@defblock`, the text after each `@defline` is its `body`, a
+  `definition_body`, and `@defline` is no longer content elsewhere.
+- An `@` that starts no command (`@#`) is an `unexpected_at` node.
+
 ### The tree
 
 - No node is associated with a part, as the Texinfo manual says, and an

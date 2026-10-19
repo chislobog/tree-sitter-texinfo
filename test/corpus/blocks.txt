@@ -58,7 +58,7 @@ Quoted.
     (top
       (node_line
         (command_name)
-        (argument
+        (comma_argument
           (text)))
       (top_heading
         (command_name)
@@ -287,9 +287,9 @@ Y
 (source_file
   (block
     name: (command_name)
-    type: (argument
+    type: (comma_argument
       (text))
-    label: (argument
+    anchor: (comma_argument
       (text))
     (inline_command
       name: (command_name)
@@ -299,7 +299,7 @@ Y
     end: (block_end))
   (block
     name: (command_name)
-    label: (argument
+    anchor: (comma_argument
       (text))
     (paragraph
       (text))
@@ -320,7 +320,7 @@ Accents and brace commands in a float type
 (source_file
   (block
     name: (command_name)
-    type: (argument
+    type: (comma_argument
       (text)
       (inline_command
         name: (command_name)
@@ -336,7 +336,7 @@ Accents and brace commands in a float type
         name: (command_name)
         arguments: (brace_arguments
           (text))))
-    label: (argument
+    anchor: (comma_argument
       (text))
     end: (block_end)))
 
@@ -791,12 +791,14 @@ A multitable left open at the end of the file
           (text))))
     (item
       (command_name)
-      (paragraph
-        (text))
+      (cell
+        (paragraph
+          (text)))
       (tab
         (command_name)
-        (paragraph
-          (text))))
+        (cell
+          (paragraph
+            (text)))))
     (missing_end)))
 
 ================================================================================
@@ -836,9 +838,9 @@ A figure.
 (source_file
   (block
     (command_name)
-    (argument
+    (comma_argument
       (text))
-    (argument
+    (comma_argument
       (text))
     (paragraph
       (text))

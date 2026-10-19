@@ -78,7 +78,7 @@ More.
   (top
     (node_line
       (command_name)
-      (argument
+      (comma_argument
         (text)))
     (top_heading
       (command_name)

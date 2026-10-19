@@ -84,7 +84,7 @@ A comment line without a space after its name between a node and its section
   (top
     (node_line
       (command_name)
-      (argument
+      (comma_argument
         (text)))
     (comment)
     (top_heading

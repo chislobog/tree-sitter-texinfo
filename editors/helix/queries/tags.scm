@@ -3,17 +3,17 @@
 ; captures are allowed here, so predicates test the text of the whole
 ; command.
 (node_line
-  node: (argument) @name) @definition.section
+  node: (comma_argument) @name) @definition.section
 
 ((inline_command
   arguments: (brace_arguments) @name) @definition.section
   (#match? @definition.section "^[@]anchor[ \t]*[{]"))
 
 (inline_command
-  anchor: (argument) @name) @definition.section
+  anchor: (comma_argument) @name) @definition.section
 
 (block
-  label: (argument) @name) @definition.section
+  anchor: (comma_argument) @name) @definition.section
 
 ; Documented functions, variables and data types.
 ((definition_line

@@ -18,7 +18,7 @@
   (section_heading)
   (subsection_heading)
   (subsubsection_heading)
-  (heading)
+  (standalone_heading)
 ] @spell
 
 ; Not command names, symbols, raw text or definition lines, which name code.

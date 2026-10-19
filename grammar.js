@@ -140,7 +140,7 @@ const NODE_ARGUMENTS = ['node', 'next', 'previous', 'up'];
 /** @type {(arg0: GrammarSymbols<string>, arg1: number) => RuleOrLiteral} */
 const nodeArgument = ($, i) => alias(
   i === NODE_ARGUMENTS.length - 1 ? $._line_last_argument : $._line_comma_argument,
-  $.argument,
+  $.comma_argument,
 );
 
 /**
@@ -152,8 +152,8 @@ const nodeArgument = ($, i) => alias(
  */
 const commandArgument = (names, line) => ($, i) => {
   const last = i === names.length - 1;
-  if (line) return alias(last ? $._line_last_argument : $._line_comma_argument, $.argument);
-  return last ? alias($._last_argument, $.argument) : $.argument;
+  if (line) return alias(last ? $._line_last_argument : $._line_comma_argument, $.comma_argument);
+  return last ? alias($._last_argument, $.comma_argument) : $.comma_argument;
 };
 
 // The layouts of definition lines: the words before the arguments, as fields,
@@ -275,16 +275,12 @@ const braceClose = ($) => choice(
 const longBraceClose = ($) => choice('}', alias($._brace_close_at_block_end, $.missing_brace));
 
 /**
- * The content of a multitable cell, which starts right after its `@item` or
- * `@tab`. Its last paragraph may end in the middle of a line, before the next
- * `@tab`.
+ * A multitable cell's content, which starts right after its `@item` or
+ * `@tab`, as a `cell`, if it has any.
  *
  * @param {GrammarSymbols<string>} $
  */
-const cell = ($) => [
-  repeat($._content),
-  optional(alias($._cell_paragraph, $.paragraph)),
-];
+const cell = ($) => optional(alias($._cell, $.cell));
 
 /** @type {(arg0: GrammarSymbols<string>, arg1: number) => RuleOrLiteral} */
 const floatArgument = ($, i) => i === 0 ?
@@ -293,14 +289,14 @@ const floatArgument = ($, i) => i === 0 ?
     alias($._float_type_command, $.inline_command),
     $.symbol_command,
     $.brace_group,
-  )), $.argument) :
-  alias($.line_argument, $.argument);
+  )), $.comma_argument) :
+  alias($.line_argument, $.comma_argument);
 
 /** @type {(arg0: GrammarSymbols<string>, arg1: number) => RuleOrLiteral} */
 const inlinefmtifelseArgument = ($, i) => [
   $._condition,
-  alias($._long_comma_arguments, $.argument),
-  alias($._long_arguments, $.argument),
+  alias($._long_comma_arguments, $.comma_argument),
+  alias($._long_arguments, $.comma_argument),
 ][i];
 
 export default grammar({
@@ -328,6 +324,9 @@ export default grammar({
   // tree-sitter doesn't reuse a node built in a conflict, but this one
   // wasn't. Found by `tree-sitter fuzz`; inlined, they cost 4 parser states.
   inline: $ => [$._paragraph_line_commands, $._body_start, $._between_lines],
+
+  // Every section, for queries: `(_section)`.
+  supertypes: $ => [$._section],
 
   // A line command, blank line or block after an item's or a definition's
   // first line comes before the next `@itemx` or `@deffnx`, if one follows,
@@ -428,7 +427,7 @@ export default grammar({
     ),
 
     ...commaArgumentRules('_node_arguments', NODE_ARGUMENTS, nodeArgument),
-    ...commaArgumentRules('_float_arguments', ['type', 'label'], floatArgument),
+    ...commaArgumentRules('_float_arguments', ['type', 'anchor'], floatArgument),
     ...Object.assign({}, ...Object.entries(ARGUMENT_COMMANDS).map(([names, commands]) => ({
       ...commaArgumentRules(`_${commands[0]}_arguments`, names.split(' '), commandArgument(names.split(' '), false)),
       ...commaArgumentRules(`_${commands[0]}_line_arguments`, names.split(' '), commandArgument(names.split(' '), true)),
@@ -566,7 +565,7 @@ export default grammar({
       $.paragraph,
       $.node_line,
       $.line_command,
-      $.heading,
+      $.standalone_heading,
       $.block,
       $.definition_block,
       $.menu,
@@ -584,7 +583,7 @@ export default grammar({
       ),
     ])),
 
-    heading: $ => seq(
+    standalone_heading: $ => seq(
       field('name', command($, HEADING_COMMANDS)),
       optional(field('title', $.line_argument)),
       $._line_end,
@@ -739,13 +738,14 @@ export default grammar({
           field('name', alias($._block_start, $.command_name)),
           optional(field('argument', $.line_argument)),
         ),
-        // `@float TYPE, LABEL`: the label is a cross-reference target. The
+        // `@float TYPE, LABEL`: the label is a cross-reference target, in the
+        // `anchor` field, as `@namedanchor`'s is. The
         // type is a word such as `Figure` or `Th@'eor@`eme`; allowing the
         // commands with named arguments in it would cost several hundred
         // parser states.
         seq(
           field('name', alias($._float_start, $.command_name)),
-          optional(commaArguments($, '_float_arguments', ['type', 'label'], floatArgument)),
+          optional(commaArguments($, '_float_arguments', ['type', 'anchor'], floatArgument)),
         ),
       ),
       $._line_end,
@@ -950,7 +950,7 @@ export default grammar({
       alias($._no_paragraph_symbol, $.symbol_command),
       alias($._no_paragraph_command, $.inline_command),
       $.line_command,
-      $.heading,
+      $.standalone_heading,
       alias($._definition_continuation, $.definition_line),
     ),
 
@@ -1069,13 +1069,20 @@ export default grammar({
       // The scanner recognises `@item` and `@headitem` as a row where the
       // innermost open block, other than conditionals, is a multitable.
       field('name', alias($._row_name, $.command_name)),
-      ...cell($),
+      cell($),
       repeat($.tab),
     )),
 
     tab: $ => prec.right(seq(
       field('name', alias($._tab, $.command_name)),
-      ...cell($),
+      cell($),
+    )),
+
+    // A cell's content. Its last paragraph may end in the middle of a line,
+    // before the next `@tab`.
+    _cell: $ => prec.right(choice(
+      seq(repeat1($._content), optional(alias($._cell_paragraph, $.paragraph))),
+      alias($._cell_paragraph, $.paragraph),
     )),
 
     // A newline after the paragraph's text always belongs to the paragraph.
@@ -1339,7 +1346,7 @@ export default grammar({
     ),
 
     // An inline conditional's output format or flag name.
-    _condition: $ => alias(repeat1(alias($._argument_text, $.text)), $.argument),
+    _condition: $ => alias(repeat1(alias($._argument_text, $.text)), $.comma_argument),
 
     // An accent's argument without braces, in a paragraph or in a line.
     _accent_arguments: $ => alias($._accent_argument, $.text),
@@ -1451,7 +1458,7 @@ export default grammar({
     // A rule of its own, shared by the inline conditionals whose first
     // arguments' fields differ (60 parser states fewer).
     _inline_conditional_text: $ => seq(
-      optional(seq(',', optional(field('text', alias($._long_arguments, $.argument))))),
+      optional(seq(',', optional(field('text', alias($._long_arguments, $.comma_argument))))),
       longBraceClose($),
     ),
 
@@ -1513,7 +1520,7 @@ export default grammar({
     // conditional, which it evaluates first.
     // Lines may be separated by comment lines, which leave two newlines; the
     // scanner closes the command before a blank line.
-    argument: $ => choice(
+    comma_argument: $ => choice(
       seq(
         choice($._argument_line, seq($._newlines, $._argument_line_item)),
         repeat(seq($._newlines, $._argument_line_item)),

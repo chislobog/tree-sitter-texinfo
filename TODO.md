@@ -28,11 +28,6 @@ Found by review (October 2026), left for a decision or for later:
   block, macro and command into a hidden rule of its own leaves the trees
   the same, with 30% fewer (measured by review, before the menu entry and
   part changes)
-- [ ] The tree for queries: `heading` is a node (`@heading`) and a field of
-  sections holding other nodes; the `argument` field and node are
-  unrelated; `label` is a cross-reference target in `@float` but text in
-  `@xref`; no supertypes (`_section` would cost 2 states); a multitable's
-  first cell isn't a node
 
 ## Done
 
@@ -224,7 +219,8 @@ Found by review (October 2026), left for a decision or for later:
 - [x] `@columnfractions`: an inline command in the multitable's argument,
   with its own `argument`, as texi2any has it as a line command there
 - [x] Multitable rows: each `@item`/`@headitem` holds its first cell and a
-  `tab` node per further cell, including rows inside conditionals
+  `tab` node per further cell, including rows inside conditionals; each
+  cell's content is a `cell` node
 - [x] `@headings`, `@everyheading` and friends with `@|` separators: a line
   argument with `@|` symbol commands, as texi2any has it
 - [x] `@alias NEW = EXISTING`, `@definfoenclose`: plain line arguments, as in
@@ -297,7 +293,7 @@ of a line.
   states). Text between them still leaves the node line on its own, unlike
   in texi2any: the node would look ahead through all of its text
 - [x] `@majorheading`, `@chapheading`, `@heading`, `@subheading` and
-  `@subsubheading` are `heading` nodes, not sections
+  `@subsubheading` are `standalone_heading` nodes, not sections
 - [x] Every command node names its command field `name` (headings used
   `command`, `@bye` had none)
 - [x] Line commands and headings at end of file without a newline
@@ -548,6 +544,13 @@ Deliberate, so the tree shows the source as it is written and edited:
 - [x] `queries/highlights.scm`, with tests in `test/highlight/`
 - [x] Highlight gaps from overlapping patterns: `@example` contents, markup
   in heading titles, `@defvar` entities, `@emph`/`@var` arguments
+- [x] Names for queries (found by review): the node of `@heading` and the
+  like is `standalone_heading`, as sections have a `heading` field holding
+  others; an argument separated by commas is a `comma_argument`, as the
+  `argument` field holds a `line_argument`; a float's target is its
+  `anchor`, as `@namedanchor`'s is, not its `label`, the text a link shows
+  elsewhere; `_section` is a supertype (`(_section)`); a multitable cell's
+  content, the first one's too, is a `cell` (2 parser states fewer)
 - [x] An `@` that starts no command, a symbol or an accent (`@#`, or before
   a character other than ASCII) is an `unexpected_at` node, with the
   character, an extra like `unmatched_brace`, for editors to report, as

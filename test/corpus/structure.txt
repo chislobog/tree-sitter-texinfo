@@ -41,7 +41,7 @@ Nodes and headings
   (top
     (node_line
       (command_name)
-      (argument
+      (comma_argument
         (text)))
     (top_heading
       (command_name)
@@ -50,7 +50,7 @@ Nodes and headings
     (chapter
       (node_line
         (command_name)
-        (argument
+        (comma_argument
           (text)))
       (chapter_heading
         (command_name)
@@ -265,15 +265,15 @@ Heading commands that don't start a section
 ---
 
 (source_file
-  (heading
+  (standalone_heading
     name: (command_name)
     title: (line_argument
       (text)))
-  (heading
+  (standalone_heading
     name: (command_name)
     title: (line_argument
       (text)))
-  (heading
+  (standalone_heading
     name: (command_name)
     title: (line_argument
       (text))))

@@ -36,22 +36,22 @@
   name: (command_name) @keyword
   title: (line_argument)? @markup.heading.4)
 
-((heading
+((standalone_heading
   name: (command_name) @keyword
   title: (line_argument)? @markup.heading.1)
   (#any-of? @keyword "@majorheading" "@chapheading"))
 
-((heading
+((standalone_heading
   name: (command_name) @keyword
   title: (line_argument)? @markup.heading.2)
   (#eq? @keyword "@heading"))
 
-((heading
+((standalone_heading
   name: (command_name) @keyword
   title: (line_argument)? @markup.heading.3)
   (#eq? @keyword "@subheading"))
 
-((heading
+((standalone_heading
   name: (command_name) @keyword
   title: (line_argument)? @markup.heading.4)
   (#eq? @keyword "@subsubheading"))
@@ -59,19 +59,19 @@
 ; Nodes, cross-references and menus
 (node_line
   name: (command_name) @keyword
-  node: (argument) @markup.link.label)
+  node: (comma_argument) @markup.link.label)
 
 (node_line
   [
-    next: (argument)
-    previous: (argument)
-    up: (argument)
+    next: (comma_argument)
+    previous: (comma_argument)
+    up: (comma_argument)
   ] @markup.link)
 
 (inline_command
   [
-    node: (argument)
-    anchor: (argument)
+    node: (comma_argument)
+    anchor: (comma_argument)
   ] @markup.link.label)
 
 ((inline_command
@@ -81,8 +81,8 @@
 
 (inline_command
   [
-    url: (argument)
-    address: (argument)
+    url: (comma_argument)
+    address: (comma_argument)
   ] @markup.link.url)
 
 ; The other arguments of a cross-reference, a URL or an address: the text a
@@ -90,21 +90,21 @@
 ; conditional's `text` is text.
 (inline_command
   [
-    label: (argument)
-    title: (argument)
-    manual: (argument)
+    label: (comma_argument)
+    title: (comma_argument)
+    manual: (comma_argument)
   ] @markup.link.text)
 
 ((inline_command
   name: (command_name) @function
-  text: (argument)? @markup.link.text)
+  text: (comma_argument)? @markup.link.text)
   (#any-of? @function "@uref" "@url" "@email"))
 
 (inline_command
-  file: (argument) @string.special.path)
+  file: (comma_argument) @string.special.path)
 
 (inline_command
-  alt: (argument) @string)
+  alt: (comma_argument) @string)
 
 ; `@alias NEW = EXISTING` names two commands.
 (line_command
@@ -118,7 +118,7 @@
 
 ; A float's label is a cross-reference target, like an anchor.
 (block
-  label: (argument) @markup.link.label)
+  anchor: (comma_argument) @markup.link.label)
 
 (menu_entry
   label: (menu_label) @markup.link.text)
@@ -203,7 +203,7 @@
   (#any-of? @keyword.control.conditional "@ifset" "@ifclear"))
 
 (inline_command
-  variable: (argument) @variable)
+  variable: (comma_argument) @variable)
 
 ((block_end) @keyword.control.conditional
   (#match? @keyword.control.conditional "^[@]end[ \t]*if"))

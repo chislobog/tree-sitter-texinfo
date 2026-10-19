@@ -27,7 +27,7 @@
 ; `docbook` aside, as for the raw blocks.
 ((inline_command
   name: (command_name) @_name
-  format: (argument) @_format
+  format: (comma_argument) @_format
   body: (raw_text) @injection.content)
   (#eq? @_name "@inlineraw")
   (#any-of? @_format "tex" "latex")
@@ -35,7 +35,7 @@
 
 ((inline_command
   name: (command_name) @_name
-  format: (argument) @_format
+  format: (comma_argument) @_format
   body: (raw_text) @injection.content)
   (#eq? @_name "@inlineraw")
   (#eq? @_format "docbook")
@@ -43,7 +43,7 @@
 
 ((inline_command
   name: (command_name) @_name
-  format: (argument) @injection.language
+  format: (comma_argument) @injection.language
   body: (raw_text) @injection.content)
   (#eq? @_name "@inlineraw")
   (#not-any-of? @injection.language "tex" "latex" "docbook"))

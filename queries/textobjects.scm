@@ -37,7 +37,7 @@
 ; a node line or of a float, with the comma after it; a brace command's
 ; argument; a definition line's arguments; a macro's parameters.
 (_
-  (argument) @parameter.inside)
+  (comma_argument) @parameter.inside)
 
 ; Anchors skip anonymous nodes, so a query can't tell which of the commas
 ; after an argument is its own where an empty argument follows
@@ -45,188 +45,188 @@
 ; consecutive fields, listed below, and an argument followed by an empty one
 ; or by none is alone.
 (_
-  (argument) @parameter.around
+  (comma_argument) @parameter.around
   .
   ","
   .
   ",")
 
 (_
-  (argument) @parameter.around .)
+  (comma_argument) @parameter.around .)
 
 (_
-  (argument) @parameter.around
+  (comma_argument) @parameter.around
   .
   (missing_brace))
 
 (block
-  label: (argument) @parameter.around)
+  label: (comma_argument) @parameter.around)
 
 (node_line
-  node: (argument) @parameter.around
+  node: (comma_argument) @parameter.around
   .
   "," @parameter.around
   .
-  next: (argument))
+  next: (comma_argument))
 
 (node_line
-  next: (argument) @parameter.around
+  next: (comma_argument) @parameter.around
   .
   "," @parameter.around
   .
-  previous: (argument))
+  previous: (comma_argument))
 
 (node_line
-  previous: (argument) @parameter.around
+  previous: (comma_argument) @parameter.around
   .
   "," @parameter.around
   .
-  up: (argument))
+  up: (comma_argument))
 
 ; Cross-references, `@uref`, `@email`, `@image`, ... (ARGUMENT_COMMANDS in
 ; grammar.js), and the inline conditionals.
 (inline_command
-  node: (argument) @parameter.around
+  node: (comma_argument) @parameter.around
   .
   "," @parameter.around
   .
-  label: (argument))
+  label: (comma_argument))
 
 (inline_command
-  label: (argument) @parameter.around
+  label: (comma_argument) @parameter.around
   .
   "," @parameter.around
   .
-  title: (argument))
+  title: (comma_argument))
 
 (inline_command
-  title: (argument) @parameter.around
+  title: (comma_argument) @parameter.around
   .
   "," @parameter.around
   .
-  file: (argument))
+  file: (comma_argument))
 
 (inline_command
-  file: (argument) @parameter.around
+  file: (comma_argument) @parameter.around
   .
   "," @parameter.around
   .
-  manual: (argument))
+  manual: (comma_argument))
 
 (inline_command
-  url: (argument) @parameter.around
+  url: (comma_argument) @parameter.around
   .
   "," @parameter.around
   .
-  text: (argument))
+  text: (comma_argument))
 
 (inline_command
-  text: (argument) @parameter.around
+  text: (comma_argument) @parameter.around
   .
   "," @parameter.around
   .
-  replacement: (argument))
+  replacement: (comma_argument))
 
 (inline_command
-  address: (argument) @parameter.around
+  address: (comma_argument) @parameter.around
   .
   "," @parameter.around
   .
-  text: (argument))
+  text: (comma_argument))
 
 (inline_command
-  file: (argument) @parameter.around
+  file: (comma_argument) @parameter.around
   .
   "," @parameter.around
   .
-  width: (argument))
+  width: (comma_argument))
 
 (inline_command
-  width: (argument) @parameter.around
+  width: (comma_argument) @parameter.around
   .
   "," @parameter.around
   .
-  height: (argument))
+  height: (comma_argument))
 
 (inline_command
-  height: (argument) @parameter.around
+  height: (comma_argument) @parameter.around
   .
   "," @parameter.around
   .
-  alt: (argument))
+  alt: (comma_argument))
 
 (inline_command
-  alt: (argument) @parameter.around
+  alt: (comma_argument) @parameter.around
   .
   "," @parameter.around
   .
-  extension: (argument))
+  extension: (comma_argument))
 
 (inline_command
-  abbreviation: (argument) @parameter.around
+  abbreviation: (comma_argument) @parameter.around
   .
   "," @parameter.around
   .
-  meaning: (argument))
+  meaning: (comma_argument))
 
 (inline_command
-  anchor: (argument) @parameter.around
+  anchor: (comma_argument) @parameter.around
   .
   "," @parameter.around
   .
-  label: (argument))
+  label: (comma_argument))
 
 (inline_command
-  format: (argument) @parameter.around
+  format: (comma_argument) @parameter.around
   .
   "," @parameter.around
   .
-  text: (argument))
+  text: (comma_argument))
 
 (inline_command
-  variable: (argument) @parameter.around
+  variable: (comma_argument) @parameter.around
   .
   "," @parameter.around
   .
-  text: (argument))
+  text: (comma_argument))
 
 (inline_command
-  format: (argument) @parameter.around
+  format: (comma_argument) @parameter.around
   .
   "," @parameter.around
   .
-  then: (argument))
+  then: (comma_argument))
 
 (inline_command
-  then: (argument) @parameter.around
+  then: (comma_argument) @parameter.around
   .
   "," @parameter.around
   .
-  else: (argument))
+  else: (comma_argument))
 
 ; `@inforef` and `@link` have no `title` between `label` and `file`.
 ((inline_command
   name: (command_name) @_name
-  label: (argument) @parameter.around
+  label: (comma_argument) @parameter.around
   .
   "," @parameter.around
   .
-  file: (argument))
+  file: (comma_argument))
   (#any-of? @_name "@inforef" "@link"))
 
 (inline_command
-  format: (argument) @parameter.around
+  format: (comma_argument) @parameter.around
   .
   "," @parameter.around
   .
   body: (raw_text))
 
 (block
-  type: (argument) @parameter.around
+  type: (comma_argument) @parameter.around
   .
   "," @parameter.around
   .
-  label: (argument))
+  label: (comma_argument))
 
 (inline_command
   arguments: (brace_arguments) @parameter.inside @parameter.around)
@@ -256,9 +256,13 @@
   (_)+ @entry.inside)
 
 (tab
+  (cell) @entry.inside)
+
+; A row's first cell, which no `@tab` starts.
+(item
   name: (_)
   .
-  (_)+ @entry.inside)
+  (cell) @entry.around @entry.inside)
 
 (comment) @comment.inside
 

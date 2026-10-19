@@ -26,7 +26,7 @@ More.
   (top
     node: (node_line
       name: (command_name)
-      node: (argument
+      node: (comma_argument
         (text)))
     heading: (top_heading
       name: (command_name)
@@ -37,7 +37,7 @@ More.
     (chapter
       node: (node_line
         name: (command_name)
-        node: (argument
+        node: (comma_argument
           (text)))
       heading: (chapter_heading
         name: (command_name)
@@ -48,7 +48,7 @@ More.
       (section
         node: (node_line
           name: (command_name)
-          node: (argument
+          node: (comma_argument
             (text)))
         heading: (section_heading
           name: (command_name)
@@ -59,7 +59,7 @@ More.
     (chapter
       node: (node_line
         name: (command_name)
-        node: (argument
+        node: (comma_argument
           (text)))
       heading: (chapter_heading
         name: (command_name)
@@ -145,7 +145,7 @@ Text.
   (chapter
     node: (node_line
       name: (command_name)
-      node: (argument
+      node: (comma_argument
         (text)))
     heading: (chapter_heading
       name: (command_name)
@@ -153,7 +153,7 @@ Text.
         (text)))
     (node_line
       name: (command_name)
-      node: (argument
+      node: (comma_argument
         (text)))
     (paragraph
       (text))))
@@ -172,7 +172,7 @@ A comment between a node and its heading
   (top
     node: (node_line
       name: (command_name)
-      node: (argument
+      node: (comma_argument
         (text)))
     (comment)
     heading: (top_heading
@@ -204,7 +204,7 @@ The Top node inside ifnottex
     (top
       node: (node_line
         name: (command_name)
-        node: (argument
+        node: (comma_argument
           (text)))
       heading: (top_heading
         name: (command_name)
@@ -220,7 +220,7 @@ The Top node inside ifnottex
   (chapter
     node: (node_line
       name: (command_name)
-      node: (argument
+      node: (comma_argument
         (text)))
     heading: (chapter_heading
       name: (command_name)
@@ -244,7 +244,7 @@ Longer.
   (chapter
     node: (node_line
       name: (command_name)
-      node: (argument
+      node: (comma_argument
         (text)))
     (line_command
       name: (command_name)
@@ -275,7 +275,7 @@ Longer.
   (chapter
     node: (node_line
       name: (command_name)
-      node: (argument
+      node: (comma_argument
         (text)))
     (block
       name: (command_name)
@@ -302,7 +302,7 @@ Longer.
 (source_file
   (node_line
     name: (command_name)
-    node: (argument
+    node: (comma_argument
       (text)))
   (block
     name: (command_name)
@@ -312,7 +312,7 @@ Longer.
   (chapter
     node: (node_line
       name: (command_name)
-      node: (argument
+      node: (comma_argument
         (text)))
     heading: (chapter_heading
       name: (command_name)
@@ -334,7 +334,7 @@ Line commands between a node and its heading, such as index entries
   (section
     node: (node_line
       name: (command_name)
-      node: (argument
+      node: (comma_argument
         (text)))
     (line_command
       name: (command_name)
@@ -363,7 +363,7 @@ An anchor between a node and its heading
   (section
     node: (node_line
       name: (command_name)
-      node: (argument
+      node: (comma_argument
         (text)))
     (inline_command
       name: (command_name)
@@ -389,7 +389,7 @@ An anchor with blanks before its brace between a node and its heading
   (section
     node: (node_line
       name: (command_name)
-      node: (argument
+      node: (comma_argument
         (text)))
     (inline_command
       name: (command_name)
@@ -421,7 +421,7 @@ Text.
   (top
     (node_line
       (command_name)
-      (argument
+      (comma_argument
         (text)))
     (top_heading
       (command_name)
@@ -429,7 +429,7 @@ Text.
         (text)))
     (node_line
       (command_name)
-      (argument
+      (comma_argument
         (text))))
   (part
     (part_heading
@@ -439,7 +439,7 @@ Text.
     (chapter
       (node_line
         (command_name)
-        (argument
+        (comma_argument
           (text)))
       (chapter_heading
         (command_name)
@@ -514,7 +514,7 @@ An appendix with its node after a part's chapter ends the part
     (chapter
       node: (node_line
         name: (command_name)
-        node: (argument
+        node: (comma_argument
           (text)))
       heading: (chapter_heading
         name: (command_name)
@@ -523,7 +523,7 @@ An appendix with its node after a part's chapter ends the part
   (chapter
     node: (node_line
       name: (command_name)
-      node: (argument
+      node: (comma_argument
         (text)))
     heading: (chapter_heading
       name: (command_name)
@@ -581,13 +581,13 @@ Text.
   (section
     (node_line
       (command_name)
-      (argument
+      (comma_argument
         (text))
-      (argument
+      (comma_argument
         (text))
-      (argument
+      (comma_argument
         (text))
-      (argument
+      (comma_argument
         (text)))
     (section_heading
       (command_name)
@@ -596,7 +596,7 @@ Text.
     (subsection
       (node_line
         (command_name)
-        (argument
+        (comma_argument
           (text)))
       (subsection_heading
         (command_name)
@@ -605,7 +605,7 @@ Text.
       (subsubsection
         (node_line
           (command_name)
-          (argument
+          (comma_argument
             (text)))
         (comment)
         (subsubsection_heading
@@ -632,7 +632,7 @@ Text between a node and its heading separates them
   (section
     (node_line
       (command_name)
-      (argument
+      (comma_argument
         (text)))
     (section_heading
       (command_name)
@@ -640,7 +640,7 @@ Text between a node and its heading separates them
         (text)))
     (node_line
       (command_name)
-      (argument
+      (comma_argument
         (text)))
     (paragraph
       (inline_command
@@ -672,7 +672,7 @@ Text.
   (top
     node: (node_line
       name: (command_name)
-      node: (argument
+      node: (comma_argument
         (text)))
     heading: (top_heading
       name: (command_name)
@@ -687,7 +687,7 @@ Text.
     (chapter
       node: (node_line
         name: (command_name)
-        node: (argument
+        node: (comma_argument
           (text)))
       heading: (chapter_heading
         name: (command_name)
@@ -770,7 +770,7 @@ code
   (chapter
     node: (node_line
       name: (command_name)
-      node: (argument
+      node: (comma_argument
         (text)))
     heading: (chapter_heading
       name: (command_name)
@@ -850,7 +850,7 @@ A heading doesn't close a block, as it doesn't in texi2any
       body: (item_body
         (paragraph
           (text))
-        (heading
+        (standalone_heading
           name: (command_name)
           title: (line_argument
             (text)))))
@@ -880,7 +880,7 @@ Text @footnote{y
   (chapter
     node: (node_line
       name: (command_name)
-      node: (argument
+      node: (comma_argument
         (text)))
     heading: (chapter_heading
       name: (command_name)
@@ -916,7 +916,7 @@ An unclosed brace in a node line closes at the end of the line
   (chapter
     node: (node_line
       name: (command_name)
-      node: (argument
+      node: (comma_argument
         (text)
         (inline_command
           name: (command_name)
@@ -930,9 +930,9 @@ An unclosed brace in a node line closes at the end of the line
   (chapter
     node: (node_line
       name: (command_name)
-      node: (argument
+      node: (comma_argument
         (text))
-      previous: (argument
+      previous: (comma_argument
         (text)))
     heading: (chapter_heading
       name: (command_name)

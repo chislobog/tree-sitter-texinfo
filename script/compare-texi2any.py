@@ -118,7 +118,7 @@ HEADINGS = (
     "section_heading",
     "subsection_heading",
     "subsubsection_heading",
-    "heading",
+    "standalone_heading",
 )
 INLINE_CONDITIONALS = (
     "@inlinefmt",
@@ -149,18 +149,28 @@ PREFORMATTED_TEXT = frozenset(
 # that is, and what is no part of that text, but holds its own or is a
 # command or argument before it.
 PREFORMATTED_HOLDERS = frozenset(
-    ("block", "menu", "list", "item", "tab", "item_body", "definition_block", "definition_body")
+    (
+        "block",
+        "menu",
+        "list",
+        "item",
+        "tab",
+        "cell",
+        "item_body",
+        "definition_block",
+        "definition_body",
+    )
 )
 PREFORMATTED_BREAKS = frozenset(
     (
         *PREFORMATTED_HOLDERS,
         "definition_block",
         "definition_line",
-        "heading",
+        "standalone_heading",
         "menu_entry",
         "itemx",
         "line_argument",
-        "argument",
+        "comma_argument",
         "command_name",
     )
 )
@@ -242,7 +252,7 @@ def first_word(node) -> str:
 # The fields of the arguments that this grammar splits as texi2any does, by
 # position: at commas, and a definition line into its words.
 NODE_FIELDS = ("node", "next", "previous", "up")
-FLOAT_FIELDS = ("type", "label")
+FLOAT_FIELDS = ("type", "anchor")
 MENU_ENTRY_FIELDS = ("label", "node", "description")
 DEFINITION_FIELDS = ("category", "class", "type", "entity", "arguments")
 SPLIT_FIELDS = {
