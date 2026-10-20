@@ -4,7 +4,11 @@ The version follows [semantic versioning](https://semver.org/) as the
 tree-sitter documentation describes it for grammars: while it is 0.y.z, a
 change to node types or the tree's structure bumps the minor version.
 
-## Unreleased
+## 0.4.0
+
+Errors editors can report where an item command means nothing, the text
+after `@bye` read as texi2any reads it, and a check that the highlights'
+and tags' patterns don't overlap. A new node bumps the minor version.
 
 ### Breaking changes
 
@@ -19,6 +23,14 @@ change to node types or the tree's structure bumps the minor version.
   texi2any: `@bye @code` read `@c` as a comment, and `@bye @item` was a
   parse error.
 - Raw text, as `@set`'s value, may end in an `@`, which was a parse error.
+
+### The project
+
+- The checks find patterns of the highlights or the tags that capture the
+  same node, which editors resolve differently, and commands left without
+  a highlight or definitions without a tag.
+- `TODO.md` lists only open work; what was done and decided, and why, is
+  in `docs/design.md`.
 
 ## 0.3.0
 
