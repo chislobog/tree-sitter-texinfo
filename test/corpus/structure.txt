@@ -136,6 +136,65 @@ not parsed
     (ignored)))
 
 ================================================================================
+Commands after bye on its line are ignored text, up to a comment, as in texi2any
+================================================================================
+
+@bye @code{x} @item y @@z @c the end
+not parsed
+
+---
+
+(source_file
+  (bye
+    name: (command_name)
+    argument: (line_argument
+      (ignored))
+    (comment)
+    (ignored)))
+
+================================================================================
+A command after bye that starts like a comment is ignored text
+================================================================================
+
+@bye @code
+not parsed
+
+---
+
+(source_file
+  (bye
+    name: (command_name)
+    argument: (line_argument
+      (ignored))
+    (ignored)))
+
+================================================================================
+Raw text may end in an @, as in texi2any
+================================================================================
+
+@set x a @
+@clickstyle @
+@bye a @
+not parsed
+
+---
+
+(source_file
+  (line_command
+    name: (command_name)
+    variable: (text)
+    value: (raw_text))
+  (line_command
+    name: (command_name)
+    argument: (line_argument
+      (raw_text)))
+  (bye
+    name: (command_name)
+    argument: (line_argument
+      (ignored))
+    (ignored)))
+
+================================================================================
 Text after input texinfo on its line
 ================================================================================
 \input texinfo % TeX comment

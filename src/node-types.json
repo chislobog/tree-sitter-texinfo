@@ -910,6 +910,11 @@
     }
   },
   {
+    "type": "ignored",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "inline_command",
     "named": true,
     "fields": {
@@ -2928,6 +2933,10 @@
     "named": false
   },
   {
+    "type": "@",
+    "named": false
+  },
+  {
     "type": "block_end",
     "named": true
   },
@@ -2939,10 +2948,6 @@
     "type": "comment",
     "named": true,
     "extra": true
-  },
-  {
-    "type": "ignored",
-    "named": true
   },
   {
     "type": "line_continuation",

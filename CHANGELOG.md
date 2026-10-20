@@ -13,6 +13,13 @@ change to node types or the tree's structure bumps the minor version.
   `misplaced_command` node, which editors should report, as texi2any does:
   it was an `inline_command`, or an `item` in `@quotation` and the like.
 
+### The tree
+
+- The text after `@bye` on its line is raw text up to a comment, as in
+  texi2any: `@bye @code` read `@c` as a comment, and `@bye @item` was a
+  parse error.
+- Raw text, as `@set`'s value, may end in an `@`, which was a parse error.
+
 ## 0.3.0
 
 Fixes found by a review of the whole project, spell checking in Neovim,

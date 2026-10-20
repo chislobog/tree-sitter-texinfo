@@ -569,7 +569,8 @@ export default grammar({
     ),
 
     // Everything after `@bye` is ignored, also on its line, as in texi2any.
-    // The rest of the `@bye` line is still read, so a comment there counts.
+    // The rest of the `@bye` line is raw text up to a comment, which still
+    // counts, as `@set`'s value is: its commands too (`@code{x}`).
     bye: $ => seq(
       field('name', alias('@bye', $.command_name)),
       optional(field('argument', alias($._bye_argument, $.line_argument))),
@@ -577,7 +578,7 @@ export default grammar({
       optional(alias(/[\s\S]+/, $.ignored)),
     ),
 
-    _bye_argument: $ => alias(token(prec(-1, /[^@\s][^@\n\r]*/)), $.ignored),
+    _bye_argument: $ => alias($._set_value, $.ignored),
 
     _content: $ => choice(
       $._body_start,
@@ -1039,10 +1040,13 @@ export default grammar({
     // Raw text up to the end of the line or a comment, as in texi2any. A
     // comment lexes as the longer match at `@c note`, and `@cfoo` as the
     // longer value piece. It starts after the blanks, which aren't part of
-    // the value in texi2any either.
-    _set_value: _ => seq(
-      choice(/[^@ \t\v\f\r\n][^@\r\n]*/, /@[a-zA-Z0-9][-a-zA-Z0-9]*/, /@[^a-zA-Z0-9\r\n]/),
-      repeat(choice(/[^@\r\n]+/, /@[a-zA-Z0-9][-a-zA-Z0-9]*/, /@[^a-zA-Z0-9\r\n]/)),
+    // the value in texi2any either. An `@` at the end of the line is one too,
+    // not a line continuation.
+    _raw_at: _ => token(prec(-1, '@')),
+
+    _set_value: $ => seq(
+      choice(/[^@ \t\v\f\r\n][^@\r\n]*/, /@[a-zA-Z0-9][-a-zA-Z0-9]*/, /@[^a-zA-Z0-9\r\n]/, $._raw_at),
+      repeat(choice(/[^@\r\n]+/, /@[a-zA-Z0-9][-a-zA-Z0-9]*/, /@[^a-zA-Z0-9\r\n]/, $._raw_at)),
     ),
 
     definition_arguments: $ => prec.right(repeat1(choice(

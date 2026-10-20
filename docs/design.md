@@ -376,6 +376,14 @@ Gaps, where we give a parse error and texi2any recovers:
   with a warning, and an empty node name (`* ::`), which was the node `:`.
   `@` before a character other than ASCII is a lone `@`, as in texi2any:
   the character was part of the symbol command (found by review)
+- Commands after `@bye` on its line: its argument stopped at the first
+  `@`, so `@bye @code` read `@c` as a comment and `@bye @item` was a parse
+  error. It is now raw text up to a comment, as `@set`'s value is, and as
+  texi2any has it (found by review). Such raw text may also end in an `@`,
+  which was a line continuation and a parse error in `@set x a @` too: a
+  token of its own, of lower precedence, so that error recovery elsewhere,
+  which lexes every token, doesn't take a command's `@` for it (no parser
+  states)
 
 Gaps where the tree differs from texi2any's and the Texinfo manual, found by
 comparing arguments:

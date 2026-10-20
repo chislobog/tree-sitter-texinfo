@@ -3639,15 +3639,8 @@
     "_bye_argument": {
       "type": "ALIAS",
       "content": {
-        "type": "TOKEN",
-        "content": {
-          "type": "PREC",
-          "value": -1,
-          "content": {
-            "type": "PATTERN",
-            "value": "[^@\\s][^@\\n\\r]*"
-          }
-        }
+        "type": "SYMBOL",
+        "name": "_set_value"
       },
       "named": true,
       "value": "ignored"
@@ -6863,6 +6856,17 @@
       "type": "PATTERN",
       "value": "[^@{} \\t\\n\\r\\v\\f]+"
     },
+    "_raw_at": {
+      "type": "TOKEN",
+      "content": {
+        "type": "PREC",
+        "value": -1,
+        "content": {
+          "type": "STRING",
+          "value": "@"
+        }
+      }
+    },
     "_set_value": {
       "type": "SEQ",
       "members": [
@@ -6880,6 +6884,10 @@
             {
               "type": "PATTERN",
               "value": "@[^a-zA-Z0-9\\r\\n]"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "_raw_at"
             }
           ]
         },
@@ -6899,6 +6907,10 @@
               {
                 "type": "PATTERN",
                 "value": "@[^a-zA-Z0-9\\r\\n]"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "_raw_at"
               }
             ]
           }
