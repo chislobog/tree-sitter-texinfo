@@ -293,7 +293,10 @@ from the same LLVM version as the compiler (the profile format differs).
   all its other captures, and the rest of a match after a private capture
   like `@_name`; Neovim and Helix let the last pattern in the file win. So
   keep patterns from overlapping (use predicates to make them exclusive)
-  and capture predicate nodes with a real highlight.
+  and capture predicate nodes with a real highlight. `script/test-queries.py`
+  checks that no two patterns of the highlights or the tags capture a node,
+  and that every command is highlighted and every definition tagged, in a
+  document with every command it builds from the scanner's tables.
 - Recognise long lists of command names in the scanner, not with keywords in
   the grammar: every keyword is an entry in every parser state where a
   command can start. Moving 199 keywords to the scanner took `parser.c` from

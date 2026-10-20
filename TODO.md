@@ -653,6 +653,13 @@ Deliberate, so the tree shows the source as it is written and edited:
   taken between arguments in consecutive fields now, which the query lists;
   an argument followed by an empty one is alone, like the last, as no query
   can tell which comma is its own
+- [x] The lists of command names that keep the highlights' and the tags'
+  patterns apart (`#any-of?` and its complement, `#not-any-of?`) were kept
+  in step by hand (found by review). `script/test-queries.py` now checks
+  that no two patterns capture a node, and that every command name and
+  symbol command is highlighted and every definition line tagged, in a
+  document with every command it builds from the scanner's tables, and in
+  the highlight and tags tests
 
 ## Project
 

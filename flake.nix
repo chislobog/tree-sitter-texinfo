@@ -426,9 +426,16 @@
               ]
             ) "TREE_SITTER_SEED=0 python3 script/fuzz.py --iterations 100";
             # Each check still fails on the inputs in test/checks/ it is meant
-            # to catch.
+            # to catch, and the check of the queries' patterns on changed
+            # copies of them.
             checks-catch = mkCheck "checks-catch" (
-              scriptFiles ++ [ ./test/checks ]
+              scriptFiles
+              ++ [
+                ./test/checks
+                ./queries
+                ./test/highlight
+                ./test/tags
+              ]
             ) "python3 script/test-checks.py";
             # Only the manuals in test/parse-errors.txt fail to parse, none
             # ten times slower than the median.

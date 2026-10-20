@@ -410,6 +410,54 @@ def check_scanner(checker: Checker):
         checker.expect(f"scanner: {title} fails", [*command, path], False, message)
 
 
+def check_query_patterns(checker: Checker):
+    """Patterns that capture the same node, or leave a command without a
+    highlight or a definition without a tag, are found, in a copy of the
+    queries changed in that way."""
+    command = ["python3", "script/test-queries.py", "--patterns"]
+    checker.expect("queries: the patterns are apart", [*command, ROOT / "queries"], True)
+    generic = '(#not-any-of? @function\n    "@code" "@samp"'
+    function_tag = 'def(type)?(vr|var|opt|cv|ivar|tp)x?[ \\t]"))\n\n; Macros'
+    type_tag = '(#match? @definition.type "^[@]deftpx?[ \\t]"))'
+    changes = [
+        (
+            "two patterns highlight a node",
+            "highlights.scm",
+            (generic, generic.replace('"@code" ', "")),
+            "command_name '@code' captured by the patterns at highlights.scm:",
+        ),
+        (
+            "a command without a highlight",
+            "highlights.scm",
+            (generic, generic.replace('"@code"', '"@code" "@dots"')),
+            "command_name '@dots' has no capture",
+        ),
+        (
+            "two tags for a definition",
+            "tags.scm",
+            (function_tag, function_tag.replace("|tp)", ")")),
+            "definition_line '@deftp w0 w1 (a, b)\\n' captured by the patterns at tags.scm:",
+        ),
+        (
+            "a definition without a tag",
+            "tags.scm",
+            (type_tag, type_tag.replace("deftpx?", "deftpz")),
+            "definition_line '@deftp w0 w1 (a, b)\\n' has no definition.",
+        ),
+    ]
+    for title, name, (old, new), message in changes:
+        queries = checker.directory / "queries"
+        queries.mkdir(exist_ok=True)
+        for path in (ROOT / "queries").glob("*.scm"):
+            (queries / path.name).write_text(path.read_text())
+        source = (queries / name).read_text()
+        if old not in source:
+            checker.report(f"queries: {title}", [f"the change doesn't apply to queries/{name}"])
+            continue
+        (queries / name).write_text(source.replace(old, new, 1))
+        checker.expect(f"queries: {title} fails", [*command, queries], False, message)
+
+
 def check_parser_size(checker: Checker):
     """A parser over its budget fails, and so does one well under it."""
     command = ["python3", "script/parser-size.py", "--budget", "10000", "--parser"]
@@ -458,6 +506,7 @@ def main() -> int:
         check_parse_errors(checker)
         check_edits(checker)
         check_scanner(checker)
+        check_query_patterns(checker)
         check_parser_size(checker)
         check_fuzz(checker)
     if checker.failures:
