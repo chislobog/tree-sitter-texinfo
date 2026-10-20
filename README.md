@@ -11,8 +11,8 @@ and Emacs's manuals, Gnus and Calc among them, and SBCL's, Maxima's, GNU
 Parallel's, Stow's and the LaTeX2e reference manual) and on the 1,755 inputs
 of `texi2any`'s own parser tests. Every difference in the commands found, and
 in their arguments (how they split into fields), is listed, with its reason,
-in `test/texi2any-differences.txt`: in the manuals, 6 of 709,596 commands, in
-fragments meant for `@include`, and no arguments; in the test inputs, mostly
+in `test/texi2any-differences.txt`: in the manuals, none of their 709,590
+commands and none of their arguments; in the test inputs, mostly
 deliberately invalid input, often a block or line command in the middle of a
 line, which `texi2any` accepts and this grammar doesn't.
 
@@ -80,7 +80,9 @@ closed at a blank line, or at the end of a conditional it crossed (as TeX
 braces in Calc's and Gnus's `@iftex` blocks do), or typed by mistake. And an
 `@` before a character that starts no command, a symbol or an accent (`@#`)
 is an `unexpected_at` node, with that character, which `texi2any` reports
-too. Editors that report tree-sitter errors should also report these five
+too, and so is an `@item`, `@itemx`, `@headitem` or `@tab` where it means
+nothing (outside a list, or `@tab` in a `@table`), a `misplaced_command`
+node. Editors that report tree-sitter errors should also report these six
 nodes.
 
 A section inside a conditional ends at the conditional's `@end`, so when only

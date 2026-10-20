@@ -8,9 +8,23 @@ build/corpus/brace_arguments/block-command-in-the-middle-of-a-brace-argument-is-
   line 2: ours '@example', texi2any '+example -example'
   line 2: <p> arguments: ours 'see here', texi2any 'see'
 
-# Deliberate: content texi2any reports and drops is kept as written, here `@tab` outside a multitable (texi2any warns: ignoring @tab outside of multitable)
+# Deliberate: an item command where it means nothing (texi2any reports it outside of a table or list, or not meaningful in it) is a `misplaced_command` node that leaves the paragraph around it whole, so that typing one changes nothing around it; texi2any ends the paragraph at it, and keeps a misplaced `@itemx` as a line command, where the tree has the rest of the line as text
+build/corpus/lists/item-commands-a-list-has-no-use-for-are-misplaced-as-texi2any-reports.texi
+  line 7: ours '(nothing)', texi2any '@itemx'
+  line 18: ours '(nothing)', texi2any '@itemx'
+  line 3: paragraphs: ours '(nothing)', texi2any '<p> </p> <p> </p>'
+  line 3: <p> arguments: ours 'a b c d', texi2any 'd'
+  line 10: paragraphs: ours '(nothing)', texi2any '<p> </p>'
+  line 11: <p> arguments: ours 'b c', texi2any 'c'
+  line 16: <p> arguments: ours 'b c', texi2any 'b'
+
+# Deliberate: an item command where it means nothing (texi2any reports it outside of a table or list, or not meaningful in it) is a `misplaced_command` node that leaves the paragraph around it whole, so that typing one changes nothing around it; texi2any ends the paragraph at it, and keeps a misplaced `@itemx` as a line command, where the tree has the rest of the line as text
+build/corpus/lists/item-commands-outside-a-list-are-misplaced-as-texi2any-reports.texi
+  line ?: paragraphs: ours '(nothing)', texi2any '<p> </p> <p> </p> <p> </p>'
+  line 2: <p> arguments: ours 'Text stray x more y', texi2any 'y'
+
+# Deliberate: an item command where it means nothing (texi2any reports it outside of a table or list, or not meaningful in it) is a `misplaced_command` node that leaves the paragraph around it whole, so that typing one changes nothing around it; texi2any ends the paragraph at it, and keeps a misplaced `@itemx` as a line command, where the tree has the rest of the line as text
 build/corpus/lists/multitable-cells-over-several-lines-with-blocks-and-empty-cells.texi
-  line 14: ours '@tab', texi2any '(nothing)'
   line 14: <p> arguments: ours 'Text with outside a multitable', texi2any 'Text with'
   line 14: paragraphs: ours '(nothing)', texi2any '<p> </p>'
 
@@ -36,21 +50,6 @@ build/corpus/raw/comments-on-a-macro-line.texi
 build/corpus/structure/user-defined-index-commands-are-line-commands.texi
   line 4: @opindex arguments: ours '(none)', texi2any 'inline'
   line 4: <p> arguments: ours 'Text with inline', texi2any 'Text with'
-
-# Comparison: a fragment for @include inside a table, where texi2any drops @item outside one
-examples/binutils-with-gold-2.46/binutils/doc/ctf.options.texi
-  line 4: ours '@item', texi2any '(nothing)'
-  line 14: ours '@item', texi2any '(nothing)'
-  line 26: ours '@item', texi2any '(nothing)'
-
-# Comparison: a fragment for @include inside a table, where texi2any drops @item outside one
-examples/binutils-with-gold-2.46/binutils/doc/debug.options.texi
-  line 157: ours '@item', texi2any '(nothing)'
-  line 166: ours '@item', texi2any '(nothing)'
-
-# Comparison: a fragment for @include inside a table, where texi2any drops @item outside one
-examples/binutils-with-gold-2.46/binutils/doc/sframe.options.texi
-  line 4: ours '@item', texi2any '(nothing)'
 
 # Comparison: texi2any's dump writes a newline as `\n` and a backslash as it is, so an example of `\n` alone has no text on texi2any's side for this script
 examples/coreutils-9.11/doc/coreutils.texi
@@ -372,19 +371,15 @@ texinfo-tests/181quotation/quotation_beginning_and_end_on_line.texi
 
 # Invalid input; texi2any reports at line 3: @itemx outside of table or list, and at line 4: @headitem not meaningful inside `@enumerate' block
 texinfo-tests/18itemize/headitem_itemx_in_enumerate.texi
-  line 3: @itemx arguments: ours '(none)', texi2any 'itemx enumerate'
-  line 4: ours '@headitem', texi2any '(nothing)'
-  line 2: <p> arguments: ours 'item enumerate itemx enumerate', texi2any 'item enumerate'
-  line 2: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 3: paragraphs: ours '(nothing)', texi2any '<p>'
+  line 5: ours '(nothing)', texi2any '@itemx'
+  line 2: <p> arguments: ours 'item enumerate itemx enumerate headitem enumerate', texi2any 'item enumerate'
+  line 4: paragraphs: ours '(nothing)', texi2any '<p> </p>'
 
 # Invalid input; texi2any reports at line 3: @itemx outside of table or list, and at line 4: @headitem not meaningful inside `@itemize' block
 texinfo-tests/18itemize/headitem_itemx_in_itemize.texi
-  line 3: @itemx arguments: ours '(none)', texi2any 'itemx'
-  line 4: ours '@headitem', texi2any '(nothing)'
-  line 2: <p> arguments: ours 'item itemx', texi2any 'item'
-  line 2: paragraphs: ours '(nothing)', texi2any '</p>'
-  line 3: paragraphs: ours '(nothing)', texi2any '<p>'
+  line 5: ours '(nothing)', texi2any '@itemx'
+  line 2: <p> arguments: ours 'item itemx headitem', texi2any 'item'
+  line 4: paragraphs: ours '(nothing)', texi2any '<p> </p>'
 
 # Deliberate: block and line commands in the middle of a line; they start at the beginning of a line, as the Texinfo manual requires (texi2any accepts them with an error or a warning)
 texinfo-tests/19def/double_command.texi
@@ -434,11 +429,6 @@ texinfo-tests/22xtable/comment_and_itemx_before_item.texi
   line 3: @itemx arguments: ours '(none)', texi2any 'in itemx'
   line 3: paragraphs: ours '<p>', texi2any '(nothing)'
   line 3: paragraphs: ours '</p>', texi2any '(nothing)'
-
-# Invalid input; texi2any reports at line 2: @headitem not meaningful inside `@table' block
-texinfo-tests/22xtable/headitem_in_table.texi
-  line 2: ours '@headitem', texi2any '(nothing)'
-  line 2: paragraphs: ours '(nothing)', texi2any '<p> </p>'
 
 # Invalid input; texi2any reports at line 2: @itemx should not begin @table
 texinfo-tests/22xtable/itemx_before_item.texi
@@ -523,7 +513,7 @@ texinfo-tests/57invalid_nestings/center.texi
   line 42: @center arguments: ours 'item cstruc', texi2any 'cstruc'
   line 42: ours '@item', texi2any '(nothing)'
   line 45: ours '@table', texi2any '+table'
-  line 46: ours '@item @item', texi2any '-table'
+  line 45: ours '(nothing)', texi2any '-table'
   line 19: paragraphs: ours '(nothing)', texi2any '</p>'
   line 19: paragraphs: ours '</p>', texi2any '(nothing)'
   line 46: <p> arguments: ours 'item in center Line in center second item', texi2any 'item in center Line in center'
@@ -544,17 +534,14 @@ texinfo-tests/57invalid_nestings/in_table.texi
 
 # Invalid input; texi2any reports at line 1: @itemx outside of table or list, and at line 2: @headitem outside of table or list
 texinfo-tests/57invalid_nestings/item_tab_outside_of_table_lists.texi
-  line 1: @itemx arguments: ours '(none)', texi2any 'itemx outside'
-  line 2: ours '@headitem @tab', texi2any '(nothing)'
+  line ?: ours '(nothing)', texi2any '@itemx'
 
 # Invalid input; texi2any reports at line 6: @itemx outside of table or list
 texinfo-tests/57invalid_nestings/itemx_in_itemize_enumerate_in_table.texi
-  line 6: @itemx arguments: ours '(none)', texi2any 'in nested itemize itemx'
-  line 10: @itemx arguments: ours '(none)', texi2any 'in nested enumerate itemx'
-  line 6: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 6: paragraphs: ours '</p>', texi2any '(nothing)'
-  line 10: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 10: paragraphs: ours '</p>', texi2any '(nothing)'
+  line 7: ours '(nothing)', texi2any '@itemx'
+  line 11: ours '(nothing)', texi2any '@itemx'
+  line 6: paragraphs: ours '<p> </p>', texi2any '(nothing)'
+  line 10: paragraphs: ours '<p> </p>', texi2any '(nothing)'
 
 # Invalid input; texi2any reports at line 2: @item outside of table or list
 texinfo-tests/57invalid_nestings/multitable_item_in_index.texi
@@ -604,10 +591,6 @@ texinfo-tests/57invalid_nestings/raw_block_on_line.texi
 # Invalid input; texi2any reports at line 5: @insertcopying not allowed inside `@copying' block
 texinfo-tests/57invalid_nestings/recursive_copying.texi
   line 5: ours '@insertcopying', texi2any '(nothing)'
-
-# Invalid input; texi2any reports at line 6: @item outside of table or list (the @section before it closes the table, as here)
-texinfo-tests/57invalid_nestings/section_in_table.texi
-  line 6: ours '@item', texi2any '(nothing)'
 
 # Deliberate: a line command in the middle of a line; line commands occupy a whole line, as the Texinfo manual requires (texi2any accepts it with a warning, taking the rest of the line as its argument)
 texinfo-tests/57invalid_nestings/section_on_cartouche_line.texi
@@ -714,10 +697,10 @@ texinfo-tests/57invalid_nestings/tab_in_index.texi
 
 # Deliberate: block and line commands in the middle of a line; they start at the beginning of a line, as the Texinfo manual requires (texi2any accepts them with an error or a warning)
 texinfo-tests/57invalid_nestings/table_not_closed_in_menu_description.texi
+  line 2: * arguments: ours ' | gcc | text table asis item table line', texi2any ' | gcc | text table asis item item table line'
   line 2: ours '@table', texi2any '+table'
-  line 3: @item arguments: ours '(none)', texi2any 'item'
-  line 5: ours '(nothing)', texi2any '-table'
-  line 3: paragraphs: ours '(nothing)', texi2any '<pre> </pre>'
+  line 5: ours '(nothing)', texi2any '@item -table'
+  line 2: paragraphs: ours '(nothing)', texi2any '<pre> </pre>'
 
 # Deliberate: a block command in the middle of a line; blocks start and end at the beginning of a line, as the Texinfo manual requires (texi2any accepts it with an error)
 texinfo-tests/57invalid_nestings/table_on_item_line.texi
@@ -880,12 +863,9 @@ texinfo-tests/plaintext_tests/at_commands_glued_in_paragraph.texi
 
 # Invalid input; texi2any reports at line 3: @headitem not meaningful inside `@itemize' block
 texinfo-tests/plaintext_tests/itemize_in_headitem_in_example.texi
-  line 3: ours '@headitem', texi2any '(nothing)'
-  line 7: ours '@item @headitem -itemize +itemize @headitem', texi2any '(nothing)'
-  line 18: ours '@headitem', texi2any '-itemize +itemize @item'
-  line 3: paragraphs: ours '(nothing)', texi2any '<pre> </pre>'
-  line 8: paragraphs: ours '(nothing)', texi2any '<pre> </pre>'
-  line 12: paragraphs: ours '(nothing)', texi2any '<pre> </pre>'
+  line 7: paragraphs: ours '(nothing)', texi2any '<pre> </pre>'
+  line 7: <pre> arguments: ours 'bbb ccc', texi2any 'ccc'
+  line 17: <pre> arguments: ours 'fff ggg', texi2any 'fff'
   line 18: paragraphs: ours '(nothing)', texi2any '<pre> </pre>'
 
 # Deliberate: multitable cells texi2any drops with a warning are kept as written
@@ -904,14 +884,12 @@ texinfo-tests/plaintext_tests/sp_with_text_before_in_example.texi
 
 # Invalid input; texi2any reports at line 3: @tab not meaningful inside `@table' block
 texinfo-tests/plaintext_tests/tab_in_table_in_example.texi
-  line 3: ours '@tab', texi2any '(nothing)'
-  line 6: ours '@tab', texi2any '(nothing)'
   line 5: <pre> arguments: ours 'T other tab', texi2any 'T'
-  line 6: paragraphs: ours '(nothing)', texi2any '</pre> <pre>'
+  line 6: paragraphs: ours '(nothing)', texi2any '<pre> </pre>'
 
 # Invalid input; texi2any reports at line 2: ignoring @tab outside of multitable
 texinfo-tests/plaintext_tests/tab_item_in_example.texi
-  line 2: ours '@tab @item', texi2any '(nothing)'
+  line 2: <pre> arguments: ours 'in tab in item', texi2any 'in tab'
   line 3: paragraphs: ours '(nothing)', texi2any '<pre> </pre>'
 
 # Deliberate: a C preprocessor line directive (`#line 7 "k"`) is text, as the tree shows the source as written; texi2any follows it, to report lines in the file it names, and drops it

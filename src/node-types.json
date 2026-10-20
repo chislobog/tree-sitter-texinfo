@@ -2949,6 +2949,11 @@
     "named": true
   },
   {
+    "type": "misplaced_command",
+    "named": true,
+    "extra": true
+  },
+  {
     "type": "missing_brace",
     "named": true
   },

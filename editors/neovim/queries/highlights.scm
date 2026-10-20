@@ -261,6 +261,10 @@
 
 (unmatched_end) @keyword
 
+; `@item` or `@tab` where it means nothing, which editors should report too
+; (README).
+(misplaced_command) @keyword
+
 ; Lists. A table item's term.
 (item
   name: (command_name) @markup.list

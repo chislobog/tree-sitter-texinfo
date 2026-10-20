@@ -4,6 +4,15 @@ The version follows [semantic versioning](https://semver.org/) as the
 tree-sitter documentation describes it for grammars: while it is 0.y.z, a
 change to node types or the tree's structure bumps the minor version.
 
+## Unreleased
+
+### Breaking changes
+
+- An `@item`, `@itemx`, `@headitem` or `@tab` where it means nothing
+  (outside a list, `@itemx` in `@itemize`, `@tab` in `@table`, ...) is a
+  `misplaced_command` node, which editors should report, as texi2any does:
+  it was an `inline_command`, or an `item` in `@quotation` and the like.
+
 ## 0.3.0
 
 Fixes found by a review of the whole project, spell checking in Neovim,

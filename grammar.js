@@ -314,8 +314,16 @@ export default grammar({
   // ignores it.
   // A NUL is a blank too: texi2any drops it.
   // An `@` that starts no command, which texi2any reports, may be anywhere
-  // too, as an `unexpected_at`.
-  extras: $ => [/[ \t\v\f\r\x00]/, $.comment, $.unmatched_brace, $.unexpected_at],
+  // too, as an `unexpected_at`, and so may an item command where it means
+  // nothing (the scanner's `misplaced_command`), which texi2any reports and
+  // drops.
+  extras: $ => [
+    /[ \t\v\f\r\x00]/,
+    $.comment,
+    $.unmatched_brace,
+    $.unexpected_at,
+    $.misplaced_command,
+  ],
 
   // Rules whose node would hold only what the tokens after it decide, so
   // that an incremental parse could reuse it where those tokens changed.
@@ -421,6 +429,9 @@ export default grammar({
     $._end_line_text,
     // Zero-width where a paragraph starts in a preformatted block.
     $._preformatted_start,
+    // `@item`, `@itemx`, `@headitem` or `@tab` where it means nothing:
+    // outside a list, or in one with no use for it.
+    $.misplaced_command,
     // Valid only during error recovery, when tree-sitter marks every token
     // valid: the scanner then returns nothing.
     $._error_sentinel,

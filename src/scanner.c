@@ -103,6 +103,9 @@ enum TokenType {
   NO_PARAGRAPH_START,
   END_LINE_TEXT,
   PREFORMATTED_START,
+  // `@item`, `@itemx`, `@headitem` or `@tab` where it means nothing, an
+  // extra.
+  MISPLACED_COMMAND,
   ERROR_SENTINEL,
 };
 
@@ -1037,17 +1040,25 @@ static bool in_item_container(const Scanner *scanner) {
                            strcmp(block->name, "enumerate") == 0);
 }
 
-// Whether `@name` starts a list's next item or a multitable's next cell,
-// which ends a paragraph and an ordinary brace command left open before it,
-// as in texi2any.
-static bool starts_item(const Scanner *scanner, const char *name) {
-  const Block *block = innermost_structure(scanner);
-  if (block == NULL ||
-      (block->kind != KIND_LIST && block->kind != KIND_MULTITABLE)) {
-    return false;
-  }
+static bool is_item_command(const char *name) {
   return strcmp(name, "item") == 0 || strcmp(name, "itemx") == 0 ||
          strcmp(name, "headitem") == 0 || strcmp(name, "tab") == 0;
+}
+
+// Whether `@name` starts a list's next item or a multitable's next cell,
+// which ends a paragraph and an ordinary brace command left open before it,
+// as in texi2any: `@item` in any list, `@itemx` in a table, `@headitem` and
+// `@tab` in a multitable. texi2any reports the others as outside of a table
+// or list or not meaningful in it.
+static bool starts_item(const Scanner *scanner, const char *name) {
+  const Block *block = innermost_structure(scanner);
+  if (block == NULL) return false;
+  if (block->kind == KIND_MULTITABLE) {
+    return is_item_command(name) && strcmp(name, "itemx") != 0;
+  }
+  if (block->kind != KIND_LIST) return false;
+  if (strcmp(name, "item") == 0) return true;
+  return strcmp(name, "itemx") == 0 && !in_item_container(scanner);
 }
 
 /**
@@ -1875,6 +1886,15 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
     scanner->depth--;
     lexer->result_symbol = MISSING_END;
     return true;
+  }
+
+  // An item command where it means nothing, which texi2any reports and
+  // drops: an extra, so that the rest of the line goes on as it would
+  // without it. Only where a command may be, not in raw text such as
+  // `@set`'s value.
+  if (valid_symbols[MISPLACED_COMMAND] && valid_symbols[BRACE_COMMAND_NAME] &&
+      is_item_command(name) && !starts_item(scanner, name)) {
+    return accept(lexer, MISPLACED_COMMAND);
   }
 
   if (strcmp(name, "node") == 0) {

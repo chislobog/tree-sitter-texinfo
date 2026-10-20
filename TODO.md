@@ -341,8 +341,7 @@ of a line.
 
 From comparing with texi2any on its own test inputs (104 of 1,755 differ, in
 their commands or the commands' arguments, all listed with their reasons in
-`test/texi2any-differences.txt`; the manuals match but for three binutils
-fragments meant for `@include`).
+`test/texi2any-differences.txt`; the manuals match).
 
 Gaps, where we give a parse error and texi2any recovers:
 
@@ -529,10 +528,18 @@ Deliberate, so the tree shows the source as it is written and edited:
   followed by text, where texi2any takes the rest of the line as its
   argument, with a warning
 - Content texi2any reports and drops is kept as written: `@tab` cells beyond
-  the multitable's columns, `@tab` before the first `@item`, `@headitem` or
-  `@itemx` in `@itemize`, `@item` outside a list, a recursive
-  `@insertcopying`. Only an `@end` that ends no block is marked
-  (`unmatched_end`)
+  the multitable's columns, `@tab` before the first `@item`, a recursive
+  `@insertcopying`. Marked are an `@end` that ends no block
+  (`unmatched_end`) and, since review, an `@item`, `@itemx`, `@headitem`
+  or `@tab` where it means nothing, as texi2any decides it (`@item` outside
+  a list, `@itemx` outside a table, `@headitem` and `@tab` outside a
+  multitable): a `misplaced_command` node, an extra, which editors should
+  report. It was an `inline_command`, or an `item` in a `@quotation`, which
+  no editor could tell from one that's right. texi2any ends the paragraph
+  at it, and keeps an `@itemx` as a line command; the extra leaves the
+  paragraph whole, so that typing one changes nothing around it, and costs
+  no parser states. The binutils fragments for `@include` inside a table no
+  longer differ, as texi2any drops their `@item` too
 - A brace on the line after its command (`@code` then `{a}`), which texi2any
   accepts with a warning that the command "must not be followed by new
   line": the brace starts a group

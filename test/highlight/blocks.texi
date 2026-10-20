@@ -87,6 +87,9 @@ In the font of the text.
 Be verbose.
 @end table
 
+A @tab outside a multitable.
+@c^ keyword
+
 @cindex verbose output
 @c <- keyword
 @c      ^ string.special

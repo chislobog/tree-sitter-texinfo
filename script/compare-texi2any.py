@@ -286,14 +286,15 @@ def known_text(node, unknown: set[tuple[int, str]]) -> str:
     """The text of `node` without its comments, which this grammar has
     wherever they are but texi2any's tree may have in another argument or
     after it, and without the names of the commands in it that texi2any
-    doesn't know: its tree keeps only their braces' content."""
+    doesn't know: its tree keeps only their braces' content. Nor with a
+    misplaced item command, which texi2any drops."""
     source = node.text
     cuts = []
     nodes = [node]
     while nodes:
         current = nodes.pop()
         line = current.start_point.row + 1
-        if current.type == "comment" or (
+        if current.type in ("comment", "misplaced_command") or (
             current.type in ("command_name", "symbol_command")
             and is_unknown(Token(text(current), line), unknown)
         ):
@@ -311,8 +312,9 @@ def known_text(node, unknown: set[tuple[int, str]]) -> str:
 
 def paragraph_text(node, children: list, unknown: set[tuple[int, str]]) -> str:
     """The text of `children` of a paragraph, outside the commands in them,
-    which are compared as commands, and without comments. A command texi2any
-    doesn't know leaves its braces' content, as in texi2any's tree."""
+    which are compared as commands, and without comments or misplaced item
+    commands, which texi2any drops. A command texi2any doesn't know leaves
+    its braces' content, as in texi2any's tree."""
     first = children[0].start_byte
     source = node.text[first - node.start_byte : children[-1].end_byte - node.start_byte]
     cuts = []
@@ -324,7 +326,12 @@ def paragraph_text(node, children: list, unknown: set[tuple[int, str]]) -> str:
         if name is not None and is_unknown(Token(text(name), line), unknown):
             cuts.append((name.start_byte - first, name.end_byte - first))
             nodes.extend(c for c in current.children if c.id != name.id)
-        elif name is not None or current.type in ("comment", "symbol_command", "command_name"):
+        elif name is not None or current.type in (
+            "comment",
+            "symbol_command",
+            "command_name",
+            "misplaced_command",
+        ):
             cuts.append((current.start_byte - first, current.end_byte - first))
         else:
             nodes.extend(current.children)

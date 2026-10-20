@@ -304,8 +304,7 @@ Text with @tab outside a multitable.
     end: (block_end))
   (paragraph
     (text)
-    (inline_command
-      name: (command_name))
+    (misplaced_command)
     (text)))
 
 ================================================================================
@@ -651,5 +650,113 @@ Multitable column fractions
         name: (command_name)
         (cell
           (paragraph
+            (text)))))
+    end: (block_end)))
+
+================================================================================
+Item commands outside a list are misplaced, as texi2any reports
+================================================================================
+
+Text
+@item stray
+@tab x
+more @headitem y
+
+@quotation
+@item q
+@end quotation
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (misplaced_command)
+    (text)
+    (misplaced_command)
+    (text)
+    (text)
+    (misplaced_command)
+    (text))
+  (block
+    name: (command_name)
+    (misplaced_command)
+    (paragraph
+      (text))
+    end: (block_end)))
+
+================================================================================
+Item commands a list has no use for are misplaced, as texi2any reports
+================================================================================
+
+@itemize
+@item a
+@itemx b
+@headitem c
+@tab d
+@end itemize
+
+@table @code
+@item a
+@tab b
+@headitem c
+@end table
+
+@multitable @columnfractions .5 .5
+@item a @tab b
+@itemx c
+@end multitable
+
+---
+
+(source_file
+  (list
+    name: (command_name)
+    (item
+      name: (command_name)
+      body: (item_body
+        (paragraph
+          (text)
+          (misplaced_command)
+          (text)
+          (misplaced_command)
+          (text)
+          (misplaced_command)
+          (text))))
+    end: (block_end))
+  (list
+    name: (command_name)
+    argument: (line_argument
+      (inline_command
+        name: (command_name)))
+    (item
+      name: (command_name)
+      argument: (line_argument
+        (text))
+      (misplaced_command)
+      body: (item_body
+        (paragraph
+          (text)
+          (misplaced_command)
+          (text))))
+    end: (block_end))
+  (list
+    name: (command_name)
+    argument: (line_argument
+      (inline_command
+        name: (command_name)
+        argument: (line_argument
+          (text))))
+    (item
+      name: (command_name)
+      (cell
+        (paragraph
+          (text)))
+      (tab
+        name: (command_name)
+        (cell
+          (paragraph
+            (text)
+            (misplaced_command)
             (text)))))
     end: (block_end)))

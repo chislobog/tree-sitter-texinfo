@@ -11361,6 +11361,10 @@
     {
       "type": "SYMBOL",
       "name": "unexpected_at"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "misplaced_command"
     }
   ],
   "conflicts": [
@@ -11636,6 +11640,10 @@
     {
       "type": "SYMBOL",
       "name": "_preformatted_start"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "misplaced_command"
     },
     {
       "type": "SYMBOL",
