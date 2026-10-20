@@ -1627,6 +1627,24 @@ static int command_token(const Scanner *scanner, const bool *valid_symbols,
 }
 
 /**
+ * Whether the scan is in raw text that the grammar's own tokens read, such
+ * as `@set`'s value or what follows `@bye`, where no external token is valid
+ * but the end of the file and the extras. Wherever a command may be, some
+ * other is: the name of a brace command, or, after a reduction that reused
+ * a paragraph, an item's or a block's end. Not a test of one of them, which
+ * would choose differently before the reduction and after it.
+ */
+static bool in_raw_text(const bool *valid_symbols) {
+  for (int token = 0; token < ERROR_SENTINEL; token++) {
+    if (valid_symbols[token] && token != END_OF_FILE &&
+        token != MISPLACED_COMMAND) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
  * Scans in two stages. First the tokens that only some contexts allow: an
  * accent's argument, `@verb`'s parts, the glue in a definition word, raw
  * text, and the zero-width ends of a brace, paragraph or block left open.
@@ -1892,8 +1910,8 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
   // drops: an extra, so that the rest of the line goes on as it would
   // without it. Only where a command may be, not in raw text such as
   // `@set`'s value.
-  if (valid_symbols[MISPLACED_COMMAND] && valid_symbols[BRACE_COMMAND_NAME] &&
-      is_item_command(name) && !starts_item(scanner, name)) {
+  if (valid_symbols[MISPLACED_COMMAND] && is_item_command(name) &&
+      !starts_item(scanner, name) && !in_raw_text(valid_symbols)) {
     return accept(lexer, MISPLACED_COMMAND);
   }
 

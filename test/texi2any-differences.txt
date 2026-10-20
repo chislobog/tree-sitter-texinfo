@@ -9,6 +9,12 @@ build/corpus/brace_arguments/block-command-in-the-middle-of-a-brace-argument-is-
   line 2: <p> arguments: ours 'see here', texi2any 'see'
 
 # Deliberate: an item command where it means nothing (texi2any reports it outside of a table or list, or not meaningful in it) is a `misplaced_command` node that leaves the paragraph around it whole, so that typing one changes nothing around it; texi2any ends the paragraph at it, and keeps a misplaced `@itemx` as a line command, where the tree has the rest of the line as text
+build/corpus/lists/a-misplaced-item-command-at-the-start-of-an-item-s-next-line-stays-in-its-paragraph.texi
+  line 6: ours '(nothing)', texi2any '@itemx'
+  line 3: <p> arguments: ours 'item enumerate itemx enumerate headitem enumerate', texi2any 'item enumerate'
+  line 5: paragraphs: ours '(nothing)', texi2any '<p> </p>'
+
+# Deliberate: an item command where it means nothing (texi2any reports it outside of a table or list, or not meaningful in it) is a `misplaced_command` node that leaves the paragraph around it whole, so that typing one changes nothing around it; texi2any ends the paragraph at it, and keeps a misplaced `@itemx` as a line command, where the tree has the rest of the line as text
 build/corpus/lists/item-commands-a-list-has-no-use-for-are-misplaced-as-texi2any-reports.texi
   line 7: ours '(nothing)', texi2any '@itemx'
   line 18: ours '(nothing)', texi2any '@itemx'

@@ -760,3 +760,48 @@ Item commands a list has no use for are misplaced, as texi2any reports
             (misplaced_command)
             (text)))))
     end: (block_end)))
+
+================================================================================
+A misplaced item command at the start of an item's next line stays in its paragraph
+================================================================================
+
+@enumerate
+@item item enumerate
+@itemx itemx enumerate
+@headitem headitem enumerate
+@end enumerate
+
+---
+
+(source_file
+  (list
+    name: (command_name)
+    (item
+      name: (command_name)
+      body: (item_body
+        (paragraph
+          (text)
+          (misplaced_command)
+          (text)
+          (misplaced_command)
+          (text))))
+    end: (block_end)))
+
+================================================================================
+An item command in raw text is raw text
+================================================================================
+
+@set x @item y
+@vskip @tab
+
+---
+
+(source_file
+  (line_command
+    name: (command_name)
+    variable: (text)
+    value: (raw_text))
+  (line_command
+    name: (command_name)
+    argument: (line_argument
+      (raw_text))))

@@ -538,7 +538,12 @@ Deliberate, so the tree shows the source as it is written and edited:
   at it, and keeps an `@itemx` as a line command; the extra leaves the
   paragraph whole, so that typing one changes nothing around it, and costs
   no parser states. The binutils fragments for `@include` inside a table no
-  longer differ, as texi2any drops their `@item` too
+  longer differ, as texi2any drops their `@item` too. The scanner tells raw text
+  (`@set`'s value, what follows `@bye`) from where a command may be by the
+  external tokens valid there, none but the end of the file: a test of a
+  brace command's name being valid chose differently after an incremental
+  parse reused the paragraph before the command, where only an item's or
+  the list's end is (found by fuzzing texi2any's test inputs)
 - A brace on the line after its command (`@code` then `{a}`), which texi2any
   accepts with a warning that the command "must not be followed by new
   line": the brace starts a group
