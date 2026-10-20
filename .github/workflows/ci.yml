@@ -125,11 +125,14 @@ jobs:
 
       - name: Python package from its sdist
         shell: bash
-        # The action's Swift setup exports TOOLCHAINS for the steps after it,
-        # which makes clang the swift.org toolchain's on macOS: one without
-        # the SDK, which setuptools doesn't pass as CMake does.
+        # On macOS, the clang that setuptools runs finds no SDK after the
+        # action's steps: give it the SDK, as CMake does.
         run: |
-          unset TOOLCHAINS
+          if [ "$RUNNER_OS" = macOS ]; then
+            SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
+            export SDKROOT
+            echo "clang: $(command -v clang), SDK: $SDKROOT, TOOLCHAINS: ${TOOLCHAINS:-}"
+          fi
           python -m pip install build
           python -m build --outdir build/dist
           python -m pip install "$(echo build/dist/*.whl)[core]"
