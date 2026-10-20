@@ -22,17 +22,18 @@ from tree_sitter import Parser
 from texinfo_language import ROOT, load_language
 
 CHECKS = Path("test/checks")
-TAB = CHECKS / "tab-outside-multitable.texi"
+# A block command in the middle of a line, which is one only for texi2any.
+BLOCK_IN_TEXT = CHECKS / "block-in-text.texi"
 SAME = CHECKS / "same.texi"
 PARSE_ERROR = CHECKS / "parse-error.texi"
 COMPARED = [
-    TAB,
+    BLOCK_IN_TEXT,
     SAME,
     CHECKS / "expanded.texi",
     CHECKS / "as-written.texi",
     CHECKS / "both-expanded.texi",
 ]
-TAB_DIFFERENCE = "line 3: ours '@tab', texi2any '(nothing)'"
+BLOCK_IN_TEXT_DIFFERENCE = "line 3: ours '@example', texi2any '+example -example'"
 # A line command in the middle of a line, which is one only for texi2any: the
 # same command on both sides, with different arguments, and the paragraph
 # ends before it in texi2any, after it here.
@@ -105,10 +106,10 @@ def check_comparison(checker: Checker):
         "comparison: a difference not listed fails",
         [*compare, none, *COMPARED],
         False,
-        f"Unexpected: {TAB}: {TAB_DIFFERENCE}",
+        f"Unexpected: {BLOCK_IN_TEXT}: {BLOCK_IN_TEXT_DIFFERENCE}",
         # Each of the ways to compare a file is used, and finds no difference
         # where the files hold no deliberate one.
-        "Compared: 2 as texi2any expanded them, 2 as written, 1 as texi2any expanded them "
+        "Compared: 3 as texi2any expanded them, 1 as written, 1 as texi2any expanded them "
         "on both sides",
         count=("Unexpected:", 1),
     )
@@ -147,22 +148,27 @@ def check_comparison(checker: Checker):
         "comparison: letters of any script count",
         [] if found == "xref Top 節 Été" else [f"words gave {found!r}"],
     )
-    unexplained = checker.file("unexplained.txt", f"{TAB}\n  {TAB_DIFFERENCE}\n")
+    unexplained = checker.file(
+        "unexplained.txt", f"{BLOCK_IN_TEXT}\n  {BLOCK_IN_TEXT_DIFFERENCE}\n"
+    )
     checker.expect(
         "comparison: a difference listed without a reason fails",
-        [*compare, unexplained, TAB],
+        [*compare, unexplained, BLOCK_IN_TEXT],
         False,
-        f"No reason given: {TAB}",
+        f"No reason given: {BLOCK_IN_TEXT}",
     )
-    listed = f"# A reason\n{TAB}\n  {TAB_DIFFERENCE}\n\n# A reason\n{ARGUMENTS}\n" + "".join(
-        f"  {difference}\n" for difference in [ARGUMENTS_DIFFERENCE, *PARAGRAPH_DIFFERENCES]
+    listed = (
+        f"# A reason\n{BLOCK_IN_TEXT}\n  {BLOCK_IN_TEXT_DIFFERENCE}\n\n# A reason\n{ARGUMENTS}\n"
+        + "".join(
+            f"  {difference}\n" for difference in [ARGUMENTS_DIFFERENCE, *PARAGRAPH_DIFFERENCES]
+        )
     )
     gone = checker.file(
         "gone.txt", f"{listed}\n# A reason\n{SAME}\n  line 4: ours '@x', texi2any '(nothing)'\n"
     )
     checker.expect(
         "comparison: a listed difference no longer found fails",
-        [*compare, gone, TAB, SAME],
+        [*compare, gone, BLOCK_IN_TEXT, SAME],
         False,
         f"No longer found: {SAME}: line 4",
     )
