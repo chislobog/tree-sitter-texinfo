@@ -4,12 +4,13 @@ The version follows [semantic versioning](https://semver.org/) as the
 tree-sitter documentation describes it for grammars: while it is 0.y.z, a
 change to node types or the tree's structure bumps the minor version.
 
-## Unreleased
+## 0.3.0
 
 Fixes found by a review of the whole project, spell checking in Neovim,
 and a parser with 5,490 states instead of 7,400 (`parser.c` is 11.4 MB, not
 14.5 MB). The tree changes shape in places (a part's node, appendices
-after a part's chapters, a section's node), so the next version is 0.3.0.
+after a part's chapters, a section's node, preformatted text, raised and
+lowered sections), which bumps the minor version.
 
 ### Breaking changes
 

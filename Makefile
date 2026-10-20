@@ -1,6 +1,6 @@
 LANGUAGE_NAME := tree-sitter-texinfo
 HOMEPAGE_URL := https://github.com/chislobog/tree-sitter-texinfo
-VERSION := 0.2.0
+VERSION := 0.3.0
 DESCRIPTION := Texinfo grammar for tree-sitter
 
 # repository
