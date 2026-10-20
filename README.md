@@ -119,9 +119,11 @@ editors without one.
   lists, commands and inline markup.
 - `queries/injections.scm`: LaTeX in `@tex`, `@latex`, `@math` and
   `@displaymath`, HTML in `@html`, XML in `@xml` and `@docbook`, Emacs
-  Lisp in `@lisp` and `@smalllisp`, the language its format names in
-  `@inlineraw{html, ...}`, Texinfo in the bodies of `@macro` definitions,
-  and the `comment` language (notes such as `TODO`) in comments.
+  Lisp in `@lisp` and `@smalllisp` (also the Common Lisp of ASDF's and
+  SBCL's manuals, which the source doesn't tell apart), the language its
+  format names in `@inlineraw{html, ...}`, Texinfo in the bodies of
+  `@macro` definitions, and the `comment` language (notes such as `TODO`)
+  in comments.
 - `queries/folds.scm`: sections, blocks, lists, items, menus and macro
   definitions.
 - `queries/tags.scm`: nodes, anchors, float labels, documented functions,

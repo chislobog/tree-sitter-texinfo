@@ -63,8 +63,11 @@
   (#set! injection.language "latex")
   (#set! injection.include-children))
 
-; Lisp code, which in GNU manuals is mostly Emacs Lisp. Its commands, such
-; as `@var`, are parsed, so include them, as in `@displaymath`.
+; Lisp code, Emacs Lisp in GNU manuals, where most `@lisp` blocks are. Other
+; manuals hold Common Lisp in them (ASDF's, SBCL's, Maxima's), which the
+; Texinfo source doesn't tell apart, and which Emacs Lisp highlights well
+; enough. Its commands, such as `@var`, are parsed, so include them, as in
+; `@displaymath`.
 ((block
   name: (command_name) @_name
   (preformatted) @injection.content)
