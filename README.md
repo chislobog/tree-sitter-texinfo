@@ -97,8 +97,8 @@ block between them leaves the node a `node_line` of its own, where
 the block's `@end`, through raw text that may hold anything.
 
 Block commands only start, and `@end` only ends a block, at the beginning of a
-line; `texi2any` tolerates them elsewhere with a warning. `TODO.md` lists what
-is not done yet.
+line; `texi2any` tolerates them elsewhere with a warning. `docs/design.md`
+says what was done and decided, and why, and `TODO.md` what is still open.
 
 ## Queries
 

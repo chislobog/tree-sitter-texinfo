@@ -279,7 +279,7 @@ def check_edit(
         end = blank.end() if blank else len(edited)
         # A brace left open before a conditional can't close inside it,
         # where texi2any, which has evaluated the conditional, closes it:
-        # it closes after the conditional (TODO.md). A raw block stays
+        # it closes after the conditional (docs/design.md). A raw block stays
         # inside it, as in texi2any, whatever blank lines it holds. Up to
         # the next blank line after them, which may be after more of them.
         previous = None

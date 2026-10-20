@@ -5,7 +5,8 @@ A tree-sitter grammar for GNU Texinfo. The reference for correct behaviour is
 `tta/data/command_data.txt` in the Texinfo sources. Where texi2any's error
 recovery accepts what the Texinfo manual (`examples/texinfo-7.3/texinfo.texi`)
 forbids, such as block commands in the middle of a line, follow the manual.
-`TODO.md` tracks coverage.
+`docs/design.md` records what was done and decided, and why, with what it
+cost; `TODO.md` lists what is open.
 
 The grammar is for structural editing and syntax highlighting, not for
 producing documents. So the tree shows the source as written: conditionals,
@@ -64,7 +65,8 @@ well with incomplete input, which is normal while editing.
   match, raw block bodies, `@verb` bodies (its delimiter is saved state), the
   zero-width `missing_brace` and `missing_end` tokens that close unclosed
   brace commands and blocks, `unmatched_end` for an `@end` that ends no open
-  block, the sectioning commands by their level, as `@raisesections` and
+  block, `misplaced_command` for an item command where it means nothing, the
+  sectioning commands by their level, as `@raisesections` and
   `@lowersections` move them (their count is saved state), the `@node`
   tokens that look ahead to the
   section a node line starts, the zero-width glue between the parts of a
@@ -283,7 +285,9 @@ from the same LLVM version as the compiler (the profile format differs).
   on every call, so asking before each token made a long line's parse
   quadratic. `script/check-edits.py` checks that incremental parsing still
   matches a fresh parse.
-- Update `TODO.md` in the same commit as the work it tracks.
+- Update `docs/design.md` (what was done or decided, why, and its cost in
+  parser states or speed) and `TODO.md` (what stays open) in the same
+  commit as the work.
 - Neovim reads `#match?` regexes as Vim's "very magic" ones, where `@` is
   an operator: write `[@]`, or use `#any-of?`. The `neovim-queries` check
   runs the generated Neovim queries in Neovim.
@@ -299,52 +303,48 @@ from the same LLVM version as the compiler (the profile format differs).
   document with every command it builds from the scanner's tables.
 - Recognise long lists of command names in the scanner, not with keywords in
   the grammar: every keyword is an entry in every parser state where a
-  command can start. Moving 199 keywords to the scanner took `parser.c` from
-  29 MB to 6 MB (`script/parser-size.py` gives its size now).
-  That is the table's size: a few keywords in place of one cost no states.
+  command can start, which makes `parser.c`'s table large, though a few
+  keywords in place of one cost no states.
 - Watch `tree-sitter generate` time (normally about a second) and the
   parser's state count, which has a budget: the `parser-size` check
   (`script/parser-size.py`) fails above it, and more than 10% under it.
   Raise `BUDGET` only with the change that needs it, after measuring why it
-  costs what it does; each feature's few percent went unnoticed, until the
-  parser had twice the states. Optional parts that may be left out
-  anywhere, as a command's comma-separated arguments may be empty, expand
-  into a production for each combination of those present, and the parser
-  into states for each: write them as a chain of hidden rules, one for each
-  position, holding the next (`commaArguments`, and a definition line's
-  words): 13,748 states became 7,139, with the same trees, and generation
-  went from ten seconds to one. Likewise the head of a construct (a block's
-  name, argument and line end) in the rule the outer context follows has
-  states for each set of tokens that may follow the construct: as a hidden
-  rule of its own, ending in `_line_end`, it has one (`_block_head`,
-  `_xref_open`): 7,775 states became 5,447, with the same trees. A change in nested optional sequences once
-  made generation run for over 13 minutes. `tree-sitter generate
-  --report-states-for-rule -` counts the states that each rule's items are
-  in, which shows where they go.
+  costs what it does: a few percent per feature adds up unnoticed. Optional
+  parts that may be left out anywhere, as a command's comma-separated
+  arguments may be empty, expand into a production for each combination of
+  those present, and the parser into states for each: write them as a
+  chain of hidden rules, one for each position, holding the next
+  (`commaArguments`, and a definition line's words). Likewise the head of
+  a construct (a block's name, argument and line end) in the rule the
+  outer context follows has states for each set of tokens that may follow
+  the construct: make it a hidden rule of its own, ending in `_line_end`
+  (`_block_head`, `_xref_open`). Nested optional sequences can make
+  generation take minutes. `tree-sitter generate --report-states-for-rule
+  -` counts the states that each rule's items are in, which shows where
+  they go; `docs/design.md` has what each of these saved.
 - Measure a grammar change's cost before implementing it: generate in a
   scratch copy and read `STATE_COUNT` in `src/parser.c`. An alternative in a
   rule used in many contexts often costs far less as a hidden rule of its own
-  (macro parameters: 979 → 166 states), or allowed only where it occurs. A
-  rule has states of its own for each set of tokens that may follow it, so
-  let the same ones follow it everywhere where that's harmless (a
-  `line_argument` after `@alias` that no `@subentry` could follow: 384
-  states). An alias of a rule listed in `inline` doesn't make a node.
+  (macro parameters), or allowed only where it occurs. A rule has states of
+  its own for each set of tokens that may follow it, so let the same ones
+  follow it everywhere where that's harmless (a `line_argument` after
+  `@alias`, which a `@subentry` may follow too). An alias of a rule listed
+  in `inline` doesn't make a node.
 - Keep the scanner's state to what nests (the stack of open blocks) or lasts
   a token or two (the `@verb` delimiter), and the count of `@raisesections`
   less `@lowersections`, which moves every section after them, so that
   editing one reparses the rest of the file: no tables of names the file
-  defines (macros, `@set` variables, aliases). The scanner once remembered
-  the file's macros, to parse their calls as texi2any does: every token
-  after a definition then carried the table in its state, so adding or
-  renaming a macro reparsed the rest of the file, state over 24 bytes cost
-  a heap copy per token, and macros defined in another file (`@include`)
-  were unknown anyway.
+  defines (macros, `@set` variables, aliases). Every token after a
+  definition would carry such a table in its state, so that adding or
+  renaming a name reparses the rest of the file, state over 24 bytes costs
+  a heap copy per token, and names defined in another file (`@include`)
+  are unknown anyway.
 - Token precedence doesn't stop a longer match by another token valid in the
   same state; make the grammar allow only one of them there instead. And a
   token with precedence is lexed wherever it is valid as the lookahead of a
-  reduction, even where the state the reduction leads to has no use for it:
-  a menu entry's `*` made a `* ` line in a definition's body an error, until
-  the scanner gave an entry's start only in a menu.
+  reduction, even where the state the reduction leads to has no use for it
+  (a menu entry's `*` in a definition's body): let the scanner give such a
+  token only where it belongs.
 - The scanner may choose a token by which others are valid, but the choice
   must be the same before a reduction and after it: a fresh parse lexes the
   token after a node before reducing it, and an incremental one that reuses

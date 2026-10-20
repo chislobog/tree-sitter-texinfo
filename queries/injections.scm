@@ -1,5 +1,5 @@
 ; Raw blocks for other languages. Texinfo commands inside them are not
-; parsed (see TODO.md).
+; parsed (see docs/design.md).
 ((raw_block
   name: (command_name) @_name
   body: (raw_text) @injection.content)
