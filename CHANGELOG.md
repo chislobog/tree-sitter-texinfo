@@ -4,7 +4,10 @@ The version follows [semantic versioning](https://semver.org/) as the
 tree-sitter documentation describes it for grammars: while it is 0.y.z, a
 change to node types or the tree's structure bumps the minor version.
 
-## Unreleased
+## 0.5.0
+
+An `@end` of no block that no longer breaks the rest of the document, and
+parsing 17% faster. Changes to the tree's structure bump the minor version.
 
 ### The tree
 
@@ -22,6 +25,16 @@ change to node types or the tree's structure bumps the minor version.
 
 - A cross-reference to `(manual)node` (`@xref{(emacs)Files}`) is no
   reference tag of this manual's node, as a menu entry's is not.
+
+### Performance
+
+- Parsing takes 17% fewer instructions and cycles, with the same trees: the
+  scanner compares a name's first characters before calling `strcmp` and
+  finds brace commands by a binary search, asks for the column at a
+  paragraph's line end only right after a brace closed there (tree-sitter
+  counts it by reading the line again), and the grammar has fewer hidden
+  rules that each took a reduction of their own. A keystroke in gdb's
+  manual (1.9 MB) reparses in 0.15 ms, not 0.2.
 
 ## 0.4.0
 

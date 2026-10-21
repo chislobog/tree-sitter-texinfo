@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 
 project(tree-sitter-texinfo
-        VERSION "0.4.0"
+        VERSION "0.5.0"
         DESCRIPTION "Texinfo grammar for tree-sitter"
         HOMEPAGE_URL "https://github.com/chislobog/tree-sitter-texinfo"
         LANGUAGES C)
