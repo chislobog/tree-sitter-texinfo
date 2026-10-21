@@ -256,10 +256,10 @@ typedef char block_index_fits_a_byte[BLOCK_COUNT <= 256 ? 1 : -1];
 // body; nested raw blocks of the block's own name are counted to any depth.
 #define MAX_RAW_DEPTH 64
 
-// Serialized state: the `@verb` delimiter, the accent flag and the count of
-// `@raisesections`, then the block stack, which takes the rest of
-// tree-sitter's buffer.
-#define STATE_HEADER (sizeof(int32_t) + 2)
+// Serialized state: the `@verb` delimiter, the flags after an accent and a
+// brace close and the count of `@raisesections`, then the block stack,
+// which takes the rest of tree-sitter's buffer.
+#define STATE_HEADER (sizeof(int32_t) + 3)
 #define MAX_DEPTH (TREE_SITTER_SERIALIZATION_BUFFER_SIZE - STATE_HEADER)
 
 typedef struct {
@@ -270,6 +270,8 @@ typedef struct {
   int32_t verb_delimiter;
   // Whether the last token was the name of an accent command.
   bool after_accent;
+  // Whether the last token was a zero-width close of a brace left open.
+  bool after_brace_close;
   // The `@raisesections` so far less the `@lowersections`, texi2any's
   // sections_level_modifier, which moves the sections after them.
   int8_t section_shift;
@@ -455,7 +457,8 @@ static const char *const PARAGRAPH_ENDING_LINE_COMMANDS[] = {
 // whose skipped arguments may contain blank lines. Only these may have blanks
 // before their brace. Any other command, a macro call or a command texi2any
 // doesn't know, also ends at a blank line (in grammar.js), although in
-// texi2any a macro call's arguments may contain one.
+// texi2any a macro call's arguments may contain one. Sorted, for a binary
+// search (script/check-scanner.py checks it).
 static const char *const BRACE_COMMANDS[] = {"AA",
                                              "AE",
                                              "DH",
@@ -573,6 +576,24 @@ static bool in_table(const char *const *table, size_t count, const char *name) {
 }
 
 #define TABLE_COUNT(table) (sizeof(table) / sizeof(table[0]))
+
+// Whether `name` is in a table sorted by strcmp.
+static bool in_sorted_table(const char *const *table, size_t count,
+                            const char *name) {
+  size_t low = 0;
+  size_t high = count;
+  while (low < high) {
+    size_t middle = low + (high - low) / 2;
+    int order = strcmp(table[middle], name);
+    if (order == 0) return true;
+    if (order < 0) {
+      low = middle + 1;
+    } else {
+      high = middle;
+    }
+  }
+  return false;
+}
 
 /**
  * Whether `@name` at the start of a line is a line command. Commands ending
@@ -1557,6 +1578,7 @@ unsigned tree_sitter_texinfo_external_scanner_serialize(void *payload,
   memcpy(buffer, &scanner->verb_delimiter, sizeof(int32_t));
   size += sizeof(int32_t);
   buffer[size++] = (char)scanner->after_accent;
+  buffer[size++] = (char)scanner->after_brace_close;
   buffer[size++] = (char)scanner->section_shift;
   memcpy(buffer + size, scanner->stack, scanner->depth);
   return size + scanner->depth;
@@ -1568,6 +1590,7 @@ void tree_sitter_texinfo_external_scanner_deserialize(void *payload,
   Scanner *scanner = payload;
   scanner->verb_delimiter = 0;
   scanner->after_accent = false;
+  scanner->after_brace_close = false;
   scanner->section_shift = 0;
   scanner->depth = 0;
   if (length < STATE_HEADER) return;
@@ -1575,6 +1598,7 @@ void tree_sitter_texinfo_external_scanner_deserialize(void *payload,
   memcpy(&scanner->verb_delimiter, buffer, sizeof(int32_t));
   size += sizeof(int32_t);
   scanner->after_accent = buffer[size++];
+  scanner->after_brace_close = buffer[size++];
   scanner->section_shift = (int8_t)buffer[size++];
   scanner->depth = length - size;
   if (scanner->depth > MAX_DEPTH) scanner->depth = MAX_DEPTH;
@@ -1694,7 +1718,7 @@ static int command_token(const Scanner *scanner, const bool *valid_symbols,
     return NO_PARAGRAPH_COMMAND_NAME;
   }
   if (valid_symbols[BRACE_COMMAND_NAME] &&
-      in_table(BRACE_COMMANDS, TABLE_COUNT(BRACE_COMMANDS), name)) {
+      in_sorted_table(BRACE_COMMANDS, TABLE_COUNT(BRACE_COMMANDS), name)) {
     return BRACE_COMMAND_NAME;
   }
   return -1;
@@ -1725,15 +1749,11 @@ static bool in_raw_text(const bool *valid_symbols) {
  * Then a command at `@`, by its name. The first stage only skips blanks
  * before giving up, so the second sees the same text; a scan of it that has
  * read further fails the whole scan, as a scan can't go back.
+ * `after_brace_close` is whether the last token was a zero-width close of a
+ * brace.
  */
-bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
-                                               const bool *valid_symbols) {
-  Scanner *scanner = payload;
-
-  // During error recovery every symbol is valid; let the internal lexer
-  // handle it rather than pushing or popping blocks speculatively.
-  if (valid_symbols[ERROR_SENTINEL]) return false;
-
+static bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symbols,
+                 bool after_brace_close) {
   // tree-sitter restores the state saved after the last external token
   // before each scan, so this is only set right after an accent's name.
   bool after_accent = scanner->after_accent;
@@ -1816,11 +1836,14 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
 
   // Right after a brace closed at a blank line there, the paragraph ends
   // too; at an `@end` or a block, it does so when the name has been read.
+  // Only a brace closed there ends a paragraph's line at the start of the
+  // next: elsewhere, at the end of each of its lines, the column isn't
+  // asked, which tree-sitter counts by reading the line again.
   if (paragraph_end) {
     lexer->mark_end(lexer);
     skip_counted(&start, false);
     if ((lexer->lookahead == '\n' || lexer->lookahead == '\r') &&
-        starts_line(&start)) {
+        after_brace_close && starts_line(&start)) {
       lexer->result_symbol = PARAGRAPH_END_AT_LINE_START;
       return true;
     }
@@ -2028,4 +2051,24 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
   // read_name stops at the first character that can't be part of a name, so
   // `@html@c` opens a raw block, as in texi2any.
   return scan_block_start(scanner, lexer, valid_symbols, name);
+}
+
+bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
+                                               const bool *valid_symbols) {
+  Scanner *scanner = payload;
+
+  // During error recovery every symbol is valid; let the internal lexer
+  // handle it rather than pushing or popping blocks speculatively.
+  if (valid_symbols[ERROR_SENTINEL]) return false;
+
+  // tree-sitter restores the state saved after the last external token
+  // before each scan, so this is only set right after a brace's close.
+  bool after_brace_close = scanner->after_brace_close;
+  scanner->after_brace_close = false;
+  if (!scan(scanner, lexer, valid_symbols, after_brace_close)) return false;
+  scanner->after_brace_close =
+      lexer->result_symbol == BRACE_CLOSE_AT_PARAGRAPH_END ||
+      lexer->result_symbol == BRACE_CLOSE_AT_BLOCK_END ||
+      lexer->result_symbol == BRACE_CLOSE_AT_LINE_END;
+  return true;
 }

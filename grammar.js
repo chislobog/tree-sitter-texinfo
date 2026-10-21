@@ -257,6 +257,21 @@ const lineCommand = ($, name, end) => seq(choice(
 ), end);
 
 /**
+ * The lines of an ordinary brace command's arguments or of a brace group,
+ * separated by single newlines (`brace_arguments`).
+ *
+ * @param {GrammarSymbols<string>} $
+ */
+const braceContent = ($) => choice(
+  seq(
+    choice($._brace_first_line, seq($._newlines, $._brace_line)),
+    repeat(seq($._newlines, $._brace_line)),
+    optional($._newlines),
+  ),
+  $._newlines,
+);
+
+/**
  * The end of an ordinary brace command's braces: its `}`, or a zero-width
  * `missing_brace` where texi2any closes it, at a blank line or the `@end` of
  * an enclosing block.
@@ -1608,16 +1623,13 @@ export default grammar({
     // line, but a line command not right after the `{`.
     // Elsewhere the scanner closes the command before a blank line, but in a
     // preformatted block it may continue past one, as in texi2any.
-    brace_arguments: $ => $._brace_content,
+    // The lines themselves, not a hidden rule holding them, which would
+    // take a reduction of its own for every brace command (2% of the
+    // parse; 9 parser states).
+    brace_arguments: $ => braceContent($),
 
-    _brace_content: $ => choice(
-      seq(
-        choice($._brace_first_line, seq($._newlines, $._brace_line)),
-        repeat(seq($._newlines, $._brace_line)),
-        optional($._newlines),
-      ),
-      $._newlines,
-    ),
+    // A brace group's.
+    _brace_content: $ => braceContent($),
 
     _newlines: $ => repeat1($._newline),
 

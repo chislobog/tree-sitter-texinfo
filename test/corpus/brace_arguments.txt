@@ -923,6 +923,32 @@ Next paragraph.
     (text)))
 
 ================================================================================
+An unclosed brace ends its paragraph at a blank line after a line command
+================================================================================
+
+Some @code{open
+@cindex entry
+
+Next paragraph.
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (text)
+        (line_command
+          name: (command_name)
+          argument: (line_argument
+            (text))))
+      (missing_brace)))
+  (paragraph
+    (text)))
+
+================================================================================
 An unclosed brace ends at its block's end after a line command
 ================================================================================
 

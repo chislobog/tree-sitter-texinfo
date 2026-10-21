@@ -10876,8 +10876,68 @@
       }
     },
     "brace_arguments": {
-      "type": "SYMBOL",
-      "name": "_brace_content"
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SEQ",
+          "members": [
+            {
+              "type": "CHOICE",
+              "members": [
+                {
+                  "type": "SYMBOL",
+                  "name": "_brace_first_line"
+                },
+                {
+                  "type": "SEQ",
+                  "members": [
+                    {
+                      "type": "SYMBOL",
+                      "name": "_newlines"
+                    },
+                    {
+                      "type": "SYMBOL",
+                      "name": "_brace_line"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "REPEAT",
+              "content": {
+                "type": "SEQ",
+                "members": [
+                  {
+                    "type": "SYMBOL",
+                    "name": "_newlines"
+                  },
+                  {
+                    "type": "SYMBOL",
+                    "name": "_brace_line"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "CHOICE",
+              "members": [
+                {
+                  "type": "SYMBOL",
+                  "name": "_newlines"
+                },
+                {
+                  "type": "BLANK"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_newlines"
+        }
+      ]
     },
     "_brace_content": {
       "type": "CHOICE",

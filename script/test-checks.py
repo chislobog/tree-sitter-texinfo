@@ -351,6 +351,11 @@ def check_scanner(checker: Checker):
             "@fooindex in BRACE_COMMANDS ends in `index`",
         ),
         (
+            "brace commands out of order",
+            (re.compile(r'\{"AA",(\s*)"AE",'), r'{"AE",\1"AA",'),
+            "BRACE_COMMANDS isn't sorted",
+        ),
+        (
             "an accent that isn't a brace command",
             (re.compile(r'\n *"ogonek",'), ""),
             "the accent @ogonek isn't in BRACE_COMMANDS",

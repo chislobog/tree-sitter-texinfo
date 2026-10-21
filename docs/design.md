@@ -781,16 +781,29 @@ Deliberate, so the tree shows the source as it is written and edited:
   the reductions of a paragraph's line (`_line`) and of a brace command's
   first line, 15% of all, are gone, as both are inlined (6 parser states
   fewer, the same trees). A keystroke in gdb's manual takes 0.17 ms, not
-  0.2. Not worth it: a binary search in sorted tables (1% fewer
-  instructions, no faster) and inlining 14 more hidden rules at no cost in
-  states (1.5%). What remains is mostly tree-sitter's own: the parse
-  (reductions, building and freeing the tree) takes over half the time,
-  the internal lexer, reading text a character at a time, a quarter, the
-  scanner under a fifth, of which 3% is the column asked at each line end
-  in a paragraph, which tree-sitter counts by reading the line again from
-  its start: it tells the start of a blank line, where a line command
-  inside braces took the newline before it and the paragraph ends, from
-  the end of a line
+  0.2. Not worth it: inlining 14 more hidden rules at no cost in states
+  (1.5% fewer instructions)
+- Then 5% faster (7% fewer instructions, 17% fewer than before both):
+  the column the scanner asked at the end of each line of a paragraph, to
+  tell the start of a blank line where a brace left open closed after a
+  line command inside it took the newline, which ends the paragraph, took
+  3% of the time, as tree-sitter counts it by reading the line again from
+  its start. The scanner asks it only right after such a close now, which
+  its state records, as it does an accent's name (a test of that end, which
+  only three of texi2any's test inputs had). `brace_arguments` holds its
+  lines itself rather than through a hidden rule, a reduction fewer for
+  each brace command (2%; 9 parser states), and the brace commands, which
+  the scanner looks a name up in last, by a binary search (1%). Not worth
+  it: a binary search in the other tables (no faster), `paragraph` holding
+  its lines itself (1%, for 99 states), and plain text as an external
+  token, read by the scanner without the internal lexer's calls for each
+  character (3%; the scanner would have to know where another of the
+  internal lexer's tokens takes precedence over text, as `@alias`'s name
+  does). What remains is mostly tree-sitter's own: the parse (reductions,
+  building and freeing the tree) takes over half the time, the internal
+  lexer, reading text a character at a time, a quarter, the scanner a
+  sixth. Two in five leaves are allocated on the heap, which tree-sitter
+  does for every external token and every newline
 - Parse errors and parse speed of the manuals checked
   (`script/parse-examples.py`, timing each parse's CPU time); texi2any's
   test inputs and the manuals fuzzed with `tree-sitter fuzz`, from a corpus

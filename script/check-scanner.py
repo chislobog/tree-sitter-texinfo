@@ -16,7 +16,8 @@
   `LINE_KEYWORDS`, so that preformatted text doesn't start at them.
 - The tables of command names don't overlap, nor end in `index` (which
   makes a line command), so the order in which the scanner tries them
-  doesn't matter; and the accents without braces are brace commands.
+  doesn't matter; the accents without braces are brace commands; and
+  `BRACE_COMMANDS` is sorted, for its binary search.
 - The names are texi2any's (the texi2any on the path), in its classes: the
   line commands are its line commands, those that end a paragraph its
   `close_paragraph_commands` and the others not; the brace commands its
@@ -353,6 +354,9 @@ def check_names(source: str) -> list[str]:
         if first not in ("LINE_COMMANDS", "PARAGRAPH_ENDING_LINE_COMMANDS"):
             for name in sorted(n for n in tables[first] if len(n) > 5 and n.endswith("index")):
                 problems.append(f"@{name} in {first} ends in `index`, which makes a line command")
+    brace = c_strings(source, "BRACE_COMMANDS")
+    if brace != sorted(brace):
+        problems.append("BRACE_COMMANDS isn't sorted, which its binary search needs")
     for name in sorted(set(c_strings(source, "LETTER_ACCENTS")) - tables["BRACE_COMMANDS"]):
         problems.append(f"the accent @{name} isn't in BRACE_COMMANDS")
     return problems
