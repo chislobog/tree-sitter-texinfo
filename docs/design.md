@@ -773,6 +773,24 @@ Deliberate, so the tree shows the source as it is written and edited:
   only where the answer decides the token now, and the parse check times
   generated long lines too (`--stress`), as no manual has a line over a
   kilobyte (found by review)
+- Parsing 12% faster, profiled with a harness linking tree-sitter's C
+  library (the manuals' 42 MB in 1.72 s on one core, not 1.96 s; 10% fewer
+  instructions): a tenth of the time went to `strcmp`, as the scanner
+  compares a command's name with every name in its tables, a few hundred
+  for a brace command, which now compares the first characters first; and
+  the reductions of a paragraph's line (`_line`) and of a brace command's
+  first line, 15% of all, are gone, as both are inlined (6 parser states
+  fewer, the same trees). A keystroke in gdb's manual takes 0.17 ms, not
+  0.2. Not worth it: a binary search in sorted tables (1% fewer
+  instructions, no faster) and inlining 14 more hidden rules at no cost in
+  states (1.5%). What remains is mostly tree-sitter's own: the parse
+  (reductions, building and freeing the tree) takes over half the time,
+  the internal lexer, reading text a character at a time, a quarter, the
+  scanner under a fifth, of which 3% is the column asked at each line end
+  in a paragraph, which tree-sitter counts by reading the line again from
+  its start: it tells the start of a blank line, where a line command
+  inside braces took the newline before it and the paragraph ends, from
+  the end of a line
 - Parse errors and parse speed of the manuals checked
   (`script/parse-examples.py`, timing each parse's CPU time); texi2any's
   test inputs and the manuals fuzzed with `tree-sitter fuzz`, from a corpus

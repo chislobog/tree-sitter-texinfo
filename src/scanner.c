@@ -386,9 +386,16 @@ static bool read_name(TSLexer *lexer, char *name) {
   return false;
 }
 
+// Whether two names are the same, comparing the first characters before
+// calling strcmp: most names in a table differ from the one sought in
+// them, and calling it for each took a tenth of the parse's time.
+static inline bool same_name(const char *a, const char *b) {
+  return a[0] == b[0] && strcmp(a, b) == 0;
+}
+
 static int find_block(const char *name) {
   for (unsigned i = 0; i < BLOCK_COUNT; i++) {
-    if (strcmp(BLOCKS[i].name, name) == 0) return (int)i;
+    if (same_name(BLOCKS[i].name, name)) return (int)i;
   }
   return -1;
 }
@@ -560,7 +567,7 @@ static const char *const BRACE_COMMANDS[] = {"AA",
 
 static bool in_table(const char *const *table, size_t count, const char *name) {
   for (size_t i = 0; i < count; i++) {
-    if (strcmp(table[i], name) == 0) return true;
+    if (same_name(table[i], name)) return true;
   }
   return false;
 }
@@ -618,7 +625,7 @@ static const struct {
 static bool is_root_command(const char *name) {
   if (strcmp(name, "node") == 0 || strcmp(name, "bye") == 0) return true;
   for (unsigned i = 0; i < SECTIONING_COUNT; i++) {
-    if (strcmp(SECTIONING[i].name, name) == 0) return true;
+    if (same_name(SECTIONING[i].name, name)) return true;
   }
   return false;
 }
@@ -632,7 +639,7 @@ static bool is_root_command(const char *name) {
  */
 static int section_level(const char *name, int shift) {
   for (unsigned i = 0; i < SECTIONING_COUNT; i++) {
-    if (strcmp(SECTIONING[i].name, name) != 0) continue;
+    if (!same_name(SECTIONING[i].name, name)) continue;
     int level = SECTIONING[i].level;
     if (level < 2 || shift == 0) return level;
     // texi2any's level, from the chapter's 1 to the subsubsection's 4.

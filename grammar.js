@@ -334,7 +334,16 @@ export default grammar({
   // where no `@deffnx` came after it, stayed one when an `@deffnx` did:
   // tree-sitter doesn't reuse a node built in a conflict, but this one
   // wasn't. Found by `tree-sitter fuzz`; inlined, they cost 4 parser states.
-  inline: $ => [$._paragraph_line_commands, $._body_start, $._between_lines],
+  // A line of inline content, the most common node of all, and a brace
+  // command's first line: inlined, they save a reduction each, 15% of all
+  // in the large manuals, which parse 5% faster, and 6 parser states.
+  inline: $ => [
+    $._paragraph_line_commands,
+    $._body_start,
+    $._between_lines,
+    $._line,
+    $._brace_first_line,
+  ],
 
   // Every section, for queries: `(_section)`.
   supertypes: $ => [$._section],

@@ -11762,7 +11762,9 @@
   "inline": [
     "_paragraph_line_commands",
     "_body_start",
-    "_between_lines"
+    "_between_lines",
+    "_line",
+    "_brace_first_line"
   ],
   "supertypes": [
     "_section"
