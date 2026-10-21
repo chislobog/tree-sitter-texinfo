@@ -14,6 +14,14 @@ build/corpus/lists/a-misplaced-item-command-at-the-start-of-an-item-s-next-line-
   line 3: <p> arguments: ours 'item enumerate itemx enumerate headitem enumerate', texi2any 'item enumerate'
   line 5: paragraphs: ours '(nothing)', texi2any '<p> </p>'
 
+# Deliberate: an `@itemx` or `@tab` right after a list's head, before its first item, is a `misplaced_command` node that leaves the paragraph after it whole, where texi2any keeps an `@itemx` as a line command; after other lines, where a macro call may have made an item (coreutils' `@optItem`), the tree doesn't report it, where texi2any does ("@itemx should not begin @table")
+build/corpus/lists/an-item-command-right-after-a-list-s-head-is-misplaced-as-texi2any-reports.texi
+  line 5: ours '(nothing)', texi2any '@itemx'
+  line 5: @itemx arguments: ours '(none)', texi2any 'b'
+  line 3: <p> arguments: ours 'a Intro b', texi2any 'Intro'
+  line 3: paragraphs: ours '(nothing)', texi2any '</p>'
+  line 5: paragraphs: ours '</p>', texi2any '(nothing)'
+
 # Deliberate: an item command where it means nothing (texi2any reports it outside of a table or list, or not meaningful in it) is a `misplaced_command` node that leaves the paragraph around it whole, so that typing one changes nothing around it; texi2any ends the paragraph at it, and keeps a misplaced `@itemx` as a line command, where the tree has the rest of the line as text
 build/corpus/lists/item-commands-a-list-has-no-use-for-are-misplaced-as-texi2any-reports.texi
   line 7: ours '(nothing)', texi2any '@itemx'
@@ -413,11 +421,6 @@ texinfo-tests/20preformatted/text_on_example_command_line.texi
 texinfo-tests/21multitable/empty_multitable_with_cells.texi
   line 2: ours '@item @tab @tab @item', texi2any '(nothing)'
 
-# Invalid input; texi2any reports at line 2: @tab before @item
-texinfo-tests/21multitable/multitable_begin_with_tab.texi
-  line 2: ours '@tab', texi2any '(nothing)'
-  line 6: ours '@tab', texi2any '(nothing)'
-
 # Invalid input; texi2any reports at line 2: too many columns in multitable item (max 1)
 texinfo-tests/21multitable/multitable_one_column_too_much_cells.texi
   line 2: ours '@tab @tab @tab', texi2any '(nothing)'
@@ -435,15 +438,13 @@ texinfo-tests/21multitable/not_letters_in_prototype.texi
 
 # Invalid input; texi2any reports at line 3: @itemx should not begin @table
 texinfo-tests/22xtable/comment_and_itemx_before_item.texi
-  line 3: @itemx arguments: ours '(none)', texi2any 'in itemx'
-  line 3: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 3: paragraphs: ours '</p>', texi2any '(nothing)'
+  line 4: ours '(nothing)', texi2any '@itemx'
+  line 3: paragraphs: ours '<p> </p>', texi2any '(nothing)'
 
 # Invalid input; texi2any reports at line 2: @itemx should not begin @table
 texinfo-tests/22xtable/itemx_before_item.texi
-  line 2: @itemx arguments: ours '(none)', texi2any 'in itemx'
-  line 2: paragraphs: ours '<p>', texi2any '(nothing)'
-  line 2: paragraphs: ours '</p>', texi2any '(nothing)'
+  line 3: ours '(nothing)', texi2any '@itemx'
+  line 2: paragraphs: ours '<p> </p>', texi2any '(nothing)'
 
 # Invalid input; texi2any reports at line 3: @itemx should not begin @table
 texinfo-tests/22xtable/title_and_itemx_before_item.texi

@@ -84,7 +84,8 @@ braces in Calc's and Gnus's `@iftex` blocks do), or typed by mistake. And an
 `@` before a character that starts no command, a symbol or an accent (`@#`)
 is an `unexpected_at` node, with that character, which `texi2any` reports
 too, and so is an `@item`, `@itemx`, `@headitem` or `@tab` where it means
-nothing (outside a list, or `@tab` in a `@table`), a `misplaced_command`
+nothing (outside a list, `@tab` in a `@table`, or an `@itemx` or `@tab`
+right after a list's head, before its first item), a `misplaced_command`
 node. Editors that report tree-sitter errors should also report these six
 nodes.
 

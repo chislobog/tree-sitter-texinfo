@@ -788,6 +788,71 @@ A misplaced item command at the start of an item's next line stays in its paragr
     end: (block_end)))
 
 ================================================================================
+An item command right after a list's head is misplaced, as texi2any reports
+================================================================================
+
+@table @asis
+@itemx a
+Intro.
+@itemx b
+@item c
+@itemx d
+@end table
+
+@multitable {a} {b}
+@c a comment
+@tab x
+@item a @tab b
+@end multitable
+
+---
+
+(source_file
+  (list
+    name: (command_name)
+    argument: (line_argument
+      (inline_command
+        name: (command_name)))
+    (misplaced_command)
+    (paragraph
+      (text)
+      (text)
+      (inline_command
+        name: (command_name))
+      (text))
+    (item
+      name: (command_name)
+      argument: (line_argument
+        (text))
+      (itemx
+        name: (command_name)
+        argument: (line_argument
+          (text))))
+    end: (block_end))
+  (list
+    name: (command_name)
+    argument: (line_argument
+      (brace_group
+        (text))
+      (brace_group
+        (text)))
+    (comment)
+    (misplaced_command)
+    (paragraph
+      (text))
+    (item
+      name: (command_name)
+      (cell
+        (paragraph
+          (text)))
+      (tab
+        name: (command_name)
+        (cell
+          (paragraph
+            (text)))))
+    end: (block_end)))
+
+================================================================================
 An item command in raw text is raw text
 ================================================================================
 

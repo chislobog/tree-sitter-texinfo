@@ -13,6 +13,10 @@ change to node types or the tree's structure bumps the minor version.
   ignores it: it closed every open block but conditionals, which broke the
   rest of the document. It is an `unmatched_end` node in the paragraph,
   preformatted text or brace command it is in, which goes on past it.
+- An `@itemx` or `@tab` right after a table's or multitable's head, before
+  its first item, is a `misplaced_command`, as texi2any reports it: it was
+  an `inline_command`. Further on, where a macro call may have made an
+  item, it stays one.
 
 ## 0.4.0
 

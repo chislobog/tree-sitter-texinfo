@@ -109,6 +109,10 @@ enum TokenType {
   // An `@end` of no block, or without a name, in a paragraph, which it
   // doesn't end.
   PARAGRAPH_UNMATCHED_END,
+  // `@itemx` in a table, or `@tab` in a multitable, right after its head,
+  // and the line end of a blank or comment line before it.
+  LEADING_ITEM_COMMAND,
+  LEADING_NEWLINE,
   ERROR_SENTINEL,
 };
 
@@ -1065,6 +1069,46 @@ static bool starts_item(const Scanner *scanner, const char *name) {
 }
 
 /**
+ * Whether an item command that starts an item or a cell in its list
+ * (starts_item) means nothing where it is, right after the list's head,
+ * where the grammar takes it: an `@itemx` or `@tab` before any item, as
+ * texi2any reports ("@itemx should not begin @table", "@tab before
+ * @item"). Not later, where a macro call may have made an item.
+ */
+static bool leading_item_command(const Scanner *scanner, const char *name) {
+  return (strcmp(name, "itemx") == 0 || strcmp(name, "tab") == 0) &&
+         starts_item(scanner, name);
+}
+
+/**
+ * Scans the line end of a blank or comment line right after a list's head
+ * when more of them, then an `@itemx` or `@tab` that means nothing there
+ * (leading_item_command), follow: a token of its own, which the next lines
+ * decide, as the grammar takes such a command only right after the head.
+ */
+static bool scan_leading_newline(const Scanner *scanner, TSLexer *lexer) {
+  advance(lexer);
+  lexer->mark_end(lexer);
+  lexer->result_symbol = LEADING_NEWLINE;
+  for (;;) {
+    while (at_blank(lexer) || lexer->lookahead == '\r') advance(lexer);
+    if (lexer->lookahead == '\n') {
+      advance(lexer);
+      continue;
+    }
+    if (lexer->lookahead != '@') return false;
+    advance(lexer);
+    char name[MAX_NAME + 1];
+    if (!read_name(lexer, name)) return false;
+    if (strcmp(name, "c") == 0 || strcmp(name, "comment") == 0) {
+      skip_to_next_line(lexer);
+      continue;
+    }
+    return leading_item_command(scanner, name);
+  }
+}
+
+/**
  * Scans the rest of the line after the `@end` of a block in a paragraph, up
  * to a comment, as one text: texi2any reports it, keeping it in the `@end`
  * line. A comment right after the blanks fails the scan, as the second stage
@@ -1855,6 +1899,10 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
     return accept(lexer, PREFORMATTED_START);
   }
 
+  // A blank or comment line's end right after a list's head.
+  if (valid_symbols[LEADING_NEWLINE] && lexer->lookahead == '\n') {
+    return scan_leading_newline(scanner, lexer);
+  }
   if (lexer->lookahead != '@') return false;
   // Zero-width tokens end here; every other token marks its own end.
   lexer->mark_end(lexer);
@@ -1936,6 +1984,11 @@ bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,
   if (valid_symbols[MISPLACED_COMMAND] && is_item_command(name) &&
       !starts_item(scanner, name) && !in_raw_text(valid_symbols)) {
     return accept(lexer, MISPLACED_COMMAND);
+  }
+  // And one before a list's first item, right after its head.
+  if (valid_symbols[LEADING_ITEM_COMMAND] &&
+      leading_item_command(scanner, name)) {
+    return accept(lexer, LEADING_ITEM_COMMAND);
   }
 
   if (strcmp(name, "node") == 0) {

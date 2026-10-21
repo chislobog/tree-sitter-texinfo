@@ -1541,6 +1541,10 @@
           "named": true
         },
         {
+          "type": "misplaced_command",
+          "named": true
+        },
+        {
           "type": "node_line",
           "named": true
         },

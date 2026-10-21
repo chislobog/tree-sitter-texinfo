@@ -435,6 +435,11 @@ export default grammar({
     // An `@end` of no block, or without a name, in a paragraph, which
     // texi2any warns of and ignores: it doesn't end the paragraph.
     $._paragraph_unmatched_end,
+    // `@itemx` in a table, or `@tab` in a multitable, right after its head,
+    // where it means nothing, and the line end of a blank or comment line
+    // before it.
+    $._leading_item_command,
+    $._leading_newline,
     // Valid only during error recovery, when tree-sitter marks every token
     // valid: the scanner then returns nothing.
     $._error_sentinel,
@@ -1208,6 +1213,7 @@ export default grammar({
       field('name', alias($._list_start, $.command_name)),
       optional(field('argument', $.line_argument)),
       $._line_end,
+      optional($._leading_item_command_line),
     ),
 
     _multitable_head: $ => seq(
@@ -1217,6 +1223,20 @@ export default grammar({
         alias($._column_fractions, $.line_argument),
       ))),
       $._line_end,
+      optional($._leading_item_command_line),
+    ),
+
+    // An `@itemx` or `@tab` right after a list's head, past blank and comment
+    // lines, which texi2any reports ("@itemx should not begin @table", "@tab
+    // before @item"), is misplaced; the rest of its line is the list's
+    // content. Not after other lines, where a macro call may have made an
+    // item, as coreutils' `@optItem` does. In the head, whose line end is
+    // the only token it follows (9 parser states, where after the head it
+    // cost 292). The scanner gives the blank and comment lines' line ends
+    // their token where such a command follows them.
+    _leading_item_command_line: $ => seq(
+      repeat($._leading_newline),
+      alias($._leading_item_command, $.misplaced_command),
     ),
 
     _menu_head: $ => seq(

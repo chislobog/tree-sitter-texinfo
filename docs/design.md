@@ -563,6 +563,19 @@ Deliberate, so the tree shows the source as it is written and edited:
   brace command's name being valid chose differently after an incremental
   parse reused the paragraph before the command, where only an item's or
   the list's end is (found by fuzzing texi2any's test inputs)
+- Before a list's first item, an `@itemx` in a table or a `@tab` in a
+  multitable means nothing too, as texi2any reports ("@itemx should not
+  begin @table", "@tab before @item"), but was an `inline_command`, which
+  no editor reports (found by review). Only right after the list's head,
+  past blank and comment lines, is it a `misplaced_command`: further on, a
+  macro call may have made an item, as coreutils' `@optItem` makes its
+  `@item`, and an `@itemx` after it is right. Telling the item before it by
+  the `@itemx`'s token being valid, a token of the scanner's in place of
+  its keyword, reported every one in coreutils' tables. The grammar takes
+  the command in the head, after its line end (9 parser states; after the
+  head, where every token that may follow it gave its states copies, 292),
+  and the line ends of the blank and comment lines before it by a token
+  the scanner gives them where such a command follows
 - A brace on the line after its command (`@code` then `{a}`), which texi2any
   accepts with a warning that the command "must not be followed by new
   line": the brace starts a group
