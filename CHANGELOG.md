@@ -4,6 +4,20 @@ The version follows [semantic versioning](https://semver.org/) as the
 tree-sitter documentation describes it for grammars: while it is 0.y.z, a
 change to node types or the tree's structure bumps the minor version.
 
+## 0.5.1
+
+Parsing 6% faster, with the same trees, and a smaller parser.
+
+### Performance
+
+- Parsing takes 6% fewer instructions (the manuals' 42 MB in 1.40 s on one
+  core, not 1.51): the scanner looks a command's name up once, in one
+  sorted table that gives its classes, where it compared it with about a
+  hundred names in several tables; and the grammar has fewer reductions
+  (8% fewer), as eight more hidden rules are inlined and a paragraph ends
+  on its newline itself. The parser has 74 states fewer, and `parser.c` is
+  12.1 MB, not 12.4.
+
 ## 0.5.0
 
 An `@end` of no block that no longer breaks the rest of the document, and
