@@ -18,6 +18,11 @@ change to node types or the tree's structure bumps the minor version.
   an `inline_command`. Further on, where a macro call may have made an
   item, it stays one.
 
+### Queries
+
+- A cross-reference to `(manual)node` (`@xref{(emacs)Files}`) is no
+  reference tag of this manual's node, as a menu entry's is not.
+
 ## 0.4.0
 
 Errors editors can report where an item command means nothing, the text

@@ -662,7 +662,9 @@ Deliberate, so the tree shows the source as it is written and edited:
   brace (as in `info-stnd.texi`)
 - No reference tag for a cross-reference to another manual (with a
   file or manual argument) or a menu entry's `(manual)node`, which named a
-  local node of the same name (found by review). Their tests are in
+  local node of the same name (found by review); nor, since a later
+  review, for a cross-reference's `(manual)node` (`@xref{(emacs)Files}`),
+  which still did. Their tests are in
   `test/queries/tags/`, as tree-sitter 0.26.11's tags tests read `!NAME`
   as `NAME`
 - Register queries in `tree-sitter.json` (highlights, injections and

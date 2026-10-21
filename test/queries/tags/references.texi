@@ -3,6 +3,8 @@ See @xref{Overview} and @xref{Invoking, , , make, GNU Make}.
 @c                           ^ !reference.node
 And @ref{Top, , , (emacs)}.
 @c       ^ !reference.node
+Or @pxref{(emacs)Files}.
+@c         ^ !reference.node
 
 @menu
 * Overview::

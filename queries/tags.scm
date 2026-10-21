@@ -15,11 +15,12 @@
   anchor: (comma_argument) @name) @definition.anchor
 
 ; Not to a node of another manual: a cross-reference with a file or manual,
-; a menu entry's `(manual)node`.
-(inline_command
+; or to `(manual)node`, as a menu entry's may be.
+((inline_command
   node: (comma_argument) @name
   !file
   !manual) @reference.node
+  (#not-match? @name "^[(]"))
 
 ((menu_entry
   node: (menu_node) @name) @reference.node
