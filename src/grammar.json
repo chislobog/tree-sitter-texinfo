@@ -4161,6 +4161,33 @@
                   "type": "ALIAS",
                   "content": {
                     "type": "SYMBOL",
+                    "name": "_paragraph_unmatched_end"
+                  },
+                  "named": true,
+                  "value": "unmatched_end"
+                },
+                {
+                  "type": "CHOICE",
+                  "members": [
+                    {
+                      "type": "SYMBOL",
+                      "name": "_line_end"
+                    },
+                    {
+                      "type": "SYMBOL",
+                      "name": "_comment_lines"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "ALIAS",
+                  "content": {
+                    "type": "SYMBOL",
                     "name": "_paragraph_line_command_before_comments"
                   },
                   "named": true,
@@ -6643,6 +6670,19 @@
         {
           "type": "SYMBOL",
           "name": "line_command"
+        },
+        {
+          "type": "SEQ",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "unmatched_end"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "_line_end"
+            }
+          ]
         },
         {
           "type": "SYMBOL",
@@ -11656,6 +11696,10 @@
     {
       "type": "SYMBOL",
       "name": "misplaced_command"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_paragraph_unmatched_end"
     },
     {
       "type": "SYMBOL",

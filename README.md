@@ -74,7 +74,10 @@ zero-width `missing_end` node; but a conditional only ends at its `@end`, as
 it may hold whole sections. An `@end` of an enclosing block
 closes the blocks inside it with `missing_end`, as in `texi2any`; one of a
 block that isn't open closes the open blocks (but not conditionals), and is
-then an `unmatched_end` node, which `texi2any` reports and ignores. So is a
+then an `unmatched_end` node, which `texi2any` reports and ignores. An `@end`
+of no block at all, such as a typo, or without a name, is one too, but
+closes nothing, not even the paragraph it is in, as `texi2any` ignores it
+with a warning. So is a
 `}` that closes nothing, an `unmatched_brace` node: after a brace command
 closed at a blank line, or at the end of a conditional it crossed (as TeX
 braces in Calc's and Gnus's `@iftex` blocks do), or typed by mistake. And an

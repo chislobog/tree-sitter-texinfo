@@ -432,6 +432,9 @@ export default grammar({
     // `@item`, `@itemx`, `@headitem` or `@tab` where it means nothing:
     // outside a list, or in one with no use for it.
     $.misplaced_command,
+    // An `@end` of no block, or without a name, in a paragraph, which
+    // texi2any warns of and ignores: it doesn't end the paragraph.
+    $._paragraph_unmatched_end,
     // Valid only during error recovery, when tree-sitter marks every token
     // valid: the scanner then returns nothing.
     $._error_sentinel,
@@ -634,10 +637,15 @@ export default grammar({
     // index entries, `@include`, `@set`, ... The scanner gives the others
     // their usual token, as they end it. Comment lines after one, the
     // paragraph's, start with its newline. Raw blocks but `@verbatim` don't
-    // end it either, nor do macro definitions.
+    // end it either, nor do macro definitions, nor an `@end` of no block,
+    // which texi2any ignores.
     _paragraph_line_commands: $ => prec.right(repeat1(choice(
       alias($._paragraph_line_command, $.line_command),
       $._paragraph_block,
+      seq(
+        alias($._paragraph_unmatched_end, $.unmatched_end),
+        choice($._line_end, $._comment_lines),
+      ),
       seq(
         alias($._paragraph_line_command_before_comments, $.line_command),
         $._comment_line_ends,
@@ -979,14 +987,16 @@ export default grammar({
       $.macro_definition,
     ),
 
-    // Headings too, which texi2any allows in a footnote or caption, and a
+    // Headings too, which texi2any allows in a footnote or caption, a
     // command that starts no paragraph (`@anchor`, `@*`) at the start of a
-    // line, outside the paragraphs there as in texi2any.
+    // line, outside the paragraphs there as in texi2any, and an `@end` that
+    // ends no block, which texi2any ignores or reports.
     _line_item: $ => choice(
       $._line_block,
       alias($._no_paragraph_symbol, $.symbol_command),
       alias($._no_paragraph_command, $.inline_command),
       $.line_command,
+      seq($.unmatched_end, $._line_end),
       $.standalone_heading,
       alias($._definition_continuation, $.definition_line),
     ),

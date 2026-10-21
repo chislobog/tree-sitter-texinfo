@@ -4,6 +4,16 @@ The version follows [semantic versioning](https://semver.org/) as the
 tree-sitter documentation describes it for grammars: while it is 0.y.z, a
 change to node types or the tree's structure bumps the minor version.
 
+## Unreleased
+
+### The tree
+
+- An `@end` of no block at all (`@end exmaple`, or `@end e` while
+  `@end example` is typed) or without a name closes nothing, as texi2any
+  ignores it: it closed every open block but conditionals, which broke the
+  rest of the document. It is an `unmatched_end` node in the paragraph,
+  preformatted text or brace command it is in, which goes on past it.
+
 ## 0.4.0
 
 Errors editors can report where an item command means nothing, the text

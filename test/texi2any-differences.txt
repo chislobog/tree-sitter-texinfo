@@ -61,13 +61,16 @@ build/corpus/structure/user-defined-index-commands-are-line-commands.texi
 examples/coreutils-9.11/doc/coreutils.texi
   line 6698: paragraphs: ours '<pre> </pre>', texi2any '(nothing)'
 
-# Invalid input; texi2any reports at line 5: no matching `@end quotation'
+# Invalid input; texi2any reports at line 5: no matching `@end quotation', and reads an `@end` line's name as its plain text, so that `q@asis{}uotation` ends a quotation, where the tree reads the name up to the first command (`q`), as of no block, which ends nothing
 texinfo-tests/02coverage/command_in_end.texi
   line 5: ours '(nothing)', texi2any '@code'
-  line 7: ours '(nothing)', texi2any '@code +quotation @code +quotation @asis +quotation -q @asis +quotation -qu @asis +quotation -quot @asis +verbatim -verbatim'
-  line 9: ours '+quotation', texi2any '(nothing)'
-  line 13: ours '+quotation', texi2any '(nothing)'
-  line 17: ours '+quotation -quotation +quotation -quotation +quotation -quotation +verbatim -verbatim', texi2any '(nothing)'
+  line 9: ours '(nothing)', texi2any '@code'
+  line 13: ours '(nothing)', texi2any '@code'
+  line 17: ours '(nothing)', texi2any '@asis'
+  line 21: ours '(nothing)', texi2any '-q @asis'
+  line 25: ours '(nothing)', texi2any '-qu @asis'
+  line 29: ours '(nothing)', texi2any '-quot @asis'
+  line 32: ours '-quotation -quotation -quotation', texi2any '(nothing)'
   line 2: paragraphs: ours '(nothing)', texi2any '</p> <p> </p> <p> </p> <p>'
   line 18: paragraphs: ours '<p> </p> <p> </p> <p> </p>', texi2any '(nothing)'
 

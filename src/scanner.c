@@ -106,6 +106,9 @@ enum TokenType {
   // `@item`, `@itemx`, `@headitem` or `@tab` where it means nothing, an
   // extra.
   MISPLACED_COMMAND,
+  // An `@end` of no block, or without a name, in a paragraph, which it
+  // doesn't end.
+  PARAGRAPH_UNMATCHED_END,
   ERROR_SENTINEL,
 };
 
@@ -1154,6 +1157,15 @@ static bool encloses(const Scanner *scanner, const char *name) {
   return false;
 }
 
+// Accepts the rest of an `@end` line that ends no open block, as `token`.
+static bool accept_unmatched_end(TSLexer *lexer, enum TokenType token) {
+  while (!lexer->eof(lexer) && lexer->lookahead != '\n' &&
+         lexer->lookahead != '\r') {
+    advance(lexer);
+  }
+  return accept(lexer, token);
+}
+
 /**
  * Scans `@end NAME`: the end of the innermost open block, or, at the start of
  * a line where it ends no block, an unmatched end up to the end of the line,
@@ -1164,8 +1176,19 @@ static bool scan_end(Scanner *scanner, TSLexer *lexer,
                      bool paragraph_at_line_start) {
   char end_name[MAX_NAME + 1];
   bool has_name = read_end_name(lexer, end_name);
-  bool matches = has_name && scanner->depth > 0 &&
-                 strcmp(end_name, innermost_block(scanner)) == 0;
+  // An `@end` of no block, or without a name, which texi2any warns of
+  // ("unknown @end", "@end missing argument") and ignores: it closes no
+  // block, nor the paragraph or the brace command it is in, so that typing
+  // the name of an `@end` changes nothing around it.
+  if (!has_name || find_block(end_name) < 0) {
+    if (valid_symbols[PARAGRAPH_UNMATCHED_END]) {
+      return accept_unmatched_end(lexer, PARAGRAPH_UNMATCHED_END);
+    }
+    return valid_symbols[UNMATCHED_END] &&
+           accept_unmatched_end(lexer, UNMATCHED_END);
+  }
+  bool matches =
+      scanner->depth > 0 && strcmp(end_name, innermost_block(scanner)) == 0;
   // A brace command still open at the start of the line closes first, with
   // a zero-width token before the `@end`, which is then read again; also at
   // the `@end` of an enclosing block, which closes the blocks inside it.

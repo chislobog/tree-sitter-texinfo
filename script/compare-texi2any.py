@@ -313,8 +313,9 @@ def known_text(node, unknown: set[tuple[int, str]]) -> str:
 def paragraph_text(node, children: list, unknown: set[tuple[int, str]]) -> str:
     """The text of `children` of a paragraph, outside the commands in them,
     which are compared as commands, and without comments or misplaced item
-    commands, which texi2any drops. A command texi2any doesn't know leaves
-    its braces' content, as in texi2any's tree."""
+    commands, which texi2any drops, nor an `@end` of no block, a line command
+    it ignores. A command texi2any doesn't know leaves its braces' content,
+    as in texi2any's tree."""
     first = children[0].start_byte
     source = node.text[first - node.start_byte : children[-1].end_byte - node.start_byte]
     cuts = []
@@ -331,6 +332,7 @@ def paragraph_text(node, children: list, unknown: set[tuple[int, str]]) -> str:
             "symbol_command",
             "command_name",
             "misplaced_command",
+            "unmatched_end",
         ):
             cuts.append((current.start_byte - first, current.end_byte - first))
         else:
@@ -342,7 +344,7 @@ def paragraph_text(node, children: list, unknown: set[tuple[int, str]]) -> str:
 
 def starts_paragraph(node) -> bool:
     """Whether `node`, in a paragraph, would start one in texi2any."""
-    if node.type in ("comment", "line_command"):
+    if node.type in ("comment", "line_command", "unmatched_end"):
         return False
     name = node.child_by_field_name("name")
     return name is None or text(name) not in NO_PARAGRAPH_COMMANDS

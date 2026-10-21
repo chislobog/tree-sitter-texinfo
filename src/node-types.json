@@ -236,6 +236,10 @@
         {
           "type": "text",
           "named": true
+        },
+        {
+          "type": "unmatched_end",
+          "named": true
         }
       ]
     }
@@ -302,6 +306,10 @@
         },
         {
           "type": "text",
+          "named": true
+        },
+        {
+          "type": "unmatched_end",
           "named": true
         }
       ]
@@ -598,6 +606,10 @@
         },
         {
           "type": "text",
+          "named": true
+        },
+        {
+          "type": "unmatched_end",
           "named": true
         }
       ]
@@ -1975,6 +1987,10 @@
         {
           "type": "text",
           "named": true
+        },
+        {
+          "type": "unmatched_end",
+          "named": true
         }
       ]
     }
@@ -2145,6 +2161,10 @@
         },
         {
           "type": "text",
+          "named": true
+        },
+        {
+          "type": "unmatched_end",
           "named": true
         }
       ]

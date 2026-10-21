@@ -46,6 +46,17 @@ manual](https://www.gnu.org/software/texinfo/manual/texinfo/texinfo.html)
 - `@verb{xTEXTx}` with an arbitrary delimiter character
 - A stray `@end` that ends no open block is an `unmatched_end` node, to
   the end of its line, which editors should report
+- An `@end` of no block at all (`@end exmaple`, and each `@end e`, `@end
+  ex`, ... while `@end example` is typed) or without a name ends nothing
+  (found by review): texi2any warns of it ("unknown @end", "@end missing
+  argument") and ignores it, a line command that ends neither the blocks
+  open, nor the paragraph, nor a brace command. It closed every open block
+  but conditionals, as the `@end` of a block that isn't open does in
+  texi2any, so a typo in one `@end` broke the rest of the document. In a
+  paragraph, or preformatted text, it is a line of the paragraph, by a
+  token of its own where the paragraph may go on, as a paragraph's line
+  commands have; in braces, a line item, as a line command is. 44 parser
+  states (5,490 to 5,534)
 - An unclosed brace command closes before a node, a section or `@bye`
   on the next line at the end of the line before it, which the scan reads
   to the command: decided at the command by its column, an edit before it

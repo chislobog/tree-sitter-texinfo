@@ -607,6 +607,87 @@ More.
     (text)))
 
 ================================================================================
+An @end of no block closes no block, as texi2any ignores it
+================================================================================
+
+@table @asis
+@item a
+@example
+foo
+@end exmaple
+bar
+@end example
+@item b
+@end table
+
+---
+
+(source_file
+  (list
+    name: (command_name)
+    argument: (line_argument
+      (inline_command
+        name: (command_name)))
+    (item
+      name: (command_name)
+      argument: (line_argument
+        (text))
+      body: (item_body
+        (block
+          name: (command_name)
+          (preformatted
+            (text)
+            (unmatched_end)
+            (text))
+          end: (block_end))))
+    (item
+      name: (command_name)
+      argument: (line_argument
+        (text)))
+    end: (block_end)))
+
+================================================================================
+An @end of no block, or without a name, goes on with the paragraph
+================================================================================
+
+Text
+@end quot
+more
+@end
+@c a comment
+and more.
+
+Last
+@end quot
+
+After @code{a
+@end quot
+b} it.
+
+---
+
+(source_file
+  (paragraph
+    (text)
+    (unmatched_end)
+    (text)
+    (unmatched_end)
+    (comment)
+    (text))
+  (paragraph
+    (text)
+    (unmatched_end))
+  (paragraph
+    (text)
+    (inline_command
+      name: (command_name)
+      arguments: (brace_arguments
+        (text)
+        (unmatched_end)
+        (text)))
+    (text)))
+
+================================================================================
 Every other block
 ================================================================================
 
