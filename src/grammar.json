@@ -5698,7 +5698,11 @@
               "members": [
                 {
                   "type": "SYMBOL",
-                  "name": "_line_end"
+                  "name": "_newline"
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "_end_of_file"
                 },
                 {
                   "type": "SYMBOL",
@@ -8275,7 +8279,11 @@
           "members": [
             {
               "type": "SYMBOL",
-              "name": "_line_end"
+              "name": "_newline"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "_end_of_file"
             },
             {
               "type": "SYMBOL",
@@ -11824,7 +11832,15 @@
     "_body_start",
     "_between_lines",
     "_line",
-    "_brace_first_line"
+    "_brace_first_line",
+    "_line_brace_arguments",
+    "_line_argument_inline",
+    "_argument_line",
+    "_argument_command",
+    "_block_rest",
+    "_definition_word_part",
+    "_menu_entry_rest",
+    "_menu_entry_end"
   ],
   "supertypes": [
     "_section"

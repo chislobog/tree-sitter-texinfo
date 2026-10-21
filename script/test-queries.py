@@ -40,7 +40,13 @@ from pathlib import Path
 
 from tree_sitter import Parser, Query, QueryCursor
 
-from texinfo_language import ARGUMENT_FIELDS, ROOT, load_language
+from texinfo_language import (
+    ARGUMENT_FIELDS,
+    ROOT,
+    load_language,
+    scanner_blocks,
+    scanner_commands,
+)
 
 TESTS = ROOT / "test" / "queries"
 # A `#not-any-of?` predicate: py-tree-sitter 0.25.2 lets through a capture
@@ -137,14 +143,6 @@ def check(parser: Parser, query: Query, file: Path) -> tuple[int, list[str]]:
     return count, problems
 
 
-def c_strings(source: str, table: str) -> list[str]:
-    """The string literals in the scanner's C array `table`."""
-    match = re.search(rf"\b{table}\[\]\s*=\s*\{{(.*?)\n?\}};", source, re.S)
-    if match is None:
-        raise SystemExit(f"no table {table} in src/scanner.c")
-    return re.findall(r'"([^"]*)"', match.group(1))
-
-
 def every_command() -> str:
     """A document with every command the scanner's tables and the grammar
     name, each where it may be: brace commands in a paragraph, line commands
@@ -152,7 +150,12 @@ def every_command() -> str:
     sectioning commands last, before `@bye`."""
     scanner = (ROOT / "src" / "scanner.c").read_text()
     grammar = (ROOT / "grammar.js").read_text()
-    brace = c_strings(scanner, "BRACE_COMMANDS")
+    commands = scanner_commands(scanner)
+
+    def named(flag: str) -> list[str]:
+        return [name for name, flags in commands.items() if flag in flags]
+
+    brace = named("BRACE")
     parts = ["\\input texinfo\n"]
     parts += [f"Text @{name}{{x}} text.\n\n" for name in brace]
     parts += [f"@{name}{{a, b, c, d, e}}\n\n" for name in ARGUMENT_FIELDS]
@@ -161,26 +164,26 @@ def every_command() -> str:
         "@inlinefmtifelse{html, x, y} @inlineraw{html, x} @inlineifset{a, x}\n"
         "@inlineifclear{a, x} @'e @\"u @^a @`a @~n @=o @,{c} @@ @{ @} @* @. @: @u o.\n\n"
     )
-    for name in c_strings(scanner, "NO_PARAGRAPH_COMMANDS"):
+    for name in named("NO_PARAGRAPH"):
         parts.append(f"@{name}{{x}}\n\n" if name in brace else f"@{name}\nText.\n\n")
-    for table in ("LINE_COMMANDS", "PARAGRAPH_ENDING_LINE_COMMANDS"):
-        parts += [f"@{name} x\n\n" for name in c_strings(scanner, table)]
+    parts += [f"@{name} x\n\n" for name in named("LINE")]
     parts.append(
         "@set x y\n@clear x\n@alias a = b\n@clickstyle @result\n@vskip 1pt\n"
         "@unmacro m\n@majorheading x\n@chapheading x\n@heading x\n@subheading x\n"
         "@subsubheading x\n\n"
     )
     layouts = re.findall(r"\{fields: \[([^\]]*)\], lines: \[([^\]]*)\]", grammar)
-    for name, kind in re.findall(r'\{"(\w+)", KIND_(\w+(?: \+ \d+)?)\}', scanner):
+    for name, kind in scanner_blocks(scanner).items():
+        kind = kind.removeprefix("KIND_")
         if kind.startswith("DEFINITION"):
             fields, lines = layouts[int(kind.partition(" + ")[2] or 0)]
             words = " ".join(f"w{i}" for i in range(len(re.findall(r"'\w+'", fields))))
             parts.append(f"@{name} {words} (a, b)\n")
             parts += [f"@{line} {words} (c)\n" for line in re.findall(r"'(\w+)'", lines)]
             parts.append(f"Body.\n@end {name}\n\n")
-        elif kind == "LIST" and name in ("itemize", "enumerate"):
+        elif kind == "ITEM_CONTAINER":
             parts.append(f"@{name} @bullet\n@item a\n@end {name}\n\n")
-        elif kind == "LIST":
+        elif kind == "ITEM_LINE":
             parts.append(f"@{name} @code\n@item a\n@itemx b\nc\n@end {name}\n\n")
         elif kind == "MULTITABLE":
             parts.append(
@@ -199,10 +202,11 @@ def every_command() -> str:
             )
         else:
             parts.append(f"@{name} x\nText.\n@end {name}\n\n")
-    sectioning = re.search(r"\} SECTIONING\[\] = \{(.*?)\n\};", scanner, re.S)
-    if sectioning is None:
-        raise SystemExit("no table SECTIONING in src/scanner.c")
-    for name in re.findall(r'\{"(\w+)", \d\}', sectioning.group(1)):
+    # By level, which is a single digit: a part, the top, then chapters...
+    sections = {
+        name: next(f for f in commands[name] if f.startswith("LEVEL")) for name in named("SECTION")
+    }
+    for name in sorted(sections, key=sections.__getitem__):
         parts.append(f"@node {name}\n@nodedescription d\n@{name} Title\n\nText.\n\n")
     parts.append("@bye\n")
     return "".join(parts)

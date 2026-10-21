@@ -443,7 +443,7 @@ comparing arguments:
   line (53 files)
 - Paragraphs start and end where texi2any's do, found by comparing
   them: a command that starts no paragraph in texi2any (`@anchor`,
-  `@noindent`, `@titlefont`, ...: NO_PARAGRAPH_COMMANDS in the scanner) is
+  `@noindent`, `@titlefont`, ...: NO_PARAGRAPH in the scanner) is
   outside one where one would start, also before the text on its line, and
   inside an open one (12,910 of the manuals' 16,623 differences in
   paragraphs, most of them an `@anchor` line before a definition or an
@@ -804,6 +804,25 @@ Deliberate, so the tree shows the source as it is written and edited:
   lexer, reading text a character at a time, a quarter, the scanner a
   sixth. Two in five leaves are allocated on the heap, which tree-sitter
   does for every external token and every newline
+- Then 6% faster (the manuals in 1.40 s, not 1.51; 6% fewer instructions),
+  with 74 parser states fewer (5,472; parser.c 12.1 MB, not 12.4) and the
+  same trees. The scanner's tables of names, one for each class of
+  commands, became one sorted table of the commands but the blocks
+  (`COMMANDS`), each with its classes as flags, and a sorted `BLOCKS`
+  whose kinds tell the preformatted blocks, the conditionals and the two
+  kinds of list apart, which their names did: the scanner looks a name up
+  once, by a binary search, and tests its flags, where it had compared it
+  with a hundred names in four tables, some twice, and with single names
+  by `strcmp` (3.5% of the instructions). Eight hidden rules, which cost
+  no parser states inlined (26 fewer together), are inlined, a reduction
+  fewer for each of them, 4% of all (1.7%): the eight of the fourteen
+  found not worth it above that aren't aliased or links of a chain. And
+  a paragraph's end is the newline or the end of the file rather than
+  `_line_end`, which tree-sitter can't reduce a newline to before the next
+  line tells whether line commands go on with the paragraph: a reduction
+  fewer for each paragraph, and 48 parser states fewer (1%). Not worth it:
+  that in the other rules (no fewer states, and 271 more for all of them),
+  and still `paragraph` holding its lines itself (65 parser states)
 - Parse errors and parse speed of the manuals checked
   (`script/parse-examples.py`, timing each parse's CPU time); texi2any's
   test inputs and the manuals fuzzed with `tree-sitter fuzz`, from a corpus

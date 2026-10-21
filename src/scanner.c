@@ -43,8 +43,8 @@ enum TokenType {
   // `@node` lines followed by a sectioning command, one per level, in the
   // order of SECTIONS in grammar.js, then one followed by `@appendix`.
   NODE_BEFORE = DEFINITION_START + 8,
-  // A sectioning command but `@part` and `@top`, by its level, from 2 in
-  // SECTIONING.
+  // A sectioning command but `@part` and `@top`, by its level, from 2
+  // (LEVEL).
   SECTION_COMMAND = NODE_BEFORE + 7,
   LINE_COMMAND_NAME = SECTION_COMMAND + 5,
   BRACE_COMMAND_NAME,
@@ -116,10 +116,20 @@ enum TokenType {
   ERROR_SENTINEL,
 };
 
+// The kinds of blocks, as texi2any's categories of blocks make them.
 typedef enum {
   KIND_BLOCK,
-  // Body is a sequence of `@item`s.
-  KIND_LIST,
+  // `@example`, `@display`, ...: preformatted, as is every block inside
+  // them, where a blank line doesn't end a brace command.
+  KIND_PREFORMATTED,
+  // `@ifset`, `@iftex`, ...: texi2any evaluates them before parsing.
+  KIND_CONDITIONAL,
+  // `@table`, `@ftable`, `@vtable`: a list whose `@item`s take a line
+  // argument.
+  KIND_ITEM_LINE,
+  // `@itemize`, `@enumerate`: a list where the text after `@item` is a
+  // paragraph.
+  KIND_ITEM_CONTAINER,
   // `@multitable`: a list whose items are rows of cells separated by `@tab`.
   KIND_MULTITABLE,
   // `@float`: a block whose argument is a type and a label.
@@ -140,101 +150,97 @@ typedef struct {
   BlockKind kind;
 } Block;
 
-// Classes follow `tta/data/command_data.txt` in the Texinfo sources.
+// Kinds follow texi2any's categories (`tta/data/command_data.txt` in the
+// Texinfo sources), but for `@defblock`, which holds `@defline` lines and has
+// no definition line of its own, an ordinary block, and the macro
+// definitions, raw but `macro_definition` nodes. The layout numbers index
+// DEFINITION_LAYOUTS in grammar.js. Sorted, for a binary search
+// (script/check-scanner.py checks it).
 static const Block BLOCKS[] = {
-    // Preformatted and display
-    {"example", KIND_BLOCK},
-    {"smallexample", KIND_BLOCK},
-    {"lisp", KIND_BLOCK},
-    {"smalllisp", KIND_BLOCK},
-    {"display", KIND_BLOCK},
-    {"smalldisplay", KIND_BLOCK},
-    {"format", KIND_BLOCK},
-    {"smallformat", KIND_BLOCK},
-    {"quotation", KIND_BLOCK},
-    {"smallquotation", KIND_BLOCK},
-    {"indentedblock", KIND_BLOCK},
-    {"smallindentedblock", KIND_BLOCK},
     {"cartouche", KIND_BLOCK},
-    {"flushleft", KIND_BLOCK},
-    {"flushright", KIND_BLOCK},
-    {"raggedright", KIND_BLOCK},
-    {"group", KIND_BLOCK},
-    {"float", KIND_FLOAT},
-    // Document regions
-    {"titlepage", KIND_BLOCK},
     {"copying", KIND_BLOCK},
-    {"documentdescription", KIND_BLOCK},
-    {"documentinfo", KIND_BLOCK},
-    {"publication", KIND_BLOCK},
-    {"nodedescriptionblock", KIND_BLOCK},
-    // Math: texi2any parses commands inside, so not raw.
-    {"displaymath", KIND_BLOCK},
-    // Menus
-    {"menu", KIND_MENU},
+    {"defblock", KIND_BLOCK},
+    {"defcv", KIND_DEFINITION + 2},
+    {"deffn", KIND_DEFINITION},
+    {"defivar", KIND_DEFINITION + 6},
+    {"defmac", KIND_DEFINITION + 4},
+    {"defmethod", KIND_DEFINITION + 6},
+    {"defop", KIND_DEFINITION + 2},
+    {"defopt", KIND_DEFINITION + 4},
+    {"defspec", KIND_DEFINITION + 4},
+    {"deftp", KIND_DEFINITION},
+    {"deftypecv", KIND_DEFINITION + 3},
+    {"deftypefn", KIND_DEFINITION + 1},
+    {"deftypefun", KIND_DEFINITION + 5},
+    {"deftypeivar", KIND_DEFINITION + 7},
+    {"deftypemethod", KIND_DEFINITION + 7},
+    {"deftypeop", KIND_DEFINITION + 3},
+    {"deftypevar", KIND_DEFINITION + 5},
+    {"deftypevr", KIND_DEFINITION + 1},
+    {"defun", KIND_DEFINITION + 4},
+    {"defvar", KIND_DEFINITION + 4},
+    {"defvr", KIND_DEFINITION},
     {"detailmenu", KIND_MENU},
     {"direntry", KIND_MENU},
-    // Conditionals
-    {"ifinfo", KIND_BLOCK},
-    {"ifnotinfo", KIND_BLOCK},
-    {"ifhtml", KIND_BLOCK},
-    {"ifnothtml", KIND_BLOCK},
-    {"iftex", KIND_BLOCK},
-    {"ifnottex", KIND_BLOCK},
-    {"ifplaintext", KIND_BLOCK},
-    {"ifnotplaintext", KIND_BLOCK},
-    {"ifdocbook", KIND_BLOCK},
-    {"ifnotdocbook", KIND_BLOCK},
-    {"ifxml", KIND_BLOCK},
-    {"ifnotxml", KIND_BLOCK},
-    {"iflatex", KIND_BLOCK},
-    {"ifnotlatex", KIND_BLOCK},
-    {"ifset", KIND_BLOCK},
-    {"ifclear", KIND_BLOCK},
-    {"ifcommanddefined", KIND_BLOCK},
-    {"ifcommandnotdefined", KIND_BLOCK},
-    // `@defblock` holds `@defline` lines and has no definition line of its
-    // own, so it is an ordinary block.
-    {"defblock", KIND_BLOCK},
-    // Definitions; the layout numbers index DEFINITION_LAYOUTS in grammar.js
-    {"deffn", KIND_DEFINITION},
-    {"defvr", KIND_DEFINITION},
-    {"deftypefn", KIND_DEFINITION + 1},
-    {"deftypevr", KIND_DEFINITION + 1},
-    {"deftp", KIND_DEFINITION},
-    {"defop", KIND_DEFINITION + 2},
-    {"deftypeop", KIND_DEFINITION + 3},
-    {"defcv", KIND_DEFINITION + 2},
-    {"deftypecv", KIND_DEFINITION + 3},
-    {"defun", KIND_DEFINITION + 4},
-    {"defmac", KIND_DEFINITION + 4},
-    {"defspec", KIND_DEFINITION + 4},
-    {"defvar", KIND_DEFINITION + 4},
-    {"defopt", KIND_DEFINITION + 4},
-    {"deftypefun", KIND_DEFINITION + 5},
-    {"deftypevar", KIND_DEFINITION + 5},
-    {"defmethod", KIND_DEFINITION + 6},
-    {"deftypemethod", KIND_DEFINITION + 7},
-    {"defivar", KIND_DEFINITION + 6},
-    {"deftypeivar", KIND_DEFINITION + 7},
-    // Lists
-    {"itemize", KIND_LIST},
-    {"enumerate", KIND_LIST},
-    {"table", KIND_LIST},
-    {"ftable", KIND_LIST},
-    {"vtable", KIND_LIST},
-    {"multitable", KIND_MULTITABLE},
-    // Raw
-    {"verbatim", KIND_RAW},
-    {"ignore", KIND_RAW},
-    {"tex", KIND_RAW},
-    {"latex", KIND_RAW},
-    {"html", KIND_RAW},
-    {"xml", KIND_RAW},
+    {"display", KIND_PREFORMATTED},
+    // texi2any parses commands inside, so not raw.
+    {"displaymath", KIND_BLOCK},
     {"docbook", KIND_RAW},
-    {"macro", KIND_MACRO},
-    {"rmacro", KIND_MACRO},
+    {"documentdescription", KIND_BLOCK},
+    {"documentinfo", KIND_BLOCK},
+    {"enumerate", KIND_ITEM_CONTAINER},
+    {"example", KIND_PREFORMATTED},
+    {"float", KIND_FLOAT},
+    {"flushleft", KIND_BLOCK},
+    {"flushright", KIND_BLOCK},
+    {"format", KIND_PREFORMATTED},
+    {"ftable", KIND_ITEM_LINE},
+    {"group", KIND_BLOCK},
+    {"html", KIND_RAW},
+    {"ifclear", KIND_CONDITIONAL},
+    {"ifcommanddefined", KIND_CONDITIONAL},
+    {"ifcommandnotdefined", KIND_CONDITIONAL},
+    {"ifdocbook", KIND_CONDITIONAL},
+    {"ifhtml", KIND_CONDITIONAL},
+    {"ifinfo", KIND_CONDITIONAL},
+    {"iflatex", KIND_CONDITIONAL},
+    {"ifnotdocbook", KIND_CONDITIONAL},
+    {"ifnothtml", KIND_CONDITIONAL},
+    {"ifnotinfo", KIND_CONDITIONAL},
+    {"ifnotlatex", KIND_CONDITIONAL},
+    {"ifnotplaintext", KIND_CONDITIONAL},
+    {"ifnottex", KIND_CONDITIONAL},
+    {"ifnotxml", KIND_CONDITIONAL},
+    {"ifplaintext", KIND_CONDITIONAL},
+    {"ifset", KIND_CONDITIONAL},
+    {"iftex", KIND_CONDITIONAL},
+    {"ifxml", KIND_CONDITIONAL},
+    {"ignore", KIND_RAW},
+    {"indentedblock", KIND_BLOCK},
+    {"itemize", KIND_ITEM_CONTAINER},
+    {"latex", KIND_RAW},
     {"linemacro", KIND_MACRO},
+    {"lisp", KIND_PREFORMATTED},
+    {"macro", KIND_MACRO},
+    {"menu", KIND_MENU},
+    {"multitable", KIND_MULTITABLE},
+    {"nodedescriptionblock", KIND_BLOCK},
+    {"publication", KIND_BLOCK},
+    {"quotation", KIND_BLOCK},
+    {"raggedright", KIND_BLOCK},
+    {"rmacro", KIND_MACRO},
+    {"smalldisplay", KIND_PREFORMATTED},
+    {"smallexample", KIND_PREFORMATTED},
+    {"smallformat", KIND_PREFORMATTED},
+    {"smallindentedblock", KIND_BLOCK},
+    {"smalllisp", KIND_PREFORMATTED},
+    {"smallquotation", KIND_BLOCK},
+    {"table", KIND_ITEM_LINE},
+    {"tex", KIND_RAW},
+    {"titlepage", KIND_BLOCK},
+    {"verbatim", KIND_RAW},
+    {"vtable", KIND_ITEM_LINE},
+    {"xml", KIND_RAW},
 };
 
 #define BLOCK_COUNT (sizeof(BLOCKS) / sizeof(BLOCKS[0]))
@@ -360,46 +366,71 @@ static inline bool is_name_char(int32_t c) {
 /**
  * Reads a command or block name whole, as texi2any does: a letter or digit
  * followed by letters, digits and `-`, of any length (`_` ends it: `@c_x` is
- * a comment). Returns false if there is none or it is too long to be a
- * built-in name; `name` holds it otherwise. A longer name ending in `index`
- * may still be a user-defined index command (`@defindex`), which only that
- * end tells: `name` is then `-index`, which no other name can be.
+ * a comment). Returns the number of characters read, or 0 if there is no
+ * name or it is too long to be a built-in name; `name` holds it otherwise.
+ * A longer name ending in `index` may still be a user-defined index command
+ * (`@defindex`), which only that end tells: `name` is then `-index`, which
+ * no other name can be.
  */
-static bool read_name(TSLexer *lexer, char *name) {
+static unsigned read_name(TSLexer *lexer, char *name) {
+  static const char INDEX[] = "index";
+  const unsigned tail_size = sizeof(INDEX) - 1;
   unsigned length = 0;
-  char tail[5] = {0};
-  if (!is_alpha(lexer->lookahead) && !is_digit(lexer->lookahead)) return false;
+  // The last characters, the one read as the `length`th at `length` modulo
+  // their count.
+  char tail[sizeof(INDEX) - 1];
+  if (!is_alpha(lexer->lookahead) && !is_digit(lexer->lookahead)) return 0;
   while (is_name_char(lexer->lookahead)) {
     if (length < MAX_NAME) name[length] = (char)lexer->lookahead;
-    memmove(tail, tail + 1, sizeof(tail) - 1);
-    tail[sizeof(tail) - 1] = (char)lexer->lookahead;
+    tail[length % tail_size] = (char)lexer->lookahead;
     length++;
     advance(lexer);
   }
   if (length < MAX_NAME) {
     name[length] = '\0';
-    return true;
-  }
-  if (memcmp(tail, "index", sizeof(tail)) == 0) {
-    strcpy(name, "-index");
-    return true;
+    return length;
   }
   name[MAX_NAME] = '\0';
-  return false;
+  for (unsigned i = 0; i < tail_size; i++) {
+    if (tail[(length + i) % tail_size] != INDEX[i]) return 0;
+  }
+  memcpy(name, "-index", sizeof("-index"));
+  return length;
 }
 
 // Whether two names are the same, comparing the first characters before
-// calling strcmp: most names in a table differ from the one sought in
-// them, and calling it for each took a tenth of the parse's time.
+// calling strcmp, which most names compared differ in.
 static inline bool same_name(const char *a, const char *b) {
   return a[0] == b[0] && strcmp(a, b) == 0;
 }
 
-static int find_block(const char *name) {
-  for (unsigned i = 0; i < BLOCK_COUNT; i++) {
-    if (same_name(BLOCKS[i].name, name)) return (int)i;
+/**
+ * The index of `name` in `table`, of `count` entries of `size` bytes, each
+ * starting with its name, sorted by strcmp; or -1.
+ */
+static int search(const void *table, size_t size, size_t count,
+                  const char *name) {
+  size_t low = 0;
+  size_t high = count;
+  while (low < high) {
+    size_t middle = low + (high - low) / 2;
+    const char *entry =
+        *(const char *const *)((const char *)table + middle * size);
+    // The first characters first, which most names compared differ in.
+    int order = (unsigned char)entry[0] - (unsigned char)name[0];
+    if (order == 0) order = strcmp(entry, name);
+    if (order == 0) return (int)middle;
+    if (order < 0) {
+      low = middle + 1;
+    } else {
+      high = middle;
+    }
   }
   return -1;
+}
+
+static int find_block(const char *name) {
+  return search(BLOCKS, sizeof(BLOCKS[0]), BLOCK_COUNT, name);
 }
 
 /**
@@ -409,272 +440,372 @@ static int find_block(const char *name) {
 static bool read_end_name(TSLexer *lexer, char *name) {
   if (!at_blank(lexer)) return false;
   skip_blanks(lexer);
-  return read_name(lexer, name);
+  return read_name(lexer, name) > 0;
 }
 
-// Commands whose argument is the rest of the line.
-static const char *const LINE_COMMANDS[] = {
-    // Structure
-    "include",
-    // Indices
-    "cindex", "findex", "kindex", "pindex", "tindex", "vindex", "defindex",
-    "defcodeindex", "synindex", "syncodeindex",
-    // Header and title page
-    "settitle", "title", "subtitle", "author", "shorttitlepage",
-    "documentencoding", "documentlanguage", "setchapternewpage", "headings",
-    "evenheading", "oddheading", "everyheading", "evenfooting", "oddfooting",
-    "everyfooting",
-    // Variables and macros
-    "definfoenclose",
-    // Layout
-    "finalout", "smallbook", "afourpaper", "afivepaper", "afourlatex",
-    "afourwide", "pagesizes", "paragraphindent", "firstparagraphindent",
-    "exampleindent", "footnotestyle", "frenchspacing", "allowcodebreaks",
-    "kbdinputstyle", "codequoteundirected", "codequotebacktick",
-    "deftypefnnewline", "urefbreakstyle", "xrefautomaticsectiontitle",
-    "novalidate", "raisesections", "lowersections",
-    // Less common: two-letter index names, page layout
-    "cpindex", "fnindex", "kyindex", "pgindex", "tpindex", "vrindex",
-    "bsixpaper", "fonttextsize", "microtype", "evenfootingmarks",
-    "evenheadingmarks", "everyfootingmarks", "everyheadingmarks",
-    "oddfootingmarks", "oddheadingmarks"};
-
-// Line commands that end a paragraph, as texi2any's close_paragraph_commands:
-// the others may be inside one.
-static const char *const PARAGRAPH_ENDING_LINE_COMMANDS[] = {
-    // Structure and cross-referencing
-    "printindex", "insertcopying", "contents", "shortcontents",
-    "summarycontents", "listoffloats", "nodedescription", "verbatiminclude",
-    "xrefname",
-    // Header and title page
-    "setfilename", "dircategory", "maketitle",
-    // Layout
-    "page", "need", "sp", "center", "exdent"};
-
-// Built-in brace commands whose argument ends at a blank line, as in texi2any:
-// all of them except @verb, the "context" commands @footnote, @caption,
-// @shortcaption and @math, and the inline conditionals (@inlinefmt, ...),
-// whose skipped arguments may contain blank lines. Only these may have blanks
-// before their brace. Any other command, a macro call or a command texi2any
-// doesn't know, also ends at a blank line (in grammar.js), although in
-// texi2any a macro call's arguments may contain one. Sorted, for a binary
-// search (script/check-scanner.py checks it).
-static const char *const BRACE_COMMANDS[] = {"AA",
-                                             "AE",
-                                             "DH",
-                                             "H",
-                                             "L",
-                                             "LaTeX",
-                                             "O",
-                                             "OE",
-                                             "TH",
-                                             "TeX",
-                                             "U",
-                                             "aa",
-                                             "ae",
-                                             "ampchar",
-                                             "anchor",
-                                             "arrow",
-                                             "asis",
-                                             "atchar",
-                                             "b",
-                                             "backslashchar",
-                                             "bullet",
-                                             "cite",
-                                             "click",
-                                             "clicksequence",
-                                             "code",
-                                             "comma",
-                                             "command",
-                                             "copyright",
-                                             "dfn",
-                                             "dh",
-                                             "dmn",
-                                             "dotaccent",
-                                             "dotless",
-                                             "dots",
-                                             "emph",
-                                             "enddots",
-                                             "env",
-                                             "equiv",
-                                             "error",
-                                             "errormsg",
-                                             "euro",
-                                             "exclamdown",
-                                             "expansion",
-                                             "file",
-                                             "geq",
-                                             "guillemetleft",
-                                             "guillemetright",
-                                             "guillemotleft",
-                                             "guillemotright",
-                                             "guilsinglleft",
-                                             "guilsinglright",
-                                             "hashchar",
-                                             "headitemfont",
-                                             "hyphenation",
-                                             "i",
-                                             "indicateurl",
-                                             "kbd",
-                                             "key",
-                                             "l",
-                                             "lbracechar",
-                                             "leq",
-                                             "minus",
-                                             "o",
-                                             "oe",
-                                             "ogonek",
-                                             "option",
-                                             "ordf",
-                                             "ordm",
-                                             "point",
-                                             "pounds",
-                                             "print",
-                                             "questiondown",
-                                             "quotedblbase",
-                                             "quotedblleft",
-                                             "quotedblright",
-                                             "quoteleft",
-                                             "quoteright",
-                                             "quotesinglbase",
-                                             "r",
-                                             "rbracechar",
-                                             "registeredsymbol",
-                                             "result",
-                                             "ringaccent",
-                                             "samp",
-                                             "sansserif",
-                                             "sc",
-                                             "seealso",
-                                             "seeentry",
-                                             "slanted",
-                                             "sortas",
-                                             "ss",
-                                             "strong",
-                                             "sub",
-                                             "sup",
-                                             "t",
-                                             "textdegree",
-                                             "th",
-                                             "tie",
-                                             "tieaccent",
-                                             "titlefont",
-                                             "today",
-                                             "u",
-                                             "ubaraccent",
-                                             "udotaccent",
-                                             "v",
-                                             "value",
-                                             "var",
-                                             "w"};
-
-static bool in_table(const char *const *table, size_t count, const char *name) {
-  for (size_t i = 0; i < count; i++) {
-    if (same_name(table[i], name)) return true;
-  }
-  return false;
-}
-
-#define TABLE_COUNT(table) (sizeof(table) / sizeof(table[0]))
-
-// Whether `name` is in a table sorted by strcmp.
-static bool in_sorted_table(const char *const *table, size_t count,
-                            const char *name) {
-  size_t low = 0;
-  size_t high = count;
-  while (low < high) {
-    size_t middle = low + (high - low) / 2;
-    int order = strcmp(table[middle], name);
-    if (order == 0) return true;
-    if (order < 0) {
-      low = middle + 1;
-    } else {
-      high = middle;
-    }
-  }
-  return false;
-}
-
-/**
- * Whether `@name` at the start of a line is a line command. Commands ending
- * in `index` count, including user-defined index commands (`@defindex op`
- * makes `@opindex`), as texi2any treats them as index entries.
- */
-static bool ends_paragraph(const char *name) {
-  return in_table(PARAGRAPH_ENDING_LINE_COMMANDS,
-                  TABLE_COUNT(PARAGRAPH_ENDING_LINE_COMMANDS), name);
-}
-
-static bool is_line_command(const char *name) {
-  size_t length = strlen(name);
-  return in_table(LINE_COMMANDS, TABLE_COUNT(LINE_COMMANDS), name) ||
-         ends_paragraph(name) ||
-         (length > 5 && strcmp(name + length - 5, "index") == 0);
-}
-
-// Sectioning commands by level: the index of the section in SECTIONS in
-// grammar.js (part, top, chapter, section, subsection, subsubsection), or
-// 6 for `@appendix`, a chapter whose node has a token of its own, as a part
-// tells it from its other chapters.
-static const struct {
-  const char *name;
-  uint8_t level;
-} SECTIONING[] = {
-    {"part", 0},
-    {"top", 1},
-    {"chapter", 2},
-    {"unnumbered", 2},
-    {"appendix", 6},
-    {"centerchap", 2},
-    {"section", 3},
-    {"unnumberedsec", 3},
-    {"appendixsec", 3},
-    {"appendixsection", 3},
-    {"subsection", 4},
-    {"unnumberedsubsec", 4},
-    {"appendixsubsec", 4},
-    {"subsubsection", 5},
-    {"unnumberedsubsubsec", 5},
-    {"appendixsubsubsec", 5},
+// What the scanner knows of a command other than a block, as flags.
+enum {
+  // Its argument is the rest of the line: texi2any's line commands.
+  LINE = 1 << 0,
+  // Ends a paragraph, as texi2any's close_paragraph_commands: a line
+  // command (the others may be inside one), or one with braces, also in the
+  // middle of a line, which starts none.
+  ENDS_PARAGRAPH = 1 << 1,
+  // A built-in brace command whose argument ends at a blank line, as in
+  // texi2any: all of them except @verb, the context commands and @math, and
+  // the inline conditionals (@inlinefmt, ...), whose skipped arguments may
+  // contain blank lines. Only these may have blanks before their brace. Any
+  // other command, a macro call or a command texi2any doesn't know, also
+  // ends at a blank line (in grammar.js), although in texi2any a macro
+  // call's arguments may contain one.
+  BRACE = 1 << 2,
+  // An accent texi2any also accepts without braces: `@u o`, as `@'e`.
+  ACCENT = 1 << 3,
+  // Starts no paragraph, as texi2any's no_paragraph_commands, but the line
+  // and block commands and those the grammar recognises otherwise: where one
+  // would start, it is outside it. One that is a brace command too is one
+  // where a paragraph is open.
+  NO_PARAGRAPH = 1 << 4,
+  // `@footnote`, `@caption`, `@shortcaption`, whose text is paragraphs.
+  CONTEXT = 1 << 5,
+  // `@c` and `@comment`.
+  COMMENT = 1 << 6,
+  // `@item`, `@itemx`, `@headitem`, `@tab`.
+  ITEM = 1 << 7,
+  // `@node` and `@bye`, which, like the sectioning commands, close the
+  // brace commands and blocks left open before them, as in texi2any ("@node
+  // seen before @end menu").
+  ROOT = 1 << 8,
+  // A sectioning command, with its level (LEVEL).
+  SECTION = 1 << 9,
+  // A keyword of a line's command in the grammar, which the scanner gives no
+  // token (`@set`, `@item` in a table, `@heading`), and which starts no
+  // paragraph. Definition lines (`@deffnx`, `@defline`), which start with
+  // `def`, aren't listed.
+  KEYWORD = 1 << 10,
 };
 
-#define SECTIONING_COUNT (sizeof(SECTIONING) / sizeof(SECTIONING[0]))
+// A sectioning command's level, in its flags: the index of its section in
+// SECTIONS in grammar.js (part, top, chapter, section, subsection,
+// subsubsection), or 6 for `@appendix`, a chapter whose node has a token of
+// its own, as a part tells it from its other chapters.
+#define LEVEL(level) ((level) << 12)
 
-// `@node`, the sectioning commands and `@bye`, which close the brace
-// commands and blocks left open before them, as in texi2any ("@node seen
-// before @end menu").
-static bool is_root_command(const char *name) {
-  if (strcmp(name, "node") == 0 || strcmp(name, "bye") == 0) return true;
-  for (unsigned i = 0; i < SECTIONING_COUNT; i++) {
-    if (same_name(SECTIONING[i].name, name)) return true;
+typedef struct {
+  const char *name;
+  uint16_t flags;
+} Command;
+
+// The commands but the blocks that the scanner tells apart, from texi2any's
+// tables (script/check-scanner.py checks them). Sorted, for a binary search.
+static const Command COMMANDS[] = {
+    {"AA", BRACE},
+    {"AE", BRACE},
+    {"DH", BRACE},
+    {"H", BRACE | ACCENT},
+    {"L", BRACE},
+    {"LaTeX", BRACE},
+    {"O", BRACE},
+    {"OE", BRACE},
+    {"TH", BRACE},
+    {"TeX", BRACE},
+    {"U", BRACE},
+    {"aa", BRACE},
+    {"ae", BRACE},
+    {"afivepaper", LINE},
+    {"afourlatex", LINE},
+    {"afourpaper", LINE},
+    {"afourwide", LINE},
+    {"alias", KEYWORD},
+    {"allowcodebreaks", LINE},
+    {"ampchar", BRACE},
+    {"anchor", BRACE | NO_PARAGRAPH},
+    {"appendix", SECTION | LEVEL(6)},
+    {"appendixsec", SECTION | LEVEL(3)},
+    {"appendixsection", SECTION | LEVEL(3)},
+    {"appendixsubsec", SECTION | LEVEL(4)},
+    {"appendixsubsubsec", SECTION | LEVEL(5)},
+    {"arrow", BRACE},
+    {"asis", BRACE},
+    {"atchar", BRACE},
+    {"author", LINE},
+    {"b", BRACE},
+    {"backslashchar", BRACE},
+    {"bsixpaper", LINE},
+    {"bullet", BRACE},
+    {"bye", ROOT | KEYWORD},
+    {"c", COMMENT},
+    {"caption", ENDS_PARAGRAPH | CONTEXT},
+    {"center", LINE | ENDS_PARAGRAPH},
+    {"centerchap", SECTION | LEVEL(2)},
+    {"chapheading", KEYWORD},
+    {"chapter", SECTION | LEVEL(2)},
+    {"cindex", LINE},
+    {"cite", BRACE},
+    {"clear", KEYWORD},
+    {"click", BRACE},
+    {"clicksequence", BRACE},
+    {"clickstyle", KEYWORD},
+    {"code", BRACE},
+    {"codequotebacktick", LINE},
+    {"codequoteundirected", LINE},
+    {"columnfractions", KEYWORD},
+    {"comma", BRACE},
+    {"command", BRACE},
+    {"comment", COMMENT},
+    {"contents", LINE | ENDS_PARAGRAPH},
+    {"copyright", BRACE},
+    {"cpindex", LINE},
+    {"defcodeindex", LINE},
+    {"defindex", LINE},
+    {"definfoenclose", LINE},
+    {"deftypefnnewline", LINE},
+    {"dfn", BRACE},
+    {"dh", BRACE},
+    {"dircategory", LINE | ENDS_PARAGRAPH},
+    {"dmn", BRACE},
+    {"documentencoding", LINE},
+    {"documentlanguage", LINE},
+    {"dotaccent", BRACE | ACCENT},
+    {"dotless", BRACE | ACCENT},
+    {"dots", BRACE},
+    {"emph", BRACE},
+    {"enddots", BRACE},
+    {"env", BRACE},
+    {"equiv", BRACE},
+    {"error", BRACE},
+    {"errormsg", BRACE | NO_PARAGRAPH},
+    {"euro", BRACE},
+    {"evenfooting", LINE},
+    {"evenfootingmarks", LINE},
+    {"evenheading", LINE},
+    {"evenheadingmarks", LINE},
+    {"everyfooting", LINE},
+    {"everyfootingmarks", LINE},
+    {"everyheading", LINE},
+    {"everyheadingmarks", LINE},
+    {"exampleindent", LINE},
+    {"exclamdown", BRACE},
+    {"exdent", LINE | ENDS_PARAGRAPH},
+    {"expansion", BRACE},
+    {"file", BRACE},
+    {"finalout", LINE},
+    {"findex", LINE},
+    {"firstparagraphindent", LINE},
+    {"fnindex", LINE},
+    {"fonttextsize", LINE},
+    {"footnote", CONTEXT},
+    {"footnotestyle", LINE},
+    {"frenchspacing", LINE},
+    {"geq", BRACE},
+    {"guillemetleft", BRACE},
+    {"guillemetright", BRACE},
+    {"guillemotleft", BRACE},
+    {"guillemotright", BRACE},
+    {"guilsinglleft", BRACE},
+    {"guilsinglright", BRACE},
+    {"hashchar", BRACE},
+    {"heading", KEYWORD},
+    {"headings", LINE},
+    {"headitem", ITEM | KEYWORD},
+    {"headitemfont", BRACE},
+    {"hyphenation", BRACE | NO_PARAGRAPH},
+    {"i", BRACE},
+    {"include", LINE},
+    {"indent", NO_PARAGRAPH},
+    {"indicateurl", BRACE},
+    {"insertcopying", LINE | ENDS_PARAGRAPH},
+    {"item", ITEM | KEYWORD},
+    {"itemx", ITEM | KEYWORD},
+    {"kbd", BRACE},
+    {"kbdinputstyle", LINE},
+    {"key", BRACE},
+    {"kindex", LINE},
+    {"kyindex", LINE},
+    {"l", BRACE},
+    {"lbracechar", BRACE},
+    {"leq", BRACE},
+    {"listoffloats", LINE | ENDS_PARAGRAPH},
+    {"lowersections", LINE},
+    {"majorheading", KEYWORD},
+    {"maketitle", LINE | ENDS_PARAGRAPH},
+    {"microtype", LINE},
+    {"minus", BRACE},
+    {"need", LINE | ENDS_PARAGRAPH},
+    {"node", ROOT},
+    {"nodedescription", LINE | ENDS_PARAGRAPH | KEYWORD},
+    {"noindent", NO_PARAGRAPH},
+    {"novalidate", LINE},
+    {"o", BRACE},
+    {"oddfooting", LINE},
+    {"oddfootingmarks", LINE},
+    {"oddheading", LINE},
+    {"oddheadingmarks", LINE},
+    {"oe", BRACE},
+    {"ogonek", BRACE | ACCENT},
+    {"option", BRACE},
+    {"ordf", BRACE},
+    {"ordm", BRACE},
+    {"page", LINE | ENDS_PARAGRAPH},
+    {"pagesizes", LINE},
+    {"paragraphindent", LINE},
+    {"part", SECTION | LEVEL(0)},
+    {"pgindex", LINE},
+    {"pindex", LINE},
+    {"point", BRACE},
+    {"pounds", BRACE},
+    {"print", BRACE},
+    {"printindex", LINE | ENDS_PARAGRAPH},
+    {"questiondown", BRACE},
+    {"quotedblbase", BRACE},
+    {"quotedblleft", BRACE},
+    {"quotedblright", BRACE},
+    {"quoteleft", BRACE},
+    {"quoteright", BRACE},
+    {"quotesinglbase", BRACE},
+    {"r", BRACE},
+    {"raisesections", LINE},
+    {"rbracechar", BRACE},
+    {"refill", NO_PARAGRAPH},
+    {"registeredsymbol", BRACE},
+    {"result", BRACE},
+    {"ringaccent", BRACE | ACCENT},
+    {"samp", BRACE},
+    {"sansserif", BRACE},
+    {"sc", BRACE},
+    {"section", SECTION | LEVEL(3)},
+    {"seealso", BRACE},
+    {"seeentry", BRACE},
+    {"set", KEYWORD},
+    {"setchapternewpage", LINE},
+    {"setfilename", LINE | ENDS_PARAGRAPH},
+    {"settitle", LINE},
+    {"shortcaption", ENDS_PARAGRAPH | CONTEXT},
+    {"shortcontents", LINE | ENDS_PARAGRAPH},
+    {"shorttitlepage", LINE},
+    {"slanted", BRACE},
+    {"smallbook", LINE},
+    {"sortas", BRACE},
+    {"sp", LINE | ENDS_PARAGRAPH},
+    {"ss", BRACE},
+    {"strong", BRACE},
+    {"sub", BRACE},
+    {"subheading", KEYWORD},
+    {"subsection", SECTION | LEVEL(4)},
+    {"subsubheading", KEYWORD},
+    {"subsubsection", SECTION | LEVEL(5)},
+    {"subtitle", LINE},
+    {"summarycontents", LINE | ENDS_PARAGRAPH},
+    {"sup", BRACE},
+    {"syncodeindex", LINE},
+    {"synindex", LINE},
+    {"t", BRACE},
+    {"tab", ITEM},
+    {"textdegree", BRACE},
+    {"th", BRACE},
+    {"tie", BRACE},
+    {"tieaccent", BRACE | ACCENT},
+    {"tindex", LINE},
+    {"title", LINE},
+    {"titlefont", ENDS_PARAGRAPH | BRACE | NO_PARAGRAPH},
+    {"today", BRACE},
+    {"top", SECTION | LEVEL(1)},
+    {"tpindex", LINE},
+    {"u", BRACE | ACCENT},
+    {"ubaraccent", BRACE | ACCENT},
+    {"udotaccent", BRACE | ACCENT},
+    {"unmacro", KEYWORD},
+    {"unnumbered", SECTION | LEVEL(2)},
+    {"unnumberedsec", SECTION | LEVEL(3)},
+    {"unnumberedsubsec", SECTION | LEVEL(4)},
+    {"unnumberedsubsubsec", SECTION | LEVEL(5)},
+    {"urefbreakstyle", LINE},
+    {"v", BRACE | ACCENT},
+    {"value", BRACE},
+    {"var", BRACE},
+    {"verbatiminclude", LINE | ENDS_PARAGRAPH},
+    {"vindex", LINE},
+    {"vrindex", LINE},
+    {"vskip", KEYWORD},
+    {"w", BRACE},
+    {"xrefautomaticsectiontitle", LINE},
+    {"xrefname", LINE | ENDS_PARAGRAPH},
+};
+
+#define COMMAND_COUNT (sizeof(COMMANDS) / sizeof(COMMANDS[0]))
+
+// A command's name as read, with what the tables say of it.
+typedef struct {
+  char text[MAX_NAME + 1];
+  // The characters read, which a name too long for `text` has more of.
+  unsigned length;
+  uint16_t flags;
+  // Its index in BLOCKS, or -1.
+  int block;
+} Name;
+
+/**
+ * Reads a command's name (read_name) and looks it up, in COMMANDS, then in
+ * BLOCKS. Returns false if there is none. One that isn't in them but ends in
+ * `index` is a line command: a user-defined index command (`@defindex op`
+ * makes `@opindex`), which texi2any treats as an index entry.
+ */
+static bool read_command(TSLexer *lexer, Name *name) {
+  name->length = read_name(lexer, name->text);
+  if (name->length == 0) return false;
+  name->flags = 0;
+  name->block = -1;
+  int index = search(COMMANDS, sizeof(COMMANDS[0]), COMMAND_COUNT, name->text);
+  if (index >= 0) {
+    name->flags = COMMANDS[index].flags;
+    return true;
   }
-  return false;
+  name->block = find_block(name->text);
+  size_t length = strlen(name->text);
+  if (name->block < 0 && length > 5 &&
+      memcmp(name->text + length - 5, "index", 5) == 0) {
+    name->flags = LINE;
+  }
+  return true;
+}
+
+// The block that `name` opens, or NULL.
+static inline const Block *opened_block(const Name *name) {
+  return name->block >= 0 ? &BLOCKS[name->block] : NULL;
+}
+
+// A line command that ends a paragraph.
+static inline bool ends_paragraph(const Name *name) {
+  return (name->flags & (LINE | ENDS_PARAGRAPH)) == (LINE | ENDS_PARAGRAPH);
+}
+
+// `@node`, a sectioning command or `@bye`.
+static inline bool is_root_command(const Name *name) {
+  return name->flags & (ROOT | SECTION);
 }
 
 /**
- * The level of the sectioning command `name` in SECTIONING, or -1 if it is
- * none, moved by `shift`, the `@raisesections` before it less the
+ * The level of the sectioning command `name` (LEVEL), or -1 if it is none,
+ * moved by `shift`, the `@raisesections` before it less the
  * `@lowersections`, as in texi2any: no higher than a chapter nor lower
  * than a subsubsection, `@appendix` staying one at the chapter's level, and
  * `@part` and `@top` not at all.
  */
-static int section_level(const char *name, int shift) {
-  for (unsigned i = 0; i < SECTIONING_COUNT; i++) {
-    if (!same_name(SECTIONING[i].name, name)) continue;
-    int level = SECTIONING[i].level;
-    if (level < 2 || shift == 0) return level;
-    // texi2any's level, from the chapter's 1 to the subsubsection's 4.
-    int moved = (level == 6 ? 1 : level - 1) - shift;
-    if (moved <= 1) return level == 6 ? 6 : 2;
-    return moved >= 4 ? 5 : moved + 1;
-  }
-  return -1;
+static int section_level(const Name *name, int shift) {
+  if (!(name->flags & SECTION)) return -1;
+  int level = name->flags >> 12;
+  if (level < 2 || shift == 0) return level;
+  // texi2any's level, from the chapter's 1 to the subsubsection's 4.
+  int moved = (level == 6 ? 1 : level - 1) - shift;
+  if (moved <= 1) return level == 6 ? 6 : 2;
+  return moved >= 4 ? 5 : moved + 1;
 }
 
 // Counts `@raisesections` and `@lowersections` into `shift`.
-static void count_section_shift(int8_t *shift, const char *name) {
-  if (strcmp(name, "raisesections") == 0 && *shift < INT8_MAX) (*shift)++;
-  if (strcmp(name, "lowersections") == 0 && *shift > INT8_MIN) (*shift)--;
+static void count_section_shift(int8_t *shift, const Name *name) {
+  if (!(name->flags & LINE)) return;
+  if (same_name(name->text, "raisesections") && *shift < INT8_MAX) (*shift)++;
+  if (same_name(name->text, "lowersections") && *shift > INT8_MIN) (*shift)--;
 }
 
 /**
@@ -684,7 +815,7 @@ static void count_section_shift(int8_t *shift, const char *name) {
  * as the grammar knows.
  */
 static bool accept_node_before(TSLexer *lexer, const bool *valid_symbols,
-                               const char *name, int shift) {
+                               const Name *name, int shift) {
   int level = section_level(name, shift);
   if (level <= 0) return false;
   enum TokenType token = NODE_BEFORE + level;
@@ -723,30 +854,22 @@ static bool scan_node_before_section(const Scanner *scanner, TSLexer *lexer,
       continue;
     }
     advance(lexer);
-    char name[MAX_NAME + 1];
-    if (!read_name(lexer, name)) {
+    Name name;
+    if (!read_command(lexer, &name)) {
       skip_to_next_line(lexer);
       continue;
     }
 
     // A comment, whatever follows its name, as in texi2any, or a line
-    // command, such as an index entry (`@cindex`, `@need 5000`).
-    if (strcmp(name, "c") == 0 || strcmp(name, "comment") == 0 ||
-        is_line_command(name)) {
-      count_section_shift(&shift, name);
-      skip_to_next_line(lexer);
-      continue;
-    }
-    if (strcmp(name, "nodedescription") == 0) {
-      if (!at_blank(lexer) && lexer->lookahead != '\n' &&
-          lexer->lookahead != '\r' && !lexer->eof(lexer)) {
-        return false;
-      }
+    // command, such as an index entry (`@cindex`, `@need 5000`) or the
+    // node's description.
+    if (name.flags & (COMMENT | LINE)) {
+      count_section_shift(&shift, &name);
       skip_to_next_line(lexer);
       continue;
     }
 
-    if (strcmp(name, "nodedescriptionblock") == 0) {
+    if (same_name(name.text, "nodedescriptionblock")) {
       // Skip to the line after its `@end`. Left open, it closes at the next
       // node, section or `@bye`, as in texi2any, where this scan stops too:
       // read to the end of the file, it made a parse of many such nodes
@@ -757,13 +880,13 @@ static bool scan_node_before_section(const Scanner *scanner, TSLexer *lexer,
         skip_blanks(lexer);
         if (lexer->lookahead != '@') continue;
         advance(lexer);
-        if (!read_name(lexer, name)) continue;
-        if (is_root_command(name)) {
-          return accept_node_before(lexer, valid_symbols, name, shift);
+        if (!read_command(lexer, &name)) continue;
+        if (is_root_command(&name)) {
+          return accept_node_before(lexer, valid_symbols, &name, shift);
         }
         char end_name[MAX_NAME + 1];
-        if (strcmp(name, "end") == 0 && read_end_name(lexer, end_name) &&
-            strcmp(end_name, "nodedescriptionblock") == 0) {
+        if (same_name(name.text, "end") && read_end_name(lexer, end_name) &&
+            same_name(end_name, "nodedescriptionblock")) {
           break;
         }
       }
@@ -771,15 +894,13 @@ static bool scan_node_before_section(const Scanner *scanner, TSLexer *lexer,
       continue;
     }
 
-    if (is_root_command(name)) {
-      return accept_node_before(lexer, valid_symbols, name, shift);
+    if (is_root_command(&name)) {
+      return accept_node_before(lexer, valid_symbols, &name, shift);
     }
     // Nor a definition line (`@deffnx`, `@defline`), whose names but the
     // blocks' and index commands' start with `def`.
-    if (find_block(name) >= 0 || strcmp(name, "end") == 0 ||
-        strcmp(name, "item") == 0 || strcmp(name, "itemx") == 0 ||
-        strcmp(name, "headitem") == 0 || strcmp(name, "tab") == 0 ||
-        strncmp(name, "def", 3) == 0) {
+    if (name.block >= 0 || (name.flags & ITEM) || same_name(name.text, "end") ||
+        strncmp(name.text, "def", 3) == 0) {
       return false;
     }
     // Text that starts with a command, such as `@anchor{Old name}`, which
@@ -788,14 +909,9 @@ static bool scan_node_before_section(const Scanner *scanner, TSLexer *lexer,
   }
 }
 
-// Conditionals, which texi2any evaluates before parsing.
-static inline bool is_conditional(const char *name) {
-  return strncmp(name, "if", 2) == 0;
-}
-
-/** The name of the innermost open block; there must be one. */
-static inline const char *innermost_block(const Scanner *scanner) {
-  return BLOCKS[scanner->stack[scanner->depth - 1]].name;
+/** The innermost open block; there must be one. */
+static inline const Block *innermost_block(const Scanner *scanner) {
+  return &BLOCKS[scanner->stack[scanner->depth - 1]];
 }
 
 /** Pops the innermost block, whose `@end NAME` has just been read. */
@@ -803,26 +919,6 @@ static bool pop_block(Scanner *scanner, TSLexer *lexer) {
   scanner->depth--;
   return accept(lexer, BLOCK_END);
 }
-
-// Commands that don't start a paragraph, as in texi2any (its
-// `%no_paragraph_commands`, but the line and block commands, and those the
-// grammar recognises otherwise): where one would start, they are outside it.
-// Some are in BRACE_COMMANDS, which they are where a paragraph is open.
-static const char *const NO_PARAGRAPH_COMMANDS[] = {
-    "anchor",   "errormsg", "hyphenation", "indent",
-    "noindent", "refill",   "titlefont"};
-
-// The brace commands that end a paragraph, also in the middle of a line,
-// as in texi2any (its close_paragraph_commands), and start none: the
-// context commands `@caption` and `@shortcaption`, and `@titlefont`.
-static const char *const PARAGRAPH_ENDING_BRACE_COMMANDS[] = {
-    "caption", "shortcaption", "titlefont"};
-
-// Accent commands, which texi2any also accepts without braces: `@'e`,
-// `@u o`.
-static const char *const LETTER_ACCENTS[] = {
-    "H",         "dotaccent", "dotless",    "ogonek",     "ringaccent",
-    "tieaccent", "u",         "ubaraccent", "udotaccent", "v"};
 
 static bool is_symbol_accent(int32_t c) {
   return c == '\'' || c == '"' || c == '^' || c == '`' || c == '~' ||
@@ -840,11 +936,8 @@ static bool more_comment_lines(TSLexer *lexer) {
     }
     if (lexer->lookahead != '@') break;
     advance(lexer);
-    char name[MAX_NAME + 1];
-    if (!read_name(lexer, name) ||
-        (strcmp(name, "c") != 0 && strcmp(name, "comment") != 0)) {
-      return true;
-    }
+    Name name;
+    if (!read_command(lexer, &name) || !(name.flags & COMMENT)) return true;
     skip_to_next_line(lexer);
   }
   return !lexer->eof(lexer) && lexer->lookahead != '\n';
@@ -862,13 +955,10 @@ static bool starts_with_text(TSLexer *lexer) {
   if (lexer->eof(lexer) || c == '\n' || c == '\r') return false;
   if (c != '@') return true;
   advance(lexer);
-  char name[MAX_NAME + 1];
-  if (!read_name(lexer, name)) return true;
-  return strcmp(name, "end") != 0 && strcmp(name, "c") != 0 &&
-         strcmp(name, "comment") != 0 && strcmp(name, "item") != 0 &&
-         strcmp(name, "itemx") != 0 && strcmp(name, "headitem") != 0 &&
-         strcmp(name, "tab") != 0 && find_block(name) < 0 &&
-         !is_root_command(name) && !is_line_command(name);
+  Name name;
+  if (!read_command(lexer, &name)) return true;
+  return name.block < 0 && !same_name(name.text, "end") &&
+         !(name.flags & (COMMENT | ITEM | ROOT | SECTION | LINE));
 }
 
 /**
@@ -879,8 +969,11 @@ static bool starts_with_text(TSLexer *lexer) {
  * Otherwise it reused the paragraph, ended, where the conditional now
  * starts with text and goes on with it.
  */
-static void read_conditional_line(TSLexer *lexer, const char *name) {
-  if (is_conditional(name) && find_block(name) >= 0) starts_with_text(lexer);
+static void read_conditional_line(TSLexer *lexer, const Name *name) {
+  const Block *block = opened_block(name);
+  if (block != NULL && block->kind == KIND_CONDITIONAL) {
+    starts_with_text(lexer);
+  }
 }
 
 /**
@@ -913,10 +1006,10 @@ static bool scan_newline_before_comments(TSLexer *lexer, bool accent) {
   }
   if (lexer->lookahead != '@') return false;
   advance(lexer);
-  char name[MAX_NAME + 1];
-  if (!read_name(lexer, name)) return false;
-  if (strcmp(name, "c") != 0 && strcmp(name, "comment") != 0) {
-    read_conditional_line(lexer, name);
+  Name name;
+  if (!read_command(lexer, &name)) return false;
+  if (!(name.flags & COMMENT)) {
+    read_conditional_line(lexer, &name);
     return false;
   }
   lexer->result_symbol = NEWLINE_BEFORE_COMMENTS;
@@ -994,61 +1087,44 @@ static bool scan_inline_raw(TSLexer *lexer) {
 static const Block *innermost_structure(const Scanner *scanner) {
   for (unsigned i = scanner->depth; i > 0; i--) {
     const Block *block = &BLOCKS[scanner->stack[i - 1]];
-    if (!is_conditional(block->name)) return block;
+    if (block->kind != KIND_CONDITIONAL) return block;
   }
   return NULL;
 }
 
-static bool in_multitable(const Scanner *scanner) {
+// The kind of the innermost open block other than conditionals, or
+// KIND_BLOCK.
+static BlockKind innermost_kind(const Scanner *scanner) {
   const Block *block = innermost_structure(scanner);
-  return block != NULL && block->kind == KIND_MULTITABLE;
+  return block != NULL ? block->kind : KIND_BLOCK;
 }
 
 // Inside a preformatted block, where a blank line doesn't end a brace
 // command. Every block nested in one, such as `@group` or `@quotation`, keeps
 // it preformatted, as in texi2any.
 static bool in_preformatted(const Scanner *scanner) {
-  static const char *const PREFORMATTED[] = {
-      "example", "smallexample", "lisp",   "smalllisp",
-      "display", "smalldisplay", "format", "smallformat"};
   for (unsigned i = 0; i < scanner->depth; i++) {
-    if (in_table(PREFORMATTED, TABLE_COUNT(PREFORMATTED),
-                 BLOCKS[scanner->stack[i]].name)) {
-      return true;
-    }
+    if (BLOCKS[scanner->stack[i]].kind == KIND_PREFORMATTED) return true;
   }
   return false;
 }
 
-// The grammar's keywords of commands that start no paragraph, which the
-// scanner gives no token: a line's command (`@set`, `@item` in a table,
-// `@heading`). Definition lines (`@deffnx`, `@defline`) start with `def`,
-// and sectioning commands and `@node` are root commands.
-// script/check-scanner.py checks them against the grammar.
-static const char *const LINE_KEYWORDS[] = {
-    "alias",   "bye",          "chapheading",
-    "clear",   "clickstyle",   "columnfractions",
-    "heading", "headitem",     "item",
-    "itemx",   "majorheading", "nodedescription",
-    "set",     "subheading",   "subsubheading",
-    "unmacro", "vskip"};
-
 /**
- * Whether the command `@name`, whose token is `token`, starts a paragraph
+ * Whether the command `name`, whose token is `token`, starts a paragraph
  * where one may start: a brace command, `@math`, `@footnote`, or a command
  * the scanner gives no token, but a block, a line's command, a comment or a
  * command that starts none (`@image`).
  */
-static bool starts_paragraph(const char *name, int token) {
+static bool starts_paragraph(const Name *name, int token) {
   if (token == BRACE_COMMAND_NAME || token == MATH_NAME ||
       token == CONTEXT_COMMAND_NAME) {
     return true;
   }
-  return token < 0 && find_block(name) < 0 && !is_root_command(name) &&
-         strcmp(name, "end") != 0 && strcmp(name, "c") != 0 &&
-         strcmp(name, "comment") != 0 && strncmp(name, "def", 3) != 0 &&
-         strcmp(name, "image") != 0 && strcmp(name, "namedanchor") != 0 &&
-         !in_table(LINE_KEYWORDS, TABLE_COUNT(LINE_KEYWORDS), name);
+  return token < 0 && name->block < 0 &&
+         !(name->flags & (ROOT | SECTION | COMMENT | KEYWORD)) &&
+         !same_name(name->text, "end") && strncmp(name->text, "def", 3) != 0 &&
+         !same_name(name->text, "image") &&
+         !same_name(name->text, "namedanchor");
 }
 
 // A symbol command's character after its `@` (the grammar's
@@ -1067,33 +1143,24 @@ static bool form_feed_ends_paragraph(const Scanner *scanner, LineStart *start,
          !in_preformatted(scanner) && !starts_line(start);
 }
 
-// `@itemize` and `@enumerate`, where the text after `@item` is a paragraph,
-// unlike in tables, where it is the item's line argument.
-static bool in_item_container(const Scanner *scanner) {
-  const Block *block = innermost_structure(scanner);
-  return block != NULL && (strcmp(block->name, "itemize") == 0 ||
-                           strcmp(block->name, "enumerate") == 0);
-}
-
-static bool is_item_command(const char *name) {
-  return strcmp(name, "item") == 0 || strcmp(name, "itemx") == 0 ||
-         strcmp(name, "headitem") == 0 || strcmp(name, "tab") == 0;
-}
-
-// Whether `@name` starts a list's next item or a multitable's next cell,
+// Whether `name` starts a list's next item or a multitable's next cell,
 // which ends a paragraph and an ordinary brace command left open before it,
 // as in texi2any: `@item` in any list, `@itemx` in a table, `@headitem` and
 // `@tab` in a multitable. texi2any reports the others as outside of a table
 // or list or not meaningful in it.
-static bool starts_item(const Scanner *scanner, const char *name) {
-  const Block *block = innermost_structure(scanner);
-  if (block == NULL) return false;
-  if (block->kind == KIND_MULTITABLE) {
-    return is_item_command(name) && strcmp(name, "itemx") != 0;
+static bool starts_item(const Scanner *scanner, const Name *name) {
+  if (!(name->flags & ITEM)) return false;
+  bool itemx = same_name(name->text, "itemx");
+  switch (innermost_kind(scanner)) {
+    case KIND_MULTITABLE:
+      return !itemx;
+    case KIND_ITEM_LINE:
+      return itemx || same_name(name->text, "item");
+    case KIND_ITEM_CONTAINER:
+      return same_name(name->text, "item");
+    default:
+      return false;
   }
-  if (block->kind != KIND_LIST) return false;
-  if (strcmp(name, "item") == 0) return true;
-  return strcmp(name, "itemx") == 0 && !in_item_container(scanner);
 }
 
 /**
@@ -1103,8 +1170,8 @@ static bool starts_item(const Scanner *scanner, const char *name) {
  * texi2any reports ("@itemx should not begin @table", "@tab before
  * @item"). Not later, where a macro call may have made an item.
  */
-static bool leading_item_command(const Scanner *scanner, const char *name) {
-  return (strcmp(name, "itemx") == 0 || strcmp(name, "tab") == 0) &&
+static bool leading_item_command(const Scanner *scanner, const Name *name) {
+  return (same_name(name->text, "itemx") || same_name(name->text, "tab")) &&
          starts_item(scanner, name);
 }
 
@@ -1126,13 +1193,13 @@ static bool scan_leading_newline(const Scanner *scanner, TSLexer *lexer) {
     }
     if (lexer->lookahead != '@') return false;
     advance(lexer);
-    char name[MAX_NAME + 1];
-    if (!read_name(lexer, name)) return false;
-    if (strcmp(name, "c") == 0 || strcmp(name, "comment") == 0) {
+    Name name;
+    if (!read_command(lexer, &name)) return false;
+    if (name.flags & COMMENT) {
       skip_to_next_line(lexer);
       continue;
     }
-    return leading_item_command(scanner, name);
+    return leading_item_command(scanner, &name);
   }
 }
 
@@ -1152,9 +1219,8 @@ static ScanResult scan_end_line_text(TSLexer *lexer) {
       // The text ends before a comment.
       lexer->mark_end(lexer);
       advance(lexer);
-      char name[MAX_NAME + 1];
-      if (read_name(lexer, name) &&
-          (strcmp(name, "c") == 0 || strcmp(name, "comment") == 0)) {
+      Name name;
+      if (read_command(lexer, &name) && (name.flags & COMMENT)) {
         if (!found) return SCAN_FAILED;
         break;
       }
@@ -1175,28 +1241,28 @@ static ScanResult scan_end_line_text(TSLexer *lexer) {
  * already been consumed.
  */
 static bool scan_block_start(Scanner *scanner, TSLexer *lexer,
-                             const bool *valid_symbols, const char *name) {
-  int index = find_block(name);
-  if (index < 0) return false;
+                             const bool *valid_symbols, const Name *name) {
+  const Block *block = opened_block(name);
+  if (block == NULL) return false;
 
   // The opener's token for each kind of block, in BlockKind's order.
   static const enum TokenType START_TOKENS[] = {
-      BLOCK_START,     LIST_START,  MULTITABLE_START, FLOAT_START,
-      RAW_BLOCK_START, MACRO_START, MENU_START};
-  BlockKind kind = BLOCKS[index].kind;
+      BLOCK_START,      BLOCK_START, BLOCK_START,     LIST_START,  LIST_START,
+      MULTITABLE_START, FLOAT_START, RAW_BLOCK_START, MACRO_START, MENU_START};
+  BlockKind kind = block->kind;
   enum TokenType token = kind >= KIND_DEFINITION
                              ? DEFINITION_START + (kind - KIND_DEFINITION)
                              : START_TOKENS[kind];
   // In a menu entry's description, which goes on past a block, but not past
   // a conditional, which holds the next entries.
-  if (kind == KIND_BLOCK && valid_symbols[DESCRIPTION_BLOCK_START] &&
-      !is_conditional(name)) {
+  if ((kind == KIND_BLOCK || kind == KIND_PREFORMATTED) &&
+      valid_symbols[DESCRIPTION_BLOCK_START]) {
     token = DESCRIPTION_BLOCK_START;
   }
   // At the start of a paragraph's next line, which goes on past a raw block
   // but `@verbatim`, the one of them in texi2any's close_paragraph_commands.
   if (kind == KIND_RAW && valid_symbols[PARAGRAPH_RAW_BLOCK_START] &&
-      strcmp(name, "verbatim") != 0) {
+      !same_name(name->text, "verbatim")) {
     token = PARAGRAPH_RAW_BLOCK_START;
   }
   // Nor past a macro definition.
@@ -1209,22 +1275,28 @@ static bool scan_block_start(Scanner *scanner, TSLexer *lexer,
   // text. One that starts with items, a section or a block is part of the
   // structure around the paragraph. Its first line is read here, so that an
   // edit there makes tree-sitter scan again.
-  if (kind == KIND_BLOCK && is_conditional(name) &&
-      valid_symbols[PARAGRAPH_CONDITIONAL_START] && starts_with_text(lexer)) {
+  if (kind == KIND_CONDITIONAL && valid_symbols[PARAGRAPH_CONDITIONAL_START] &&
+      starts_with_text(lexer)) {
     token = PARAGRAPH_CONDITIONAL_START;
   }
   if (!valid_symbols[token]) return false;
   if (scanner->depth >= MAX_DEPTH) return false;
 
-  scanner->stack[scanner->depth++] = (uint8_t)index;
+  scanner->stack[scanner->depth++] = (uint8_t)name->block;
   lexer->result_symbol = (TSSymbol)token;
   return true;
 }
 
-// Whether a block named `name` is open, other than the innermost one.
-static bool encloses(const Scanner *scanner, const char *name) {
+// Whether `block` (an index in BLOCKS) is the innermost open block.
+static bool is_innermost(const Scanner *scanner, int block) {
+  return scanner->depth > 0 && scanner->stack[scanner->depth - 1] == block;
+}
+
+// Whether `block` (an index in BLOCKS) is open, other than the innermost
+// block.
+static bool encloses(const Scanner *scanner, int block) {
   for (unsigned i = scanner->depth > 0 ? scanner->depth - 1 : 0; i > 0; i--) {
-    if (strcmp(BLOCKS[scanner->stack[i - 1]].name, name) == 0) return true;
+    if (scanner->stack[i - 1] == block) return true;
   }
   return false;
 }
@@ -1247,25 +1319,24 @@ static bool scan_end(Scanner *scanner, TSLexer *lexer,
                      const bool *valid_symbols, bool brace_at_line_start,
                      bool paragraph_at_line_start) {
   char end_name[MAX_NAME + 1];
-  bool has_name = read_end_name(lexer, end_name);
+  int block = read_end_name(lexer, end_name) ? find_block(end_name) : -1;
   // An `@end` of no block, or without a name, which texi2any warns of
   // ("unknown @end", "@end missing argument") and ignores: it closes no
   // block, nor the paragraph or the brace command it is in, so that typing
   // the name of an `@end` changes nothing around it.
-  if (!has_name || find_block(end_name) < 0) {
+  if (block < 0) {
     if (valid_symbols[PARAGRAPH_UNMATCHED_END]) {
       return accept_unmatched_end(lexer, PARAGRAPH_UNMATCHED_END);
     }
     return valid_symbols[UNMATCHED_END] &&
            accept_unmatched_end(lexer, UNMATCHED_END);
   }
-  bool matches =
-      scanner->depth > 0 && strcmp(end_name, innermost_block(scanner)) == 0;
+  bool matches = is_innermost(scanner, block);
   // A brace command still open at the start of the line closes first, with
   // a zero-width token before the `@end`, which is then read again; also at
   // the `@end` of an enclosing block, which closes the blocks inside it.
-  if ((matches || (has_name && encloses(scanner, end_name))) &&
-      brace_at_line_start && valid_symbols[BRACE_CLOSE_AT_BLOCK_END]) {
+  if ((matches || encloses(scanner, block)) && brace_at_line_start &&
+      valid_symbols[BRACE_CLOSE_AT_BLOCK_END]) {
     lexer->result_symbol = BRACE_CLOSE_AT_BLOCK_END;
     return true;
   }
@@ -1278,27 +1349,19 @@ static bool scan_end(Scanner *scanner, TSLexer *lexer,
     return valid_symbols[BLOCK_END] && pop_block(scanner, lexer);
   }
   // The `@end` of an enclosing block first closes the blocks inside it, as in
-  // texi2any, with a zero-width end each; the `@end` is then read again.
-  if (has_name && valid_symbols[MISSING_END] && encloses(scanner, end_name)) {
-    scanner->depth--;
-    lexer->result_symbol = MISSING_END;
-    return true;
-  }
-  // An `@end` of a block that isn't open closes the open blocks too, as in
+  // texi2any, with a zero-width end each; the `@end` is then read again. An
+  // `@end` of a block that isn't open closes the open blocks too, as in
   // texi2any, before it is reported as unmatched; but not conditionals,
-  // which texi2any has evaluated, nor for an `@end` without a name.
-  if (has_name && valid_symbols[MISSING_END] && scanner->depth > 0 &&
-      !is_conditional(innermost_block(scanner))) {
+  // which texi2any has evaluated.
+  if (valid_symbols[MISSING_END] && scanner->depth > 0 &&
+      (encloses(scanner, block) ||
+       innermost_block(scanner)->kind != KIND_CONDITIONAL)) {
     scanner->depth--;
     lexer->result_symbol = MISSING_END;
     return true;
   }
-  if (!valid_symbols[UNMATCHED_END]) return false;
-  while (!lexer->eof(lexer) && lexer->lookahead != '\n' &&
-         lexer->lookahead != '\r') {
-    advance(lexer);
-  }
-  return accept(lexer, UNMATCHED_END);
+  return valid_symbols[UNMATCHED_END] &&
+         accept_unmatched_end(lexer, UNMATCHED_END);
 }
 
 /**
@@ -1439,10 +1502,10 @@ static bool scan_verb(Scanner *scanner, TSLexer *lexer,
  * close nothing, and keeps raw blocks other than `@verbatim` inside the
  * command.
  */
-static bool closes_brace(const char *name) {
-  int index = find_block(name);
-  if (index < 0 || is_conditional(name)) return false;
-  return BLOCKS[index].kind != KIND_RAW || strcmp(name, "verbatim") == 0;
+static bool closes_brace(const Name *name) {
+  const Block *block = opened_block(name);
+  if (block == NULL || block->kind == KIND_CONDITIONAL) return false;
+  return block->kind != KIND_RAW || same_name(name->text, "verbatim");
 }
 
 /**
@@ -1514,16 +1577,16 @@ static bool scan_missing_brace(Scanner *scanner, TSLexer *lexer,
     return paragraph_end && !in_preformatted(scanner);
   }
 
-  char name[MAX_NAME + 1];
   if (lexer->lookahead != '@') return false;
   advance(lexer);
-  if (!read_name(lexer, name)) return false;
+  Name name;
+  if (!read_command(lexer, &name)) return false;
 
   // Comment lines inside a paragraph, which don't close the brace there.
   // Before a blank line, which closes an ordinary brace command after them,
   // they are left in its argument; in other braces (`@footnote`), they stay
   // in the paragraph, as in texi2any.
-  if (strcmp(name, "c") == 0 || strcmp(name, "comment") == 0) {
+  if (name.flags & COMMENT) {
     if (!valid_symbols[NEWLINE_BEFORE_COMMENTS]) return false;
     skip_to_next_line(lexer);
     if (paragraph_end && !more_comment_lines(lexer)) return false;
@@ -1531,13 +1594,14 @@ static bool scan_missing_brace(Scanner *scanner, TSLexer *lexer,
     return true;
   }
 
-  if (strcmp(name, "end") == 0) {
+  if (same_name(name.text, "end")) {
     char end_name[MAX_NAME + 1];
     // The end of the innermost block, or of an enclosing one, which closes
     // the blocks inside it, as in texi2any.
-    if (!block_end || scanner->depth == 0 || !read_end_name(lexer, end_name) ||
-        (strcmp(end_name, innermost_block(scanner)) != 0 &&
-         !encloses(scanner, end_name))) {
+    if (!block_end || !read_end_name(lexer, end_name)) return false;
+    int block = find_block(end_name);
+    if (block < 0 ||
+        (!is_innermost(scanner, block) && !encloses(scanner, block))) {
       return false;
     }
     lexer->result_symbol = BRACE_CLOSE_AT_BLOCK_END;
@@ -1549,14 +1613,14 @@ static bool scan_missing_brace(Scanner *scanner, TSLexer *lexer,
   // edit before the command on its line makes tree-sitter scan again: at the
   // command, only the column would tell, and the subtree after such an edit
   // would be reused (in `@math{`, which a blank line doesn't close).
-  if (is_root_command(name)) {
+  if (is_root_command(&name)) {
     lexer->result_symbol =
         paragraph_end ? BRACE_CLOSE_AT_PARAGRAPH_END : BRACE_CLOSE_AT_BLOCK_END;
     return paragraph_end || block_end;
   }
 
-  if (!paragraph_end || !closes_brace(name)) {
-    read_conditional_line(lexer, name);
+  if (!paragraph_end || !closes_brace(&name)) {
+    read_conditional_line(lexer, &name);
     return false;
   }
   lexer->result_symbol = BRACE_CLOSE_AT_PARAGRAPH_END;
@@ -1640,9 +1704,8 @@ static ScanResult scan_word_glue(TSLexer *lexer) {
       return SCAN_FOUND;
     }
     if (lexer->eof(lexer)) return SCAN_FAILED;
-    char name[MAX_NAME + 1];
-    if (read_name(lexer, name) &&
-        (strcmp(name, "c") == 0 || strcmp(name, "comment") == 0)) {
+    Name name;
+    if (read_command(lexer, &name) && (name.flags & COMMENT)) {
       return SCAN_FAILED;
     }
   }
@@ -1650,75 +1713,72 @@ static ScanResult scan_word_glue(TSLexer *lexer) {
 }
 
 /**
- * The token of the command `@name` where the grammar allows it, other than a
- * block's, or -1. At most one applies to a name, as the tables of names
- * don't overlap (script/check-scanner.py checks that), so their order
- * doesn't matter; only the context tells `@item`'s two apart.
+ * The token of the command `name` where the grammar allows it, other than a
+ * block's, or -1. Of the classes of commands (COMMANDS), at most one of a
+ * line command, a brace command, a context command and an item applies to a
+ * name, and the names compared here are of none (script/check-scanner.py
+ * checks that): only the context tells `@item`'s two apart, and a command
+ * that starts no paragraph is a brace command where one is open.
  */
 static int command_token(const Scanner *scanner, const bool *valid_symbols,
-                         const char *name) {
+                         const Name *name) {
   // A brace command that ends a paragraph, also in the middle of a line, and
   // starts none: zero-width before it where a paragraph may end, which it
   // then ends, or its name where a paragraph would start, also at the start
   // of a paragraph's next line.
-  if (in_table(PARAGRAPH_ENDING_BRACE_COMMANDS,
-               TABLE_COUNT(PARAGRAPH_ENDING_BRACE_COMMANDS), name)) {
-    bool context =
-        strcmp(name, "caption") == 0 || strcmp(name, "shortcaption") == 0;
+  if ((name->flags & (ENDS_PARAGRAPH | LINE)) == ENDS_PARAGRAPH) {
     if (valid_symbols[PARAGRAPH_END_BEFORE_COMMAND]) {
       return PARAGRAPH_END_BEFORE_COMMAND;
     }
-    if (context && valid_symbols[NO_PARAGRAPH_CONTEXT_NAME]) {
-      return NO_PARAGRAPH_CONTEXT_NAME;
-    }
-    if (!context && valid_symbols[NO_PARAGRAPH_COMMAND_NAME]) {
-      return NO_PARAGRAPH_COMMAND_NAME;
-    }
+    enum TokenType token = name->flags & CONTEXT ? NO_PARAGRAPH_CONTEXT_NAME
+                                                 : NO_PARAGRAPH_COMMAND_NAME;
+    if (valid_symbols[token]) return token;
   }
   // `@image` and `@namedanchor`, keywords in the grammar, where a paragraph
   // would start, which they start none: zero-width before them. In an open
   // paragraph, they are in it, as `@anchor` is.
   if (valid_symbols[NO_PARAGRAPH_START] &&
       !valid_symbols[PARAGRAPH_LINE_COMMAND_NAME] &&
-      (strcmp(name, "image") == 0 || strcmp(name, "namedanchor") == 0)) {
+      (same_name(name->text, "image") ||
+       same_name(name->text, "namedanchor"))) {
     return NO_PARAGRAPH_START;
   }
-  bool item = strcmp(name, "item") == 0;
-  if (valid_symbols[ROW_NAME] && (item || strcmp(name, "headitem") == 0) &&
-      in_multitable(scanner)) {
-    return ROW_NAME;
+  if (name->flags & ITEM) {
+    bool item = same_name(name->text, "item");
+    if (valid_symbols[ROW_NAME] &&
+        (item || same_name(name->text, "headitem")) &&
+        innermost_kind(scanner) == KIND_MULTITABLE) {
+      return ROW_NAME;
+    }
+    if (valid_symbols[CONTAINER_ITEM_NAME] && item &&
+        innermost_kind(scanner) == KIND_ITEM_CONTAINER) {
+      return CONTAINER_ITEM_NAME;
+    }
+    if (valid_symbols[TAB] && same_name(name->text, "tab")) return TAB;
   }
-  if (valid_symbols[CONTAINER_ITEM_NAME] && item &&
-      in_item_container(scanner)) {
-    return CONTAINER_ITEM_NAME;
+  if (valid_symbols[MATH_NAME] && same_name(name->text, "math")) {
+    return MATH_NAME;
   }
-  if (valid_symbols[MATH_NAME] && strcmp(name, "math") == 0) return MATH_NAME;
-  if (valid_symbols[CONTEXT_COMMAND_NAME] &&
-      (strcmp(name, "footnote") == 0 || strcmp(name, "caption") == 0 ||
-       strcmp(name, "shortcaption") == 0)) {
+  if (valid_symbols[CONTEXT_COMMAND_NAME] && (name->flags & CONTEXT)) {
     return CONTEXT_COMMAND_NAME;
   }
-  if (valid_symbols[SUBENTRY_NAME] && strcmp(name, "subentry") == 0) {
+  if (valid_symbols[SUBENTRY_NAME] && same_name(name->text, "subentry")) {
     return SUBENTRY_NAME;
   }
-  if (valid_symbols[TAB] && strcmp(name, "tab") == 0) return TAB;
-  if (valid_symbols[PARAGRAPH_LINE_COMMAND_NAME] && is_line_command(name) &&
-      !ends_paragraph(name)) {
-    return PARAGRAPH_LINE_COMMAND_NAME;
-  }
-  if (valid_symbols[LINE_COMMAND_NAME] && is_line_command(name)) {
-    return LINE_COMMAND_NAME;
+  if (name->flags & LINE) {
+    if (valid_symbols[PARAGRAPH_LINE_COMMAND_NAME] && !ends_paragraph(name)) {
+      return PARAGRAPH_LINE_COMMAND_NAME;
+    }
+    if (valid_symbols[LINE_COMMAND_NAME]) return LINE_COMMAND_NAME;
   }
   // Where a paragraph's next line may go on with it (line commands inside it
   // are valid), a paragraph is open, which a command that starts none is in.
   if (valid_symbols[NO_PARAGRAPH_COMMAND_NAME] &&
       !valid_symbols[PARAGRAPH_LINE_COMMAND_NAME] &&
-      in_table(NO_PARAGRAPH_COMMANDS, TABLE_COUNT(NO_PARAGRAPH_COMMANDS),
-               name)) {
+      (name->flags & NO_PARAGRAPH)) {
     return NO_PARAGRAPH_COMMAND_NAME;
   }
-  if (valid_symbols[BRACE_COMMAND_NAME] &&
-      in_sorted_table(BRACE_COMMANDS, TABLE_COUNT(BRACE_COMMANDS), name)) {
+  if (valid_symbols[BRACE_COMMAND_NAME] && (name->flags & BRACE)) {
     return BRACE_COMMAND_NAME;
   }
   return -1;
@@ -1965,11 +2025,11 @@ static bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symbols,
     return accept(lexer, NO_PARAGRAPH_SYMBOL);
   }
 
-  char name[MAX_NAME + 1];
-  if (!read_name(lexer, name)) return false;
-  start.consumed += (unsigned)strlen(name);
+  Name name;
+  if (!read_command(lexer, &name)) return false;
+  start.consumed += name.length;
 
-  if (strcmp(name, "end") == 0) {
+  if (same_name(name.text, "end")) {
     bool line_start = (brace_close || paragraph_end) && starts_line(&start);
     return scan_end(scanner, lexer, valid_symbols, brace_close && line_start,
                     paragraph_end && line_start);
@@ -1977,11 +2037,9 @@ static bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symbols,
   // A node, a section or `@bye` closes the open blocks, all but a
   // conditional, which texi2any has evaluated, and which a section may be
   // inside; and the paragraph and brace command before them.
-  bool closes_block = is_root_command(name) && scanner->depth > 0 &&
-                      !is_conditional(innermost_block(scanner));
-  if (paragraph_end &&
-      (find_block(name) >= 0 || starts_item(scanner, name) ||
-       is_root_command(name)) &&
+  bool root = is_root_command(&name);
+  bool item = starts_item(scanner, &name);
+  if (paragraph_end && (name.block >= 0 || item || root) &&
       starts_line(&start)) {
     lexer->result_symbol = PARAGRAPH_END_AT_LINE_START;
     return true;
@@ -1990,18 +2048,16 @@ static bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symbols,
   // closes an ordinary brace command at the start of its line too, and so
   // does a list's next item. A node or section closes any brace command.
   if (valid_symbols[BRACE_CLOSE_AT_PARAGRAPH_END] &&
-      (closes_brace(name) || starts_item(scanner, name) ||
-       is_root_command(name)) &&
-      starts_line(&start)) {
+      (closes_brace(&name) || item || root) && starts_line(&start)) {
     lexer->result_symbol = BRACE_CLOSE_AT_PARAGRAPH_END;
     return true;
   }
-  if (valid_symbols[BRACE_CLOSE_AT_BLOCK_END] && is_root_command(name) &&
-      starts_line(&start)) {
+  if (valid_symbols[BRACE_CLOSE_AT_BLOCK_END] && root && starts_line(&start)) {
     lexer->result_symbol = BRACE_CLOSE_AT_BLOCK_END;
     return true;
   }
-  if (closes_block && valid_symbols[MISSING_END]) {
+  if (root && valid_symbols[MISSING_END] && scanner->depth > 0 &&
+      innermost_block(scanner)->kind != KIND_CONDITIONAL) {
     scanner->depth--;
     lexer->result_symbol = MISSING_END;
     return true;
@@ -2011,26 +2067,26 @@ static bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symbols,
   // drops: an extra, so that the rest of the line goes on as it would
   // without it. Only where a command may be, not in raw text such as
   // `@set`'s value.
-  if (valid_symbols[MISPLACED_COMMAND] && is_item_command(name) &&
-      !starts_item(scanner, name) && !in_raw_text(valid_symbols)) {
+  if (valid_symbols[MISPLACED_COMMAND] && (name.flags & ITEM) && !item &&
+      !in_raw_text(valid_symbols)) {
     return accept(lexer, MISPLACED_COMMAND);
   }
   // And one before a list's first item, right after its head.
   if (valid_symbols[LEADING_ITEM_COMMAND] &&
-      leading_item_command(scanner, name)) {
+      leading_item_command(scanner, &name)) {
     return accept(lexer, LEADING_ITEM_COMMAND);
   }
 
-  if (strcmp(name, "node") == 0) {
+  if ((name.flags & ROOT) && same_name(name.text, "node")) {
     return scan_node_before_section(scanner, lexer, valid_symbols);
   }
-  int level = section_level(name, scanner->section_shift);
+  int level = section_level(&name, scanner->section_shift);
   if (level >= 2 && valid_symbols[SECTION_COMMAND + level - 2]) {
     return accept(lexer, SECTION_COMMAND + level - 2);
   }
 
-  int token = command_token(scanner, valid_symbols, name);
-  if (preformatted && starts_paragraph(name, token)) {
+  int token = command_token(scanner, valid_symbols, &name);
+  if (preformatted && starts_paragraph(&name, token)) {
     lexer->result_symbol = PREFORMATTED_START;
     return true;
   }
@@ -2040,17 +2096,16 @@ static bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symbols,
     return true;
   }
   if (token >= 0) {
-    count_section_shift(&scanner->section_shift, name);
+    count_section_shift(&scanner->section_shift, &name);
     if (token == BRACE_COMMAND_NAME) {
-      scanner->after_accent =
-          in_table(LETTER_ACCENTS, TABLE_COUNT(LETTER_ACCENTS), name);
+      scanner->after_accent = name.flags & ACCENT;
     }
     return accept(lexer, (enum TokenType)token);
   }
 
   // read_name stops at the first character that can't be part of a name, so
   // `@html@c` opens a raw block, as in texi2any.
-  return scan_block_start(scanner, lexer, valid_symbols, name);
+  return scan_block_start(scanner, lexer, valid_symbols, &name);
 }
 
 bool tree_sitter_texinfo_external_scanner_scan(void *payload, TSLexer *lexer,

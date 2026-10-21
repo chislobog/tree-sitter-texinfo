@@ -10,7 +10,7 @@
 // The levels `@raisesections` and `@lowersections` move sectioning
 // commands between, as in texi2any, and `@appendix`, a chapter a part tells
 // apart: the scanner names each command by its level as they move it
-// (SECTIONING in src/scanner.c), with a token for each.
+// (SECTION in src/scanner.c), with a token for each.
 const MOVING_LEVELS = ['chapter', 'section', 'subsection', 'subsubsection', 'appendix'];
 
 // The headings of sections, with their commands: `@part` and `@top`, which
@@ -80,7 +80,7 @@ const HEADING_COMMANDS = ['majorheading', 'chapheading', 'heading', 'subheading'
 
 // Brace commands whose argument splits at commas, with the field name of each
 // argument by position. As in texi2any, the last argument takes any further
-// commas. Like the scanner's BRACE_COMMANDS, they end at a blank line.
+// commas. Like the scanner's BRACE commands, they end at a blank line.
 const ARGUMENT_COMMANDS = {
   'node label title file manual': ['xref', 'pxref', 'ref'],
   'node label file': ['inforef', 'link'],
@@ -193,7 +193,7 @@ const DEFINITION_FIELD_SUFFIXES = [...new Set(DEFINITION_LAYOUTS.flatMap(({field
 
 /**
  * The name of a built-in brace command, recognised by the scanner
- * (BRACE_COMMANDS in src/scanner.c).
+ * (BRACE in src/scanner.c).
  *
  * @param {GrammarSymbols<string>} $
  */
@@ -351,13 +351,23 @@ export default grammar({
   // wasn't. Found by `tree-sitter fuzz`; inlined, they cost 4 parser states.
   // A line of inline content, the most common node of all, and a brace
   // command's first line: inlined, they save a reduction each, 15% of all
-  // in the large manuals, which parse 5% faster, and 6 parser states.
+  // in the large manuals, which parse 5% faster, and 6 parser states. The
+  // other hidden rules here cost no parser states inlined (26 fewer
+  // together) and save 4% of the reductions, 1.7% of the instructions.
   inline: $ => [
     $._paragraph_line_commands,
     $._body_start,
     $._between_lines,
     $._line,
     $._brace_first_line,
+    $._line_brace_arguments,
+    $._line_argument_inline,
+    $._argument_line,
+    $._argument_command,
+    $._block_rest,
+    $._definition_word_part,
+    $._menu_entry_rest,
+    $._menu_entry_end,
   ],
 
   // Every section, for queries: `(_section)`.
@@ -557,7 +567,7 @@ export default grammar({
     _chapter_content: $ => prec.right(repeat1(choice($._content, $.section, $.subsection, $.subsubsection))),
 
     // A command that starts no paragraph, as in texi2any (`@anchor`,
-    // `@noindent`; NO_PARAGRAPH_COMMANDS in src/scanner.c), where one would
+    // `@noindent`; NO_PARAGRAPH in src/scanner.c), where one would
     // start: alone on a line, or before the text that starts it. Inside an
     // open paragraph, it's one of its inline commands.
     _no_paragraph_command: $ => prec.right(seq(
@@ -658,7 +668,7 @@ export default grammar({
       $._line_end,
     ),
 
-    // The scanner recognises line commands by name (LINE_COMMANDS in
+    // The scanner recognises line commands by name (LINE in
     // src/scanner.c), including user-defined index commands.
     line_command: $ => lineCommand($, $._line_command_name, $._line_end),
 
@@ -941,8 +951,10 @@ export default grammar({
           optional($._description_blocks),
           $._line,
         ))),
+        // As a paragraph's end (_paragraph_lines).
         choice(
-          $._line_end,
+          $._newline,
+          $._end_of_file,
           $._comment_lines,
           seq(choice($._newline, $._comment_lines), $._description_blocks),
         ),
@@ -1351,9 +1363,14 @@ export default grammar({
       // Or zero-width at the start of a line that ends it (blank, an `@end`
       // or a block), when a line command inside a brace command took the
       // newline before it. Comment lines and line commands before a line that
-      // ends it, but not a blank one, stay in it.
+      // ends it, but not a blank one, stay in it. The newline and the end of
+      // the file rather than `_line_end`, which a newline can't be reduced to
+      // before the line after it tells whether line commands follow it: a
+      // reduction fewer for each paragraph, 1% of the instructions, and 40
+      // parser states fewer.
       choice(
-        $._line_end,
+        $._newline,
+        $._end_of_file,
         $._paragraph_end_at_line_start,
         $._paragraph_end_before_command,
         $._comment_lines,
@@ -1393,7 +1410,7 @@ export default grammar({
         )),
       )),
       prec.right(seq(
-        // Built-in brace commands, recognised by the scanner (BRACE_COMMANDS
+        // Built-in brace commands, recognised by the scanner (BRACE
         // in src/scanner.c): their argument ends at a blank line.
         field('name', alias($._brace_command_name, $.command_name)),
         optional(choice(
@@ -1683,7 +1700,7 @@ export default grammar({
     // Text in an argument other than the last, where a comma separates.
     _argument_text: _ => /[^@{}, \t\n\r\v\f]([^@{},\n]*[^@{}, \t\n\r\v\f])?/,
 
-    // For brace commands other than the scanner's BRACE_COMMANDS, which may contain blank
+    // For brace commands other than the scanner's BRACE ones, which may contain blank
     // lines.
     _long_arguments: $ => choice(
       // A block may also start right after the `{`.

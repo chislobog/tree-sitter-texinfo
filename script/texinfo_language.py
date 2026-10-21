@@ -3,8 +3,9 @@
 The parser is built into build/ when src/ is newer than the build, or into
 another checkout's build/ for comparing with an earlier revision.
 
-Also holds BLOCK_NAMES (from the scanner's table), ARGUMENT_FIELDS (from the
-grammar's), the file sets (manuals,
+Also reads the scanner's tables of commands and blocks (scanner_commands,
+scanner_blocks, BLOCK_NAMES), and holds ARGUMENT_FIELDS (from the
+grammar's table), the file sets (manuals,
 edited-manuals, compared-manuals, test-inputs) and helpers to add them as
 arguments to argparse.
 """
@@ -31,10 +32,31 @@ def _library_extension() -> str:
     return ".so"
 
 
+def _scanner_table(source: str, table: str) -> list[tuple[str, str]]:
+    match = re.search(rf"\b{table}\[\] = \{{\n(.*?)\n\}};", source, re.S)
+    if match is None:
+        raise SystemExit(f"no table {table} in the scanner")
+    return re.findall(r'\{"([^"]+)", ([^}]+)\}', match.group(1))
+
+
+def scanner_commands(source: str) -> dict[str, frozenset[str]]:
+    """The scanner's table of commands other than blocks (COMMANDS in
+    src/scanner.c's `source`), in its order: each name with its flags, a
+    sectioning command's level among them as `LEVEL(N)`."""
+    return {
+        name: frozenset(flag.strip() for flag in flags.split("|"))
+        for name, flags in _scanner_table(source, "COMMANDS")
+    }
+
+
+def scanner_blocks(source: str) -> dict[str, str]:
+    """The scanner's table of blocks (BLOCKS in src/scanner.c's `source`),
+    in its order: each name with its kind, such as `KIND_DEFINITION + 2`."""
+    return dict(_scanner_table(source, "BLOCKS"))
+
+
 # Block names, from the scanner's table.
-BLOCK_NAMES = frozenset(
-    re.findall(r'\{"(\w+)", KIND_\w+(?: \+ \d+)?\}', (ROOT / "src" / "scanner.c").read_text())
-)
+BLOCK_NAMES = frozenset(scanner_blocks((ROOT / "src" / "scanner.c").read_text()))
 
 
 def _argument_fields() -> dict[str, tuple[str, ...]]:

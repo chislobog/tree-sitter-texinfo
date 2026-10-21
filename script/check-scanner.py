@@ -8,26 +8,30 @@
   name (`NODE_BEFORE`), so its size must be the gap.
 - Each definition block's layout (`KIND_DEFINITION + N` in `BLOCKS`) is the
   one whose line commands include its `x` form (`@deffn`, `@deffnx`).
-- Each sectioning command's level (`SECTIONING`) is texi2any's (its
-  `command_structuring_level`), and `@part`'s and `@top`'s those of the
-  grammar's headings that name them; every sectioning command of
-  texi2any's is in `SECTIONING`, so that it starts its section.
-- The keywords of the grammar's rules of a line's command are in
-  `LINE_KEYWORDS`, so that preformatted text doesn't start at them.
-- The tables of command names don't overlap, nor end in `index` (which
-  makes a line command), so the order in which the scanner tries them
-  doesn't matter; the accents without braces are brace commands; and
-  `BRACE_COMMANDS` is sorted, for its binary search.
+- Each sectioning command's level (`SECTION | LEVEL(N)` in `COMMANDS`) is
+  texi2any's (its `command_structuring_level`), and `@part`'s and `@top`'s
+  those of the grammar's headings that name them; every sectioning command
+  of texi2any's is a `SECTION`, so that it starts its section.
+- The keywords of the grammar's rules of a line's command are the
+  `KEYWORD`s, so that preformatted text doesn't start at them.
+- `COMMANDS` and `BLOCKS` are sorted, for their binary search, and don't
+  share a name. A command is at most one of a line command, a brace
+  command, a context command, an item, a section, a root command and a
+  comment, and the names `command_token` compares are of none but an item,
+  so the order in which it tries them doesn't matter. Only line commands
+  end in `index` (which makes one), only brace commands are accents
+  without braces, and only sections have a level.
 - The names are texi2any's (the texi2any on the path), in its classes: the
   line commands are its line commands, those that end a paragraph its
   `close_paragraph_commands` and the others not; the brace commands its
-  brace commands; the blocks all its blocks, each of the kind its category
-  makes it, and the preformatted ones and conditionals as it has them, and
-  of the raw blocks only `@verbatim` ends a paragraph; the brace commands
-  that end a paragraph its brace commands among `close_paragraph_commands`;
-  and the commands that start no paragraph its `no_paragraph_commands`, but
-  for the line and block commands and those the grammar recognises
-  otherwise.
+  brace commands, the context commands its context brace commands but
+  `@math`, and the accents its accent commands that are letters; the
+  blocks all its blocks, each of the kind its category makes it, the
+  preformatted ones as it has them, and of the raw blocks only `@verbatim`
+  ends a paragraph; the commands with braces that end a paragraph its
+  brace commands among `close_paragraph_commands`; and the commands that
+  start no paragraph its `no_paragraph_commands`, but for the line and
+  block commands and those the grammar recognises otherwise.
 
 Usage: script/check-scanner.py [--scanner FILE] [--grammar FILE]
 """
@@ -38,7 +42,7 @@ import re
 import sys
 from pathlib import Path
 
-from texinfo_language import ROOT, texi2any_table
+from texinfo_language import ROOT, scanner_blocks, scanner_commands, texi2any_table
 
 # The scanner's kind of block for each category of texi2any's
 # `%block_commands`; KIND_BLOCK for the others.
@@ -49,8 +53,10 @@ BLOCK_KINDS = {
     "menu": "KIND_MENU",
     "multitable": "KIND_MULTITABLE",
     "float": "KIND_FLOAT",
-    "item_container": "KIND_LIST",
-    "item_line": "KIND_LIST",
+    "item_container": "KIND_ITEM_CONTAINER",
+    "item_line": "KIND_ITEM_LINE",
+    "preformatted": "KIND_PREFORMATTED",
+    "conditional": "KIND_CONDITIONAL",
 }
 # Blocks whose kind differs from their category on purpose.
 BLOCK_KIND_EXCEPTIONS = {
@@ -63,16 +69,15 @@ BLOCK_KIND_EXCEPTIONS = {
 }
 
 
-# texi2any's commands that start no paragraph which NO_PARAGRAPH_COMMANDS
-# leaves out, as the grammar recognises them otherwise.
+# texi2any's commands that start no paragraph which aren't NO_PARAGRAPH in
+# the scanner, as the grammar recognises them otherwise.
 NO_PARAGRAPH_ELSEWHERE = {
     # Items and cells, which start no paragraph anyway.
     "item",
     "headitem",
     "tab",
-    # The context commands, which end a paragraph too
-    # (PARAGRAPH_ENDING_BRACE_COMMANDS), and `@*`, a symbol, which the
-    # scanner tells by itself.
+    # The context commands, which end a paragraph too (ENDS_PARAGRAPH), and
+    # `@*`, a symbol, which the scanner tells by itself.
     "caption",
     "shortcaption",
     "*",
@@ -83,12 +88,20 @@ NO_PARAGRAPH_ELSEWHERE = {
 }
 
 
-def c_strings(source: str, table: str) -> list[str]:
-    """The string literals in the C array `table`."""
-    match = re.search(rf"\b{table}\[\]\s*=\s*\{{(.*?)\n?\}};", source, re.S)
-    if not match:
-        raise SystemExit(f"no table {table} in the scanner")
-    return re.findall(r'"([^"]*)"', match.group(1))
+# The flags of COMMANDS a command has at most one of.
+EXCLUSIVE_FLAGS = ("LINE", "BRACE", "CONTEXT", "ITEM", "SECTION", "ROOT", "COMMENT")
+
+
+def with_flag(commands: dict[str, frozenset[str]], flag: str) -> set[str]:
+    return {name for name, flags in commands.items() if flag in flags}
+
+
+def section_level(flags: frozenset[str]) -> int | None:
+    """A command's LEVEL(N), if it has one."""
+    for flag in flags:
+        if match := re.fullmatch(r"LEVEL\((\d+)\)", flag):
+            return int(match.group(1))
+    return None
 
 
 def function_body(source: str, name: str) -> str:
@@ -184,22 +197,19 @@ def check_layouts(source: str, grammar: dict) -> list[str]:
     return problems
 
 
-# texi2any's level of each level in SECTIONING (command_structuring_level):
+# texi2any's level of each LEVEL in the scanner (command_structuring_level):
 # part, top, chapter, section, subsection, subsubsection, appendix.
 TEXI2ANY_LEVELS = (0, 0, 1, 2, 3, 4, 1)
 
 
 def check_sections(source: str, grammar: dict) -> list[str]:
-    """SECTIONING has texi2any's sectioning commands, each at its level, and
-    the commands the grammar's part and top headings name at theirs."""
+    """The SECTIONs are texi2any's sectioning commands, each at its level,
+    and the commands the grammar's part and top headings name at theirs."""
     sections = [
         name.removeprefix("_node_before_")
         for name in (e["name"] for e in grammar["externals"])
         if name.startswith("_node_before_")
     ]
-    match = re.search(r"\} SECTIONING\[\] = \{(.*?)\};", source, re.S)
-    if not match:
-        raise SystemExit("no table SECTIONING in the scanner")
     headings = keywords(grammar["rules"]["standalone_heading"])
     texi2any = {
         name: int(level)
@@ -207,10 +217,14 @@ def check_sections(source: str, grammar: dict) -> list[str]:
         if name not in headings
     }
     problems = []
-    levels = {
-        command: int(level) for command, level in re.findall(r'\{"(\w+)", (\d+)\}', match.group(1))
-    }
+    commands = scanner_commands(source)
+    levels = {name: section_level(flags) for name, flags in commands.items() if "SECTION" in flags}
+    for name, flags in commands.items():
+        if ("SECTION" in flags) != (section_level(flags) is not None):
+            problems.append(f"@{name} has a level or is a SECTION, but not both")
     for command, level in levels.items():
+        if level is None:
+            continue
         fixed = level < 2 and command not in keywords(
             grammar["rules"][f"{sections[level]}_heading"]
         )
@@ -222,7 +236,7 @@ def check_sections(source: str, grammar: dict) -> list[str]:
             problems.append(f"@{command} has level {level}, which isn't its section's")
     for command in sorted(set(texi2any) - set(levels)):
         section = sections[TEXI2ANY_LEVELS.index(texi2any[command])]
-        problems.append(f"@{command} starts a {section} but isn't in SECTIONING")
+        problems.append(f"@{command} starts a {section} but isn't a SECTION")
     return problems
 
 
@@ -233,25 +247,25 @@ def check_texi2any(source: str) -> list[str]:
     closing = texi2any_table("Commands", "close_paragraph_commands")
     preformatted = texi2any_table("Commands", "preformatted_commands")
     no_paragraph = texi2any_table("Commands", "no_paragraph_commands")
+    commands = scanner_commands(source)
     problems = []
-    for table, known, kind in (
-        ("LINE_COMMANDS", line, "line"),
-        ("PARAGRAPH_ENDING_LINE_COMMANDS", line, "line"),
-        ("BRACE_COMMANDS", brace, "brace"),
-    ):
-        for name in c_strings(source, table):
-            if name not in known:
-                problems.append(f"@{name} in {table} isn't one of texi2any's {kind} commands")
-    for name in c_strings(source, "PARAGRAPH_ENDING_LINE_COMMANDS"):
-        if name not in closing:
-            problems.append(f"@{name} ends a paragraph, which it doesn't in texi2any")
-    for name in c_strings(source, "LINE_COMMANDS"):
-        if name in closing:
+    for flag, known, kind in (("LINE", line, "line"), ("BRACE", brace, "brace")):
+        for name in sorted(with_flag(commands, flag) - known.keys()):
+            problems.append(f"@{name} is {flag}, but isn't one of texi2any's {kind} commands")
+    for name in sorted(with_flag(commands, "LINE")):
+        if ("ENDS_PARAGRAPH" in commands[name]) != (name in closing):
             problems.append(
-                f"@{name} ends a paragraph in texi2any, but isn't in PARAGRAPH_ENDING_LINE_COMMANDS"
+                f"@{name} ends a paragraph on one side only, ENDS_PARAGRAPH or texi2any"
             )
-    ours = dict(re.findall(r'\{"(\w+)", (KIND_\w+)(?: \+ \d+)?\}', source))
+    context = {name for name, category in brace.items() if category == "context"} - {"math"}
+    for name in sorted(with_flag(commands, "CONTEXT") ^ context):
+        problems.append(f"@{name} is a context command on one side only, CONTEXT or texi2any")
+    accents = {name for name, category in brace.items() if category == "accent" and name.isalpha()}
+    for name in sorted(with_flag(commands, "ACCENT") ^ accents):
+        problems.append(f"@{name} is a letter accent on one side only, ACCENT or texi2any")
+    ours = scanner_blocks(source)
     for name, kind in sorted(ours.items()):
+        kind = kind.partition(" + ")[0]
         if name not in blocks:
             problems.append(f"@{name} in BLOCKS isn't one of texi2any's blocks")
             continue
@@ -264,33 +278,24 @@ def check_texi2any(source: str) -> list[str]:
     raw = {name for name, kind in ours.items() if kind == "KIND_RAW"}
     for name in sorted((raw & closing.keys()) ^ {"verbatim"}):
         problems.append(f"@{name} ends a paragraph on one side only, scan_block_start or texi2any")
-    for name in sorted(set(c_strings(source, "PREFORMATTED")) ^ preformatted.keys()):
-        problems.append(f"@{name} is preformatted on one side only, in_preformatted or texi2any")
-    for name in sorted(
-        set(c_strings(source, "PARAGRAPH_ENDING_BRACE_COMMANDS"))
-        ^ {n for n in closing if n in brace}
-    ):
+    ours_preformatted = {name for name, kind in ours.items() if kind == "KIND_PREFORMATTED"}
+    for name in sorted(ours_preformatted ^ preformatted.keys()):
+        problems.append(f"@{name} is preformatted on one side only, KIND_PREFORMATTED or texi2any")
+    ending = with_flag(commands, "ENDS_PARAGRAPH") - with_flag(commands, "LINE")
+    for name in sorted(ending ^ {n for n in closing if n in brace}):
         problems.append(
             f"@{name} is a brace command that ends a paragraph on one side only, "
-            "PARAGRAPH_ENDING_BRACE_COMMANDS or texi2any"
+            "ENDS_PARAGRAPH or texi2any"
         )
     starts_none = {n for n in no_paragraph if n not in line and n not in blocks}
-    for name in sorted(
-        set(c_strings(source, "NO_PARAGRAPH_COMMANDS")) ^ (starts_none - NO_PARAGRAPH_ELSEWHERE)
-    ):
-        problems.append(
-            f"@{name} starts no paragraph on one side only, NO_PARAGRAPH_COMMANDS or texi2any"
-        )
-    for name in sorted(blocks):
-        if (blocks[name] == "conditional") != name.startswith("if"):
-            problems.append(
-                f"@{name} is a conditional on one side only, is_conditional or texi2any"
-            )
+    starts_none -= NO_PARAGRAPH_ELSEWHERE
+    for name in sorted(with_flag(commands, "NO_PARAGRAPH") ^ starts_none):
+        problems.append(f"@{name} starts no paragraph on one side only, NO_PARAGRAPH or texi2any")
     return problems
 
 
 # The grammar's rules of a line's command, whose keywords start no paragraph
-# (LINE_KEYWORDS in the scanner).
+# (KEYWORD in the scanner).
 LINE_KEYWORD_RULES = (
     "standalone_heading",
     "_keyword_line_command",
@@ -321,44 +326,46 @@ def keywords(rule) -> set[str]:
 
 
 def check_keywords(source: str, grammar: dict) -> list[str]:
-    listed = set(c_strings(source, "LINE_KEYWORDS"))
+    listed = with_flag(scanner_commands(source), "KEYWORD")
     lines = set().union(*(keywords(grammar["rules"][rule]) for rule in LINE_KEYWORD_RULES))
     return [
-        *(
-            f"@{n} starts a line in the grammar but isn't in LINE_KEYWORDS"
-            for n in sorted(lines - listed)
-        ),
-        *(
-            f"@{n} is in LINE_KEYWORDS but starts no line in the grammar"
-            for n in sorted(listed - lines)
-        ),
+        *(f"@{n} starts a line in the grammar but isn't a KEYWORD" for n in sorted(lines - listed)),
+        *(f"@{n} is a KEYWORD but starts no line in the grammar" for n in sorted(listed - lines)),
     ]
 
 
 def check_names(source: str) -> list[str]:
-    tables = {
-        "LINE_COMMANDS": set(c_strings(source, "LINE_COMMANDS")),
-        "PARAGRAPH_ENDING_LINE_COMMANDS": set(c_strings(source, "PARAGRAPH_ENDING_LINE_COMMANDS")),
-        "BRACE_COMMANDS": set(c_strings(source, "BRACE_COMMANDS")),
-        "BLOCKS": set(re.findall(r'\{"(\w+)", KIND_\w+(?: \+ \d+)?\}', source)),
-        "SECTIONING": set(re.findall(r'\{"(\w+)", \d+\}', source)),
-        "command_token": set(re.findall(r'"(\w+)"', function_body(source, "command_token"))),
-        "scan": {"end", "node"},
-    }
+    commands = scanner_commands(source)
+    blocks = scanner_blocks(source)
     problems = []
-    names = list(tables)
-    for i, first in enumerate(names):
-        for second in names[i + 1 :]:
-            for name in sorted(tables[first] & tables[second]):
-                problems.append(f"@{name} is in both {first} and {second}")
-        if first not in ("LINE_COMMANDS", "PARAGRAPH_ENDING_LINE_COMMANDS"):
-            for name in sorted(n for n in tables[first] if len(n) > 5 and n.endswith("index")):
-                problems.append(f"@{name} in {first} ends in `index`, which makes a line command")
-    brace = c_strings(source, "BRACE_COMMANDS")
-    if brace != sorted(brace):
-        problems.append("BRACE_COMMANDS isn't sorted, which its binary search needs")
-    for name in sorted(set(c_strings(source, "LETTER_ACCENTS")) - tables["BRACE_COMMANDS"]):
-        problems.append(f"the accent @{name} isn't in BRACE_COMMANDS")
+    for table, names in (("COMMANDS", list(commands)), ("BLOCKS", list(blocks))):
+        if names != sorted(names):
+            problems.append(f"{table} isn't sorted, which its binary search needs")
+    for name in sorted(commands.keys() & blocks.keys()):
+        problems.append(f"@{name} is in both COMMANDS and BLOCKS")
+    known = {*EXCLUSIVE_FLAGS, "ENDS_PARAGRAPH", "ACCENT", "NO_PARAGRAPH", "KEYWORD"}
+    for name, flags in commands.items():
+        exclusive = [flag for flag in EXCLUSIVE_FLAGS if flag in flags]
+        if len(exclusive) > 1:
+            problems.append(f"@{name} is {' and '.join(exclusive)}, which exclude each other")
+        for flag in sorted(flags - known):
+            if section_level(frozenset([flag])) is None:
+                problems.append(f"@{name} has the unknown flag {flag}")
+        if "ACCENT" in flags and "BRACE" not in flags:
+            problems.append(f"the accent @{name} isn't a brace command")
+        if "LINE" not in flags and len(name) > 5 and name.endswith("index"):
+            problems.append(f"@{name} ends in `index`, which makes a line command, but isn't LINE")
+    for name in sorted(blocks):
+        if len(name) > 5 and name.endswith("index"):
+            problems.append(f"the block @{name} ends in `index`, which makes a line command")
+    # The names that command_token and scan compare by themselves.
+    compared = {*re.findall(r'"(\w+)"', function_body(source, "command_token")), "end", "node"}
+    for name in sorted(compared):
+        if name in blocks:
+            problems.append(f"@{name}, which the scanner compares by name, is a block")
+        flags = commands.get(name, frozenset()) & set(EXCLUSIVE_FLAGS) - {"ITEM", "ROOT"}
+        for flag in sorted(flags):
+            problems.append(f"@{name}, which the scanner compares by name, is {flag}")
     return problems
 
 

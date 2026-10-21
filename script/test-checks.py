@@ -337,53 +337,90 @@ def check_scanner(checker: Checker):
         ),
         (
             "a sectioning command's level",
-            ('{"chapter", 2}', '{"chapter", 3}'),
+            ('{"chapter", SECTION | LEVEL(2)}', '{"chapter", SECTION | LEVEL(3)}'),
             "@chapter has level 3, which isn't its section's",
         ),
         (
-            "a name in two tables",
-            ('"include",', '"include", "code",'),
-            "@code is in both LINE_COMMANDS and BRACE_COMMANDS",
+            "a level without a section",
+            ('{"chapter", SECTION | LEVEL(2)}', '{"chapter", LEVEL(2)}'),
+            "@chapter has a level or is a SECTION, but not both",
+        ),
+        (
+            "a command of two classes",
+            ('{"code", BRACE}', '{"code", LINE | BRACE}'),
+            "@code is LINE and BRACE, which exclude each other",
+        ),
+        (
+            "a command that is a block",
+            (
+                '{"dircategory", LINE | ENDS_PARAGRAPH},',
+                '{"dircategory", LINE | ENDS_PARAGRAPH},\n    {"display", BRACE},',
+            ),
+            "@display is in both COMMANDS and BLOCKS",
         ),
         (
             "a name ending in index",
-            ('{"AA",', '{"AA", "fooindex",'),
-            "@fooindex in BRACE_COMMANDS ends in `index`",
+            ('{"AE", BRACE},', '{"AE", BRACE},\n    {"Aindex", BRACE},'),
+            "@Aindex ends in `index`, which makes a line command, but isn't LINE",
         ),
         (
-            "brace commands out of order",
-            (re.compile(r'\{"AA",(\s*)"AE",'), r'{"AE",\1"AA",'),
-            "BRACE_COMMANDS isn't sorted",
+            "commands out of order",
+            (
+                re.compile(r'\{"AA", BRACE\},(\s*)\{"AE", BRACE\},'),
+                r'{"AE", BRACE},\1{"AA", BRACE},',
+            ),
+            "COMMANDS isn't sorted",
+        ),
+        (
+            "blocks out of order",
+            (
+                re.compile(r'\{"cartouche", KIND_BLOCK\},(\s*)\{"copying", KIND_BLOCK\},'),
+                r'{"copying", KIND_BLOCK},\1{"cartouche", KIND_BLOCK},',
+            ),
+            "BLOCKS isn't sorted",
         ),
         (
             "an accent that isn't a brace command",
-            (re.compile(r'\n *"ogonek",'), ""),
-            "the accent @ogonek isn't in BRACE_COMMANDS",
+            ('{"ogonek", BRACE | ACCENT}', '{"ogonek", ACCENT}'),
+            "the accent @ogonek isn't a brace command",
+        ),
+        (
+            "an accent missing",
+            ('{"ogonek", BRACE | ACCENT}', '{"ogonek", BRACE}'),
+            "@ogonek is a letter accent on one side only, ACCENT or texi2any",
+        ),
+        (
+            "a name compared that is a brace command",
+            (
+                '{"maketitle", LINE | ENDS_PARAGRAPH},',
+                '{"maketitle", LINE | ENDS_PARAGRAPH},\n    {"math", BRACE},',
+            ),
+            "@math, which the scanner compares by name, is BRACE",
         ),
         (
             "a sectioning command missing",
-            ('    {"centerchap", 2},\n', ""),
-            "@centerchap starts a chapter but isn't in SECTIONING",
+            ('    {"centerchap", SECTION | LEVEL(2)},\n', ""),
+            "@centerchap starts a chapter but isn't a SECTION",
         ),
         (
             "a line keyword missing",
-            ('"unmacro",', ""),
-            "@unmacro starts a line in the grammar but isn't in LINE_KEYWORDS",
+            ('    {"unmacro", KEYWORD},\n', ""),
+            "@unmacro starts a line in the grammar but isn't a KEYWORD",
         ),
         (
             "a name texi2any doesn't have",
-            ('"include",', '"include", "foo",'),
-            "@foo in LINE_COMMANDS isn't one of texi2any's line commands",
+            ('{"include", LINE},', '{"include", LINE},\n    {"includf", LINE},'),
+            "@includf is LINE, but isn't one of texi2any's line commands",
         ),
         (
             "a line command that ends a paragraph in texi2any",
-            ('"include",', '"include", "page",'),
-            "@page ends a paragraph in texi2any, but isn't in PARAGRAPH_ENDING_LINE_COMMANDS",
+            ('{"page", LINE | ENDS_PARAGRAPH}', '{"page", LINE}'),
+            "@page ends a paragraph on one side only, ENDS_PARAGRAPH or texi2any",
         ),
         (
             "a block of the wrong kind",
-            ('{"example", KIND_BLOCK}', '{"example", KIND_RAW}'),
-            "@example is KIND_RAW, but texi2any's preformatted makes it KIND_BLOCK",
+            ('{"example", KIND_PREFORMATTED}', '{"example", KIND_RAW}'),
+            "@example is KIND_RAW, but texi2any's preformatted makes it KIND_PREFORMATTED",
         ),
         (
             "a block missing",
@@ -392,14 +429,22 @@ def check_scanner(checker: Checker):
         ),
         (
             "a command that starts no paragraph missing",
-            ('"noindent", "refill",', '"noindent",'),
-            "@refill starts no paragraph on one side only, NO_PARAGRAPH_COMMANDS or texi2any",
+            ('    {"refill", NO_PARAGRAPH},\n', ""),
+            "@refill starts no paragraph on one side only, NO_PARAGRAPH or texi2any",
         ),
         (
             "a brace command that ends a paragraph missing",
-            (re.compile(r'("shortcaption"),\s*"titlefont"\}'), r"\1}"),
+            (
+                '{"titlefont", ENDS_PARAGRAPH | BRACE | NO_PARAGRAPH}',
+                '{"titlefont", BRACE | NO_PARAGRAPH}',
+            ),
             "@titlefont is a brace command that ends a paragraph on one side only, "
-            "PARAGRAPH_ENDING_BRACE_COMMANDS or texi2any",
+            "ENDS_PARAGRAPH or texi2any",
+        ),
+        (
+            "a context command missing",
+            ('{"footnote", CONTEXT}', '{"footnote", BRACE}'),
+            "@footnote is a context command on one side only, CONTEXT or texi2any",
         ),
     ]
     for title, (old, new), message in changes:
