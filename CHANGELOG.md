@@ -124,6 +124,9 @@ lowered sections), which bumps the minor version.
 - An accent at the end of a line no longer makes a comment line after it
   end its paragraph; a bare comment after `@end` in a paragraph and a
   comment right after a definition word are comments again.
+- A command after a macro's name or parameters (`@macro aaa @node X`) is
+  part of the macro line's raw text, as in texi2any: it was an error that
+  lost the whole macro definition.
 - Edge cases: a `@verb` delimiter that isn't UTF-8, more than 64 nested
   `@ignore` blocks, a user-defined index command of 32 characters or
   more, and a NUL before `@end`.
@@ -135,10 +138,18 @@ lowered sections), which bumps the minor version.
   such nodes parse in quadratic time.
 - An incremental parse no longer differs from a fresh one after edits on
   a conditional's first line after a paragraph, or before an accent at
-  the end of a line.
+  the end of a line; nor after an edit by an index entry in a paragraph,
+  which took an `@anchor` or `@image` on the next line out of it, or one
+  that brought back a `@deffnx` after a comment line, which went into the
+  definition's body.
 
 ### Queries
 
+- A table item's term (`@item --verbose`) is highlighted as strong text,
+  the text of an index entry and of a subentry as a special string, and
+  the flag of `@ifset`, `@ifclear`, `@inlineifset` and `@inlineifclear` as
+  a variable. Neovim gets the `entry` textobjects (items, rows, menu
+  entries).
 - Emacs Lisp is injected into `@lisp` and `@smalllisp`, XML into
   `@inlineraw{docbook, ...}`.
 - `@ignore`'s body is highlighted as a comment; `@display` and `@format`
@@ -209,6 +220,16 @@ a parser with 7,400 states instead of 12,400 (`parser.c` is 14.5 MB, not
   ending it; a heading may be inside a footnote or caption; a definition
   word is joined across a line ending in `@`; an unclosed `@verb` and
   small errors being typed no longer reach past their paragraph.
+- A menu entry's description goes on past comment lines and any block but
+  a conditional or a menu, as in texi2any: they ended it.
+- `@set`'s value starts after its blanks, as texi2any's does; a NUL and a
+  carriage return not before a newline are blanks, which were parse
+  errors; an accent without braces at the end of a line command's line
+  has no argument, as in texi2any, where it took the next line's first
+  character; braces stay open over blank lines in any block inside
+  `@example`, not only in `@example` itself; and a block left open at the
+  end of a file that ends in a line of blanks closes there, which was an
+  error.
 
 ### Queries
 
@@ -223,6 +244,11 @@ a parser with 7,400 states instead of 12,400 (`parser.c` is 14.5 MB, not
   (go-tree-sitter and py-tree-sitter 0.25); the Python source
   distribution includes the scanner; each binding's test parses a
   document.
+
+### Performance
+
+- A long line no longer parses in quadratic time: a line of 8,000
+  `@code{x}` took 4.6 s, and takes 35 ms.
 
 ## 0.1.0
 
