@@ -39,7 +39,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: cachix/install-nix-action@448cde739abec1eaf0646249e3d25bb8d9bc7702 # v31.11.2
+      - uses: cachix/install-nix-action@3dc140bfc76c49fbd4dd958429132e3746bcb086 # v31.11.5
 
       # The Nix store from the last run, so the checks whose inputs didn't
       # change aren't built again. Keyed by those inputs, so a run that
@@ -98,7 +98,7 @@ jobs:
         with:
           tree-sitter-ref: v0.26.11
 
-      - uses: tree-sitter/parser-test-action@05f6ce7c7e54603c45cd87ed926725dc870bcc63 # v3
+      - uses: tree-sitter/parser-test-action@8e31a1fc364f0669ab091a3829ac961cce58033a # v3
         with:
           generate: false
           test-parser: ${{ matrix.os != 'ubuntu-latest' }}
